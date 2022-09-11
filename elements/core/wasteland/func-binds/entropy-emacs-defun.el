@@ -79,7 +79,12 @@ arg for `eval'."
   (eval form (or actual-lexical-binding t)))
 
 (defun entropy/emacs-defun--group-memq-p (seq1 seq2)
-  "Return non-nil immediately while any element in sequnece SEQ1 `memq' in SEQ2."
+  "Return non-nil immediately while any element in sequnece SEQ1 `memq' in SEQ2.
+
+Either SEQ1 or SEQ2 is wrapped into a sequence when it is not a
+`sequencep' sequence."
+  (unless (sequencep seq1) (setq seq1 (list seq1)))
+  (unless (sequencep seq2) (setq seq2 (list seq2)))
   (catch :exit
     (mapc (lambda (x) (and (cl-position x seq2) (throw :exit t))) seq1)
     nil))
@@ -1208,18 +1213,68 @@ list will formed as:
 
 
 ;; *** Sequence manipulation
+(defun __eemacs-seq/safe-pos-type-invalid-err
+    (&optional seq seq-invalid-p pos pos-invalid-p)
+  (let ((pi pos-invalid-p) (si seq-invalid-p))
+    (cond
+     ((and pi si)
+      (signal 'wrong-type-argument
+              (list 'seq:non_empty_seq-or-zeroup_integerp
+                    'seq_pos:zeroup_integerp seq pos)))
+     (pi
+      (signal 'wrong-type-argument
+              (list 'seq_pos:zeroup_integer-p pos)))
+     (si
+      (signal 'wrong-type-argument
+              (list 'seq:non_empty_seq-or-zeroup_integer-p seq)))
+     (t (error "no need to err: pos and seq are all valid")))))
+
+(defun __eemacs-seq/safe-pos-error-judger
+    (seq pos allow-type pos-invalid-p seq-invalid-p)
+  (let* ((pi pos-invalid-p) (si seq-invalid-p)
+         (op      (cadr  allow-type))
+         (op-cap  (eq op 'cancel))
+         (op-rup  (eq op 'run))
+         (cod     (car allow-type))
+         (any-error-func
+          (lambda nil
+            (__eemacs-seq/safe-pos-type-invalid-err seq si pos pi)))
+         (op-rtn-func
+          (lambda nil
+            (cond (op-cap 'cancel)
+                  (op-rup 'run)
+                  (t (signal 'wrong-type-argument (list 'op-type-p op)))))))
+    (cond ((null allow-type) (funcall any-error-func))
+          (t
+           (cl-case cod
+             (if-any-invalid
+              (if (or pi si) (funcall op-rtn-func)
+                (error "[seq-safe-pos internal error]: \
+invalid judger error -> anycond")))
+             (if-both-invalid
+              (if (and pi si) (funcall op-rtn-func)
+                (funcall any-error-func)))
+             (if-only-seq-is-invalid
+              (if (and si (not pi)) (funcall op-rtn-func)
+                (funcall any-error-func)))
+             (if-only-pos-is-invalid
+              (if (and pi (not si)) (funcall op-rtn-func)
+                (funcall any-error-func)))
+             (t
+              (error "invalid condition: %s" cod)))))))
 
 (cl-defmacro entropy/emacs-seq-with-safe-pos
     (seq pos &rest body
          &key with-check-length with-set-pos set-seq-len-for with-error
+         with-invalid directly-run-when
          &allow-other-keys)
   "Run BODY with `sequencep' SEQ's position POS (a `integerp') only when
-=seq-isvalid-occasion= matched and return its value or nil otherwise.
+=type-isvalid-occasion= matched and return its value or nil otherwise.
 
 Both SEQ and POS should be a place compatible for `setf' or a variable
-name. And POS is recalculated and reset when =pos-overflow-occasion=
-matched within =seq-isvalid-occasion= context before run BODY only
-when WITH-SET-POS is set and return non-nil.
+name. And POS is recalculated and reset when some occasions like
+=pos-overflow-occasion= matched within =type-isvalid-occasion= context
+before run BODY, only when WITH-SET-POS is set and return non-nil.
 
 If WITH-CHECK-LENGTH is set and return non-nil, the
 =pos-overflow-occasion= is detected more precision that for both
@@ -1238,7 +1293,7 @@ wrong length will make unexpected fault result for all calculation.
 
 Whatever SEQ's type is, the `length' for SEQ must be larger than 0
 i.e. SEQ must not empty, otherwise it's not a
-=seq-isvalid-occasion=. In this case, if WITH-ERROR set as 'invalid',
+=type-isvalid-occasion=. In this case, if WITH-ERROR set as 'invalid',
 an error is throwed out.
 
 If WITH-ERROR is set to 'overflow' then a error throwed out while
@@ -1249,84 +1304,142 @@ run BODY. Excepts for that if WITH-SET-POS is set and return 'start'
 and =pos-overflow-occasion= matched, the POS is reset to start of SEQ
 or 'end' as for to the calculated or specified `length' of SEQ.
 
+Futher more, any other non-nil value of WITH-SET-POS is using the
+=automatic-pos-set= mechanism to reset like set negative to positive
+which will make invocation context has more easy way to use POS.
+
 Other error flag are t and 'all', both of them is indicate throwing
-error either when =seq-isvalid-occasion= or =pos-overflow-occasion=
-not matched.
+error either when =type-isvalid-occasion= is not matched or
+=pos-overflow-occasion= is matched.
 
 Optional key SET-SEQ-LEN-FOR when set, it should be a place compatible
 with `setf' or a variable name, used to store the calulated or user
 specified `length' of SEQ only when WITH-CHECK-LENGTH is triggered.
+
+If optional key WITH-INVALID is set, it will take precedence of the
+WITH-ERROR's 'invalid' type. In which case there's more precision
+charge can be used. For details, if set it should be a list of two
+elements and forms as:
+: (condition operation)
+Where _condition_ is valid as:
+1) 'if-any-invalid' : do _operation_ either when POS or SEQ is invalid
+2) 'if-both-invalid' : do _operation_ both when POS and SEQ are
+   invalid, throw common 'invalid' error otherwise.
+3) 'if-only-seq-is-invalid' : do _operation_ when only SEQ is invaid,
+   throw common 'invalid' error otherwise.
+4) 'if-only-pos-is-invalid' : do _operation_ when only POS is invaid,
+   throw common 'invalid' error otherwise.
+
+And _operation_ is valid as:
+1) 'cancel' : ignore anything and return immediately.
+2) 'run' : run BODY as well as in =type-isvalid-occasion=.
+
+
+*Finally:*
+
+Optionally key DIRECTLY-RUN-WHEN when set and return non-nil then
+directly do BODY and return its value without any above described
+procedures. This is a feature for those occasions no need to with the
+*safe* wrapper as this macro aimed to do.
 "
   (declare (indent 2))
-  (let ((seq-sym             (make-symbol "seq-place"))
-        (pos-sym             (make-symbol "pos-place"))
-        (pos-set-type-sym    (make-symbol "set-pos-type"))
-        (overflow-p-sym      (make-symbol "is-overflow-p"))
-        (check-len-p-sym     (make-symbol "with-check-len-p"))
-        (use-err-p-sym       (make-symbol "error-type"))
-        (err-occur-p-sym     (make-symbol "error-occur-p"))
-        (slen-sym            (make-symbol "seq-len"))
-        (tmpvar-sym          (make-symbol "tmpvar"))
-        (body (entropy/emacs-defun--get-real-body body)))
-    `(let* ((,seq-sym             ,seq)
-            (,pos-sym             ,pos)
-            (,pos-set-type-sym    ,with-set-pos)
-            (,check-len-p-sym     ,with-check-length)
-            (,use-err-p-sym       ,with-error)
-            ,overflow-p-sym ,err-occur-p-sym ,tmpvar-sym ,slen-sym)
-       (cond ((integerp ,seq-sym)
-              (if (> ,seq-sym 0)
-                  (setq ,slen-sym ,seq-sym)
-                (if (memq ,use-err-p-sym '(invalid all t))
-                    (signal 'wrong-type-argument (list 'zeroup-integerp ,seq-sym))
-                  (setq ,err-occur-p-sym t))))
-             ((sequencep ,seq-sym)
-              (when ,check-len-p-sym
-                (unless (> (setq ,slen-sym (length ,seq-sym)) 0)
-                  (if (memq ,use-err-p-sym '(invalid all t))
-                      (signal 'wrong-type-argument
-                              (list 'entropy/emacs-common-listp ,seq-sym))
-                    (setq ,err-occur-p-sym t)))))
-             (t
-              (if (memq ,use-err-p-sym '(invalid all t))
-                  (signal 'wrong-type-argument
-                          (list 'seq-or-zeroup-integerp ,seq-sym))
-                (setq ,err-occur-p-sym t))))
-       (unless ,err-occur-p-sym
-         (setq ,check-len-p-sym (or ,slen-sym ,check-len-p-sym))
-         (when (or ,check-len-p-sym
-                   (and (< ,pos-sym 0)
-                        (if (< (setq ,slen-sym (length ,seq-sym)) 1)
-                            (if (memq ,use-err-p-sym '(invalid all t))
-                                (signal 'wrong-type-argument
-                                        (list 'entropy/emacs-common-listp ,seq-sym))
-                              (setq ,err-occur-p-sym t)
-                              ;; no did either
-                              nil)
-                          ;; bounding indicator to t also as the result
-                          (setq ,check-len-p-sym t))))
-           (if (< ,pos-sym 0) (setq ,tmpvar-sym (+ ,pos-sym ,slen-sym))
-             (setq ,tmpvar-sym ,pos-sym))
-           (if (or (< ,tmpvar-sym 0) (> ,tmpvar-sym ,slen-sym))
-               (if (memq ,use-err-p-sym '(overflow all t))
-                   (if (sequencep ,seq-sym)
-                       (error "Bad seq pos: %s, for length %d for seq %S"
-                              ,pos-sym ,slen-sym ,seq-sym)
-                     (error "Bad seq pos: %s, for seq's specified length %d"
-                            ,pos-sym ,seq-sym))
-                 (setq ,overflow-p-sym t)
-                 (if (< ,tmpvar-sym 0) (setq ,pos-sym 0)
-                   (setq ,pos-sym ,slen-sym)))
-             (setq ,pos-sym ,tmpvar-sym)))
+  (let* ((seq-sym                   (make-symbol "seq-place"))
+         (with-invalid-p-sym        (make-symbol "allow-invalid-p"))
+         (seq-invalid-p-sym         (make-symbol "seq-invalid-p"))
+         (pos-invalid-p-sym         (make-symbol "pos-invalid-p"))
+         (pos-sym                   (make-symbol "pos-place"))
+         (pos-set-type-sym          (make-symbol "set-pos-type"))
+         (overflow-p-sym            (make-symbol "is-overflow-p"))
+         (check-len-p-sym           (make-symbol "with-check-len-p"))
+         (use-err-p-sym             (make-symbol "error-type"))
+         (err-occur-p-sym           (make-symbol "error-occur-p"))
+         (deal-invalid-err-func-sym (make-symbol "deal-error-func"))
+         (slen-sym                  (make-symbol "seq-len"))
+         (tmpvar-sym                (make-symbol "tmpvar"))
+         (body-value-sym            (make-symbol "body-value"))
+         (body (entropy/emacs-defun--get-real-body body)))
+    `(if ,directly-run-when
+         (progn ,@body)
+       (let* ((,pos-sym                   ,pos)
+              (,use-err-p-sym             ,with-error)
+              (,seq-sym                   ,seq)
+              (,check-len-p-sym           ,with-check-length)
+              (,with-invalid-p-sym        ,with-invalid)
+              ,body-value-sym ,err-occur-p-sym ,slen-sym
+              ,seq-invalid-p-sym ,pos-invalid-p-sym
+              (,deal-invalid-err-func-sym
+               (lambda nil
+                 (cond (,with-invalid-p-sym
+                        (cl-case
+                            (setq ,with-invalid-p-sym
+                                  (__eemacs-seq/safe-pos-error-judger
+                                   ,seq-sym ,pos-sym ,with-invalid-p-sym
+                                   ,pos-invalid-p-sym ,seq-invalid-p-sym))
+                          (run (setq ,body-value-sym (progn ,@body)))
+                          (cancel nil)
+                          (t (error "[safe-seq-pos internal error]: invalid op type '%s'"
+                                    ,with-invalid-p-sym))))
+                       ((memq ,use-err-p-sym '(invalid all t))
+                        (__eemacs-seq/safe-pos-type-invalid-err
+                         ,seq-sym ,seq-invalid-p-sym ,pos-sym ,pos-invalid-p-sym))
+                       (t nil)))))
+         ;; pos validation
+         (and (not (integerp ,pos-sym))
+              (setq ,err-occur-p-sym t
+                    ,pos-invalid-p-sym t))
+         ;; seq validation
+         (cond ((integerp ,seq-sym)
+                (if (> ,seq-sym 0)
+                    (setq ,slen-sym ,seq-sym)
+                  (setq ,err-occur-p-sym t ,seq-invalid-p-sym t)))
+               ((sequencep ,seq-sym)
+                (when ,check-len-p-sym
+                  (unless (> (setq ,slen-sym (length ,seq-sym)) 0)
+                    (setq ,err-occur-p-sym t ,seq-invalid-p-sym t))))
+               (t
+                (setq ,err-occur-p-sym t ,seq-invalid-p-sym t)))
+         ;; type invalid deal
+         (when ,err-occur-p-sym (funcall ,deal-invalid-err-func-sym))
+         ;; main
          (unless ,err-occur-p-sym
-           (and ,check-len-p-sym ,(if set-seq-len-for t nil)
-                (setf ,set-seq-len-for ,slen-sym))
-           (and ,overflow-p-sym ,pos-set-type-sym
-                (cond ((eq ,pos-set-type-sym 'start) (setf ,pos 0))
-                      ((eq ,pos-set-type-sym 'end) (setf ,pos ,slen-sym))
-                      ;; auto type
-                      (t (setf ,pos ,pos-sym))))
-           ,@body)))))
+           (let* ((,pos-set-type-sym    ,with-set-pos)
+                  ,overflow-p-sym ,tmpvar-sym)
+             (unless ,err-occur-p-sym
+               (setq ,check-len-p-sym (or ,slen-sym ,check-len-p-sym))
+               (when (or ,check-len-p-sym
+                         (and (< ,pos-sym 0)
+                              (if (< (setq ,slen-sym (length ,seq-sym)) 1)
+                                  (prog1 nil
+                                    (setq ,seq-invalid-p-sym t ,err-occur-p-sym t)
+                                    (funcall ,deal-invalid-err-func-sym))
+                                ;; bounding indicator to t also as the result
+                                (setq ,check-len-p-sym t))))
+                 (if (< ,pos-sym 0) (setq ,tmpvar-sym (+ ,pos-sym ,slen-sym))
+                   (setq ,tmpvar-sym ,pos-sym))
+                 (if (or (< ,tmpvar-sym 0) (> ,tmpvar-sym ,slen-sym))
+                     (if (memq ,use-err-p-sym '(overflow all t))
+                         (if (sequencep ,seq-sym)
+                             (error "Bad seq pos: %s, for length %d for seq %S"
+                                    ,pos-sym ,slen-sym ,seq-sym)
+                           (error "Bad seq pos: %s, for seq's specified length %d"
+                                  ,pos-sym ,seq-sym))
+                       (setq ,overflow-p-sym t)
+                       (if (< ,tmpvar-sym 0) (setq ,pos-sym 0)
+                         (setq ,pos-sym ,slen-sym)))
+                   (setq ,pos-sym ,tmpvar-sym)))
+               (unless ,err-occur-p-sym
+                 (and ,check-len-p-sym ,(if set-seq-len-for t nil)
+                      (setf ,set-seq-len-for ,slen-sym))
+                 (when ,pos-set-type-sym
+                   (cond ((and (eq ,pos-set-type-sym 'start) ,overflow-p-sym)
+                          (setf ,pos 0))
+                         ((and (eq ,pos-set-type-sym 'end) ,overflow-p-sym)
+                          (setf ,pos ,slen-sym))
+                         ;; auto type
+                         (t (setf ,pos ,pos-sym))))
+                 (setq ,body-value-sym (progn ,@body))))))
+         ;; return
+         ,body-value-sym))))
 
 (defmacro entropy/emacs-seq-recalc-start-end-common (start end)
   "Re-calculate START and END value of a `sequencep' sequence which
