@@ -1209,6 +1209,125 @@ list will formed as:
 
 ;; *** Sequence manipulation
 
+(cl-defmacro entropy/emacs-seq-with-safe-pos
+    (seq pos &rest body
+         &key with-check-length with-set-pos set-seq-len-for with-error
+         &allow-other-keys)
+  "Run BODY with `sequencep' SEQ's position POS (a `integerp') only when
+=seq-isvalid-occasion= matched and return its value or nil otherwise.
+
+Both SEQ and POS should be a place compatible for `setf' or a variable
+name. And POS is recalculated and reset when =pos-overflow-occasion=
+matched within =seq-isvalid-occasion= context before run BODY only
+when WITH-SET-POS is set and return non-nil.
+
+If WITH-CHECK-LENGTH is set and return non-nil, the
+=pos-overflow-occasion= is detected more precision that for both
+checking the POS whether leading start of SEQ's `length' or cross over
+it so far by may be calling `length' for SEQ and checking with that
+before any operations, otherwise a `natnump' POS is always not
+matching =pos-overflow-occasion= . The WITH-CHECK-LENGTH will be
+turned on even when user pressed it off while POS is negative since a
+negative POS usually means counting from end of SEQ.
+
+SEQ can also be a integer to indicate the `length' of SEQ which should
+be calculated before the invocation of this macro, in which case
+WITH-CHECK-LENGTH is also triggered automatically and use this value
+instead of re-`length' the seq. So be careful to binding this since a
+wrong length will make unexpected fault result for all calculation.
+
+Whatever SEQ's type is, the `length' for SEQ must be larger than 0
+i.e. SEQ must not empty, otherwise it's not a
+=seq-isvalid-occasion=. In this case, if WITH-ERROR set as 'invalid',
+an error is throwed out.
+
+If WITH-ERROR is set to 'overflow' then a error throwed out while
+=pos-overflow-occasion= matched, otherwise, as what says for
+WITH-SET-POS, POS is recalculated to start position of SEQ when it's
+too small or the end of SEQ when it's too large automatically, before
+run BODY. Excepts for that if WITH-SET-POS is set and return 'start'
+and =pos-overflow-occasion= matched, the POS is reset to start of SEQ
+or 'end' as for to the calculated or specified `length' of SEQ.
+
+Other error flag are t and 'all', both of them is indicate throwing
+error either when =seq-isvalid-occasion= or =pos-overflow-occasion=
+not matched.
+
+Optional key SET-SEQ-LEN-FOR when set, it should be a place compatible
+with `setf' or a variable name, used to store the calulated or user
+specified `length' of SEQ only when WITH-CHECK-LENGTH is triggered.
+"
+  (declare (indent 2))
+  (let ((seq-sym             (make-symbol "seq-place"))
+        (pos-sym             (make-symbol "pos-place"))
+        (pos-set-type-sym    (make-symbol "set-pos-type"))
+        (overflow-p-sym      (make-symbol "is-overflow-p"))
+        (check-len-p-sym     (make-symbol "with-check-len-p"))
+        (use-err-p-sym       (make-symbol "error-type"))
+        (err-occur-p-sym     (make-symbol "error-occur-p"))
+        (slen-sym            (make-symbol "seq-len"))
+        (tmpvar-sym          (make-symbol "tmpvar"))
+        (body (entropy/emacs-defun--get-real-body body)))
+    `(let* ((,seq-sym             ,seq)
+            (,pos-sym             ,pos)
+            (,pos-set-type-sym    ,with-set-pos)
+            (,check-len-p-sym     ,with-check-length)
+            (,use-err-p-sym       ,with-error)
+            ,overflow-p-sym ,err-occur-p-sym ,tmpvar-sym ,slen-sym)
+       (cond ((integerp ,seq-sym)
+              (if (> ,seq-sym 0)
+                  (setq ,slen-sym ,seq-sym)
+                (if (memq ,use-err-p-sym '(invalid all t))
+                    (signal 'wrong-type-argument (list 'zeroup-integerp ,seq-sym))
+                  (setq ,err-occur-p-sym t))))
+             ((sequencep ,seq-sym)
+              (when ,check-len-p-sym
+                (unless (> (setq ,slen-sym (length ,seq-sym)) 0)
+                  (if (memq ,use-err-p-sym '(invalid all t))
+                      (signal 'wrong-type-argument
+                              (list 'entropy/emacs-common-listp ,seq-sym))
+                    (setq ,err-occur-p-sym t)))))
+             (t
+              (if (memq ,use-err-p-sym '(invalid all t))
+                  (signal 'wrong-type-argument
+                          (list 'seq-or-zeroup-integerp ,seq-sym))
+                (setq ,err-occur-p-sym t))))
+       (unless ,err-occur-p-sym
+         (setq ,check-len-p-sym (or ,slen-sym ,check-len-p-sym))
+         (when (or ,check-len-p-sym
+                   (and (< ,pos-sym 0)
+                        (if (< (setq ,slen-sym (length ,seq-sym)) 1)
+                            (if (memq ,use-err-p-sym '(invalid all t))
+                                (signal 'wrong-type-argument
+                                        (list 'entropy/emacs-common-listp ,seq-sym))
+                              (setq ,err-occur-p-sym t)
+                              ;; no did either
+                              nil)
+                          ;; bounding indicator to t also as the result
+                          (setq ,check-len-p-sym t))))
+           (if (< ,pos-sym 0) (setq ,tmpvar-sym (+ ,pos-sym ,slen-sym))
+             (setq ,tmpvar-sym ,pos-sym))
+           (if (or (< ,tmpvar-sym 0) (> ,tmpvar-sym ,slen-sym))
+               (if (memq ,use-err-p-sym '(overflow all t))
+                   (if (sequencep ,seq-sym)
+                       (error "Bad seq pos: %s, for length %d for seq %S"
+                              ,pos-sym ,slen-sym ,seq-sym)
+                     (error "Bad seq pos: %s, for seq's specified length %d"
+                            ,pos-sym ,seq-sym))
+                 (setq ,overflow-p-sym t)
+                 (if (< ,tmpvar-sym 0) (setq ,pos-sym 0)
+                   (setq ,pos-sym ,slen-sym)))
+             (setq ,pos-sym ,tmpvar-sym)))
+         (unless ,err-occur-p-sym
+           (and ,check-len-p-sym ,(if set-seq-len-for t nil)
+                (setf ,set-seq-len-for ,slen-sym))
+           (and ,overflow-p-sym ,pos-set-type-sym
+                (cond ((eq ,pos-set-type-sym 'start) (setf ,pos 0))
+                      ((eq ,pos-set-type-sym 'end) (setf ,pos ,slen-sym))
+                      ;; auto type
+                      (t (setf ,pos ,pos-sym))))
+           ,@body)))))
+
 (defmacro entropy/emacs-seq-recalc-start-end-common (start end)
   "Re-calculate START and END value of a `sequencep' sequence which
 indicate a region of the sequence to a regular range i.e when
