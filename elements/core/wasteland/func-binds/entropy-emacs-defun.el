@@ -821,12 +821,10 @@ If the covered region is the whole LIST, then no modification to
 LIST. Instead only the current invoked PLACE referred to LIST is
 set to nil and nil is returned.
 
-When WITH-ERROR is set as non-nil, throw an error without any
-operation did only when it is one of below three types:
-
-1. 'invalid'  : LIST type invalid
-2. 'overflow' : Region bounding is overflow'
-3. 'all' or t : Both of above all.
+When WITH-ERROR is set as non-nil, its passed to the same key of
+`entropy/emacs-seq-with-safe-region', except if 'invalid' or t or
+'all' type is included then it also trigger the error mechinsm for
+`entropy/emacs-common-listp'.
 "
   (declare (indent 1))
   (let ((list-sym      (make-symbol "list-place"))
@@ -855,7 +853,8 @@ operation did only when it is one of below three types:
          :set-list-len-for ,llen-sym
          (entropy/emacs-seq-with-safe-region ,llen-sym
              ,start-sym ,end-sym
-           :with-set-end t :with-error (car (memq ,err-sym '(overflow all t)))
+           :with-set-start t :with-set-end t
+           :with-error ,err-sym
            (if (or (= ,llen-sym 1) (and (= ,start-sym 0) (= ,end-sym ,llen-sym)))
                (if ,lsymp-sym (setq ,list nil ,list-sym nil)
                  (if ,lquotep-sym (setq ,list-sym nil)
@@ -963,19 +962,18 @@ i.e. when END is not the end of LIST, and the return is use same
 storage as origin. Otherwise return the region as a new list which is
 copy from origin.
 
-When WITH-ERROR is set as non-nil, throw an error without any
-operation did only when it is one of below three types:
-
-1. 'invalid'  : LIST type invalid
-2. 'overflow' : Region bounding is overflow'
-3. 'all' or t : Both of above all.
+When WITH-ERROR is set as non-nil, its passed to the same key of
+`entropy/emacs-seq-with-safe-region', except if 'invalid' or t or
+'all' type is included then it also trigger the error mechinsm for
+`entropy/emacs-common-listp'.
 "
   (let (llen)
     (entropy/emacs-ncommon-listp-not-do list
       :set-list-len-for llen
       :with-error (memq with-error '(invalid all t))
       (entropy/emacs-seq-with-safe-region llen start end
-        :with-set-end t :with-error (car (memq with-error '(overflow all t)))
+        :with-set-start t :with-set-end t
+        :with-error with-error
         (catch :exit
           (if (and (= start 0) (= end 1)) (throw :exit (car list)))
           (let ((i 0) exit start-list prev-it rtn)
@@ -1554,68 +1552,107 @@ END is replaced with the SEQ's end postion i.e. the `length' of SEQ."
 
 (cl-defmacro entropy/emacs-seq-with-safe-region
     (seq start end &rest body
-         &key set-seq-len-for with-set-end with-error
+         &key with-check-length set-seq-len-for
+         with-set-start with-set-end
+         with-error with-invalid directly-run-when
          &allow-other-keys)
-  "Run BODY only when the region of an sequence SEQ constructed by START
-and END is valid and return the BODY's value or nil otherwise i.e. if
-SEQ is invalid or its `length' is 0 or region is invalid see below:
+  "Run BODY for region of SEQ only when all of SEQ, START and END are
+safe predicated by `entropy/emacs-seq-with-safe-pos' (abbreviation as
+=safe-pos-wrapper=) with non-empty region got (i.e different valid
+START and END) and return BODY's value or nil otherwise.
 
-SEQ's region is constructed by START and END, where both of them will
-be calculated and reset by `entropy/emacs-seq-recalc-start-end'
-*temporally* (i.e. save the results to temporal start or end var)
-without bounding check (unless WITH-ERROR is set) before the
-validation, then validation of START and END is just check whether
-them are `=', if thus is invalid since an empty region is meaningless
-for BODY, otherwise START and END is set to the calculation results
-respectively (END is set if it is nil only when WITH-SET-END is set
-non-nil) and the validation is passed.
+WITH-SET-START and WITH-SET-END are respectively binding to
+WITH-SET-POS argument of =safe-pos-wrapper= of 'start' and
+'end'. Other keys has same meaning as =safe-pos-wrapper= excepting for
+WITH-ERROR which also support a 'empty' type for error when the final
+got region is empty, thus for this key, thus the error type 't' or
+'all' for =safe-pos-wrapper= also include this key.
 
-SEQ should be a `sequencep' sequence. And also can be a integer which
-must be larger than 0 in which case it is used as SEQ's `length' since
-there's no need to duplicated calculate its length, and it is passed
-to `entropy/emacs-seq-recalc-start-end' for did what above paragraph
-said. Any other type for SEQ is invalid.
+Except for END, which can be nil since it indicates to the end of SEQ
+usually by lisp convention. Thus for that, the empty region detection
+can not be precision when END is nil and without `length' calculation
+inside =safe-pos-wrapper= context since in which case we couldn't get
+the tail index of SEQ.
 
-Both of START and END should a place known by `setf' or a variable
-name.
-
-If optional key SET-SEQ-LEN-FOR is set, it should be a place known by
-`setf' or a variable name, and it will set to the `length' of SEQ.
-
-When WITH-ERROR is set as non-nil, throw an error without any
-operation did only when it is one of below three types:
-
-1. ’invalid’  : SEQ type invalid or empty
-2. ’overflow’ : Region bounding is overflow’
-3. ’all’ or t : Both of above all.
+This macro will also swap the valid calculated START and END when
+their values as reverse order only when both WITH-SET-START and
+WITH-SET-END is specified.
 "
   (declare (indent 3))
-  (let ((seq-sym       (make-symbol "sequence"))
-        (start-sym     (make-symbol "start-var"))
-        (end-sym       (make-symbol "end-var"))
-        (slen-sym      (make-symbol "seq-length"))
-        (use-errp-sym  (make-symbol "use-error-p"))
+  (let ((seq-sym            (make-symbol "sequence"))
+        (start-sym          (make-symbol "start-var"))
+        (set-start-p-sym    (make-symbol "set-start-p"))
+        (end-sym            (make-symbol "end-var"))
+        (set-end-p-sym      (make-symbol "set-end-p"))
+        (check-len-p-sym    (make-symbol "with-check-len-p"))
+        (with-error-sym     (make-symbol "with-error-type"))
+        (with-invalid-sym   (make-symbol "with-invalid-types"))
+        (directly-run-sym   (make-symbol "directly-run-when-cond"))
+        (use-same-pos-err-p-sym (make-symbol "use-same-pos-error-p"))
+        (slen-sym           (make-symbol "seq-length"))
+        (initial-reverse-p-sym (make-symbol "tmpvar"))
         (body (entropy/emacs-defun--get-real-body body)))
-    `(let ((,seq-sym ,seq)
-           (,use-errp-sym ,with-error)
-           ,slen-sym)
-       (cond ((and (integerp ,seq-sym) (> ,seq-sym 0))
-              (setq ,slen-sym ,seq-sym))
-             ((sequencep ,seq-sym)
-              (setq ,slen-sym (length ,seq-sym)))
-             ((memq ,use-errp-sym '(invalid all t))
-              (signal 'wrong-type-argument
-                      (list 'seq-or-zeroup-integerp ,seq-sym))))
-       (when ,slen-sym
-         (let ((,start-sym ,start)
-               (,end-sym   ,end))
-           (entropy/emacs-seq-recalc-start-end
-            ,slen-sym ,start-sym ,end-sym
-            :with-set-end ,with-set-end
-            :with-error (memq ,use-errp-sym '(overflow all t)))
-           ,(when set-seq-len-for (list 'setf set-seq-len-for slen-sym))
-           (unless (= ,start-sym (or ,end-sym ,slen-sym))
-             (setf ,start ,start-sym ,end ,end-sym)
+    `(let* ((,seq-sym ,seq)
+            (,start-sym ,start) (,end-sym ,end)
+            (,set-start-p-sym  ,with-set-start)
+            (,set-end-p-sym    ,with-set-end)
+            (,check-len-p-sym  ,with-check-length)
+            (,with-error-sym   ,with-error)
+            (,with-invalid-sym ,with-invalid)
+            (,directly-run-sym ,directly-run-when)
+            (,use-same-pos-err-p-sym
+             (or (when (eq ,with-error-sym 'empty)
+                   ;; reset to regular type passed to subroutine since
+                   ;; it not recognize the 'empty' type.
+                   (or (setq ,with-error-sym nil) t))
+                 (entropy/emacs-defun--group-memq-p
+                  ,with-error-sym '(empty t all))))
+            ,slen-sym ,initial-reverse-p-sym)
+       (entropy/emacs-swap-two-places-value ,start-sym ,end-sym
+         ;; swap start and end when end is negative but start is
+         ;; positive so that we can always get the `length' for
+         ;; re-calculation at first step.
+         (and ,end-sym (< ,end-sym 0) (> ,start-sym 0)
+              (setq ,initial-reverse-p-sym t)))
+       (entropy/emacs-seq-with-safe-pos ,seq-sym ,start-sym
+         :directly-run-when ,directly-run-sym
+         :with-check-length ,check-len-p-sym
+         :with-set-pos (if (if ,initial-reverse-p-sym ,set-end-p-sym ,set-start-p-sym)
+                           (if ,initial-reverse-p-sym 'end 'start))
+         :set-seq-len-for ,slen-sym :with-error ,with-error-sym :with-invalid ,with-invalid-sym
+         (entropy/emacs-seq-with-safe-pos (or ,slen-sym ,seq-sym) ,end-sym
+           ;; using for directly run as we allow end as nil
+           :directly-run-when (or (null ,end-sym) ,directly-run-sym)
+           :with-check-length (if ,slen-sym nil ,check-len-p-sym)
+           :with-set-pos (if (if ,initial-reverse-p-sym ,set-start-p-sym ,set-end-p-sym)
+                             (if ,initial-reverse-p-sym 'start 'end))
+           :set-seq-len-for ,slen-sym
+           :with-error ,with-error-sym :with-invalid ,with-invalid-sym
+
+           ;; swap to normal status when initial swapped since we must
+           ;; gurantee the order for checking whether they are same
+           ;; especially when end originally null
+           (entropy/emacs-swap-two-places-value ,start-sym ,end-sym
+             ,initial-reverse-p-sym)
+
+           (if (if (and ,start-sym ,end-sym) (= ,start-sym ,end-sym)
+                 (and ,slen-sym (= ,start-sym ,slen-sym)))
+               (when ,use-same-pos-err-p-sym
+                 (if (numberp ,seq-sym)
+                     (signal 'args-out-of-range
+                             (list 'non-empty-seq-region-p
+                                   (format "SEQ specified by length %s region (%d, %s) is empty!"
+                                           ,seq-sym ,start-sym ,end-sym)))
+                   (signal 'args-out-of-range
+                           (list 'non-empty-seq-region-p
+                                 (format "SEQ region (%d, %s) is empty for seq %S!"
+                                         ,start-sym ,end-sym ,seq-sym)))))
+             (and ,slen-sym ,(if set-seq-len-for `(setf ,set-seq-len-for ,slen-sym)))
+             (and (and ,start-sym ,end-sym)
+                  (entropy/emacs-swap-two-places-value ,start-sym ,end-sym
+                    (> ,start-sym ,end-sym)))
+             (if ,set-start-p-sym (setf ,start ,start-sym))
+             (if ,set-end-p-sym (setf ,end ,end-sym))
              ,@body))))))
 
 (cl-defun entropy/emacs-seq-repeat-find
