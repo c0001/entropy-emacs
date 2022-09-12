@@ -1312,6 +1312,11 @@ Other error flag are t and 'all', both of them is indicate throwing
 error either when =type-isvalid-occasion= is not matched or
 =pos-overflow-occasion= is matched.
 
+Further more for WITH-ERROR which also can set as a list of error
+types although its meaningless to inject as thus since there's just
+actually two types where be with a combination type, but for the sake
+fo flexible arguments extending for coding context.
+
 Optional key SET-SEQ-LEN-FOR when set, it should be a place compatible
 with `setf' or a variable name, used to store the calulated or user
 specified `length' of SEQ only when WITH-CHECK-LENGTH is triggered.
@@ -1379,7 +1384,7 @@ procedures. This is a feature for those occasions no need to with the
                           (cancel nil)
                           (t (error "[safe-seq-pos internal error]: invalid op type '%s'"
                                     ,with-invalid-p-sym))))
-                       ((memq ,use-err-p-sym '(invalid all t))
+                       ((entropy/emacs-defun--group-memq-p ,use-err-p-sym '(t invalid all))
                         (__eemacs-seq/safe-pos-type-invalid-err
                          ,seq-sym ,seq-invalid-p-sym ,pos-sym ,pos-invalid-p-sym))
                        (t nil)))))
@@ -1417,7 +1422,7 @@ procedures. This is a feature for those occasions no need to with the
                  (if (< ,pos-sym 0) (setq ,tmpvar-sym (+ ,pos-sym ,slen-sym))
                    (setq ,tmpvar-sym ,pos-sym))
                  (if (or (< ,tmpvar-sym 0) (> ,tmpvar-sym ,slen-sym))
-                     (if (memq ,use-err-p-sym '(overflow all t))
+                     (if (entropy/emacs-defun--group-memq-p ,use-err-p-sym '(t overflow all))
                          (if (sequencep ,seq-sym)
                              (error "Bad seq pos: %s, for length %d for seq %S"
                                     ,pos-sym ,slen-sym ,seq-sym)
