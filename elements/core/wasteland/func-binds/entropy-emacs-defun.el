@@ -851,8 +851,7 @@ When WITH-ERROR is set as non-nil, its passed to the same key of
        (entropy/emacs-ncommon-listp-not-do ,list-sym
          :with-error (memq ,err-sym '(invalid all t))
          :set-list-len-for ,llen-sym
-         (entropy/emacs-seq-with-safe-region ,llen-sym
-             ,start-sym ,end-sym
+         (entropy/emacs-seq-with-safe-region ,llen-sym ,start-sym ,end-sym
            :with-set-start t :with-set-end t
            :with-error ,err-sym
            (if (or (= ,llen-sym 1) (and (= ,start-sym 0) (= ,end-sym ,llen-sym)))
@@ -1551,7 +1550,7 @@ END is replaced with the SEQ's end postion i.e. the `length' of SEQ."
        ,seq-len-sym)))
 
 (cl-defmacro entropy/emacs-seq-with-safe-region
-    (seq start end &rest body
+    (seq start &optional end &rest body
          &key with-check-length set-seq-len-for
          with-set-start with-set-end
          with-error with-invalid directly-run-when
@@ -1583,6 +1582,7 @@ WITH-SET-END is specified.
         (start-sym          (make-symbol "start-var"))
         (set-start-p-sym    (make-symbol "set-start-p"))
         (end-sym            (make-symbol "end-var"))
+        (end-orig-nullp-sym (make-symbol "end-is-orig-null-p"))
         (set-end-p-sym      (make-symbol "set-end-p"))
         (check-len-p-sym    (make-symbol "with-check-len-p"))
         (with-error-sym     (make-symbol "with-error-type"))
@@ -1594,6 +1594,7 @@ WITH-SET-END is specified.
         (body (entropy/emacs-defun--get-real-body body)))
     `(let* ((,seq-sym ,seq)
             (,start-sym ,start) (,end-sym ,end)
+            (,end-orig-nullp-sym (null ,end-sym))
             (,set-start-p-sym  ,with-set-start)
             (,set-end-p-sym    ,with-set-end)
             (,check-len-p-sym  ,with-check-length)
@@ -1622,7 +1623,7 @@ WITH-SET-END is specified.
          :set-seq-len-for ,slen-sym :with-error ,with-error-sym :with-invalid ,with-invalid-sym
          (entropy/emacs-seq-with-safe-pos (or ,slen-sym ,seq-sym) ,end-sym
            ;; using for directly run as we allow end as nil
-           :directly-run-when (or (null ,end-sym) ,directly-run-sym)
+           :directly-run-when (or ,end-orig-nullp-sym ,directly-run-sym)
            :with-check-length (if ,slen-sym nil ,check-len-p-sym)
            :with-set-pos (if (if ,initial-reverse-p-sym ,set-start-p-sym ,set-end-p-sym)
                              (if ,initial-reverse-p-sym 'start 'end))
@@ -1634,6 +1635,11 @@ WITH-SET-END is specified.
            ;; especially when end originally null
            (entropy/emacs-swap-two-places-value ,start-sym ,end-sym
              ,initial-reverse-p-sym)
+
+           ;; we need set the end whe its originally is empty since we
+           ;; use directly do for this case without any calulation.
+           (when (and ,end-orig-nullp-sym ,slen-sym)
+             (setq ,end-sym ,slen-sym))
 
            (if (if (and ,start-sym ,end-sym) (= ,start-sym ,end-sym)
                  (and ,slen-sym (= ,start-sym ,slen-sym)))
@@ -1687,23 +1693,24 @@ found. If omitted defaults to `cl-postion'.
                   (if mtchp (setcdr mtchp (cons value (cddr mtchp)))
                     (setq args (nconc args (list key value)))))))
              newpos)
-        (entropy/emacs-seq-recalc-start-end
-         seq start end :error-when-overflow t :with-set-end t)
-        (if (<= end start) (throw :exit nil))
-        (while (> count 0)
-          (funcall arg-repl-func :start start)
-          (funcall arg-repl-func :end end)
-          (setq newpos
-                (apply find-func item seq args))
-          (if newpos
-              (if from-end
-                  (setq end newpos)
-                (setq start (1+ newpos)))
-            (throw :exit nil))
-          (setq count (1- count))
-          (when (> count 0)
-            (if (<= end start) (throw :exit nil))))
-        newpos))))
+        (unless start (setq start 0))
+        (entropy/emacs-seq-with-safe-region seq start end
+          :with-check-length t
+          :with-set-start t :with-set-end t
+          (while (> count 0)
+            (funcall arg-repl-func :start start)
+            (funcall arg-repl-func :end end)
+            (setq newpos
+                  (apply find-func item seq args))
+            (if newpos
+                (if from-end
+                    (setq end newpos)
+                  (setq start (1+ newpos)))
+              (throw :exit nil))
+            (setq count (1- count))
+            (when (> count 0)
+              (if (<= end start) (throw :exit nil))))
+          newpos)))))
 
 (defun entropy/emacs-sort-seq-according-to-seq
     (seq-to-sort seq-base &optional with-side-effects &rest cl-keys)
