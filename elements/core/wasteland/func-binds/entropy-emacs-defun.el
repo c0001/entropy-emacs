@@ -875,6 +875,68 @@ When WITH-ERROR is set as non-nil, its passed to the same key of
          (if (or (= 1 ,end-sym) (not ,return-tail))
              ,list-sym ,old-list-sym)))))
 
+(cl-defun entropy/emacs-list-insert-sublist
+    (n list sub-list
+       &key at-right with-error
+       without-modify-car
+       without-modify-list
+       without-modify-sub-list)
+  "Insert a `entropy/emacs-base-listp' list SUB-LIST as subject of
+`entropy/emacs-common-listp' LIST at `nth' position N and return the
+altered LIST or the new copy with modification of LIST (see
+WITHOUT-MODIFY-LIST ) or nil when any exceptions happened.
+
+N is calculated by `entropy/emacs-seq-with-safe-pos' before injection.
+
+Optional key WITHOUT-MODIFY-LIST when set as non-nil, then LIST is
+never modified, otherwise LIST is modified in destructively way and
+the modification details see follow explanations.
+
+Also when WITHOUT-MODIFY-SUB-LIST is set as non-nil, then SUB-LIST is
+never modified. Otherwise, the last cdr of SUB-LIST is modified
+destructively.
+
+When WITHOUT-MODIFY-LIST is not set, both of LIST's car and cdr is
+modified when N is at 0 of LIST (i.e. the car of LIST) only when
+AT-RIGHT is not set as non-nil. Otherwise, only the N-1 or N (when
+AT-RIGHT) `nthcdr' of LIST is modified.
+
+The nil return happened when SUB-LIST did predicates by
+`entropy/emacs-nbase-listp-not-do' or N and LIST did predicates by
+`entropy/emacs-seq-with-safe-pos'. Also WITH-ERROR is used both of
+them."
+  (entropy/emacs-nbase-listp-not-do sub-list
+    :with-error with-error
+    (entropy/emacs-seq-with-safe-pos list n
+      :with-error (and with-error t) :with-set-pos t
+      :with-check-length (and with-error t)
+      (if without-modify-list (setq list (copy-sequence list)))
+      (if without-modify-sub-list (setq sub-list (copy-sequence sub-list)))
+      (let* ((insl (nthcdr (1- n) list))
+             subendl rtn)
+        (when insl
+          (cond
+           (at-right
+            (when (or (= 0 n) (setq insl (cdr insl)))
+              (setq subendl (last sub-list))
+              (setcdr subendl (cdr insl))
+              (setcdr insl sub-list)
+              (setq rtn list)))
+           (t
+            (setq subendl (last sub-list))
+            (if (= 0 n)
+                (if without-modify-car
+                    (progn (setcdr subendl list) (setq rtn sub-list))
+                  (setcdr subendl (cons (car list) (cdr insl)))
+                  (setcar list (car sub-list))
+                  (setcdr list (cdr sub-list))
+                  (setq rtn list))
+              (setcdr subendl (cdr insl))
+              (setcdr insl sub-list)
+              (setq rtn list))))
+          ;; return
+          rtn)))))
+
 (cl-defun entropy/emacs-list-has-same-elements-p (lista listb &key test)
   "Return non-nil if two list is equalization as has same `length'
 and same elements test by TEST or use the same test as
