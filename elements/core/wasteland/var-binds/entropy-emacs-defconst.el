@@ -302,60 +302,64 @@ current buffer %S's %s."
      type
      &rest body
      &key
+     doc
      detector
      signal
      do-error
      &allow-other-keys)
-  "Do BODY via an operation named by OP-NAME which refer to an
-checker type.
+  "Do BODY via an operation named by OP-NAME which refer to an checker
+type.
 
 TYPE must one of the car of element of
-`entropy/emacs-api-restriction-uniform-type-alist' or will throw
-the error.
+`entropy/emacs-api-restriction-uniform-type-alist' or will throw the
+error.
 
-EEMACS_MAINTENANCE:
-This macro is just used for eemacs maintainer in where they can
-not guarantee some patches are valid for all emacs-versions or
-purticular package version, thus for as, this macro can throw the
-warning or error while the patches running on thus situation and
-notice the eemacs maintainer to handle or update the patches.
+EEMACS_MAINTENANCE: This macro is just used for eemacs maintainer in
+where they can not guarantee some patches are valid for all
+emacs-versions or purticular package version, thus for as, this macro
+can throw the warning or error while the patches running on thus
+situation and notice the eemacs maintainer to handle or update the
+patches.
 
-The DETETOR and SIGNAL is related to the checker instance and
-defaulty provided by according to the TYPE defined by eemacs
-internally. Or use the optional key slots as for manually
-specification and this is suggested since the defaults are
-commonly used as fallback and for demo usage.
+The DETETOR and SIGNAL is related to the checker instance and defaulty
+provided by according to the TYPE defined by eemacs internally. Or use
+the optional key slots as for manually specification and this is
+suggested since the defaults are commonly used as fallback and for
+demo usage.
 
-DETECTOR:
+- DOC: The details description for OP-NAME. (currently just used as a
+  ready plan)
 
-        A form which return non-nil indicates to sign log with
-        TYPE registed by OP-NAME.
+- DETECTOR:
 
-SIGNAL:
+  A form which return non-nil indicates to sign log with
+  TYPE registed by OP-NAME.
 
-        When the DETECTOR return non-nil, use this form to `signal'
-        the warning. It should have an error form to interrupt the
-        BODY being Invoked via eval time since the error is ran inside
-        a `condition-case' wrapper.
+- SIGNAL:
 
-        We recommend to use the eemacs internal error API to do the signal:
+  When the DETECTOR return non-nil, use this form to `signal' the
+  warning. It should have an error form to interrupt the BODY being
+  Invoked via eval time since the error is ran inside a
+  `condition-case' wrapper.
 
-        - `entropy/emacs-do-eemacs-top-error'
-        - `entropy/emacs-do-error-for-emacs-version-incompatible'
-        - `entropy/emacs-do-error-for-package-version-incompatible'
+  We recommend to use the eemacs internal error API to do the signal:
 
-        Since they are tided with eemacs development.
+  * `entropy/emacs-do-eemacs-top-error'
+  * `entropy/emacs-do-error-for-emacs-version-incompatible'
+  * `entropy/emacs-do-error-for-package-version-incompatible'
 
-DO-ERROR:
+    Since they are tided with eemacs development.
 
-        When non-nil Signal use `error' instead of warning to forcley
-        corrupt the current emacs loop thread to avoid invoke any
-        letter processes influenced by the BODY.
+- DO-ERROR:
+
+  When non-nil Signal use `error' instead of warning to forcley
+  corrupt the current emacs loop thread to avoid invoke any
+  letter processes influenced by the BODY.
 
 NOTE: all the key can be evaluated at run-time
 
 "
-
+  (declare (indent 2))
   (let ((body (entropy/emacs-get-plist-body body))
         (op-name-sym   (make-symbol "op-name"))
         (type-sym      (make-symbol "type"))
@@ -366,31 +370,32 @@ NOTE: all the key can be evaluated at run-time
         (err-sym       (make-symbol "err-sym"))
         (err-data-sym  (make-symbol "err-data"))
         (do-body-p-sym (make-symbol "do-body-p")))
-    `(let* ((,op-name-sym ',op-name)
-            (,type-sym ',type)
-            (,default-sym (alist-get ,type-sym entropy/emacs-api-restriction-uniform-type-alist))
+    `(let* ((,op-name-sym ,op-name)
+            (,type-sym ,type)
+            (,default-sym
+              (alist-get ,type-sym
+                         entropy/emacs-api-restriction-uniform-type-alist))
             (,detector-sym
-             (or ',detector
-                 (plist-get ,default-sym :default-detector)))
+             (or ,(if detector `(lambda nil ,detector))
+                 (lambda nil (eval (plist-get ,default-sym :default-detector)))))
             (,signal-sym
-             (or ',signal
-                 (plist-get ,default-sym :default-signal)))
+             (or ,(if signal `(lambda nil ,signal))
+                 (lambda nil (eval (plist-get ,default-sym :default-signal)))))
             ,err-sym ,err-data-sym ,do-body-p-sym
             (,warn-func-sym
              (lambda ()
                (entropy/emacs-api-restriction-display-warn
                 (format "%s: [type: '%s' op-name: '%s' err-msg: \"%s\"]"
                         ,err-sym ,type-sym ,op-name-sym ,err-data-sym)
-                ,do-error)))
-            )
+                ,do-error))))
        (unless ,default-sym
          (entropy/emacs-do-eemacs-top-error
           (format "invalid eemacs api restriction type - %s"
                   ,type-sym)))
-       (cond ((eval ,detector-sym)
+       (cond ((funcall ,detector-sym)
               (setq ,do-body-p-sym nil)
               (condition-case err
-                  (eval ,signal-sym)
+                  (funcall ,signal-sym)
                 (t
                  (setq ,err-sym (car err)
                        ,err-data-sym (cdr err))

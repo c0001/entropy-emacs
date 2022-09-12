@@ -4196,7 +4196,13 @@ as thus."
    "delsel-mode-init" "delsel-mode-init"
    :prompt-type 'prompt-echo
    :pdumper-no-end t
-   (delete-selection-mode 1)))
+   (delete-selection-mode 1))
+  :config
+  ;; EEMACS_MAINTENANCE:
+  ;;
+  ;; Command without 'delete-selection' property will not delete the
+  ;; region before insertion.
+  (put 'entropy/emacs-xterm-paste 'delete-selection t))
 
 ;; ****** Auto wrap line
 (setq-default truncate-lines t)
@@ -5002,6 +5008,42 @@ successfully both of situation of read persisit of create an new."
   (setq bookmark-save-flag 1))
 
 ;; **** Description | Help mode improvement
+;; ***** EEMACS_MAINTENANCE - Bug fix
+
+(entropy/emacs--api-restriction-uniform 'describe-key/bug/xterm-paste/advice-patch
+    'emacs-version-incompatible
+  :doc "Fix the `help--analyze-key' error while terminal emacs session can not
+read the event correctly since the pseudo terminal instance's
+implementation.
+
+We use the \"xterm refer bug fix\" as name since it's the first time
+that we found this bug i.e. in the `describe-key' operation for
+[xterm-paste] keystroke in emacs terminal session which has below
+backtrace:
+
+#+begin_example
+  Debugger entered--Lisp error: (wrong-type-argument listp \"hello world\")
+    posn-set-point(\"hello world\")
+    help--analyze-key([(xterm-paste \"hello world\")] [27 91 50 48 48 126] nil)
+    #f(compiled-function (x) #<bytecode -0x8df78d18b617c1b>)(([(xterm-paste \"hello world
+    describe-key((([(xterm-paste \"hello world\")] . [27 91 50 48 48 126])))
+    funcall-interactively(describe-key (([(xterm-paste \"hello world\")] . [27 91 50 48 4$
+    command-execute(describe-key)
+#+end_example
+"
+  :detector (version< "29" (number-to-string emacs-major-version))
+  :signal (entropy/emacs-do-error-for-emacs-version-incompatible
+           "29 or lower")
+  (when (or (not (display-graphic-p)) (daemonp))
+    (advice-patch 'help--analyze-key
+                  '(save-excursion
+                     (let ((evpt (event-end event)))
+                       (and (number-or-marker-p evpt)
+                            (posn-set-point evpt))
+                       (key-binding key t)))
+                  '(save-excursion (posn-set-point (event-end event))
+                                   (key-binding key t)))))
+
 ;; ***** Restriction print level and length for help buffer
 
 (entropy/emacs-advice-func-around-for-print-limit
