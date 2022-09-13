@@ -263,9 +263,7 @@ Version 2017-12-23"
 URL `http://ergoemacs.org/emacs/emacs_dired_open_file_in_ext_apps.html'
 Version 2017-10-09"
   (interactive)
-  (let ((wcdir
-         (expand-file-name default-directory))
-        proc-obj
+  (let ((wcdir (expand-file-name default-directory))
         (proc-sentinel
          (lambda (proc _event)
            (let ((proc-name (process-name proc))
@@ -286,18 +284,17 @@ Version 2017-10-09"
                              proc-name)
                     (when (buffer-live-p proc-buffer)
                       (let ((kill-buffer-hook nil))
-                        (kill-buffer proc-buffer)))))))))
+                        (kill-buffer proc-buffer))))))))
+        proc-obj)
     (cond
      (sys/win32p
       ;;(message "Microsoft Windows not supported bash shell, and we use cmd instead")
-      (let* (($path-o (if (string-match-p "^~/" wcdir)
-                          (replace-regexp-in-string
-                           "^~"
-                           (expand-file-name "~")
-                           wcdir)
-                        wcdir))
-             ($path-backslash (replace-regexp-in-string "/" "\\" $path-o t t))
-             ($path (concat "\"" $path-backslash "\"")))
+      (let* ((win-path-orig
+              (if (string-match-p "^~/" wcdir)
+                  (replace-regexp-in-string "^~" (expand-file-name "~") wcdir)
+                wcdir))
+             (win-path-escaped (replace-regexp-in-string "/" "\\" win-path-orig t t))
+             (win-path-quoted (concat "\"" win-path-escaped "\"")))
         (if entropy/emacs-microsoft-windows-unix-emulator-terminal-enable
             (if (string-match-p "msys2_shell" entropy/emacs-microsoft-windows-unix-emulator-terminal)
                 ;; using msys2 mintty
@@ -311,12 +308,12 @@ Version 2017-10-09"
                                      "-msys2")
                                    nil t)
                   " -where "
-                  $path))
+                  win-path-quoted))
               ;; using git-for-windows terminal
               (w32-shell-execute "open" entropy/emacs-microsoft-windows-unix-emulator-terminal))
 
           ;; using cmd
-          (w32-shell-execute "open" "cmd" $path))))
+          (w32-shell-execute "open" "cmd" win-path-quoted))))
 
      (sys/is-mac-and-graphic-support-p
       (let ((process-connection-type nil))
@@ -378,10 +375,7 @@ Version 2017-10-09"
                      ;; https://askubuntu.com/questions/646631/emacs-doesnot-work-with-xdg-open
                      ;; for more details)
                      (append '("setsid" "-w") exec-and-arg)))
-        (set-process-sentinel proc-obj proc-sentinel))
-      )
-     )
-    ))
+        (set-process-sentinel proc-obj proc-sentinel))))))
 
 (when sys/win32p
   (defun entropy/emacs-tools-cmd()
