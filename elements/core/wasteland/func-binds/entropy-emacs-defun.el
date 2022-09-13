@@ -513,6 +513,56 @@ macro to use it instead of 'it' as what bind for."
                     (setq ,(or with-it-as 'it) ,rest-sym))
            ,@body)))))
 
+(cl-defun entropy/emacs-list-nthcdr-safe
+    (n object &key with-error with-last-non-consp-cdr)
+  "If all is ok, return the N times cdr of OBJECT.
+
+Like `nthcdr' but just return nil when N is overflow or OBJECT is not
+a `listp' list wihout throw any error unless WITH-ERROR is set and
+return non-nil.
+
+N is used as what for `nthcdr' i.e. always indicate to OBJECT when it
+is negative or 0 in which case return OBJECT it-self or arbitrary
+`natnump' integer for point to any place of a `proper-list-p' or
+`entropy/emacs-circular-listp' list.
+
+Defaultly, for a `entropy/emacs-dotted-listp' list, the last `consp'
+cdr is the max times that N can be indicated unless
+WITH-LAST-NON-CONSP-CDR set non-nil in which case we also chase to the
+last `atom' cdr.
+
+This function's WITH-ERROR key obey the SEQ error types of
+`entropy/emacs-seq-error-types'."
+  (if (and with-error with-last-non-consp-cdr)
+      ;; directly use `nthcdr' when specified the same occasion for
+      ;; speed up computation since it's a primitive function which
+      ;; usually fast that the implementation of this function.
+      (nthcdr n object)
+    (if (listp object)
+        (when object
+          (if (< n 0) object
+            (let ((i 0) inp exit lcdr rtn
+                  (fmstr "%d is overflow the max nthcdr %d of list %s"))
+              (entropy/emacs-list-map-cdr object
+                :with-exit t
+                (cond
+                 ((= i n)
+                  (setq rtn it exit t inp t))
+                 ((and with-last-non-consp-cdr
+                       (atom (cdr it)) (= (1+ i) n))
+                  (setq rtn (cdr it) exit t)))
+                (unless inp (cl-incf i))
+                (setq lcdr (cdr it))
+                exit)
+              (and with-error (and (< i n) (not (null lcdr)))
+                   (signal 'args-out-of-range
+                           (list (format fmstr n i object))))
+              ;; return
+              rtn)))
+      (when with-error
+        (signal 'wrong-type-argument
+                (listp 'listp object))))))
+
 (cl-defun entropy/emacs-circular-listp (object &key internal-without-check-proper)
   "Return the `safe-length' of OBJECT when its a circular `listp'
 list or nil while its a `proper-list-p' list or a non-circular
@@ -576,7 +626,8 @@ non-nil list, or nil otherwise."
             extra-unless
             &allow-other-keys)
   "Run BODY and return its value only when OBJECT is
-`entropy/emacs-common-listp'. Return nil for otherwise.
+`entropy/emacs-common-listp'. Return
+`entropy/emacs-seq-pressed-return' otherwise.
 
 When WITH-ERROR is set as non-nil, throw an error and ignore BODY
 when OBJECT is invalid.
@@ -588,6 +639,9 @@ valid.
 Optional key EXTRA-UNLESS if set, neither run BODY when it return
 non-nil. And just evaluate it when the main judger predicated and
 while thus the SET-LIST-LEN-FOR is set.
+
+This macro's WITH-ERROR key obey the SEQ error types of
+`entropy/emacs-seq-error-types'.
 "
   (declare (indent 1))
   (let ((obsym    (make-symbol "object"))
@@ -644,15 +698,19 @@ or circular list and for a non-nil LIST."
 
 (cl-defmacro entropy/emacs-nbase-listp-not-do
     (object &rest body &key extra-unless with-error &allow-other-keys)
-  "Do BODY just when OBJECT is a `entropy/emacs-base-listp' LIST
-and return BODY's last one's value, otherwise return 'nil'.
+  "Do BODY just when OBJECT is a `entropy/emacs-base-listp' LIST and
+return BODY's last one's value, or return
+`entropy/emacs-seq-pressed-return' otherwise.
 
 Optional key EXTRA-UNLESS when set, as extra trigger for ignore
 BODY when it return non-nil. It is evaluated after the main
 predicate.
 
 When WITH-ERROR is set as non-nil, throw an error before any
-operations when OBJECT is invalid."
+operations when OBJECT is invalid.
+
+This macro's WITH-ERROR key obey the SEQ error types of
+`entropy/emacs-seq-error-types'."
   (declare (indent 1))
   (let ((obsym     (make-symbol "object"))
         (typep-sym (make-symbol "is-valid-p")))
@@ -798,8 +856,8 @@ or NTH is overflow, without any modification.
 
 (cl-defmacro entropy/emacs-list-delete-region
     (list start &optional end &key return-tail with-error)
-  "Delete region of of `entropy/emacs-common-listp' LIST from START
-to END in destructively way
+  "Delete region of of `entropy/emacs-common-listp' LIST from START to
+END in destructively way.
 
 LIST and both of START and END should be a place used by `setf'
 or a variable name.
@@ -808,10 +866,9 @@ START and END is re-calculated by
 `entropy/emacs-seq-with-safe-region' before any operations. If
 END is not set, defaults to end of LIST i.e. `length' of LIST.
 
-Return the altered LIST or the tail of LIST where END placed as
-car when RETURN-TAIL is set. Return nil while either LIST is
-invalid or its region is empty or overflow or coverred deletion
-occurred (see belows).
+Return the altered LIST or the tail of LIST where END placed as car
+when RETURN-TAIL is set. Return `entropy/emacs-seq-pressed-return'
+otherwise.
 
 If START is 0 and END less than `length' of LIST, both LIST's car
 and cdr are modified, otherwise the modification when do as just
@@ -825,6 +882,9 @@ When WITH-ERROR is set as non-nil, its passed to the same key of
 `entropy/emacs-seq-with-safe-region', except if 'invalid' or t or
 'all' type is included then it also trigger the error mechinsm for
 `entropy/emacs-common-listp'.
+
+This function's WITH-ERROR key obey the SEQ error types of
+`entropy/emacs-seq-error-types'.
 "
   (declare (indent 1))
   (let ((list-sym      (make-symbol "list-place"))
@@ -885,7 +945,7 @@ When WITH-ERROR is set as non-nil, its passed to the same key of
   "Insert a `entropy/emacs-base-listp' list SUB-LIST as subject of
 `entropy/emacs-common-listp' LIST at `nth' position N and return the
 altered LIST or the new copy with modification of LIST (see
-WITHOUT-MODIFY-LIST ) or nil when any exceptions happened.
+WITHOUT-MODIFY-LIST ) or `entropy/emacs-seq-pressed-return' otherwise.
 
 N is calculated by `entropy/emacs-seq-with-safe-pos' before injection.
 
@@ -902,42 +962,42 @@ modified when N is at 0 of LIST (i.e. the car of LIST) only when
 AT-RIGHT is not set as non-nil. Otherwise, only the N-1 or N (when
 AT-RIGHT) `nthcdr' of LIST is modified.
 
-The nil return happened when SUB-LIST did predicates by
-`entropy/emacs-nbase-listp-not-do' or N and LIST did predicates by
-`entropy/emacs-seq-with-safe-pos' both of invalid or overflow. Also
-WITH-ERROR is used both of them."
+This functions's WITH-ERROR key obey the SEQ error types of
+`entropy/emacs-seq-error-types'."
   (entropy/emacs-nbase-listp-not-do sub-list
     :with-error with-error
-    (entropy/emacs-seq-with-safe-pos list n
-      :with-error (and with-error t) :with-set-pos t
-      :with-check-length (and with-error t)
-      :without-run-when-overflow t
-      (if without-modify-list (setq list (copy-sequence list)))
-      (if without-modify-sub-list (setq sub-list (copy-sequence sub-list)))
-      (let* ((insl (nthcdr (1- n) list))
-             subendl rtn)
-        (when insl
-          (cond
-           (at-right
-            (when (or (= 0 n) (setq insl (cdr insl)))
-              (setq subendl (last sub-list))
-              (setcdr subendl (cdr insl))
-              (setcdr insl sub-list)
-              (setq rtn list)))
-           (t
-            (setq subendl (last sub-list))
-            (if (= 0 n)
-                (if without-modify-car
-                    (progn (setcdr subendl list) (setq rtn sub-list))
-                  (setcdr subendl (cons (car list) (cdr insl)))
-                  (setcar list (car sub-list))
-                  (setcdr list (cdr sub-list))
-                  (setq rtn list))
-              (setcdr subendl (cdr insl))
-              (setcdr insl sub-list)
-              (setq rtn list))))
-          ;; return
-          rtn)))))
+    (let (llen)
+      (entropy/emacs-ncommon-listp-not-do list
+        :with-error with-error :set-list-len-for llen
+        (entropy/emacs-seq-with-safe-pos llen n
+          :with-error with-error :with-set-pos t
+          :without-run-when-overflow t
+          (if without-modify-list (setq list (copy-sequence list)))
+          (if without-modify-sub-list (setq sub-list (copy-sequence sub-list)))
+          (let* ((insl (entropy/emacs-list-nthcdr-safe (1- n) list))
+                 subendl rtn)
+            (when insl
+              (cond
+               (at-right
+                (when (or (= 0 n) (setq insl (cdr insl)))
+                  (setq subendl (last sub-list))
+                  (setcdr subendl (cdr insl))
+                  (setcdr insl sub-list)
+                  (setq rtn list)))
+               (t
+                (setq subendl (last sub-list))
+                (if (= 0 n)
+                    (if without-modify-car
+                        (progn (setcdr subendl list) (setq rtn sub-list))
+                      (setcdr subendl (cons (car list) (cdr insl)))
+                      (setcar list (car sub-list))
+                      (setcdr list (cdr sub-list))
+                      (setq rtn list))
+                  (setcdr subendl (cdr insl))
+                  (setcdr insl sub-list)
+                  (setq rtn list))))
+              ;; return
+              rtn)))))))
 
 (cl-defun entropy/emacs-list-has-same-elements-p (lista listb &key test)
   "Return non-nil if two list is equalization as has same `length'
@@ -1010,10 +1070,9 @@ destructively so that no need to do that."
 
 (cl-defun entropy/emacs-list-get-region
     (list start &optional end &key with-destructively with-error)
-  "Return a new list which is a region of
-`entropy/emacs-common-listp' LIST from START to END, or nil
-without any operation when LIST is invaid or region is empty or
-overflow.
+  "Return a new list which is a region of `entropy/emacs-common-listp'
+LIST from START to END, or `entropy/emacs-seq-pressed-return'
+otherwise.
 
 START and END is re-calculated by
 `entropy/emacs-seq-with-safe-region' before progress.
@@ -1030,6 +1089,9 @@ When WITH-ERROR is set as non-nil, its passed to the same key of
 `entropy/emacs-seq-with-safe-region', except if 'invalid' or t or
 'all' type is included then it also trigger the error mechinsm for
 `entropy/emacs-common-listp'.
+
+This function's WITH-ERROR key obey the SEQ error types of
+`entropy/emacs-seq-error-types'.
 "
   (let (llen)
     (entropy/emacs-ncommon-listp-not-do list
@@ -1276,6 +1338,29 @@ list will formed as:
 
 
 ;; *** Sequence manipulation
+
+(defconst entropy/emacs-seq-error-types
+  (list t 'invalid 'overflow 'empty 'all)
+  "The constant for list a list of symbols which each of them
+indicate a error type.
+
+Explanations:
+
+1. 'invalid': describe a sequence's position POS's value is not a
+   valid or a sequence is not a `sequencep' SEQ or its subtpyes.
+2. 'overflow': describe a POS is not at the valid index of a SEQ.
+3. 'empty': describe a region of a SEQ is empty i.e. the region's
+   START and END position is same.
+4. 't' or 'all': for any error types include aboves.
+
+When used these error flags for indicate a error type, both of
+single or group as list is valid.
+")
+
+(defconst entropy/emacs-seq-pressed-return nil
+  "The return when any error of `entropy/emacs-seq-error-types'
+happened but pressed as leaving. It's always nil.")
+
 (defun __eemacs-seq/safe-pos-type-invalid-err
     (&optional seq seq-invalid-p pos pos-invalid-p)
   (let ((pi pos-invalid-p) (si seq-invalid-p))
@@ -1333,7 +1418,8 @@ invalid judger error -> anycond")))
          with-invalid directly-run-when
          &allow-other-keys)
   "Run BODY with `sequencep' SEQ's position POS (a `integerp') only when
-=type-isvalid-occasion= matched and return its value or nil otherwise.
+=type-isvalid-occasion= matched and return its value or
+`entropy/emacs-seq-pressed-return' otherwise.
 
 Both SEQ and POS should be a place compatible for `setf' or a variable
 name. And POS is recalculated and reset when some occasions like
@@ -1412,6 +1498,9 @@ Optionally key DIRECTLY-RUN-WHEN when set and return non-nil then
 directly do BODY and return its value without any above described
 procedures. This is a feature for those occasions no need to with the
 *safe* wrapper as this macro aimed to do.
+
+This macro's WITH-ERROR key obey the SEQ error types of
+`entropy/emacs-seq-error-types'.
 "
   (declare (indent 2))
   (let* ((seq-sym                   (make-symbol "seq-place"))
@@ -1525,7 +1614,8 @@ procedures. This is a feature for those occasions no need to with the
   "Run BODY for region of SEQ only when all of SEQ, START and END are
 safe predicated by `entropy/emacs-seq-with-safe-pos' (abbreviation as
 =safe-pos-wrapper=) with non-empty region got (i.e different valid
-START and END) and return BODY's value or nil otherwise.
+START and END) and return BODY's value or
+`entropy/emacs-seq-pressed-return' otherwise.
 
 WITH-SET-START and WITH-SET-END are respectively binding to
 WITH-SET-POS argument of =safe-pos-wrapper= of 'start' and
@@ -1543,6 +1633,9 @@ the tail index of SEQ.
 This macro will also swap the valid calculated START and END when
 their values as reverse order only when both WITH-SET-START and
 WITH-SET-END is specified.
+
+This macro's WITH-ERROR key obey the SEQ error types of
+`entropy/emacs-seq-error-types'.
 "
   (declare (indent 3))
   (let ((seq-sym            (make-symbol "sequence"))
