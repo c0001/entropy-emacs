@@ -1409,6 +1409,45 @@ first.
            (throw :exit t))
           (t (memq err user-errs)))))
 
+(cl-defun entropy/emacs-seq-throw-pos-overflow-error
+    (seq pos &optional error-type
+         &key extra-restriction)
+  "Throw an error when position integer POS of `sequencep' SEQ is
+overflow i.e. if POS is less or larger than the head or tail position
+of SEQ.
+
+Also do error when EXTRA-RESTRICTION is set as function formed as
+: (fn seq pos)
+return non-nil.
+
+If ERROR-TYPE is set as obeyed `entropy/emacs-seq-error-types', only
+do error when that ERROR-TYPE is matched by
+`entropy/emacs-seq-match-error-type' for error type
+'seq-pos-is-overflow'."
+  (catch :exit
+    (and error-type
+         (not (entropy/emacs-seq-match-error-type
+               'seq-pos-is-overflow error-type))
+         (throw :exit nil))
+    (let* ((seq-np (integerp seq))
+           (seq-lp (and (not seq-np) (listp seq)))
+           seqlen usr-res npos ppos)
+      (if seq-np (setq seqlen seq-np)
+        (if seq-lp (setq seqlen (safe-length seq))
+          (setq seqlen (length seq))))
+      (if (< pos 0) (setq npos (+ seqlen pos)))
+      (setq ppos (or npos pos))
+      (when (or (< ppos 0) (> ppos seqlen)
+                (and extra-restriction
+                     (setq usr-res (funcall extra-restriction seq pos))))
+        (signal 'args-out-of-range
+                (list 'eemacs-valid-seq-pos-p
+                      (format "pos %s is not a%svalid position for seq length of %s"
+                              (if npos (format "%d(origin as %d)" npos pos) pos)
+                              (if usr-res " user specified " " ")
+                              (if seq-np (format " %d" seq)
+                                (format "%d of %S" seqlen seq)))))))))
+
 (defconst entropy/emacs-seq-pressed-return nil
   "The return when any error of `entropy/emacs-seq-error-types'
 happened but pressed as leaving. It's always nil.")
