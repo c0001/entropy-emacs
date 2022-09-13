@@ -1378,6 +1378,32 @@ When used these error flags for indicate a error type, both of
 single or group as list is valid.
 ")
 
+(defun entropy/emacs-seq-match-error-type (err user-errs)
+  "Return non-nil when actual aimed target error type ERR matched user
+specified error types USER-ERRS, return nil otherwise.
+
+If either 't' or 'all' is hosted in USER-ERRS (as termed as
+=exactly-all=), the return is always non-nil, since that's all.
+
+ERR and each element of USER-ERRS should be a member of
+`entropy/emacs-seq-error-types'. ERR may be a list of ERRs, in which
+case return non-nil when all of them are matched , nil otherwise
+unless =exactly-all= occurs.
+
+If USER-ERRS is not a list, this function will wrapped it as a list
+first.
+"
+  (unless (consp user-errs) (setq user-errs (list user-errs)))
+  (catch :exit
+    (and (entropy/emacs-defun--group-memq-p '(t all) user-errs)
+         (throw :exit t))
+    (cond ((consp err)
+           (dolist (el err)
+             (unless (memq el user-errs)
+               (throw :exit nil)))
+           (throw :exit t))
+          (t (memq err user-errs)))))
+
 (defconst entropy/emacs-seq-pressed-return nil
   "The return when any error of `entropy/emacs-seq-error-types'
 happened but pressed as leaving. It's always nil.")
@@ -1561,7 +1587,7 @@ This macro's WITH-ERROR key obey the SEQ error types of
                           (cancel nil)
                           (t (error "[safe-seq-pos internal error]: invalid op type '%s'"
                                     ,with-invalid-p-sym))))
-                       ((entropy/emacs-defun--group-memq-p ,use-err-p-sym '(t invalid all))
+                       ((entropy/emacs-seq-match-error-type 'invalid ,use-err-p-sym)
                         (__eemacs-seq/safe-pos-type-invalid-err
                          ,seq-sym ,seq-invalid-p-sym ,pos-sym ,pos-invalid-p-sym))
                        (t nil)))))
@@ -1600,7 +1626,7 @@ This macro's WITH-ERROR key obey the SEQ error types of
                  (if (< ,pos-sym 0) (setq ,tmpvar-sym (+ ,pos-sym ,slen-sym))
                    (setq ,tmpvar-sym ,pos-sym))
                  (if (or (< ,tmpvar-sym 0) (> ,tmpvar-sym ,slen-sym))
-                     (if (entropy/emacs-defun--group-memq-p ,use-err-p-sym '(t overflow all))
+                     (if (entropy/emacs-seq-match-error-type 'overflow ,use-err-p-sym)
                          (if (sequencep ,seq-sym)
                              (error "Bad seq pos: %s, for length %d for seq %S"
                                     ,pos-sym ,slen-sym ,seq-sym)
@@ -1689,8 +1715,7 @@ This macro's WITH-ERROR key obey the SEQ error types of
                    ;; reset to regular type passed to subroutine since
                    ;; it not recognize the 'empty' type.
                    (or (setq ,with-error-sym nil) t))
-                 (entropy/emacs-defun--group-memq-p
-                  ,with-error-sym '(empty t all))))
+                 (entropy/emacs-seq-match-error-type 'empty ,with-error-sym)))
             ,slen-sym ,initial-reverse-p-sym)
        (entropy/emacs-swap-two-places-value ,start-sym ,end-sym
          ;; swap start and end when end is negative but start is
