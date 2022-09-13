@@ -517,23 +517,24 @@ macro to use it instead of 'it' as what bind for."
     (n object &key with-error with-last-non-consp-cdr)
   "If all is ok, return the N times cdr of OBJECT.
 
-Like `nthcdr' but just return nil when N is overflow or OBJECT is not
-a `listp' list wihout throw any error unless WITH-ERROR is set and
-return non-nil.
+Like `nthcdr' but just return `entropy/emacs-seq-pressed-return'
+otherwise unless WITH-ERROR is set properly.
 
-N is used as what for `nthcdr' i.e. always indicate to OBJECT when it
-is negative or 0 in which case return OBJECT it-self or arbitrary
-`natnump' integer for point to any place of a `proper-list-p' or
-`entropy/emacs-circular-listp' list.
+N is used as what for `nthcdr' but with restriction i.e. always
+indicate to OBJECT when it is negative or 0 in which case return
+OBJECT it-self or arbitrary `natnump' integer for point to any valid
+(not overflow) place of `listp' OBJECT.
 
-Defaultly, for a `entropy/emacs-dotted-listp' list, the last `consp'
-cdr is the max times that N can be indicated unless
-WITH-LAST-NON-CONSP-CDR set non-nil in which case we also chase to the
-last `atom' cdr.
+Defaultly, for a `listp' list, the last `consp' cdr is the max times
+that N can be indicated unless WITH-LAST-NON-CONSP-CDR set non-nil in
+which case we also chase to the last `atom' cdr.
 
 This function's WITH-ERROR key obey the SEQ error types of
 `entropy/emacs-seq-error-types'."
-  (if (and with-error with-last-non-consp-cdr)
+  (if (and with-last-non-consp-cdr
+           with-error
+           ;; since `nthcdr' is not check the pos overflow.
+           (not (entropy/emacs-seq-match-error-type 'seq-pos-is-overflow with-error)))
       ;; directly use `nthcdr' when specified the same occasion for
       ;; speed up computation since it's a primitive function which
       ;; usually fast that the implementation of this function.
@@ -541,7 +542,7 @@ This function's WITH-ERROR key obey the SEQ error types of
     (if (listp object)
         (when object
           (if (< n 0) object
-            (let ((i 0) inp exit lcdr rtn
+            (let ((i 0) inp exit rtn
                   (fmstr "%d is overflow the max nthcdr %d of list %s"))
               (entropy/emacs-list-map-cdr object
                 :with-exit t
@@ -552,14 +553,15 @@ This function's WITH-ERROR key obey the SEQ error types of
                        (atom (cdr it)) (= (1+ i) n))
                   (setq rtn (cdr it) exit t)))
                 (unless inp (cl-incf i))
-                (setq lcdr (cdr it))
                 exit)
-              (and with-error (and (< i n) (not (null lcdr)))
+              (and (< i n)
+                   (entropy/emacs-seq-match-error-type
+                    'seq-pos-is-overflow with-error)
                    (signal 'args-out-of-range
                            (list (format fmstr n i object))))
               ;; return
               rtn)))
-      (when with-error
+      (when (entropy/emacs-seq-match-error-type 'any-arg-is-invalid with-error)
         (signal 'wrong-type-argument
                 (list 'listp object))))))
 
