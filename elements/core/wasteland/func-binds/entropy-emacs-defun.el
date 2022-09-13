@@ -647,7 +647,7 @@ while thus the SET-LIST-LEN-FOR is set.
     `(let ((,obsym ,object) ,llen-sym)
        (setq ,llen-sym (entropy/emacs-common-listp ,obsym))
        (when (and (not ,llen-sym)
-                  (entropy/emacs-seq-match-error-type 'invalid ,with-error))
+                  (entropy/emacs-seq-match-error-type 'any-arg-is-invalid ,with-error))
          (signal 'wrong-type-argument
                  (list 'entropy/emacs-common-listp ,obsym)))
        (when (and ,llen-sym (not ,extra-unless))
@@ -715,7 +715,7 @@ BODY.
     `(let* ((,obsym ,object)
             (,typep-sym (entropy/emacs-base-listp ,obsym)))
        (and (not ,typep-sym)
-            (entropy/emacs-seq-match-error-type 'invalid ,with-error)
+            (entropy/emacs-seq-match-error-type 'any-arg-is-invalid ,with-error)
             (signal 'wrong-type-argument
                     (list 'entropy/emacs-base-listp ,obsym)))
        (when (and ,typep-sym (not ,extra-unless))
@@ -1360,21 +1360,25 @@ list will formed as:
 ;; *** Sequence manipulation
 
 (defconst entropy/emacs-seq-error-types
-  (list t 'invalid 'overflow 'empty 'all)
-  "The constant for list a list of symbols which each of them
-indicate a error type.
+  (list t 'any-arg-is-invalid 'seq-pos-is-overflow 'seq-region-is-empty 'all)
+  "The constant for list a list of symbols which each of them indicate a
+error type.
 
 Explanations:
 
-1. 'invalid': describe a sequence's position POS's value is not a
-   valid or a sequence is not a `sequencep' SEQ or its subtpyes.
-2. 'overflow': describe a POS is not at the valid index of a SEQ.
-3. 'empty': describe a region of a SEQ is empty i.e. the region's
-   START and END position is same.
+1. 'any-arg-is-invalid': describe any of checked object's type is invalid
+   such as a sequence's position POS's value is not valid or a
+   sequence is not a `sequencep' SEQ even for its subtpyes.
+
+2. 'seq-pos-is-overflow': describe a POS is not at the valid index of a SEQ.
+
+3. 'seq-region-is-empty': describe a region of a SEQ is empty i.e. the
+   region's START and END position is same.
+
 4. 't' or 'all': for any error types include aboves.
 
-When used these error flags for indicate a error type, both of
-single or group as list is valid.
+When used these error flags for indicate a error type, both of single
+or group as list is valid.
 ")
 
 (defun entropy/emacs-seq-match-error-type (err user-errs)
@@ -1464,15 +1468,15 @@ invalid judger error -> anycond")))
          with-invalid directly-run-when
          &allow-other-keys)
   "Run BODY with `sequencep' SEQ's position POS (a `integerp') only when
-=type-isvalid-occasion= matched and return its value or
+=health-occasion= matched and return its value or
 `entropy/emacs-seq-pressed-return' otherwise.
 
 Both SEQ and POS should be a place compatible for `setf' or a variable
 name. And POS is recalculated and reset when some occasions like
-=pos-overflow-occasion= matched within =type-isvalid-occasion= context
+=pos-overflow-occasion= matched within =health-occasion= context
 before run BODY, only when WITH-SET-POS is set and return non-nil, and
 unless WITHOUT-RUN-WHEN-OVERFLOW is set and return non-nil in which
-case the =type-isvalid-occasion= is not matached.
+case the =health-occasion= is not matached.
 
 If WITH-CHECK-LENGTH is set and return non-nil, the
 =pos-overflow-occasion= is detected more precision that for both
@@ -1490,12 +1494,12 @@ instead of re-`length' the seq. So be careful to binding this since a
 wrong length will make unexpected fault result for all calculation.
 
 Whatever SEQ's type is, the `length' for SEQ must be larger than 0
-i.e. SEQ must not empty, otherwise it's not a
-=type-isvalid-occasion=. In this case, if WITH-ERROR set as 'invalid',
-an error is throwed out.
+i.e. SEQ must not empty, otherwise it's not a =health-occasion=. In
+this case, if WITH-ERROR set as 'any-arg-is-invalid', an error is throwed
+out.
 
-If WITH-ERROR is set to 'overflow' then a error throwed out while
-=pos-overflow-occasion= matched, otherwise, as what says for
+If WITH-ERROR is set to 'seq-pos-is-overflow' then a error throwed out
+while =pos-overflow-occasion= matched, otherwise, as what says for
 WITH-SET-POS, POS is recalculated to start position of SEQ when it's
 too small or the end of SEQ when it's too large automatically, before
 run BODY. Excepts for that if WITH-SET-POS is set and return 'start'
@@ -1507,7 +1511,7 @@ Futher more, any other non-nil value of WITH-SET-POS is using the
 which will make invocation context has more easy way to use POS.
 
 Other error flag are t and 'all', both of them is indicate throwing
-error either when =type-isvalid-occasion= is not matched or
+error either when =health-occasion= is not matched or
 =pos-overflow-occasion= is matched.
 
 Further more for WITH-ERROR which also can set as a list of error
@@ -1535,7 +1539,7 @@ Where _condition_ is valid as:
 
 And _operation_ is valid as:
 1) 'cancel' : ignore anything and return immediately.
-2) 'run' : run BODY as well as in =type-isvalid-occasion=.
+2) 'run' : run BODY as well as in =health-occasion=.
 
 
 *Finally:*
@@ -1586,7 +1590,7 @@ This macro's WITH-ERROR key obey the SEQ error types of
                           (cancel nil)
                           (t (error "[safe-seq-pos internal error]: invalid op type '%s'"
                                     ,with-invalid-p-sym))))
-                       ((entropy/emacs-seq-match-error-type 'invalid ,use-err-p-sym)
+                       ((entropy/emacs-seq-match-error-type 'any-arg-is-invalid ,use-err-p-sym)
                         (__eemacs-seq/safe-pos-type-invalid-err
                          ,seq-sym ,seq-invalid-p-sym ,pos-sym ,pos-invalid-p-sym))
                        (t nil)))))
@@ -1625,7 +1629,7 @@ This macro's WITH-ERROR key obey the SEQ error types of
                  (if (< ,pos-sym 0) (setq ,tmpvar-sym (+ ,pos-sym ,slen-sym))
                    (setq ,tmpvar-sym ,pos-sym))
                  (if (or (< ,tmpvar-sym 0) (> ,tmpvar-sym ,slen-sym))
-                     (if (entropy/emacs-seq-match-error-type 'overflow ,use-err-p-sym)
+                     (if (entropy/emacs-seq-match-error-type 'seq-pos-is-overflow ,use-err-p-sym)
                          (if (sequencep ,seq-sym)
                              (error "Bad seq pos: %s, for length %d for seq %S"
                                     ,pos-sym ,slen-sym ,seq-sym)
@@ -1666,9 +1670,9 @@ START and END) and return BODY's value or
 WITH-SET-START and WITH-SET-END are respectively binding to
 WITH-SET-POS argument of =safe-pos-wrapper= of 'start' and
 'end'. Other keys has same meaning as =safe-pos-wrapper= excepting for
-WITH-ERROR which also support a 'empty' type for error when the final
-got region is empty, thus for this key, thus the error type 't' or
-'all' for =safe-pos-wrapper= also include this key.
+WITH-ERROR which also support a 'seq-region-is-empty' type for error when
+the final got region is empty, thus for this key, thus the error type
+'t' or 'all' for =safe-pos-wrapper= also include this key.
 
 Except for END, which can be nil since it indicates to the end of SEQ
 usually by lisp convention. Thus for that, the empty region detection
@@ -1714,7 +1718,7 @@ This macro's WITH-ERROR key obey the SEQ error types of
                    ;; reset to regular type passed to subroutine since
                    ;; it not recognize the 'empty' type.
                    (or (setq ,with-error-sym nil) t))
-                 (entropy/emacs-seq-match-error-type 'empty ,with-error-sym)))
+                 (entropy/emacs-seq-match-error-type 'seq-region-is-empty ,with-error-sym)))
             ,slen-sym ,initial-reverse-p-sym)
        (entropy/emacs-swap-two-places-value ,start-sym ,end-sym
          ;; swap start and end when end is negative but start is
