@@ -9392,9 +9392,12 @@ clipboard with native operation system."
           ;; gnu/linux platform
           (and sys/linuxp
                (or
-                (and (executable-find "xclip") 'xclip)
-                (and (executable-find "xsel") 'xsel)
-                (and (executable-find "wl-copy") 'wl-copy)))
+                (and (getenv "WAYLAND_DISPLAY")
+                     (executable-find "wl-copy") 'wl-copy)
+                (and (getenv "DISPLAY") ;for X11
+                     (or
+                      (and (executable-find "xclip") 'xclip)
+                      (and (executable-find "xsel")  'xsel)))))
 
           ;; NOTE: we must disable the native gui support method to
           ;; prevent it make a invisible frame to build connection with
@@ -9408,14 +9411,14 @@ clipboard with native operation system."
            ;; clipboard sync functional
            (not (display-graphic-p))
            (fboundp 'xterm-paste)
-           (when (ignore-errors (or (executable-find (symbol-name judger))
-                                    ;; in windows wsl env we must use
-                                    ;; the `powershell' exe name to
-                                    ;; get it.
-                                    (when (eq judger 'powershell)
-                                      (executable-find "powershell.exe"))))
-             (if (bound-and-true-p xclip-mode)
-                 t
+           (when (and judger
+                      (or (executable-find (symbol-name judger))
+                          ;; in windows wsl env we must use
+                          ;; the `powershell' exe name to
+                          ;; get it.
+                          (when (eq judger 'powershell)
+                            (executable-find "powershell.exe"))))
+             (if (bound-and-true-p xclip-mode) t
                (progn (require 'xclip)
                       (setq xclip-method judger
                             xclip-program (if (eq judger 'powershell)
