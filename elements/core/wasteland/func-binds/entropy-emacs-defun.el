@@ -629,8 +629,9 @@ non-nil list, or nil otherwise."
 `entropy/emacs-common-listp'. Return
 `entropy/emacs-seq-pressed-return' otherwise.
 
-When WITH-ERROR is set as non-nil, throw an error and ignore BODY
-when OBJECT is invalid.
+When WITH-ERROR is set and its return is obeyed the eemacs SEQ error
+types of `entropy/emacs-seq-error-types', throw an error and ignore
+BODY.
 
 When SET-LIST-LEN-FOR is set, it should be a place compatible for
 `setf' or a variable name for retreive the `length' of OBJECT when
@@ -639,16 +640,14 @@ valid.
 Optional key EXTRA-UNLESS if set, neither run BODY when it return
 non-nil. And just evaluate it when the main judger predicated and
 while thus the SET-LIST-LEN-FOR is set.
-
-This macro's WITH-ERROR key obey the SEQ error types of
-`entropy/emacs-seq-error-types'.
 "
   (declare (indent 1))
   (let ((obsym    (make-symbol "object"))
         (llen-sym (make-symbol "list-len")))
     `(let ((,obsym ,object) ,llen-sym)
        (setq ,llen-sym (entropy/emacs-common-listp ,obsym))
-       (when (and ,with-error (not ,llen-sym))
+       (when (and (not ,llen-sym)
+                  (entropy/emacs-seq-match-error-type 'invalid ,with-error))
          (signal 'wrong-type-argument
                  (list 'entropy/emacs-common-listp ,obsym)))
        (when (and ,llen-sym (not ,extra-unless))
@@ -706,17 +705,17 @@ Optional key EXTRA-UNLESS when set, as extra trigger for ignore
 BODY when it return non-nil. It is evaluated after the main
 predicate.
 
-When WITH-ERROR is set as non-nil, throw an error before any
-operations when OBJECT is invalid.
-
-This macro's WITH-ERROR key obey the SEQ error types of
-`entropy/emacs-seq-error-types'."
+When WITH-ERROR is set and its return is obeyed the eemacs SEQ error
+types of `entropy/emacs-seq-error-types', throw an error and ignore
+BODY.
+"
   (declare (indent 1))
   (let ((obsym     (make-symbol "object"))
         (typep-sym (make-symbol "is-valid-p")))
     `(let* ((,obsym ,object)
             (,typep-sym (entropy/emacs-base-listp ,obsym)))
-       (and ,with-error (not ,typep-sym)
+       (and (not ,typep-sym)
+            (entropy/emacs-seq-match-error-type 'invalid ,with-error)
             (signal 'wrong-type-argument
                     (list 'entropy/emacs-base-listp ,obsym)))
        (when (and ,typep-sym (not ,extra-unless))
@@ -909,7 +908,7 @@ This function's WITH-ERROR key obey the SEQ error types of
             ,old-list-sym ,llen-sym
             (,i-sym 0) ,exit-sym (,err-sym ,with-error))
        (entropy/emacs-ncommon-listp-not-do ,list-sym
-         :with-error (memq ,err-sym '(invalid all t))
+         :with-error ,err-sym
          :set-list-len-for ,llen-sym
          (entropy/emacs-seq-with-safe-region ,llen-sym ,start-sym ,end-sym
            :with-set-start t :with-set-end t
@@ -1117,7 +1116,7 @@ This function's WITH-ERROR key obey the SEQ error types of
   (let (llen)
     (entropy/emacs-ncommon-listp-not-do list
       :set-list-len-for llen
-      :with-error (memq with-error '(invalid all t))
+      :with-error with-error
       (entropy/emacs-seq-with-safe-region llen start end
         :with-set-start t :with-set-end t
         :with-error with-error
