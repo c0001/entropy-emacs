@@ -378,7 +378,7 @@ Version 2017-10-09"
         (set-process-sentinel proc-obj proc-sentinel))))))
 
 (when sys/win32p
-  (defun entropy/emacs-tools-cmd()
+  (defun entropy/emacs-tools-open-in-w32-cmd-terminal ()
     (interactive)
     (if entropy/emacs-Cmder-enable
         (let (($path default-directory))
@@ -411,12 +411,12 @@ Version 2017-10-09"
  (entropy/emacs-hydra-hollow-common-individual-hydra-define+
   'eemacs-basic-config-core nil
   '("Eemacs Basic Core"
-    (("C-;" entropy/emacs-tools-open-in-terminal
+    ((";" entropy/emacs-tools-open-in-terminal
       "Open the current location in a new terminal window"
-      :enable sys/is-graphic-support :exit t :global-bind t)
-     ("C--" entropy/emacs-tools-cmd
+      :enable sys/is-graphic-support :exit t :eemacs-top-bind t)
+     ("'" entropy/emacs-tools-open-in-w32-cmd-terminal
       "Open the current location in a new windows cmdproxy"
-      :enable sys/win32p :exit t :global-bind t)))))
+      :enable sys/win32p :exit t :eemacs-top-bind t)))))
 
 ;; **** entropy-open-with
 (use-package entropy-open-with
