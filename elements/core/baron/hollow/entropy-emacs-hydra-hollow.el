@@ -86,10 +86,15 @@
 
 ;; ** libraries
 ;; *** basic library
-(defvar entropy/emacs-hydra-hollow-union-form
-  '(lambda (&rest _))
+(defconst entropy/emacs-hydra-hollow-union-form-const
+  (list 'lambda (list '&rest '_))
   "A lambda form stored some predicated procedure that will run
 at some proper time.")
+
+(defvar entropy/emacs-hydra-hollow-union-form
+  (copy-sequence entropy/emacs-hydra-hollow-union-form-const)
+  "The modifiable copy of
+`entropy/emacs-hydra-hollow-union-form-const'")
 
 (defvar entropy/emacs-hydra-hollow-call-before-hook nil
   "Hook before run any eemacs-hydra-hollow instances")
@@ -108,7 +113,7 @@ it becoming one empty form."
   (let (
         ;; NOTE: this is important to prevent hydra hollow init failure
         (inhibit-quit t)
-        (copy-union-form (copy-tree entropy/emacs-hydra-hollow-union-form)))
+        (copy-union-form (copy-sequence entropy/emacs-hydra-hollow-union-form)))
     (unless (null (cddr copy-union-form))
       (progn
         (funcall entropy/emacs-hydra-hollow-union-form)
@@ -116,12 +121,15 @@ it becoming one empty form."
           (dolist (form (cddr copy-union-form))
             (setq entropy/emacs-hydra-hollow-union-form
                   (cl-delete form entropy/emacs-hydra-hollow-union-form
-                             :test 'equal)))
+                             :test 'eq  ;use `eq' may enough
+                             ;; guarantee not delete the form head i.e. (lambda args ...)
+                             :start 2)))
           (entropy/emacs-hydra-hollow-call-union-form))
-        (unless (eq entropy/emacs-hydra-hollow-union-form
-                    '(lambda (&rest _)))
+        (unless (equal entropy/emacs-hydra-hollow-union-form
+                       entropy/emacs-hydra-hollow-union-form-const)
           (setq entropy/emacs-hydra-hollow-union-form
-                '(lambda (&rest _))))))))
+                (copy-sequence
+                 entropy/emacs-hydra-hollow-union-form-const)))))))
 
 (defvar entropy/emacs-hydra-hollow-call-union-form-adviced-list nil
   "A list of functions who has been adviced by
@@ -134,9 +142,8 @@ need to advice as thus again.")
   "Advice a function before by
 `entropy/emacs-hydra-hollow-call-union-form' with judging whether
 this operation was did that prevent do again."
-  (unless (member
-           func
-           entropy/emacs-hydra-hollow-call-union-form-adviced-list)
+  (unless (memq func
+                entropy/emacs-hydra-hollow-call-union-form-adviced-list)
     (progn (advice-add func :before #'entropy/emacs-hydra-hollow-call-union-form)
            (push func entropy/emacs-hydra-hollow-call-union-form-adviced-list))))
 
@@ -144,19 +151,17 @@ this operation was did that prevent do again."
     (name body heads-plist)
   "Function version for `pretty-hydra-define' so that the origin
 arguments can be evaluated before the macro expanding."
-  (funcall
-   `(lambda ()
-      (pretty-hydra-define
-        ,name ,body ,heads-plist))))
+  (entropy/emacs-eval-with-lexical
+   `(pretty-hydra-define
+      ,name ,body ,heads-plist)))
 
 (defun entropy/emacs-hydra-hollow-func-version-pthydra-define+
     (name body heads-plist)
   "Function version for `pretty-hydra-define+' so that the origin
 arguments can be evaluated before the macro expanding."
-  (funcall
-   `(lambda ()
-      (pretty-hydra-define+
-        ,name ,body ,heads-plist))))
+  (entropy/emacs-eval-with-lexical
+   `(pretty-hydra-define+
+      ,name ,body ,heads-plist)))
 
 (defun entropy/emacs-hydra-hollow-self-list-type-p (data)
   "The =self-list= data type predicate function.
@@ -169,10 +174,9 @@ A valid =self-list= data is a list which car must `eq' to
 rest must at least including one *itself*.
 
 There's no restriction for what *itself* is."
-  (let ()
-    (and (listp data)
-         (eq (car data) :self-list)
-         (> (length data) 1))))
+  (and (consp data)
+       (eq (car data) :self-list)
+       (consp (cdr data))))
 
 ;; *** entropy-emacs pretty hydra superstructure
 
@@ -273,10 +277,10 @@ type listed as:
          (cdr pattern))
         ((and (listp pattern)
               (eq (car pattern) :eval))
-         (funcall `(lambda nil ,@(cdr pattern))))
+         (entropy/emacs-eval-with-lexical `(progn ,@(cdr pattern))))
         ((and (listp pattern)
               (not (null pattern)))
-         (funcall `(lambda () ,pattern)))
+         (entropy/emacs-eval-with-lexical pattern))
         ((and (symbolp pattern)
               (member pattern '(nil t)))
          (unless (null pattern)
@@ -300,7 +304,7 @@ was ordered by the same sequence of the origin groups order."
                   (nth (+ 1 (* cnt 2)) pretty-hydra-cabinet))
             rtn)
       (cl-incf cnt))
-    (reverse rtn)))
+    (nreverse rtn)))
 
 (defun entropy/emacs-hydra-hollow-prune-pretty-hydra-cabinet
     (pretty-hydra-cabinet)
@@ -1587,8 +1591,7 @@ backend instead of `pretty-hydra-define+'."
         (setq rec-mode (get rec-mode 'derived-mode-parent)))
       (user-error "Major mode hydra not found for %s or its parent modes" orig-mode))))
 
-(entropy/emacs-!set-key
-  (kbd "m")
+(entropy/emacs-!set-key (kbd "m")
   #'entropy/emacs-hydra-hollow-category-major-mode-hydra)
 
 ;; ****** individual pretty hydra core
