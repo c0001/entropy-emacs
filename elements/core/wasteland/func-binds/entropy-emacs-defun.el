@@ -561,7 +561,7 @@ This function's WITH-ERROR key obey the SEQ error types of
               rtn)))
       (when with-error
         (signal 'wrong-type-argument
-                (listp 'listp object))))))
+                (list 'listp object))))))
 
 (cl-defun entropy/emacs-circular-listp (object &key internal-without-check-proper)
   "Return the `safe-length' of OBJECT when its a circular `listp'
