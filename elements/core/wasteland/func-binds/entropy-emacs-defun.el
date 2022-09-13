@@ -8709,13 +8709,14 @@ session is inject to the the common
 while pdumper procedure.
 "
   (let ((body-wrap (entropy/emacs-get-plist-body body)))
-    `(entropy/emacs-lazy-initial-form
-      ,hooks ,initial-func-suffix-name ,initial-var-suffix-name
-      :abbrev-name "entropy/emacs--hook-first-enable-for"
-      :prompt-type ,prompt-type
-      :adder-type 'add-hook
-      :pdumper-no-end ,pdumper-no-end
-      ,@body-wrap)))
+    (macroexpand-1
+     `(entropy/emacs-lazy-initial-form
+       ,hooks ,initial-func-suffix-name ,initial-var-suffix-name
+       :abbrev-name "entropy/emacs--hook-first-enable-for"
+       :prompt-type ,prompt-type
+       :adder-type 'add-hook
+       :pdumper-no-end ,pdumper-no-end
+       ,@body-wrap))))
 
 (cl-defmacro entropy/emacs-lazy-initial-advice-before
     (advice-fors initial-func-suffix-name initial-var-suffix-name
@@ -8738,15 +8739,16 @@ session is inject to the the common
 `entropy/emacs-select-trail-hook' so that they are evaluated
 while pdumper procedure.
 "
-    (let ((body-wrap (entropy/emacs-get-plist-body body)))
-      `(entropy/emacs-lazy-initial-form
-        ,advice-fors ,initial-func-suffix-name ,initial-var-suffix-name
-        :abbrev-name "entropy/emacs--BeforeADV-fisrt-enable-for"
-        :prompt-type ,prompt-type
-        :adder-type 'advice-add
-        :adder-flag (quote :before)
-        :pdumper-no-end ,pdumper-no-end
-        ,@body-wrap)))
+  (let ((body-wrap (entropy/emacs-get-plist-body body)))
+    (macroexpand-1
+     `(entropy/emacs-lazy-initial-form
+       ,advice-fors ,initial-func-suffix-name ,initial-var-suffix-name
+       :abbrev-name "entropy/emacs--BeforeADV-fisrt-enable-for"
+       :prompt-type ,prompt-type
+       :adder-type 'advice-add
+       :adder-flag (quote :before)
+       :pdumper-no-end ,pdumper-no-end
+       ,@body-wrap))))
 
 (cl-defmacro entropy/emacs-lazy-initial-advice-after
     (advice-fors initial-func-suffix-name initial-var-suffix-name
@@ -8755,14 +8757,15 @@ while pdumper procedure.
                  &allow-other-keys)
   "Like `entropy/emacs-lazy-initial-advice-before' but for :after place."
   (let ((body-wrap (entropy/emacs-get-plist-body body)))
-    `(entropy/emacs-lazy-initial-form
-      ,advice-fors ,initial-func-suffix-name ,initial-var-suffix-name
-      :abbrev-name "entropy/emacs--AfterADV-fisrt-enable-for"
-      :prompt-type ,prompt-type
-      :adder-type 'advice-add
-      :adder-flag (quote :after)
-      :pdumper-no-end ,pdumper-no-end
-      ,@body-wrap)))
+    (macroexpand-1
+     `(entropy/emacs-lazy-initial-form
+       ,advice-fors ,initial-func-suffix-name ,initial-var-suffix-name
+       :abbrev-name "entropy/emacs--AfterADV-fisrt-enable-for"
+       :prompt-type ,prompt-type
+       :adder-type 'advice-add
+       :adder-flag (quote :after)
+       :pdumper-no-end ,pdumper-no-end
+       ,@body-wrap))))
 
 ;; Disable messy commands in `M-x' list
 (defun entropy/emacs-lazy-initial-read-extended-command-predicate
