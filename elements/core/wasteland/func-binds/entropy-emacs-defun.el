@@ -1050,7 +1050,7 @@ when VAR's value is nil originally, VAR is set to the `nconc' of LISTS
 LISTS is a `entropy/emacs-lonely-listp' list and the element that only
 has is a `atom'). Otherwise no set operation did since `nconc' is
 destructively so that no need to do that."
-  (declare (indent defun))
+  (declare (indent 1))
   (let ((tmpvar-sym    (make-symbol "tmpvar"))
         (val-sym       (make-symbol "val"))
         (var-head-sym  (make-symbol "var-head")))
@@ -1071,7 +1071,7 @@ destructively so that no need to do that."
 (defmacro entropy/emacs-nconc-with-setvar-use-rest (var &rest lists)
   "Like `entropy/emacs-nconc-with-setvar' but use rest arguments
 for LISTS."
-  (declare (indent defun))
+  (declare (indent 1))
   (let ((tmpvar-sym    (make-symbol "tmpvar"))
         (val-sym       (make-symbol "val"))
         (var-head-sym  (make-symbol "var-head")))
