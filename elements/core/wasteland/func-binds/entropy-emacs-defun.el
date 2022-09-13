@@ -1041,31 +1041,52 @@ Only the cell whose car is the last cdr of list is not deleted."
       (if (= i n) list))))
 
 (defmacro entropy/emacs-nconc-with-setvar (var &optional lists)
-  "Apply VAR's value and list of lists LISTS to `nconc', of that
-VAR is a variable name or a genernal place where can be
-`setf'. Return the may be altered VAR's value.
+  "Apply VAR's value (must be a `listp' list) and list of lists LISTS to
+`nconc', of that VAR is a variable name or a genernal place where can
+be `setf'. Return the may be altered VAR's value.
 
-VAR is set to the `nconc' of LISTS when VAR's value is nil
-originally, otherwise no set operation did since `nconc' is
+when VAR's value is nil originally, VAR is set to the `nconc' of LISTS
+(wrapped the result into a list when the result is `atom' i.e. when
+LISTS is a `entropy/emacs-lonely-listp' list and the element that only
+has is a `atom'). Otherwise no set operation did since `nconc' is
 destructively so that no need to do that."
   (declare (indent defun))
-  (let ((lists-sym (make-symbol "lists"))
-        (val-sym   (make-symbol "val"))
+  (let ((tmpvar-sym    (make-symbol "tmpvar"))
+        (val-sym       (make-symbol "val"))
         (var-head-sym  (make-symbol "var-head")))
-    `(let* ((,lists-sym ,lists)
+    `(let* ((,tmpvar-sym ,(and lists t))
             (,val-sym ,var)
             ,var-head-sym)
-       (when ,lists-sym
-         (if ,val-sym (apply 'nconc ,val-sym ,lists-sym)
-           ;; init var be a non-nil list by find the first non-nil car
-           ;; of LISTS in where any nil preceding is useless since VAR
-           ;; is nil, so that we can use `nconc' modify it directly.
-           (setq ,var-head-sym ,lists-sym)
-           (while (and (consp ,var-head-sym) (not (car ,var-head-sym)))
-             (setq ,var-head-sym (cdr ,var-head-sym)))
-           (when (setq ,var-head-sym (car ,var-head-sym))
-             (setf ,val-sym ,var-head-sym ,var ,val-sym)
-             (apply 'nconc ,val-sym (cdr ,lists-sym)))))
+       (when ,tmpvar-sym
+         (if ,val-sym (apply 'nconc ,val-sym ,lists)
+           (setq ,tmpvar-sym (apply 'nconc ,lists))
+           ;; no need to use `setf' since it's either null at before or now.
+           (when ,tmpvar-sym
+             (unless (listp ,tmpvar-sym)
+               (setq ,tmpvar-sym (cons ,tmpvar-sym nil)))
+             (setf ,var     ,tmpvar-sym
+                   ,val-sym ,tmpvar-sym))))
+       ,val-sym)))
+
+(defmacro entropy/emacs-nconc-with-setvar-use-rest (var &rest lists)
+  "Like `entropy/emacs-nconc-with-setvar' but use rest arguments
+for LISTS."
+  (declare (indent defun))
+  (let ((tmpvar-sym    (make-symbol "tmpvar"))
+        (val-sym       (make-symbol "val"))
+        (var-head-sym  (make-symbol "var-head")))
+    `(let* ((,tmpvar-sym ,(and lists t))
+            (,val-sym ,var)
+            ,var-head-sym)
+       (when ,tmpvar-sym
+         (if ,val-sym (nconc ,val-sym ,@lists)
+           (setq ,tmpvar-sym (nconc ,@lists))
+           ;; no need to use `setf' since it's either null at before or now.
+           (when ,tmpvar-sym
+             (unless (listp ,tmpvar-sym)
+               (setq ,tmpvar-sym (cons ,tmpvar-sym nil)))
+             (setf ,var     ,tmpvar-sym
+                   ,val-sym ,tmpvar-sym))))
        ,val-sym)))
 
 (cl-defun entropy/emacs-list-get-region
