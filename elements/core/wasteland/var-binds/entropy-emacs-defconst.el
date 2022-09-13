@@ -363,6 +363,7 @@ NOTE: all the key can be evaluated at run-time
   (let ((body (entropy/emacs-get-plist-body body))
         (op-name-sym   (make-symbol "op-name"))
         (type-sym      (make-symbol "type"))
+        (doc-sym       (make-symbol "docstring"))
         (detector-sym  (make-symbol "detector"))
         (signal-sym    (make-symbol "signal"))
         (default-sym   (make-symbol "default"))
@@ -371,7 +372,8 @@ NOTE: all the key can be evaluated at run-time
         (err-data-sym  (make-symbol "err-data"))
         (do-body-p-sym (make-symbol "do-body-p")))
     `(let* ((,op-name-sym ,op-name)
-            (,type-sym ,type)
+            (,type-sym    ,type)
+            (,doc-sym     ,doc)
             (,default-sym
               (alist-get ,type-sym
                          entropy/emacs-api-restriction-uniform-type-alist))
@@ -385,7 +387,8 @@ NOTE: all the key can be evaluated at run-time
             (,warn-func-sym
              (lambda ()
                (entropy/emacs-api-restriction-display-warn
-                (format "%s: [type: '%s' op-name: '%s' err-msg: \"%s\"]"
+                (format "%s: [type: '%s' op-name: '%s' err-msg: \"%s\"], \
+see `entropy/emacs-api-restriction-detection-log' for details."
                         ,err-sym ,type-sym ,op-name-sym ,err-data-sym)
                 ,do-error))))
        (unless ,default-sym
@@ -402,6 +405,7 @@ NOTE: all the key can be evaluated at run-time
                  (add-to-list 'entropy/emacs-api-restriction-detection-log
                               (list
                                ,type-sym
+                               :doc ,doc-sym
                                :operation-name ,op-name-sym
                                :error-sym ,err-sym
                                :error-data ,err-data-sym))
