@@ -1411,7 +1411,7 @@ first.
 
 (cl-defun entropy/emacs-seq-throw-pos-overflow-error
     (seq pos &optional error-type
-         &key extra-restriction)
+         &key extra-restriction without-calc-negative-pos)
   "Throw an error when position integer POS of `sequencep' SEQ is
 overflow i.e. if POS is less or larger than the head or tail position
 of SEQ.
@@ -1423,7 +1423,14 @@ return non-nil.
 If ERROR-TYPE is set as obeyed `entropy/emacs-seq-error-types', only
 do error when that ERROR-TYPE is matched by
 `entropy/emacs-seq-match-error-type' for error type
-'seq-pos-is-overflow'."
+'seq-pos-is-oveflow'.
+
+SEQ can also be a `natnump' integer in which case to indicate the
+`length' of SEQ. Otherwise the `length' is calculated internally.
+
+When WITHOUT-CALC-NEGATIVE-POS is set and return non-nil, the POS is
+never re-calculated from the tail of SEQ if it's negative. In which
+case the comparison is directly use the value of POS."
   (catch :exit
     (and error-type
          (not (entropy/emacs-seq-match-error-type
@@ -1435,7 +1442,8 @@ do error when that ERROR-TYPE is matched by
       (if seq-np (setq seqlen seq-np)
         (if seq-lp (setq seqlen (safe-length seq))
           (setq seqlen (length seq))))
-      (if (< pos 0) (setq npos (+ seqlen pos)))
+      (if (and (< pos 0) (not without-calc-negative-pos))
+          (setq npos (+ seqlen pos)))
       (setq ppos (or npos pos))
       (when (or (< ppos 0) (> ppos seqlen)
                 (and extra-restriction
