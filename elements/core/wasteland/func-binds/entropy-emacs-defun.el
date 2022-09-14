@@ -807,6 +807,7 @@ This function's WITH-ERROR key obey the `entropy/emacs-seq-error-types'."
            ;; safe macro. Or it's a internal error for the pos safe
            ;; wrapper.
            :without-calc-negative-pos t
+           :without-check-unless-error-type-is-set t
            :extra-restriction 'without-max))))))
 
 (cl-defun entropy/emacs-list-add-car (list newcar &key with-error)
@@ -890,6 +891,7 @@ modifications .
           exit)
         (unless exit (entropy/emacs-seq-throw-pos-overflow-error
                       (or llen list) nth with-error
+                      :without-check-unless-error-type-is-set t
                       :extra-restriction 'without-max))
         rtn))))
 
@@ -959,11 +961,11 @@ modification.
               (setq exit t))
             (setq it-parent it i (1+ i))
             exit)
-          (when (and (not exit) with-error
-                     (entropy/emacs-seq-match-error-type
-                      'seq-pos-is-overflow with-error))
+          (unless exit
             (entropy/emacs-seq-throw-pos-overflow-error
-             list nth nil :extra-restriction 'without-max))))
+             list nth with-error
+             :without-check-unless-error-type-is-set t
+             :extra-restriction 'without-max))))
       rtn)))
 
 (cl-defmacro entropy/emacs-list-delete-region
@@ -1469,8 +1471,8 @@ list will formed as:
 
 (defconst entropy/emacs-seq-error-types
   (list t 'any-arg-is-invalid 'seq-pos-is-overflow 'seq-region-is-empty 'all)
-  "The constant for list a list of symbols which each of them indicate a
-error type.
+  "The constant for a list of *non-nil* symbols which each of them
+indicates an error type.
 
 Explanations:
 
@@ -1517,10 +1519,15 @@ first.
 
 (cl-defun entropy/emacs-seq-throw-pos-overflow-error
     (seq pos &optional error-type
-         &key extra-restriction without-calc-negative-pos)
+         &key extra-restriction without-calc-negative-pos
+         without-check-unless-error-type-is-set)
   "Throw an error when position integer POS of `sequencep' SEQ is
 overflow i.e. if POS is less or larger than the head or tail position
-of SEQ.
+of SEQ. Always return nil when everything is ok.
+
+When WITHOUT-CHECK-UNLESS-ERROR-TYPE-IS-SET is set as non-nil, then
+everything is ok in which case nothing is did since it indicates need
+the ERROR-TYPE is set.
 
 Also do error when EXTRA-RESTRICTION is set as function formed as
 : (fn seq pos)
@@ -1542,6 +1549,8 @@ When WITHOUT-CALC-NEGATIVE-POS is set and return non-nil, the POS is
 never re-calculated from the tail of SEQ if it's negative. In which
 case the comparison is directly use the value of POS."
   (catch :exit
+    (and without-check-unless-error-type-is-set
+         (null error-type) (throw :exit nil))
     (and error-type
          (not (entropy/emacs-seq-match-error-type
                'seq-pos-is-overflow error-type))
