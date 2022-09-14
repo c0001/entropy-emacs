@@ -1420,6 +1420,10 @@ Also do error when EXTRA-RESTRICTION is set as function formed as
 : (fn seq pos)
 return non-nil.
 
+EXTRA-RESTRICTION can also be an alias to either 'without-min' or
+'without-max' in which case banned cases where the POS of 0 or the
+`length' of SEQ. An alias 'without-min-and-max' is for both of them.
+
 If ERROR-TYPE is set as obeyed `entropy/emacs-seq-error-types', only
 do error when that ERROR-TYPE is matched by
 `entropy/emacs-seq-match-error-type' for error type
@@ -1447,6 +1451,15 @@ case the comparison is directly use the value of POS."
       (setq ppos (or npos pos))
       (when (or (< ppos 0) (> ppos seqlen)
                 (and extra-restriction
+                     ;; arrange alias
+                     (cond ((eq extra-restriction 'without-min)
+                            (setq extra-restriction (lambda (&rest _) (= ppos 0))))
+                           ((eq extra-restriction 'without-max)
+                            (setq extra-restriction (lambda (&rest _) (= ppos seqlen))))
+                           ((eq extra-restriction 'without-min-and-max)
+                            (setq extra-restriction (lambda (&rest _)
+                                                      (or (= ppos 0) (= ppos seqlen)))))
+                           (t t))
                      (setq usr-res (funcall extra-restriction seq pos))))
         (signal 'args-out-of-range
                 (list 'eemacs-valid-seq-pos-p
