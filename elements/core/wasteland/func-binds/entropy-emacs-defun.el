@@ -723,28 +723,43 @@ BODY.
        (when (and ,typep-sym (not ,extra-unless))
          ,@(entropy/emacs-defun--get-real-body body)))))
 
-(cl-defun entropy/emacs-list-setf-nth (n replace list &key with-end-cdr)
-  "Replace `nth' N of `listp' LIST with replacement REPLACE by
-altered it i.e. in destructively way, do nothing when N overflow.
+(cl-defun entropy/emacs-list-setf-nth (n replace list &key with-end-cdr with-error)
+  "Replace `nth' N of `listp' LIST with replacement REPLACE by altered it
+i.e. in destructively way, do nothing when occasions of
+`entropy/emacs-seq-error-types' happend, in which case throw error
+when WITH-ERROR is set.
 
-If WITH-END-CDR is set, the N's max value can be plus one in
-which case it point to the last `atom' cdr of LIST."
-  (let ((i 0) exit)
-    (unless (< n 0)
-      (entropy/emacs-list-map-cdr list
-        :with-exit t
-        (cond ((= i n)
-               (setf (car it) replace
-                     exit t))
-              ((and with-end-cdr (= (1+ i) n)
-                    ;; guarantee it is last cons-cell of LIST i.e. it
-                    ;; is the last cons-cell of a dotted list LIST.
-                    (atom (cdr it)))
-               (setf (cdr it) replace
-                     exit t))
-              (t
-               (cl-incf i)))
-        exit))))
+If WITH-END-CDR is set, the N's max value can be plus one in which
+case it point to the last `atom' cdr of LIST.
+
+This function's WITH-ERROR key obey the `entropy/emacs-seq-error-types'."
+  (let ((i 0) exit ninc llen)
+    (entropy/emacs-nbase-listp-not-do list
+      :with-error with-error
+      (entropy/emacs-seq-with-safe-pos list n
+        :with-error with-error :with-set-pos t
+        :set-seq-len-for llen
+        :without-run-when-overflow t
+        (entropy/emacs-list-map-cdr list
+          :with-exit t
+          (cond ((= i n)
+                 (setf (car it) replace exit t ninc t))
+                ((and with-end-cdr (= (1+ i) n)
+                      ;; guarantee it is last cons-cell of LIST i.e. it
+                      ;; is the last cons-cell of a dotted list LIST.
+                      (atom (cdr it)))
+                 (setf (cdr it) replace exit t ninc t i (1+ i))))
+          (unless ninc (cl-incf i))
+          exit)
+        (unless exit
+          (entropy/emacs-seq-throw-pos-overflow-error
+           (or llen list) n with-error
+           ;; we shouldn't not recalc the negative pos since it should
+           ;; be never happend because this formed wrapped into pos
+           ;; safe macro. Or it's a internal error for the pos safe
+           ;; wrapper.
+           :without-calc-negative-pos t
+           :extra-restriction 'without-max))))))
 
 (defun entropy/emacs-list-add-car (list newcar)
   "Make `entropy/emacs-base-listp' LIST's `car' and `cdr' be its `cadr'
