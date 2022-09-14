@@ -1646,6 +1646,7 @@ invalid judger error -> anycond")))
          &key with-check-length with-reset-pos set-seq-len-for with-error
          with-reset-pos-when-overflow
          with-invalid directly-run-when
+         use-length-checker
          &allow-other-keys)
   "Run BODY with `sequencep' SEQ's position POS (a `integerp') only when
 =health-occasion= matched and return its value or
@@ -1731,6 +1732,13 @@ directly do BODY and return its value without any above described
 procedures. This is a feature for those occasions no need to with the
 *safe* wrapper as this macro aimed to do.
 
+Optionally key USE-LENGTH-CHECKER when set, it should be an function
+used to replace all `length' invocation with it-self, and its
+arguments list should be compatible with `length'. For example, you
+can set it as `safe-length' to check the
+`entropy/emacs-circular-listp' SEQ without throw any unexpection error
+or do limitation operations.
+
 This macro's WITH-ERROR key obey the SEQ error types of
 `entropy/emacs-seq-error-types'.
 "
@@ -1744,7 +1752,8 @@ This macro's WITH-ERROR key obey the SEQ error types of
          (overflow-p-sym            (make-symbol "is-overflow-p"))
          (ovflow-no-do-p-sym        (make-symbol "without-run-when-overflow-p"))
          (check-len-p-sym           (make-symbol "with-check-len-p"))
-         (use-err-p-sym             (make-symbol "error-type"))
+         (use-lenchk-func-sym       (make-symbol "use-length-checker-function"))
+         (with-errs-for-sym         (make-symbol "error-type"))
          (err-occur-p-sym           (make-symbol "error-occur-p"))
          (deal-invalid-err-func-sym (make-symbol "deal-error-func"))
          (slen-sym                  (make-symbol "seq-len"))
@@ -1754,8 +1763,9 @@ This macro's WITH-ERROR key obey the SEQ error types of
     `(if ,directly-run-when
          (progn ,@body)
        (let* ((,pos-sym                   ,pos)
-              (,use-err-p-sym             ,with-error)
+              (,with-errs-for-sym         ,with-error)
               (,seq-sym                   ,seq)
+              (,use-lenchk-func-sym       (or ,use-length-checker 'length))
               (,check-len-p-sym           ,with-check-length)
               (,with-invalid-p-sym        ,with-invalid)
               ,body-value-sym ,err-occur-p-sym ,slen-sym
@@ -1772,7 +1782,7 @@ This macro's WITH-ERROR key obey the SEQ error types of
                           (cancel nil)
                           (t (error "[safe-seq-pos internal error]: invalid op type '%s'"
                                     ,with-invalid-p-sym))))
-                       ((entropy/emacs-seq-match-error-type 'any-arg-is-invalid ,use-err-p-sym)
+                       ((entropy/emacs-seq-match-error-type 'any-arg-is-invalid ,with-errs-for-sym)
                         (__eemacs-seq/safe-pos-type-invalid-err
                          ,seq-sym ,seq-invalid-p-sym ,pos-sym ,pos-invalid-p-sym))
                        (t nil)))))
@@ -1787,7 +1797,7 @@ This macro's WITH-ERROR key obey the SEQ error types of
                   (setq ,err-occur-p-sym t ,seq-invalid-p-sym t)))
                ((sequencep ,seq-sym)
                 (when ,check-len-p-sym
-                  (unless (> (setq ,slen-sym (length ,seq-sym)) 0)
+                  (unless (> (setq ,slen-sym (funcall ,use-lenchk-func-sym ,seq-sym)) 0)
                     (setq ,err-occur-p-sym t ,seq-invalid-p-sym t))))
                (t
                 (setq ,err-occur-p-sym t ,seq-invalid-p-sym t)))
@@ -1802,7 +1812,7 @@ This macro's WITH-ERROR key obey the SEQ error types of
                (setq ,check-len-p-sym (or ,slen-sym ,check-len-p-sym))
                (when (or ,check-len-p-sym
                          (and (< ,pos-sym 0)
-                              (if (< (setq ,slen-sym (length ,seq-sym)) 1)
+                              (if (< (setq ,slen-sym (funcall ,use-lenchk-func-sym ,seq-sym)) 1)
                                   (prog1 nil
                                     (setq ,seq-invalid-p-sym t ,err-occur-p-sym t)
                                     (funcall ,deal-invalid-err-func-sym))
@@ -1811,7 +1821,7 @@ This macro's WITH-ERROR key obey the SEQ error types of
                  (if (< ,pos-sym 0) (setq ,tmpvar-sym (+ ,pos-sym ,slen-sym))
                    (setq ,tmpvar-sym ,pos-sym))
                  (if (or (< ,tmpvar-sym 0) (> ,tmpvar-sym ,slen-sym))
-                     (if (entropy/emacs-seq-match-error-type 'seq-pos-is-overflow ,use-err-p-sym)
+                     (if (entropy/emacs-seq-match-error-type 'seq-pos-is-overflow ,with-errs-for-sym)
                          (if (sequencep ,seq-sym)
                              (error "Bad seq pos: %s, for length %d for seq %S"
                                     ,pos-sym ,slen-sym ,seq-sym)
@@ -1843,6 +1853,7 @@ This macro's WITH-ERROR key obey the SEQ error types of
          &key with-check-length set-seq-len-for
          with-reset-region-start-pos with-reset-region-end-pos with-reset-pos-when-overflow
          with-error with-invalid directly-run-when
+         use-length-checker
          &allow-other-keys)
   "Run BODY for region of SEQ only when all of SEQ, START and END are
 safe predicated by `entropy/emacs-seq-with-safe-pos' (abbreviation as
@@ -1880,6 +1891,7 @@ This macro's WITH-ERROR key obey the SEQ error types of
         (end-orig-nullp-sym (make-symbol "end-is-orig-null-p"))
         (set-end-p-sym      (make-symbol "set-end-p"))
         (check-len-p-sym    (make-symbol "with-check-len-p"))
+        (use-lenchk-func-sym (make-symbol "use-length-checker-function"))
         (with-error-sym     (make-symbol "with-error-type"))
         (with-invalid-sym   (make-symbol "with-invalid-types"))
         (ovflow-reset-pos-p (make-symbol "with-reset-pos-when-overflow-p"))
@@ -1894,6 +1906,7 @@ This macro's WITH-ERROR key obey the SEQ error types of
             (,set-start-p-sym  ,with-reset-region-start-pos)
             (,set-end-p-sym    ,with-reset-region-end-pos)
             (,check-len-p-sym  ,with-check-length)
+            (,use-lenchk-func-sym ,use-length-checker)
             (,with-error-sym   ,with-error)
             (,with-invalid-sym ,with-invalid)
             (,ovflow-reset-pos-p ,with-reset-pos-when-overflow)
@@ -1918,6 +1931,7 @@ This macro's WITH-ERROR key obey the SEQ error types of
                              (if ,initial-reverse-p-sym 'end 'start))
          :set-seq-len-for ,slen-sym :with-error ,with-error-sym :with-invalid ,with-invalid-sym
          :with-reset-pos-when-overflow ,ovflow-reset-pos-p
+         :use-length-checker ,use-lenchk-func-sym
          (entropy/emacs-seq-with-safe-pos (or ,slen-sym ,seq-sym) ,end-sym
            ;; using for directly run as we allow end as nil
            :directly-run-when (or ,end-orig-nullp-sym ,directly-run-sym)
@@ -1927,6 +1941,7 @@ This macro's WITH-ERROR key obey the SEQ error types of
            :set-seq-len-for ,slen-sym
            :with-error ,with-error-sym :with-invalid ,with-invalid-sym
            :with-reset-pos-when-overflow ,ovflow-reset-pos-p
+           :use-length-checker ,use-lenchk-func-sym
            ;; swap to normal status when initial swapped since we must
            ;; gurantee the order for checking whether they are same
            ;; especially when end originally null
