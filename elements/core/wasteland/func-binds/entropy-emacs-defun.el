@@ -737,9 +737,8 @@ This function's WITH-ERROR key obey the `entropy/emacs-seq-error-types'."
     (entropy/emacs-nbase-listp-not-do list
       :with-error with-error
       (entropy/emacs-seq-with-safe-pos list n
-        :with-error with-error :with-set-pos t
+        :with-error with-error :with-reset-pos t
         :set-seq-len-for llen
-        :without-run-when-overflow t
         (entropy/emacs-list-map-cdr list
           :with-exit t
           (cond ((= i n)
@@ -928,9 +927,8 @@ This function's WITH-ERROR key obey the SEQ error types of
          :with-error ,err-sym
          :set-list-len-for ,llen-sym
          (entropy/emacs-seq-with-safe-region ,llen-sym ,start-sym ,end-sym
-           :with-set-start t :with-set-end t
+           :with-reset-region-start-pos t :with-reset-region-end-pos t
            :with-error ,err-sym
-           :without-run-when-overflow t
            (if (or (= ,llen-sym 1) (and (= ,start-sym 0) (= ,end-sym ,llen-sym)))
                (if ,lsymp-sym (setq ,list nil ,list-sym nil)
                  (if ,lquotep-sym (setq ,list-sym nil)
@@ -986,8 +984,7 @@ This functions's WITH-ERROR key obey the SEQ error types of
       (entropy/emacs-ncommon-listp-not-do list
         :with-error with-error :set-list-len-for llen
         (entropy/emacs-seq-with-safe-pos llen n
-          :with-error with-error :with-set-pos t
-          :without-run-when-overflow t
+          :with-error with-error :with-reset-pos t
           (if without-modify-list (setq list (copy-sequence list)))
           (if without-modify-sub-list (setq sub-list (copy-sequence sub-list)))
           (let* ((insl (entropy/emacs-list-nthcdr-safe (1- n) list))
@@ -1135,9 +1132,8 @@ This function's WITH-ERROR key obey the SEQ error types of
       :set-list-len-for llen
       :with-error with-error
       (entropy/emacs-seq-with-safe-region llen start end
-        :with-set-start t :with-set-end t
+        :with-reset-region-start-pos t :with-reset-region-end-pos t
         :with-error with-error
-        :without-run-when-overflow t
         (catch :exit
           (if (and (= start 0) (= end 1)) (throw :exit (car list)))
           (let ((i 0) exit start-list prev-it rtn)
@@ -1540,8 +1536,8 @@ invalid judger error -> anycond")))
 
 (cl-defmacro entropy/emacs-seq-with-safe-pos
     (seq pos &rest body
-         &key with-check-length with-set-pos set-seq-len-for with-error
-         without-run-when-overflow
+         &key with-check-length with-reset-pos set-seq-len-for with-error
+         with-reset-pos-when-overflow
          with-invalid directly-run-when
          &allow-other-keys)
   "Run BODY with `sequencep' SEQ's position POS (a `integerp') only when
@@ -1549,11 +1545,8 @@ invalid judger error -> anycond")))
 `entropy/emacs-seq-pressed-return' otherwise.
 
 Both SEQ and POS should be a place compatible for `setf' or a variable
-name. And POS is recalculated and reset when some occasions like
-=pos-overflow-occasion= matched within =health-occasion= context
-before run BODY, only when WITH-SET-POS is set and return non-nil, and
-unless WITHOUT-RUN-WHEN-OVERFLOW is set and return non-nil in which
-case the =health-occasion= is not matached.
+name. And POS may be recalculated and reset for properly only when
+WITH-RESET-POS is set and return non-nil.
 
 If WITH-CHECK-LENGTH is set and return non-nil, the
 =pos-overflow-occasion= is detected more precision that for both
@@ -1572,20 +1565,25 @@ wrong length will make unexpected fault result for all calculation.
 
 Whatever SEQ's type is, the `length' for SEQ must be larger than 0
 i.e. SEQ must not empty, otherwise it's not a =health-occasion=. In
-this case, if WITH-ERROR set as 'any-arg-is-invalid', an error is throwed
-out.
+this case, if WITH-ERROR set as 'any-arg-is-invalid', an error is
+throwed out.
 
 If WITH-ERROR is set to 'seq-pos-is-overflow' then a error throwed out
-while =pos-overflow-occasion= matched, otherwise, as what says for
-WITH-SET-POS, POS is recalculated to start position of SEQ when it's
-too small or the end of SEQ when it's too large automatically, before
-run BODY. Excepts for that if WITH-SET-POS is set and return 'start'
-and =pos-overflow-occasion= matched, the POS is reset to start of SEQ
-or 'end' as for to the calculated or specified `length' of SEQ.
+while =pos-overflow-occasion= matched. Otherwise, as what says for
+when WITH-RESET-POS is set then, POS is recalculated to start position
+of SEQ when it's too small or the end of SEQ when it's too large
+automatically, before run BODY and only when
+WITH-RESET-POS-WHEN-OVERFLOW is set and return non-nil, and if not in
+that case, BODY will never run since this is not a =health-occasion=.
 
-Futher more, any other non-nil value of WITH-SET-POS is using the
-=automatic-pos-set= mechanism to reset like set negative to positive
-which will make invocation context has more easy way to use POS.
+Extra for =pos-overflow-occasion= with WITH-RESET-POS-WHEN-OVERFLOW,
+if WITH-RESET-POS is set and return 'start', the POS is reset to start
+of SEQ or 'end' as for to the calculated or specified `length' of SEQ.
+
+If in a not =pos-overflow-occasion=, any other non-nil value of
+WITH-RESET-POS is using the =automatic-pos-set= mechanism to reset the
+POS i.e. set negative to positive which will make invocation context
+has more easy way to use POS.
 
 Other error flag are t and 'all', both of them is indicate throwing
 error either when =health-occasion= is not matched or
@@ -1690,8 +1688,8 @@ This macro's WITH-ERROR key obey the SEQ error types of
          (when ,err-occur-p-sym (funcall ,deal-invalid-err-func-sym))
          ;; main
          (unless ,err-occur-p-sym
-           (let* ((,pos-set-type-sym    ,with-set-pos)
-                  (,ovflow-no-do-p-sym  ,without-run-when-overflow)
+           (let* ((,pos-set-type-sym    ,with-reset-pos)
+                  (,ovflow-no-do-p-sym  (not ,with-reset-pos-when-overflow))
                   ,overflow-p-sym ,tmpvar-sym)
              (unless ,err-occur-p-sym
                (setq ,check-len-p-sym (or ,slen-sym ,check-len-p-sym))
@@ -1726,7 +1724,8 @@ This macro's WITH-ERROR key obey the SEQ error types of
                           (setf ,pos 0))
                          ((and (eq ,pos-set-type-sym 'end) ,overflow-p-sym)
                           (setf ,pos ,slen-sym))
-                         ;; auto type
+                         ;; auto type for both overflow or negative
+                         ;; POS detected.
                          (t (setf ,pos ,pos-sym))))
                  (setq ,body-value-sym (progn ,@body))))))
          ;; return
@@ -1735,7 +1734,7 @@ This macro's WITH-ERROR key obey the SEQ error types of
 (cl-defmacro entropy/emacs-seq-with-safe-region
     (seq start &optional end &rest body
          &key with-check-length set-seq-len-for
-         with-set-start with-set-end without-run-when-overflow
+         with-reset-region-start-pos with-reset-region-end-pos with-reset-pos-when-overflow
          with-error with-invalid directly-run-when
          &allow-other-keys)
   "Run BODY for region of SEQ only when all of SEQ, START and END are
@@ -1744,12 +1743,13 @@ safe predicated by `entropy/emacs-seq-with-safe-pos' (abbreviation as
 START and END) and return BODY's value or
 `entropy/emacs-seq-pressed-return' otherwise.
 
-WITH-SET-START and WITH-SET-END are respectively binding to
-WITH-SET-POS argument of =safe-pos-wrapper= of 'start' and
-'end'. Other keys has same meaning as =safe-pos-wrapper= excepting for
-WITH-ERROR which also support a 'seq-region-is-empty' type for error when
-the final got region is empty, thus for this key, thus the error type
-'t' or 'all' for =safe-pos-wrapper= also include this key.
+WITH-RESET-REGION-START-POS and WITH-RESET-REGION-END-POS are
+respectively binding to WITH-RESET-POS argument of =safe-pos-wrapper=
+of 'start' and 'end'. Other keys has same meaning as
+=safe-pos-wrapper= excepting for WITH-ERROR which also support a
+'seq-region-is-empty' type for error when the final got region is
+empty, thus for this key, thus the error type 't' or 'all' for
+=safe-pos-wrapper= also include this key.
 
 Except for END, which can be nil since it indicates to the end of SEQ
 usually by lisp convention. Thus for that, the empty region detection
@@ -1758,8 +1758,9 @@ inside =safe-pos-wrapper= context since in which case we couldn't get
 the tail index of SEQ.
 
 This macro will also swap the valid calculated START and END when
-their values as reverse order only when both WITH-SET-START and
-WITH-SET-END is specified.
+their values as reverse order only when both
+WITH-RESET-REGION-START-POS and WITH-RESET-REGION-END-POS is
+specified.
 
 This macro's WITH-ERROR key obey the SEQ error types of
 `entropy/emacs-seq-error-types'.
@@ -1774,7 +1775,7 @@ This macro's WITH-ERROR key obey the SEQ error types of
         (check-len-p-sym    (make-symbol "with-check-len-p"))
         (with-error-sym     (make-symbol "with-error-type"))
         (with-invalid-sym   (make-symbol "with-invalid-types"))
-        (ovflow-no-run-p-sym (make-symbol "without-run-when-overflow-p"))
+        (ovflow-reset-pos-p (make-symbol "with-reset-pos-when-overflow-p"))
         (directly-run-sym   (make-symbol "directly-run-when-cond"))
         (use-same-pos-err-p-sym (make-symbol "use-same-pos-error-p"))
         (slen-sym           (make-symbol "seq-length"))
@@ -1783,12 +1784,12 @@ This macro's WITH-ERROR key obey the SEQ error types of
     `(let* ((,seq-sym ,seq)
             (,start-sym ,start) (,end-sym ,end)
             (,end-orig-nullp-sym (null ,end-sym))
-            (,set-start-p-sym  ,with-set-start)
-            (,set-end-p-sym    ,with-set-end)
+            (,set-start-p-sym  ,with-reset-region-start-pos)
+            (,set-end-p-sym    ,with-reset-region-end-pos)
             (,check-len-p-sym  ,with-check-length)
             (,with-error-sym   ,with-error)
             (,with-invalid-sym ,with-invalid)
-            (,ovflow-no-run-p-sym ,without-run-when-overflow)
+            (,ovflow-reset-pos-p ,with-reset-pos-when-overflow)
             (,directly-run-sym ,directly-run-when)
             (,use-same-pos-err-p-sym
              (or (when (eq ,with-error-sym 'empty)
@@ -1806,19 +1807,19 @@ This macro's WITH-ERROR key obey the SEQ error types of
        (entropy/emacs-seq-with-safe-pos ,seq-sym ,start-sym
          :directly-run-when ,directly-run-sym
          :with-check-length ,check-len-p-sym
-         :with-set-pos (if (if ,initial-reverse-p-sym ,set-end-p-sym ,set-start-p-sym)
-                           (if ,initial-reverse-p-sym 'end 'start))
+         :with-reset-pos (if (if ,initial-reverse-p-sym ,set-end-p-sym ,set-start-p-sym)
+                             (if ,initial-reverse-p-sym 'end 'start))
          :set-seq-len-for ,slen-sym :with-error ,with-error-sym :with-invalid ,with-invalid-sym
-         :without-run-when-overflow ,ovflow-no-run-p-sym
+         :with-reset-pos-when-overflow ,ovflow-reset-pos-p
          (entropy/emacs-seq-with-safe-pos (or ,slen-sym ,seq-sym) ,end-sym
            ;; using for directly run as we allow end as nil
            :directly-run-when (or ,end-orig-nullp-sym ,directly-run-sym)
            :with-check-length (if ,slen-sym nil ,check-len-p-sym)
-           :with-set-pos (if (if ,initial-reverse-p-sym ,set-start-p-sym ,set-end-p-sym)
-                             (if ,initial-reverse-p-sym 'start 'end))
+           :with-reset-pos (if (if ,initial-reverse-p-sym ,set-start-p-sym ,set-end-p-sym)
+                               (if ,initial-reverse-p-sym 'start 'end))
            :set-seq-len-for ,slen-sym
            :with-error ,with-error-sym :with-invalid ,with-invalid-sym
-           :without-run-when-overflow ,ovflow-no-run-p-sym
+           :with-reset-pos-when-overflow ,ovflow-reset-pos-p
            ;; swap to normal status when initial swapped since we must
            ;; gurantee the order for checking whether they are same
            ;; especially when end originally null
@@ -1885,8 +1886,7 @@ found. If omitted defaults to `cl-postion'.
         (unless start (setq start 0))
         (entropy/emacs-seq-with-safe-region seq start end
           :with-check-length t
-          :with-set-start t :with-set-end t
-          :without-run-when-overflow t
+          :with-reset-region-start-pos t :with-reset-region-end-pos t
           (while (> count 0)
             (funcall arg-repl-func :start start)
             (funcall arg-repl-func :end end)
