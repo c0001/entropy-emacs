@@ -760,34 +760,45 @@ This function's WITH-ERROR key obey the `entropy/emacs-seq-error-types'."
            :without-calc-negative-pos t
            :extra-restriction 'without-max))))))
 
-(defun entropy/emacs-list-add-car (list newcar)
+(cl-defun entropy/emacs-list-add-car (list newcar &key with-error)
   "Make `entropy/emacs-base-listp' LIST's `car' and `cdr' be its `cadr'
 and `cddr' and set its new `car' as NEWCAR.
 
-Unlike `add-to-list' or `push', this function will modify all
-references of LIST, since we changed LIST's `car' and `cdr' instead of
-its current reference.
+Unlike `push', this function will modify all references of LIST, since
+we changed LIST's `car' and `cdr' instead of its current reference.
 
-Return the altered LIST or nil when LIST's type is invalid without any
-modification."
+Return the altered LIST or `entropy/emacs-seq-pressed-return' for
+other occassions.
+
+When WITH-ERROR is set and its return is obeyed the SEQ error types of
+`entropy/emacs-seq-error-types', throw an error and without any
+modifications .
+"
   (entropy/emacs-nbase-listp-not-do list
+    :with-error with-error
     (setcdr list (cons (car list) (cdr list)))
     (setcar list newcar)
     list))
 
-(defun entropy/emacs-list-add-cadr (list newcadr)
-  "Make `entropy/emacs-base-listp' LIST's `cdr' be its `cddr' and set
-its new `cadr' with NEWCADR.
+(cl-defun entropy/emacs-list-add-cadr (list newcadr &key with-error)
+  "Make `entropy/emacs-base-listp' LIST's `cdr' be its `cddr' and set its
+new `cadr' with NEWCADR.
 
 This function is a right injection variant of
-`entropy/emacs-list-add-car'. Return the altered `cdr' of LIST or nil
-while LIST's type is invalid without any modification."
+`entropy/emacs-list-add-car'. Return the altered `cdr' of LIST or
+`entropy/emacs-seq-pressed-return' otherwise.
+
+When WITH-ERROR is set and its return is obeyed the SEQ error types of
+`entropy/emacs-seq-error-types', throw an error without any
+modifications .
+"
   (entropy/emacs-nbase-listp-not-do list
+    :with-error with-error
     (setcdr list (cons newcadr (cdr list)))
     (cdr list)))
 
-(defun entropy/emacs-list-insert-newelt
-    (list nth newelt &optional at-right)
+(cl-defun entropy/emacs-list-insert-newelt
+    (list nth newelt &key at-right with-error)
   "Insert a new element NEWELT into `entropy/emacs-base-listp' LIST at
 pos of `nth' NTH in destructively way (see rest statements for
 details).
@@ -799,26 +810,39 @@ If NTH is 0 and AT-RIGHT is not set then both `car' and `cdr' of LIST
 is modified. Otherwise only `nthcdr' NTH-1 of LIST is modified or
 `nthcdr' NTH of thus when AT-RIGHT is set.
 
-Return the place NEWELT is inserted and its rest or nil while nothing
-did i.e NTH is overflow or LIST's type is invalid without any
-modification.
+Return the place NEWELT is inserted and its rest or
+`entropy/emacs-seq-pressed-return' without any modification.
 
-(see also `entropy/emacs-list-add-car' and `entropy/emacs-list-add-cadr')"
+NTH can be negative, if thus the actual NTH is counting from the tail
+of LIST, in which case calculated by
+`entropy/emacs-seq-with-safe-pos'.
+
+When WITH-ERROR is set and its return is obeyed the SEQ error types of
+`entropy/emacs-seq-error-types', throw an error without any
+modifications .
+
+(see also `entropy/emacs-list-add-car' and
+`entropy/emacs-list-add-cadr')"
   (entropy/emacs-nbase-listp-not-do list
-    :extra-unless (< nth 0)
-    (let ((i 0) old-it exit rtn)
-      (entropy/emacs-list-map-cdr list
-        :with-exit t
-        (when (= nth i)
-          (if at-right (entropy/emacs-list-add-cadr it newelt)
-            (if old-it (setcdr old-it (cons newelt it))
-              (entropy/emacs-list-add-car it newelt)))
-          (if at-right (setq rtn (cdr it))
-            (setq rtn (if old-it (cdr old-it) list)))
-          (setq exit t))
-        (setq old-it it i (1+ i))
-        exit)
-      rtn)))
+    :with-error with-error
+    (let ((i 0) llen old-it exit rtn)
+      (entropy/emacs-seq-with-safe-pos list nth
+        :with-reset-pos t :set-seq-len-for llen :with-error with-error
+        (entropy/emacs-list-map-cdr list
+          :with-exit t
+          (when (= nth i)
+            (if at-right (entropy/emacs-list-add-cadr it newelt)
+              (if old-it (setcdr old-it (cons newelt it))
+                (entropy/emacs-list-add-car it newelt)))
+            (if at-right (setq rtn (cdr it))
+              (setq rtn (if old-it (cdr old-it) list)))
+            (setq exit t))
+          (setq old-it it i (1+ i))
+          exit)
+        (unless exit (entropy/emacs-seq-throw-pos-overflow-error
+                      (or llen list) nth with-error
+                      :extra-restriction 'without-max))
+        rtn))))
 
 (defun entropy/emacs-list-delete-car (list)
   "Make a `entropy/emacs-base-listp' LIST's `cadr' and `cddr' be its new
@@ -1481,8 +1505,11 @@ case the comparison is directly use the value of POS."
                                 (format "%d of %S" seqlen seq)))))))))
 
 (defconst entropy/emacs-seq-pressed-return nil
-  "The return when any error of `entropy/emacs-seq-error-types'
-happened but pressed as leaving. It's always nil.")
+  "The return value when any error of `entropy/emacs-seq-error-types'
+happened with silent as leaving. It's always nil.
+
+Any eemacs APIs declared using this return type is guaranteeing that
+just return nil without any side-effects and modifications.")
 
 (defun __eemacs-seq/safe-pos-type-invalid-err
     (&optional seq seq-invalid-p pos pos-invalid-p)
