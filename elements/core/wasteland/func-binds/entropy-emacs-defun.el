@@ -443,6 +443,55 @@ has a single element."
   (and (consp object)
        (null (cdr object))))
 
+(defsubst entropy/emacs-nlonely-listp (object &optional return-safe-length)
+  "Return non-nil when OBJECT is a `listp' list and has more than one
+elements i.e. at least two elements. Otherwise return nil.
+
+If RETURN-SAFE-LENGTH is set as non-nil, then the non-nil return is
+the `safe-length' of OBJECT.
+
+(see also `entropy/emacs-lonely-listp')"
+  (and (listp object) (consp (cdr object))
+       (if return-safe-length (safe-length object)
+         t)))
+
+(cl-defmacro entropy/emacs-nnlonely-listp-not-do
+    (object &rest body
+            &key with-error set-list-len-for
+            extra-unless
+            &allow-other-keys)
+  "Do BODY just when OBJECT is an `entropy/emacs-nlonely-listp' list,
+return BODY's value when thus or `entropy/emacs-seq-pressed-return'
+otherwise.
+
+When WITH-ERROR is set and its return is obeyed the SEQ error types of
+`entropy/emacs-seq-error-types', throw an error without run BODY.
+
+If SET-LIST-LEN-FOR is set and return non-nil, it should be a `setf'
+place or a variable name used to stored the `safe-length' of OBJECT
+only when it is valid.
+
+BODY will not run also when EXTRA-UNLESS is set and return non-nil."
+  (declare (indent 1))
+  (let ((obsym         (make-symbol "object"))
+        (type-p-sym    (make-symbol "is-nlonely-list-p"))
+        (set-len-p-sym (make-symbol "do-set-len-for-p"))
+        (body (entropy/emacs-defun--get-real-body body)))
+    `(let ((,obsym ,object)
+           (,set-len-p-sym ,(if set-list-len-for t nil))
+           ,type-p-sym)
+       (setq ,type-p-sym (entropy/emacs-nlonely-listp
+                          ,obsym ,set-len-p-sym))
+       (when (and (not ,type-p-sym)
+                  (entropy/emacs-seq-match-error-type
+                   'any-arg-is-invalid ,with-error))
+         (signal 'wrong-type-argument
+                 (list 'entropy/emacs-nlonely-listp ,obsym)))
+       (when (and ,type-p-sym (not ,extra-unless))
+         (when ,set-len-p-sym
+           (setf ,set-list-len-for (safe-length ,obsym)))
+         ,@body))))
+
 (defsubst entropy/emacs-double-list (object)
   "Return a list who has a single element who is a list and has a
 single element OBJECT."
