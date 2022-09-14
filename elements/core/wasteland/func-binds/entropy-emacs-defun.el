@@ -893,53 +893,77 @@ modifications .
                       :extra-restriction 'without-max))
         rtn))))
 
-(defun entropy/emacs-list-delete-car (list)
-  "Make a `entropy/emacs-base-listp' LIST's `cadr' and `cddr' be its new
-`car' and `cdr' in destructively way of modifies all references to
-LIST. Return the altered LIST or nil while nothing did when LIST's
-type is invalid or it's `cdr' is `atom'."
-  (entropy/emacs-nbase-listp-not-do list
+(cl-defun entropy/emacs-list-delete-car (list &key with-error)
+  "Make a `entropy/emacs-nlonely-listp' LIST's `cadr' and `cddr' be its
+new `car' and `cdr' in destructively way of modifies all references to
+LIST. Return the altered LIST or `entropy/emacs-seq-pressed-return'
+otherwise.
+
+When WITH-ERROR is set and its return is obeyed the SEQ error types of
+`entropy/emacs-seq-error-types', throw an error without any
+modification."
+  (entropy/emacs-nnlonely-listp-not-do list
+    :with-error with-error
     (let ((lcdr (cdr list)))
-      (when (and list (consp lcdr))
-        (setcdr list (cddr list))
-        (setcar list (car lcdr))
-        list))))
+      (setcdr list (cddr list))
+      (setcar list (car lcdr))
+      list)))
 
-(defun entropy/emacs-list-delete-cadr (list)
-  "Make a `entropy/emacs-base-listp' LIST's `cddr' (if exists) be its
-`cdr' so as its `cadr' is deleted, return the altered `cdr' of LIST or
-nil if nothing did or LIST's type is invalid.
-\n(see also `entropy/emacs-list-delete-car')"
-  (entropy/emacs-nbase-listp-not-do list
-    (when (consp (cdr list))
-      (setcdr list (cddr list)))))
+(cl-defun entropy/emacs-list-delete-cadr (list &key with-error)
+  "Make a `entropy/emacs-nlonely-listp' LIST's `cddr' be its `cdr' in
+destructively way so as its `cadr' is deleted. Return the altered
+`cdr' of LIST or `entropy/emacs-seq-pressed-return' otherwise.
 
-(defun entropy/emacs-list-delete-elt (list nth)
+When WITH-ERROR is set and its return is obeyed the SEQ error types of
+`entropy/emacs-seq-error-types', throw an error without any
+modification.
+
+(see also `entropy/emacs-list-delete-car')"
+  (entropy/emacs-nnlonely-listp-not-do list
+    :with-error with-error
+    (setcdr list (cddr list))))
+
+(cl-defun entropy/emacs-list-delete-elt (list nth &key with-error)
   "Delete element of `entropy/emacs-base-listp' LIST at its `nth'
 position NTH destructively.
 
 If NTH larger than 0, return the cdr of place where NTH element is
 deleted. Return the altered LIST when NTH `=' 0, in which case all
-references to LIST is modified.
+references to LIST is modified and the LIST must matched
+`entropy/emacs-nlonely-listp'. Return `entropy/emacs-seq-pressed-return'
+otherwise.
 
-Return nil when LIST's type is invalid or it just has one element
-or NTH is overflow, without any modification.
+When WITH-ERROR is set and its return is obeyed the SEQ error types of
+`entropy/emacs-seq-error-types', throw an error without any
+modification.
 
 (see also `entropy/emacs-list-delete-car' and `entropy/emacs-list-delete-cadr')."
   (entropy/emacs-nbase-listp-not-do list
-    :extra-unless (< nth 0)
+    :with-error with-error
     (let ((i 0) exit it-parent rtn)
-      (entropy/emacs-list-map-cdr list
-        :with-exit t
-        (when (= i nth)
-          (if it-parent (setcdr it-parent (cdr it))
-            (entropy/emacs-list-delete-car it))
-          (if it-parent (setq rtn (cdr it-parent))
-            (setq rtn (and (consp (cdr list)) list)))
-          (setq exit t))
-        (setq it-parent it
-              i (1+ i))
-        exit)
+      (entropy/emacs-seq-with-safe-pos list nth
+        :with-error with-error :with-reset-pos t
+        (if (entropy/emacs-lonely-listp list)
+            (when (entropy/emacs-seq-match-error-type
+                   'any-arg-is-invalid with-error)
+              (signal 'args-out-of-range
+                      (list (format "can not delete the car of an lonely list %s"
+                                    list))))
+          (entropy/emacs-list-map-cdr list
+            :with-exit t
+            (when (= i nth)
+              (if it-parent (setcdr it-parent (cdr it))
+                (entropy/emacs-list-delete-car it))
+              (if it-parent (setq rtn (cdr it-parent))
+                (setq rtn list))
+              (setq exit t))
+            (setq it-parent it i (1+ i))
+            exit)
+          (when (and (not exit) with-error
+                     (entropy/emacs-seq-match-error-type
+                      'seq-pos-is-overflow with-error))
+            (entropy/emacs-seq-throw-pos-overflow-error
+             list nth nil :extra-restriction 'without-max))))
       rtn)))
 
 (cl-defmacro entropy/emacs-list-delete-region
@@ -966,13 +990,9 @@ If the covered region is the whole LIST, then no modification to
 LIST. Instead only the current invoked PLACE referred to LIST is
 set to nil and nil is returned.
 
-When WITH-ERROR is set as non-nil, its passed to the same key of
-`entropy/emacs-seq-with-safe-region', except if 'invalid' or t or
-'all' type is included then it also trigger the error mechinsm for
-`entropy/emacs-common-listp'.
-
-This function's WITH-ERROR key obey the SEQ error types of
-`entropy/emacs-seq-error-types'.
+When WITH-ERROR is set and its return is obeyed the SEQ error types of
+`entropy/emacs-seq-error-types', throw an error without any
+modifications.
 "
   (declare (indent 1))
   (let ((list-sym      (make-symbol "list-place"))
@@ -990,8 +1010,10 @@ This function's WITH-ERROR key obey the SEQ error types of
             (,lsymp-sym   ,(symbolp list))
             (,lquotep-sym ,(and (consp list)
                                 (memq (car list)
-                                      (list 'quote backquote-backquote-symbol
-                                            'backquote))))
+                                      (list 'quote
+                                            (list
+                                             backquote-backquote-symbol
+                                             'backquote)))))
             (,start-sym   ,start)
             (,end-sym     ,end)
             ,old-list-sym ,llen-sym
