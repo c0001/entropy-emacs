@@ -1406,7 +1406,7 @@ of =pretty-hydra-category-width-indicator= which used for
           (entropy/emacs-hydra-hollow-category-get-pretty-hydra-category-name
            pretty-hydra-category-name-prefix))
          (top-category-exists-p
-          (ignore-errors (not (null (symbol-value top-pretty-hydra-category-name)))))
+          (entropy/emacs-bound-and-true-p top-pretty-hydra-category-name))
          (ctgs
           (entropy/emacs-hydra-hollow-partion-pretty-hydra-cabinet
            pretty-hydra-cabinet)))
@@ -1456,9 +1456,11 @@ of =pretty-hydra-category-width-indicator= which used for
                      pretty-hydra-category-name-prefix tail-pretty-hydra-category-depth))
 
                    (tail-category (symbol-value tail-pretty-hydra-category-name))
-                   (tail-pretty-hydra-category-hydra-caller-name (plist-get tail-category :pretty-hydra-category-hydra-caller-name))
+                   (tail-pretty-hydra-category-hydra-caller-name
+                    (plist-get tail-category :pretty-hydra-category-hydra-caller-name))
                    (tail-category-ctg-width (plist-get tail-category :pretty-hydra-category-width))
-                   (tail-pretty-hydra-category-cabinet-unit-names-list (copy-tree (plist-get tail-category :pretty-hydra-category-cabinet-unit-names-list)))
+                   (tail-pretty-hydra-category-cabinet-unit-names-list
+                    (copy-sequence (plist-get tail-category :pretty-hydra-category-cabinet-unit-names-list)))
 
                    (tail-category-overflow-p
                     (>= (length tail-pretty-hydra-category-cabinet-unit-names-list)
