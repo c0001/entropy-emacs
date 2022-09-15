@@ -1193,7 +1193,7 @@ be `setf'. Return the may be altered VAR's value.
 when VAR's value is nil originally, VAR is set to the `nconc' of LISTS
 (wrapped the result into a list when the result is `atom' i.e. when
 VAR is originally `null' and LISTS is a `entropy/emacs-lonely-listp'
-list and the element that only has is a `atom'). Otherwise no set
+list and the element that it only has is a `atom'). Otherwise no set
 operation did since `nconc' is destructively so that no need to do
 that."
   (declare (indent 1))
