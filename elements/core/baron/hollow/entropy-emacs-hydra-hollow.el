@@ -1390,9 +1390,10 @@ Optional argument PRETTY-HYDRA-CATEGORY-WIDTH-INDICATOR is a
     ))
 
 (defun entropy/emacs-hydra-hollow-category-frame-work-define+
-    (pretty-hydra-category-name-prefix pretty-hydra-body pretty-hydra-cabinet
-                          &optional
-                          pretty-hydra-category-width-indicator-for-inject)
+    (pretty-hydra-category-name-prefix
+     pretty-hydra-body pretty-hydra-cabinet
+     &optional
+     pretty-hydra-category-width-indicator-for-inject)
   "Add hydras into a spec =pretty-hydra-category= by
 PRETTY-HYDRA-CATEGORY-NAME-PREFIX.
 
