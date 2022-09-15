@@ -2958,8 +2958,7 @@ the instance has been created and the related form is banned."
                   use-name))))
          (form-use-judge
           `(unless (bound-and-true-p ,judger-var)
-             (prog1
-                 ,form
+             (prog1 ,form
                (setq ,judger-var t))))
          rtn)
     (cond
@@ -2988,17 +2987,15 @@ the instance has been created and the related form is banned."
              ,form-use-judge)
            rtn)))
       ;; progn wrap the result
-      (setq rtn
-            (append '(progn)
-                    (reverse rtn))))
+      (setq rtn (nconc (list 'progn) (nreverse rtn))))
      ((eq patterns t)
       (setq rtn
             `(entropy/emacs-lazy-load-simple ',use-name
                ;; NOTE: always defer for require
                :always-lazy-load t
                ,form-use-judge)))
-     (t
-      (setq rtn form)))
+     (t (setq rtn form)))
+    ;; return
     rtn))
 
 ;; **** :eemacs-tpha
@@ -3020,8 +3017,7 @@ the instance has been created and the related form is banned."
 (defun entropy/emacs-hydra-hollow--usepackage-eemacs-tpha-def-normalize
     (use-name _key key-value)
   (let ()
-    (cond ((and (listp key-value)
-                (= 1 (length key-value)))
+    (cond ((entropy/emacs-lonely-listp key-value)
            (entropy/emacs-hydra-hollow--usepackage-common-pattern-parse
             (car key-value)))
           (t
@@ -3105,8 +3101,7 @@ evaluated result as its value.
 (defun entropy/emacs-hydra-hollow--usepackage-eemacs-mmphc-def-normalize
     (use-name _key key-value)
   (let ()
-    (cond ((and (listp key-value)
-                (= 1 (length key-value)))
+    (cond ((entropy/emacs-lonely-listp key-value)
            (add-to-list 'entropy/emacs-hydra-hollow--usepackage-eemamcs-mmc-arg-log
                         (list use-name :normalize-arg key-value))
            (entropy/emacs-hydra-hollow--usepackage-common-pattern-parse
@@ -3212,8 +3207,7 @@ evaluated result as its value.
 (defun entropy/emacs-hydra-hollow--usepackage-eemacs-mmphca-def-normalize
     (use-name _key key-value)
   (let ()
-    (cond ((and (listp key-value)
-                (= 1 (length key-value)))
+    (cond ((entropy/emacs-lonely-listp key-value)
            (add-to-list 'entropy/emacs-hydra-hollow--usepackage-eemamcs-mmca-arg-log
                         (list use-name :normalize-arg key-value))
            (entropy/emacs-hydra-hollow--usepackage-common-pattern-parse
@@ -3318,8 +3312,7 @@ evaluated result as its value.
 (defun entropy/emacs-hydra-hollow--usepackage-eemacs-indhc-def-normalize
     (use-name _key key-value)
   (let ()
-    (cond ((and (listp key-value)
-                (= 1 (length key-value)))
+    (cond ((entropy/emacs-lonely-listp key-value)
            (entropy/emacs-hydra-hollow--usepackage-common-pattern-parse
             (car key-value)))
           (t
@@ -3419,8 +3412,7 @@ evaluated result as its value.
 (defun entropy/emacs-hydra-hollow--usepackage-eemacs-indhca-def-normalize
     (use-name _key key-value)
   (let ()
-    (cond ((and (listp key-value)
-                (= 1 (length key-value)))
+    (cond ((entropy/emacs-lonely-listp key-value)
            (entropy/emacs-hydra-hollow--usepackage-common-pattern-parse
             (car key-value)))
           (t
