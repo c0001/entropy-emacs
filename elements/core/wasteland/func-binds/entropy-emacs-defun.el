@@ -525,10 +525,12 @@ BODY will not run also when EXTRA-UNLESS is set and return non-nil."
            (setf ,set-list-len-for (safe-length ,obsym)))
          ,@body))))
 
-(defsubst entropy/emacs-double-list (object)
-  "Return a list who has a single element who is a list and has a
-single element OBJECT."
-  (list (list object)))
+(defsubst entropy/emacs-double-list (&rest objects)
+  "Package sets of object OBJECTS into a list of a list without order
+changed. Return the outer list or nil when OBJECTS is empty."
+  ;; FIXME: shall we need to use `copy-sequence' for OBJECTS for
+  ;; preventing references messy cross invocations?
+  (if objects (cons objects nil)))
 
 (cl-defmacro entropy/emacs-list-map-cdr
     (list &rest body &key with-exit with-it-as &allow-other-keys)

@@ -1693,15 +1693,12 @@ otherwise as other purpose for.
                (entropy/emacs-hydra-hollow-pretty-hydra-category-hydra-name-p
                 new-command))
           (unless (plist-get ptt-plist :exit)
-            (setq ptt-plist
-                  (plist-put ptt-plist :exit t))))
+            (entropy/emacs-plist-setf ptt-plist :exit t)))
 
-        (setq rtn
-              (append
-               rtn
-               (if (null new-key)
-                   `((,new-group nil))
-                 `((,new-group ((,new-key ,new-command ,new-notation ,@ptt-plist)))))))))
+        (entropy/emacs-nconc-with-setvar-use-rest rtn
+          (if (null new-key)
+              `((,new-group nil))
+            `((,new-group ((,new-key ,new-command ,new-notation ,@ptt-plist))))))))
     rtn))
 
 (defun entropy/emacs-hydra-hollow-normalize-pretty-hydra-cabinet
@@ -1737,9 +1734,9 @@ enabled =pretty-hydra-head= or any pure empty
                        (entropy/emacs-hydra-hollow--common-judge-p
                         enable-slot))))
         (if enable
-            (setq rtn (append rtn `((,group ,(cadr sp-head)))))
+            (entropy/emacs-nconc-with-setvar-use-rest rtn `((,group ,(cadr sp-head))))
           (when (null (cadr sp-head))
-            (setq rtn (append rtn (list sp-head)))))))
+            (entropy/emacs-nconc-with-setvar-use-rest rtn (list sp-head))))))
     (when (not (null rtn))
       (setq rtn
             (entropy/emacs-hydra-hollow-normalize-pretty-hydra-caskets-list
@@ -1924,25 +1921,33 @@ FEATURE-REPLACCE and keymap data MAP-REPLACE."
       (dolist (pair (cdr hydra-injector-maybe))
         (cond ((and (null (car pair))
                     (not (null (cadr pair))))
-               (setq rtn (append rtn (list `(,feature-replace ,(cadr pair) . ,(cddr pair))))))
+               (entropy/emacs-nconc-with-setvar-use-rest rtn
+                 (list `(,feature-replace ,(cadr pair) . ,(cddr pair)))))
               ((and (null (cadr pair))
                     (not (null (car pair))))
-               (setq rtn (append rtn (list `(,(car pair) ,map-replace . ,(cddr pair))))))
+               (entropy/emacs-nconc-with-setvar-use-rest rtn
+                 (list `(,(car pair) ,map-replace . ,(cddr pair)))))
               ((and (null (cadr pair))
                     (null (car pair)))
-               (setq rtn (append rtn (list `(,feature-replace ,map-replace . ,(cddr pair))))))
-              (t (setq rtn (append rtn (list pair)))))))
+               (entropy/emacs-nconc-with-setvar-use-rest rtn
+                 (list `(,feature-replace ,map-replace . ,(cddr pair)))))
+              (t (entropy/emacs-nconc-with-setvar-use-rest rtn
+                   (list pair))))))
      ((listp hydra-injector-maybe)
       (cond ((and (null (car hydra-injector-maybe))
                   (not (null (cadr hydra-injector-maybe))))
-             (setq rtn (append rtn (list `(,feature-replace ,(cadr hydra-injector-maybe) . ,(cddr hydra-injector-maybe))))))
+             (entropy/emacs-nconc-with-setvar-use-rest rtn
+               (list `(,feature-replace ,(cadr hydra-injector-maybe) . ,(cddr hydra-injector-maybe)))))
             ((and (null (cadr hydra-injector-maybe))
                   (not (null (car hydra-injector-maybe))))
-             (setq rtn (append rtn (list `(,(car hydra-injector-maybe) ,map-replace . ,(cddr hydra-injector-maybe))))))
+             (entropy/emacs-nconc-with-setvar-use-rest rtn
+               (list `(,(car hydra-injector-maybe) ,map-replace . ,(cddr hydra-injector-maybe)))))
             ((and (null (cadr hydra-injector-maybe))
                   (null (car hydra-injector-maybe)))
-             (setq rtn (append rtn (list `(,feature-replace ,map-replace . ,(cddr hydra-injector-maybe))))))
-            (t (setq rtn (append rtn (list hydra-injector-maybe))))))
+             (entropy/emacs-nconc-with-setvar-use-rest rtn
+               (list `(,feature-replace ,map-replace . ,(cddr hydra-injector-maybe)))))
+            (t (entropy/emacs-nconc-with-setvar-use-rest rtn
+                 (list hydra-injector-maybe)))))
      (t
       (error "Wrong type of argument: hydra-injector-p '%s'" hydra-injector-maybe)))
     (entropy/emacs-add-to-list rtn :self-list)
@@ -2225,9 +2230,8 @@ priority as the same as the key order in
   (let (rtn)
     (dolist (item entropy/emacs-hydra-hollow-predicative-keys)
       (when (assoc (car item) riched-pretty-hydra-casket-predicate-pattern)
-        (setq rtn
-              (append rtn
-                      (list (assoc (car item) riched-pretty-hydra-casket-predicate-pattern))))))
+        (entropy/emacs-nconc-with-setvar-use-rest rtn
+          (list (assoc (car item) riched-pretty-hydra-casket-predicate-pattern)))))
     rtn))
 
 (defun entropy/emacs-hydra-hollow-rebuild-pretty-hydra-cabinet
@@ -2262,12 +2266,12 @@ if Optional arguments NOT-MERGE is non-nil. "
                                      head
                                      :rest-args
                                      rest-args)
-                             (append head-of-rsh `(:rest-args ,rest-args)))))
+                             (entropy/emacs-nconc-with-setvar-use-rest head-of-rsh
+                               (list :rest-args rest-args)))))
                  (setq head-of-rsh
                        (funcall predicate-func rsh)))))
-           (setq new-pretty-hydra-caskets-list
-                 (append new-pretty-hydra-caskets-list
-                         (list (plist-get head-of-rsh :pretty-hydra-casket))))))
+           (entropy/emacs-nconc-with-setvar-use-rest new-pretty-hydra-caskets-list
+             (list (plist-get head-of-rsh :pretty-hydra-casket)))))
        (if not-merge
            new-pretty-hydra-caskets-list
          (entropy/emacs-hydra-hollow-merge-pretty-hydra-caskets-list
@@ -2563,20 +2567,15 @@ hydra body caller) =pretty-hydra-head-command=.
                       notation)))
 
                 (unless (null rest-keypairs)
-                  (setq new-pretty-hydra-casket-pattern
-                        (append new-pretty-hydra-casket-pattern
-                                rest-keypairs)))
+                  (entropy/emacs-nconc-with-setvar-use-rest
+                      new-pretty-hydra-casket-pattern
+                    rest-keypairs))
 
-                (setq new-pretty-hydra-caskets-list
-                      (append new-pretty-hydra-caskets-list
-                              (list
-                               (list
-                                group-name
-                                (list
-                                 new-pretty-hydra-casket-pattern)))))))
-          (setq new-pretty-hydra-caskets-list
-                (append new-pretty-hydra-caskets-list
-                        (list pretty-hydra-casket))))))
+                (entropy/emacs-nconc-with-setvar-use-rest new-pretty-hydra-caskets-list
+                  (entropy/emacs-double-list group-name
+                                             (list new-pretty-hydra-casket-pattern)))))
+          (entropy/emacs-nconc-with-setvar-use-rest new-pretty-hydra-caskets-list
+            (list pretty-hydra-casket)))))
     (set pretty-hydra-cabinet-name
          (entropy/emacs-hydra-hollow-merge-pretty-hydra-caskets-list
           new-pretty-hydra-caskets-list))))
@@ -2662,11 +2661,11 @@ hydra body caller) =pretty-hydra-head-command=.
              (:eemacs-top-bind))
            t)))
     (unless (null pretty-hydra-caskets-list)
-      (dolist (sp-h pretty-hydra-caskets-list)
-        (setq entropy/emacs-hydra-hollow-top-dispatch-register
-              (append entropy/emacs-hydra-hollow-top-dispatch-register
-                      `(,sp-h))))
-
+      (when entropy/emacs-startup-with-Debug-p
+        (dolist (sp-h pretty-hydra-caskets-list)
+          (entropy/emacs-nconc-with-setvar-use-rest
+              entropy/emacs-hydra-hollow-top-dispatch-register
+            (list sp-h))))
       (entropy/emacs-hydra-hollow-common-individual-hydra-define+
        entropy/emacs-hydra-hollow-init-top-dispatch-individual-hydra-name
        nil pretty-hydra-cabinet))))
@@ -2805,8 +2804,8 @@ both ommited, that as:
                   (heads (cadr multi-secs-island))
                   split-island)
               (dolist (sec sections)
-                (setq split-island
-                      (append split-island (list (list sec heads)))))
+                (entropy/emacs-nconc-with-setvar-use-rest split-island
+                  (entropy/emacs-double-list sec heads)))
               split-island)))
          (island-parse-func
           (lambda (island)
@@ -2821,14 +2820,13 @@ both ommited, that as:
          rtn)
     (cond
      (ptform-single-island-p
-      (setq rtn
-            (funcall island-parse-func
-                     pattern-form)))
+      (setq rtn (funcall island-parse-func pattern-form)))
      ((null ptform-single-island-p)
       (dolist (island pattern-form)
         (let ((obtain (funcall island-parse-func
                                island)))
-          (setq rtn (append rtn obtain))))))
+          (entropy/emacs-nconc-with-setvar-use-rest rtn
+            obtain)))))
     rtn))
 
 ;; ***** defer parse
@@ -3037,7 +3035,7 @@ has one valid key =:enable=, it will be sent to
 evaluated result as its value.
 "
   (let* ((rest-body (use-package-process-keywords use-name rest state))
-         (init-form '()))
+         init-form)
     (dolist (island $arg)
       (let* ((baron (car island))
              (attr (car baron))
@@ -3061,9 +3059,8 @@ evaluated result as its value.
                    core-caller)
                 core-caller)))
         (when enable
-          (setq init-form
-                (append init-form
-                        `(,main-caller))))))
+          (entropy/emacs-nconc-with-setvar-use-rest init-form
+            (list main-caller)))))
     (use-package-concat
      rest-body
      init-form)))
@@ -3160,15 +3157,13 @@ evaluated result as its value.
                 ',mode ',hydra-injector ',do-not-build-sparse-tree ',heads
                 ',ctg-width-indc-for-build
                 ',ctg-width-indc-for-inject))
-        (setq
-         init-form
-         (append init-form
-                 `((when (not (null ',enable))
-                     ,(if defer
-                          (entropy/emacs-hydra-hollow/defer-parse/gen-wrapper
-                           use-name defer
-                           core-caller)
-                        core-caller)))))))
+        (entropy/emacs-nconc-with-setvar-use-rest init-form
+          (list `(when (not (null ',enable))
+                   ,(if defer
+                        (entropy/emacs-hydra-hollow/defer-parse/gen-wrapper
+                         use-name defer
+                         core-caller)
+                      core-caller))))))
     (use-package-concat
      init-form
      rest-body)))
@@ -3339,7 +3334,7 @@ evaluated result as its value.
 
 
   (let* ((rest-body (use-package-process-keywords use-name rest state))
-         (init-form '()))
+         init-form)
     (dolist (island $arg)
       (let* ((baron (car island))
              (attr (car baron))
@@ -3369,13 +3364,11 @@ evaluated result as its value.
                 ',pretty-hydra-body
                 ',ctg-width-indc))
         (when enable
-          (setq init-form
-                (append init-form
-                        (if defer
-                            `(,(entropy/emacs-hydra-hollow/defer-parse/gen-wrapper
-                                use-name defer
-                                core-caller))
-                          `(,core-caller)))))))
+          (entropy/emacs-nconc-with-setvar-use-rest init-form
+            (if defer
+                (list (entropy/emacs-hydra-hollow/defer-parse/gen-wrapper
+                       use-name defer core-caller))
+              (list core-caller))))))
     (use-package-concat
      rest-body
      init-form)))
@@ -3419,7 +3412,7 @@ evaluated result as its value.
 
 (defun entropy/emacs-hydra-hollow--usepackage-eemacs-indhca-def-handler
     (use-name _key $arg rest state)
-    "The use-package keyword handler for =:eemacs-indhca=
+  "The use-package keyword handler for =:eemacs-indhca=
 
 - Special for its =pretty-hydra-riched-usepackage-pattern-section-request=:
 
@@ -3437,7 +3430,7 @@ evaluated result as its value.
   evaluated result as its value."
 
   (let* ((rest-body (use-package-process-keywords use-name rest state))
-         (init-form '()))
+         init-form)
     (dolist (island $arg)
       (let* ((baron (car island))
              (attr (car baron))
@@ -3461,13 +3454,11 @@ evaluated result as its value.
                 ',pretty-hydra-body
                 ',ctg-width-indc-for-inject)))
         (when enable
-          (setq init-form
-                (append init-form
-                        (if defer
-                            `(,(entropy/emacs-hydra-hollow/defer-parse/gen-wrapper
-                                use-name defer
-                                core-caller))
-                          `(,core-caller)))))))
+          (entropy/emacs-nconc-with-setvar-use-rest init-form
+            (if defer
+                (list (entropy/emacs-hydra-hollow/defer-parse/gen-wrapper
+                       use-name defer core-caller))
+              (list core-caller))))))
     (use-package-concat
      rest-body
      init-form)))
