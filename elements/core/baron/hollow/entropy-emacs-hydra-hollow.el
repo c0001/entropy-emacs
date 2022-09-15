@@ -3225,7 +3225,7 @@ evaluated result as its value.
 
 (defun entropy/emacs-hydra-hollow--usepackage-eemacs-mmphca-def-handler
     (use-name _key $arg rest state)
-    "The use-package keyword handler for =:eemacs-mmphca=
+  "The use-package keyword handler for =:eemacs-mmphca=
 
 - Special for its =pretty-hydra-riched-usepackage-pattern-section-request=:
 
@@ -3248,7 +3248,7 @@ evaluated result as its value.
                  (list use-name :handle-arg $arg))
     (setq
      init-form
-     `((let (callers-for-run)
+     `((let (_)
          (dolist (island ',$arg)
            (let* ((baron (car island))
                   (attr (car baron))
@@ -3265,30 +3265,22 @@ evaluated result as its value.
                   (pretty-hydra-category-width-indicator-for-inject
                    (nth 3 requests))
                   (heads (cadr island))
-                  run-call
                   core-caller)
              (setq core-caller
-                   (list 'apply
-                         (list 'function 'entropy/emacs-hydra-hollow-add-to-major-mode-hydra)
-                         (list 'quote
-                               (list mode hydra-injector heads
-                                     pretty-hydra-body
-                                     pretty-hydra-category-width-indicator-for-inject))))
+                   (list 'funcall
+                         (list 'function
+                               (lambda nil
+                                 (entropy/emacs-hydra-hollow-add-to-major-mode-hydra
+                                  mode hydra-injector heads
+                                  pretty-hydra-body
+                                  pretty-hydra-category-width-indicator-for-inject)))))
              (when enable
-               (setq run-call
-                     (list 'lambda nil
-                           (if defer
-                               (entropy/emacs-hydra-hollow/defer-parse/gen-wrapper
-                                ',use-name defer
-                                core-caller)
-                             core-caller)))
-               (push run-call callers-for-run))))
-         (when (not (null callers-for-run))
-           (dolist (caller (reverse callers-for-run))
-             (funcall caller))))))
-    (use-package-concat
-     init-form
-     rest-body)))
+               (entropy/emacs-eval-with-lexical
+                (if defer
+                    (entropy/emacs-hydra-hollow/defer-parse/gen-wrapper
+                     ',use-name defer core-caller)
+                  core-caller))))))))
+    (use-package-concat init-form rest-body)))
 
 (defalias 'use-package-normalize/:eemacs-mmphca
   #'entropy/emacs-hydra-hollow--usepackage-eemacs-mmphca-def-normalize)
