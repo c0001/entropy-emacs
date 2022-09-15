@@ -774,16 +774,15 @@ hand, either 't' or 'nil' is for that.
 "
   (let ((ctg-width-indc pretty-hydra-category-width-indicator)
         rtn width-sign width-desc
-        (rich-func
+        (rich-form-p
          (lambda (x)
-           (and (listp x)
-                (or
-                 (entropy/emacs-strict-plistp (cdr x))
-                 (and (eq 1 (length x))
-                      (not (listp (car x))))))))
-        (eval-form-p (lambda (x) (ignore-errors (eq :eval (car x))))))
+           (and (consp x)
+                (or (entropy/emacs-strict-plistp (cdr x))
+                    (and (entropy/emacs-lonely-listp x)
+                         (atom (car x)))))))
+        (eval-form-p (lambda (x) (eq :eval (car-safe x)))))
     (cond
-     ((funcall rich-func ctg-width-indc)
+     ((funcall rich-form-p ctg-width-indc)
       (let ((plist (cdr ctg-width-indc)))
         (setq width-sign (entropy/emacs-hydra-hollow-normalize-pretty-hydra-category-width-indicator
                           (entropy/emacs-hydra-hollow--common-judge-p (car ctg-width-indc)))
@@ -798,16 +797,13 @@ hand, either 't' or 'nil' is for that.
       (setq rtn (or ctg-width-indc entropy/emacs-hydra-hollow-category-default-width)))
      ((listp ctg-width-indc)
       (dolist (el ctg-width-indc)
-        (setq rtn
-              (append
-               rtn
-               (list (entropy/emacs-hydra-hollow-normalize-pretty-hydra-category-width-indicator
-                      el)))))
-      (setq rtn
-            (mapcar (lambda (x)
-                      (if (eq x t) entropy/emacs-hydra-hollow-category-default-width
-                        x))
-                    rtn))))
+        (entropy/emacs-nconc-with-setvar-use-rest rtn
+          (list (entropy/emacs-hydra-hollow-normalize-pretty-hydra-category-width-indicator
+                 el))))
+      (entropy/emacs-list-map-replace
+       (lambda (x)
+         (if (eq x t) entropy/emacs-hydra-hollow-category-default-width
+           x)) rtn)))
     rtn))
 
 ;; ******** category navigation set
@@ -875,7 +871,7 @@ hand, either 't' or 'nil' is for that.
 
 (defun entropy/emacs-hydra-hollow-category-patch-hire-title
     (pretty-hydra-body &optional _hint-string)
-  (let* ((new-pretty-hydra-body (copy-tree pretty-hydra-body))
+  (let* ((new-pretty-hydra-body (copy-sequence pretty-hydra-body))
          (title (plist-get pretty-hydra-body :title))
          (stick-regexp "» Hint <up> to \\[Previous Hydra\\]")
          (stick-p (string-match-p stick-regexp (entropy/emacs-eval-with-lexical title)))
@@ -888,8 +884,7 @@ hand, either 't' or 'nil' is for that.
               "» "
               (propertize "Hint <up> to [Previous Hydra]"
                           'face 'error)))
-      (setq new-pretty-hydra-body
-            (plist-put new-pretty-hydra-body :title new-title)))
+      (entropy/emacs-plist-setf new-pretty-hydra-body :title new-title))
     new-pretty-hydra-body))
 
 ;; ******** category recursive match
@@ -907,15 +902,12 @@ Return a plist as the matching report who has two slot:
   =pretty-hydra-category-depth= or when :pretty-hydra-category was nil for the
   tail new pre-create category depth.
 "
-  (let ((pretty-hydra-category-depth 0)
-        rtn)
+  (let ((pretty-hydra-category-depth 0) rtn)
     (catch :matched
       (while (let ((var-name
                     (entropy/emacs-hydra-hollow-category-get-pretty-hydra-category-name
                      pretty-hydra-category-name-prefix pretty-hydra-category-depth)))
-               (funcall
-                `(lambda ()
-                   (bound-and-true-p ,var-name))))
+               (and (boundp var-name) (symbol-value var-name)))
         (let* ((pretty-hydra-category-name
                 (entropy/emacs-hydra-hollow-category-get-pretty-hydra-category-name
                  pretty-hydra-category-name-prefix pretty-hydra-category-depth))
@@ -1009,12 +1001,12 @@ the internally subroutines of this macro, they are:
           ($internally/pretty-hydra-category-next-category-name
            (plist-get $internally/pretty-hydra-category :pretty-hydra-category-next-category-name))
           ($internally/pretty-hydra-category-next-category
-           (ignore-errors (symbol-value $internally/pretty-hydra-category-next-category-name)))
+           (entropy/emacs-bound-and-true-p $internally/pretty-hydra-category-next-category-name))
 
           ($internally/pretty-hydra-category-previous-category-name
            (plist-get $internally/pretty-hydra-category :pretty-hydra-category-previous-category-name))
           ($internally/pretty-hydra-category-previous-category
-           (ignore-errors (symbol-value $internally/pretty-hydra-category-previous-category-name)))
+           (entropy/emacs-bound-and-true-p  $internally/pretty-hydra-category-previous-category-name))
 
           ($internally/pretty-hydra-category-cabinet-name
            (entropy/emacs-hydra-hollow-category-get-hydra-branch-name
@@ -1085,11 +1077,10 @@ the internally subroutines of this macro, they are:
               $internally/pretty-hydra-category-hydra-body->new)))
 
      ;; redefine category pretty-hydra
-     (funcall
-      (list 'lambda nil
-            (list 'pretty-hydra-define $internally/pretty-hydra-category-hydra-name
-                  $internally/pretty-hydra-category-hydra-body->new
-                  $internally/pretty-hydra-category-cabinet->new)))
+     (entropy/emacs-hydra-hollow-func-version-pthydra-define
+      $internally/pretty-hydra-category-hydra-name
+      $internally/pretty-hydra-category-hydra-body->new
+      $internally/pretty-hydra-category-cabinet->new)
 
      ;; reset cagegory
      (setq $internally/pretty-hydra-category-cabinet-unit-names-list->new
@@ -1114,20 +1105,19 @@ the internally subroutines of this macro, they are:
      (entropy/emacs-hydra-hollow-category-define-nav-key
       (symbol-value $internally/pretty-hydra-category-hydra-keymap-name)
       (plist-get
-       (ignore-errors (symbol-value $internally/pretty-hydra-category-previous-category-name->new))
+       (entropy/emacs-bound-and-true-p $internally/pretty-hydra-category-previous-category-name->new)
        :pretty-hydra-category-hydra-caller-name)
       (plist-get
-       (ignore-errors (symbol-value $internally/pretty-hydra-category-next-category-name->new))
+       (entropy/emacs-bound-and-true-p $internally/pretty-hydra-category-next-category-name->new)
        :pretty-hydra-category-hydra-caller-name))
 
      ;; remap category baron key-binds
      (when $internally/pretty-hydra-category-baron-name->new
-       (setq entropy/emacs-hydra-hollow-union-form
-             (append
-              entropy/emacs-hydra-hollow-union-form
-              `((entropy/emacs-hydra-hollow-category-define-rate-key
-                 (symbol-value ',$internally/pretty-hydra-category-hydra-keymap-name)
-                 ',$internally/pretty-hydra-category-baron-name->new)))))
+       (entropy/emacs-nconc-with-setvar-use-rest
+           entropy/emacs-hydra-hollow-union-form
+         `((entropy/emacs-hydra-hollow-category-define-rate-key
+            (symbol-value ',$internally/pretty-hydra-category-hydra-keymap-name)
+            ',$internally/pretty-hydra-category-baron-name->new))))
      ))
 
 

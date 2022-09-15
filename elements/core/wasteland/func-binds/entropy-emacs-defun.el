@@ -253,6 +253,11 @@ lisp coding type."
   (declare (indent defun))
   `(setf ,var (apply ,func ,@(or args (list nil)))))
 
+(defun entropy/emacs-bound-and-true-p (var-name)
+  "Like `bound-and-true-p' but as an function, so the VAR is using
+VAR-NAME i.e. a symbol."
+  (and (boundp var-name) (symbol-value var-name)))
+
 ;; **** Apis with when wrapper
 (defmacro entropy/emacs-when-defun
     (name arglist condition-form &optional docstring &rest body)
