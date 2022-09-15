@@ -1225,10 +1225,10 @@ Optional argument PRETTY-HYDRA-CATEGORY-WIDTH-INDICATOR is a
 "
   (let* ((ctgs (entropy/emacs-hydra-hollow-partion-pretty-hydra-cabinet
                 pretty-hydra-cabinet))
-         (_ctg-len (length ctgs))
+         ;; (_ctg-len (length ctgs))
          (ctg-indc (entropy/emacs-hydra-hollow-normalize-pretty-hydra-category-width-indicator
                     pretty-hydra-category-width-indicator))
-         (body-patch (copy-tree pretty-hydra-body))
+         (body-patch (copy-sequence pretty-hydra-body))
          (pretty-hydra-category-depth (or pretty-hydra-category-depth 0))
          cur-ctg-indc
          rest-ctg-inc
@@ -1279,22 +1279,20 @@ Optional argument PRETTY-HYDRA-CATEGORY-WIDTH-INDICATOR is a
      ((eq cur-ctg-indc t)
       (setq rest-head-group nil)
       (cl-loop for item in ctgs
-               do (setq cur-head-group
-                        (append cur-head-group item))))
+               do (entropy/emacs-nconc-with-setvar-use-rest
+                      cur-head-group item)))
      ((or (null cur-ctg-indc)
           (integerp cur-ctg-indc))
       (let ((cnt 0))
         (while (<= (+ cnt 1)
                    (or cur-ctg-indc
                        entropy/emacs-hydra-hollow-category-default-width))
-          (setq cur-head-group
-                (append cur-head-group
-                        (nth cnt ctgs)))
+          (entropy/emacs-nconc-with-setvar-use-rest cur-head-group
+            (nth cnt ctgs))
           (cl-incf cnt))
         (while (not (null (nth cnt ctgs)))
-          (setq rest-head-group
-                (append rest-head-group
-                        (nth cnt ctgs)))
+          (entropy/emacs-nconc-with-setvar-use-rest rest-head-group
+            (nth cnt ctgs))
           (cl-incf cnt)))))
 
     ;; patch pretty-hydra-body
@@ -1306,11 +1304,7 @@ Optional argument PRETTY-HYDRA-CATEGORY-WIDTH-INDICATOR is a
              new-title pretty-hydra-category-depth
              pretty-hydra-category-previous-category-name rest-head-group))
 
-      (setq body-patch
-            (plist-put
-             body-patch
-             :title
-             new-title)))
+      (setq body-patch (plist-put body-patch :title new-title)))
 
     ;; generate category name
     (setq pretty-hydra-category-name
