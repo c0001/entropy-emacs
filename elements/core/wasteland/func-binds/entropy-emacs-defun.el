@@ -2146,16 +2146,17 @@ error."
 
 (cl-defun entropy/emacs-plist-setf
     (plist key value &key append-new-key set-use-append set-use-expand)
-  "Set key slot of KEY to new value VALUE of a plist PLIST
+  "Set key slot of KEY to new value VALUE of a non-`null' plist PLIST
 destructively. Return the altered PLIST or nil when KEY is not found
-in PLIST.
+in PLIST. Throw errors when PLIST or KEY is invalid.
 
 KEY can also be a list of keys in which case the set place is chained
 via the order of those keys in PLIST's child plist.
 
 When APPEND-NEW-KEY is set, then when KEY is not matched in PLIST or
 its child plist, then the KEY is added in the tail of the PLIST or the
-corresponding child plist, and then VALUE is set there.
+corresponding child plist, and then VALUE is set there, and the return
+is usual as key has been found.
 
 When SET-USE-APPEND is set, then VALUE is set append the KEY's slot's
 current value or directly did when KEY's value is empty (i.e. its

@@ -581,9 +581,9 @@ Slots description:
            (:pretty-hydra-category-previous-category-name ,pretty-hydra-category-previous-category-name)
            (:pretty-hydra-category-next-category-name ,pretty-hydra-category-next-category-name)))
       (unless (null (cadr el))
-        (set pretty-hydra-category-name
-             (plist-put (symbol-value pretty-hydra-category-name)
-                        (car el) (cadr el))))))))
+        (entropy/emacs-plist-setf
+         (symbol-value pretty-hydra-category-name)
+         (car el) (cadr el)))))))
 
 ;; ******** category names get
 ;; This section makes the core defination for =pretty-hydra-category=
