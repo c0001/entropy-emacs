@@ -3161,8 +3161,7 @@ evaluated result as its value.
           (list `(when (not (null ',enable))
                    ,(if defer
                         (entropy/emacs-hydra-hollow/defer-parse/gen-wrapper
-                         use-name defer
-                         core-caller)
+                         use-name defer core-caller)
                       core-caller))))))
     (use-package-concat
      init-form
