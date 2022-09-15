@@ -3058,8 +3058,11 @@ appended."
         (vh-letbinds (entropy/emacs-xycrd-rectangle-cmp-vh-letbinds-wrapper))
         (calc-letbinds (entropy/emacs-xycrd-rectangle-cmp-calc-letbinds-wrapper))
         (body (entropy/emacs-get-plist-body body)))
-    `(let* (,@base-letbinds ,@(when use-vh vh-letbinds) ,@(when use-calc calc-letbinds))
-       ,@body)))
+    (entropy/emacs-make-letform-lexical-ignorable
+     `(let* (,@base-letbinds
+             ,@(when use-vh vh-letbinds)
+             ,@(when use-calc calc-letbinds))
+        ,@body))))
 
 ;; *** File and directory manipulation
 
