@@ -1895,7 +1895,7 @@ HYDRA-INJECTOR with key KEY and command COMMAND.
 Both KEY and COMMAND can be nil expect that the ':inject-key' and
 ':inject-command' slot in the HYDRA-INJECTOR are non-nil.
 "
-  (let ()
+  (let (_)
     (cond
      ((eq (entropy/emacs-hydra-hollow-hydra-injector-valid-p hydra-injector)
           :self-list)
@@ -2292,7 +2292,7 @@ Each function must just has one argumentm, a
     (pretty-hydra-cabinet-name)
   "Run hook
 `entropy/emacs-hydra-hollow-pretty-hydra-cabinet-external-normalize-hook'"
-  (let ()
+  (let (_)
     (run-hook-with-args
      'entropy/emacs-hydra-hollow-pretty-hydra-cabinet-external-normalize-hook
      pretty-hydra-cabinet-name)))
@@ -2422,7 +2422,7 @@ HYDRA-INJECTOR, they are used as the same meaning as for
           `((:map-inject ,hydra-injector)
             (:global-bind)
             (:eemacs-top-bind)))))
-    (let ()
+    (let (_)
       (funcall
        (if (fboundp (entropy/emacs-hydra-hollow-category-get-major-mode-caller
                      mode))
@@ -3016,7 +3016,7 @@ the instance has been created and the related form is banned."
 
 (defun entropy/emacs-hydra-hollow--usepackage-eemacs-tpha-def-normalize
     (use-name _key key-value)
-  (let ()
+  (let (_)
     (cond ((entropy/emacs-lonely-listp key-value)
            (entropy/emacs-hydra-hollow--usepackage-common-pattern-parse
             (car key-value)))
@@ -3100,7 +3100,7 @@ evaluated result as its value.
 
 (defun entropy/emacs-hydra-hollow--usepackage-eemacs-mmphc-def-normalize
     (use-name _key key-value)
-  (let ()
+  (let (_)
     (cond ((entropy/emacs-lonely-listp key-value)
            (add-to-list 'entropy/emacs-hydra-hollow--usepackage-eemamcs-mmc-arg-log
                         (list use-name :normalize-arg key-value))
@@ -3206,7 +3206,7 @@ evaluated result as its value.
 
 (defun entropy/emacs-hydra-hollow--usepackage-eemacs-mmphca-def-normalize
     (use-name _key key-value)
-  (let ()
+  (let (_)
     (cond ((entropy/emacs-lonely-listp key-value)
            (add-to-list 'entropy/emacs-hydra-hollow--usepackage-eemamcs-mmca-arg-log
                         (list use-name :normalize-arg key-value))
@@ -3311,7 +3311,7 @@ evaluated result as its value.
 
 (defun entropy/emacs-hydra-hollow--usepackage-eemacs-indhc-def-normalize
     (use-name _key key-value)
-  (let ()
+  (let (_)
     (cond ((entropy/emacs-lonely-listp key-value)
            (entropy/emacs-hydra-hollow--usepackage-common-pattern-parse
             (car key-value)))
@@ -3411,7 +3411,7 @@ evaluated result as its value.
 
 (defun entropy/emacs-hydra-hollow--usepackage-eemacs-indhca-def-normalize
     (use-name _key key-value)
-  (let ()
+  (let (_)
     (cond ((entropy/emacs-lonely-listp key-value)
            (entropy/emacs-hydra-hollow--usepackage-common-pattern-parse
             (car key-value)))
