@@ -928,7 +928,8 @@ Return a plist as the matching report who has two slot:
 
 ;; ******** category manipulation
 
-(defmacro entropy/emacs-hydra-hollow-category-with-category
+(eval-and-compile
+(defmacro entropy/emacs-hydra-hollow-category-with-category-1
     (pretty-hydra-category-name-prefix pretty-hydra-category-depth &rest body)
   "Do the BODY with the specified =pretty-hydra-category= by
 PRETTY-HYDRA-CATEGORY-NAME-PREFIX.
@@ -1118,8 +1119,16 @@ the internally subroutines of this macro, they are:
          `((entropy/emacs-hydra-hollow-category-define-rate-key
             (symbol-value ',$internally/pretty-hydra-category-hydra-keymap-name)
             ',$internally/pretty-hydra-category-baron-name->new))))
-     ))
+     )))
 
+(defmacro entropy/emacs-hydra-hollow-category-with-category (&rest args)
+  "This macro is the lexical ignorable variant of
+`entropy/emacs-hydra-hollow-category-with-category-1'.
+
+\(fn PRETTY-HYDRA-CATEGORY-NAME-PREFIX PRETTY-HYDRA-CATEGORY-DEPTH &rest BODY)"
+  (entropy/emacs-make-letform-lexical-ignorable
+   (macroexpand-1
+    (cons 'entropy/emacs-hydra-hollow-category-with-category-1 args))))
 
 (defun entropy/emacs-hydra-hollow-category-try-bind-rate-to-baron
     (pretty-hydra-category-baron-name pretty-hydra-cabinet)

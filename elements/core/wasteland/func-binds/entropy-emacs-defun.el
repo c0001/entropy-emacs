@@ -290,6 +290,34 @@ evaluated return non-nil, or run BODY like `progn'."
        (if (and ,use-when-p ,when) (widen))
        ,@body)))
 
+;; **** defmacro with ignorable lexical vars
+
+(defun entropy/emacs-make-letform-lexical-ignorable (let-form)
+  "Make a `let' like form LET-FORM be lexical variables ignorable. Return
+the refactor equalized FORM.
+
+A LET-FORM whose `car' is always a `let' or `let*' and or any their
+variants and `cadr' always as their BINDINGS.
+
+This function exists for tha sake of let elisp macro can be used as
+ignorable as what common-lisp's declaration syntax did, for ignoring
+the lexical variable unused warning when `byte-compile' the
+corresponding context.
+
+See '[[http://clhs.lisp.se/Body/d_ignore.htm][Declaration IGNORE, IGNORABLE]]'
+and '[[https://emacs.stackexchange.com/questions\
+/10723/how-do-i-declare-a-variable-\
+ignorable][How do I declare a variable ignorable?]]'.
+"
+  (let* ((specs (cadr let-form))
+         (ignore-exp
+          (cons 'ignore
+                (mapcar
+                 (lambda (x) (if (consp x) (car x) x))
+                 specs))))
+    (cons (car let-form)
+          (cons specs (cons ignore-exp (nthcdr 2 let-form))))))
+
 ;; *** Cl-function compatible manipulation
 (defun entropy/emacs-cl-findnew-p (func)
   (let (new-func)
