@@ -1142,13 +1142,12 @@ the internally subroutines of this macro, they are:
           (let* ((it-ctg-name-prefix
                   (entropy/emacs-hydra-hollow-pretty-hydra-category-hydra-name-p
                    command 'just-prefix)))
-            (setq entropy/emacs-hydra-hollow-union-form
-                  (append
-                   entropy/emacs-hydra-hollow-union-form
-                   `((entropy/emacs-hydra-hollow-category-with-category
-                      ',it-ctg-name-prefix nil
-                      (setq $internally/pretty-hydra-category-baron-name->new
-                            ',pretty-hydra-category-baron-name)))))))))))
+            (entropy/emacs-nconc-with-setvar-use-rest entropy/emacs-hydra-hollow-union-form
+              (list
+               `(entropy/emacs-hydra-hollow-category-with-category
+                 ',it-ctg-name-prefix nil
+                 (setq $internally/pretty-hydra-category-baron-name->new
+                       ',pretty-hydra-category-baron-name))))))))))
 
 ;; ******** category interactive advice
 
@@ -1159,55 +1158,51 @@ the internally subroutines of this macro, they are:
          (name (intern (format "%s--|ctg-choice-around-adv"
                                orig-caller))))
     (defalias name
-      `(lambda (orig-func &rest orig-args)
-         (let ((init-depth (or ,pretty-hydra-category-depth 0))
-               (depth (or ,pretty-hydra-category-depth 0))
-               multi-p)
-           (while (fboundp (entropy/emacs-hydra-hollow-category-get-hydra-branch-name
-                            ',pretty-hydra-category-name-prefix t depth))
-             (cl-incf depth))
-           (setq depth (- depth 1))
-           (setq multi-p (not (= depth init-depth)))
-           (if (or (not multi-p)
-                   (string-match-p entropy/emacs-hydra-hollow-pretty-hydra-category-name-regexp
-                                   (symbol-name last-command))
-                   (null current-prefix-arg))
-               (progn
-                 (setq terminated t)
-                 (apply orig-func orig-args))
-             (let ((cnt init-depth)
-                   candis choice caller-name)
-               (while (<= cnt depth)
-                 (setq candis
-                       (append candis
-                               (list
-                                (cons cnt
-                                      (or
-                                       (plist-get
-                                        (symbol-value
-                                         (entropy/emacs-hydra-hollow-category-get-pretty-hydra-category-name
-                                          ',pretty-hydra-category-name-prefix cnt))
-                                        :pretty-hydra-category-description)
-                                       "None description found for this depth category")))))
-                 (cl-incf cnt))
+      (lambda (orig-func &rest orig-args)
+        (let ((init-depth (or pretty-hydra-category-depth 0))
+              (depth (or pretty-hydra-category-depth 0))
+              multi-p)
+          (while (fboundp (entropy/emacs-hydra-hollow-category-get-hydra-branch-name
+                           pretty-hydra-category-name-prefix t depth))
+            (cl-incf depth))
+          (setq depth (- depth 1))
+          (setq multi-p (not (= depth init-depth)))
+          (if (or (not multi-p)
+                  (string-match-p entropy/emacs-hydra-hollow-pretty-hydra-category-name-regexp
+                                  (symbol-name last-command))
+                  (null current-prefix-arg))
+              (apply orig-func orig-args)
+            (let ((cnt init-depth)
+                  candis choice caller-name)
+              (while (<= cnt depth)
+                (entropy/emacs-nconc-with-setvar-use-rest candis
+                  (list
+                   (cons cnt
+                         (or
+                          (plist-get
+                           (symbol-value
+                            (entropy/emacs-hydra-hollow-category-get-pretty-hydra-category-name
+                             pretty-hydra-category-name-prefix cnt))
+                           :pretty-hydra-category-description)
+                          "None description found for this depth category"))))
+                (cl-incf cnt))
 
-               (setq candis
-                     (mapcar
-                      (lambda (x)
-                        (let* ((depth (car x))
-                               (desc (cdr x))
-                               (candi (format "%s: %s" depth desc)))
-                          (cons candi depth)))
-                      candis))
+              (entropy/emacs-list-map-replace
+               (lambda (x)
+                 (let* ((depth (car x))
+                        (desc (cdr x))
+                        (candi (format "%s: %s" depth desc)))
+                   (cons candi depth)))
+               candis)
 
-               (setq choice (alist-get (completing-read "Choose category slot: " candis nil t)
-                                       candis nil nil 'string=)
-                     caller-name
-                     (entropy/emacs-hydra-hollow-category-get-hydra-branch-name
-                      ',pretty-hydra-category-name-prefix t choice))
-               (setq current-prefix-arg nil) ;prevent re-choose candis for thus category
-               (apply (if (= choice init-depth) orig-func caller-name)
-                      orig-args))))))
+              (setq choice (alist-get (completing-read "Choose category slot: " candis nil t)
+                                      candis nil nil 'string=)
+                    caller-name
+                    (entropy/emacs-hydra-hollow-category-get-hydra-branch-name
+                     pretty-hydra-category-name-prefix t choice))
+              (setq current-prefix-arg nil) ;prevent re-choose candis for thus category
+              (apply (if (= choice init-depth) orig-func caller-name)
+                     orig-args))))))
     (advice-add orig-caller :around name)))
 
 ;; ******* define hydra hollow category
@@ -1343,12 +1338,10 @@ Optional argument PRETTY-HYDRA-CATEGORY-WIDTH-INDICATOR is a
            pretty-hydra-category-name-prefix 'pretty-hydra-keymap pretty-hydra-category-depth))
 
     ;; define pretty hydra
-    (funcall
-     `(lambda ()
-        (pretty-hydra-define
-          ,pretty-hydra-category-hydra-name
-          ,body-patch
-          ,cur-head-group)))
+    (entropy/emacs-hydra-hollow-func-version-pthydra-define
+     pretty-hydra-category-hydra-name
+     body-patch
+     cur-head-group)
 
     ;; bind rate key and patch rate title
     (entropy/emacs-hydra-hollow-category-try-bind-rate-to-baron
@@ -1429,12 +1422,12 @@ of =pretty-hydra-category-width-indicator= which used for
               pretty-hydra-category-name-prefix)))
         (unless (boundp ctg-hook-name)
           (set ctg-hook-name nil))
-        (set ctg-hook-name
-             (append (symbol-value ctg-hook-name)
-                     `((lambda ()
-                         (entropy/emacs-hydra-hollow-category-frame-work-define+
-                          ',pretty-hydra-category-name-prefix ',pretty-hydra-body ',pretty-hydra-cabinet
-                          ',pretty-hydra-category-width-indicator-for-inject)))))))
+        (entropy/emacs-add-to-list
+         (symbol-value ctg-hook-name)
+         (lambda ()
+           (entropy/emacs-hydra-hollow-category-frame-work-define+
+            pretty-hydra-category-name-prefix pretty-hydra-body pretty-hydra-cabinet
+            pretty-hydra-category-width-indicator-for-inject)) 'append 'eq)))
     (when top-category-exists-p
       (dolist (part-ctg ctgs)
         (let* ((group (car part-ctg))
@@ -2208,12 +2201,7 @@ as for judging with 't' or 'nil'.
             restrict
             (append restrict
                     '(:eemacs-topkey-notation-beautified t)))
-      (funcall
-       `(lambda ()
-          (entropy/emacs-hydra-hollow-define-key
-           'eemacs-top-map
-           ,key
-           ',command))))
+      (entropy/emacs-hydra-hollow-define-key 'eemacs-top-map key command))
     (list :restrict restrict
           :pretty-hydra-casket
           `(,group ((,key ,command ,notation ,@pretty-hydra-casket-plist))))))
