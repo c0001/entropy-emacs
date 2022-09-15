@@ -1032,8 +1032,8 @@ the internally subroutines of this macro, they are:
           ($internally/pretty-hydra-category-previous-category-name->new
            $internally/pretty-hydra-category-previous-category-name)
 
-          $internally/pretty-hydra-category-cabinet-unit-names-list->new
-          $internally/pretty-hydra-category-width->new
+          ($internally/pretty-hydra-category-cabinet-unit-names-list->new nil)
+          ($internally/pretty-hydra-category-width->new nil)
 
           ($internally/pretty-hydra-category-hydra-body->new
            (copy-tree $internally/pretty-hydra-category-hydra-body))
