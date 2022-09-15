@@ -335,8 +335,9 @@ original."
                         (t
                          (push (list group '()) rtn)))
                   (when rtn
-                    (setq pretty-hydra-caskets-list
-                          (append pretty-hydra-caskets-list (reverse rtn))))))
+                    (entropy/emacs-nconc-with-setvar-use-rest
+                        pretty-hydra-caskets-list
+                      (nreverse rtn)))))
     pretty-hydra-caskets-list))
 
 (defun entropy/emacs-hydra-hollow-merge-pretty-hydra-caskets-list
@@ -349,37 +350,40 @@ whose =pretty-hydra-heads-list= has only one =pretty-hydra-head=
 which can be built by
 `entropy/emacs-hydra-hollow-make-pretty-hydra-caskets-list' see
 its doc for more details."
-  (let* ((manipulate-list (copy-tree pretty-hydra-caskets-list))
-         pretty-hydra-cabinet-fake rtn)
+  (let* ((manipulate-list (copy-sequence pretty-hydra-caskets-list))
+         pretty-hydra-cabinet-fake)
     (while (not (null manipulate-list))
       (let ((group (caar manipulate-list))
             (rest (cdr manipulate-list))
-            pointer-list collect)
+            pointer-list group-hydra-heads)
         (if (eq (length manipulate-list) 1)
-            (push (pop manipulate-list) pretty-hydra-cabinet-fake)
-          (cl-loop for pt from 0 to (- (length rest) 1)
-                   when (equal (car (nth pt rest)) group)
+            (push (copy-sequence (pop manipulate-list))
+                  pretty-hydra-cabinet-fake)
+          (cl-loop for pt from 0 to (1- (length rest))
+                   when (string= (car (nth pt rest)) group)
                    do (push pt pointer-list))
           (if (null pointer-list)
-              (push (pop manipulate-list) pretty-hydra-cabinet-fake)
-            (progn
-              (dolist (el pointer-list)
-                (push (caadr (nth el rest)) collect))
-              (push (caadar manipulate-list) collect))
-            (when collect
-              (push (list group
-                          (cl-delete nil collect))
-                    pretty-hydra-cabinet-fake))
-            (progn
-              (dolist (pt pointer-list)
-                (entropy/emacs-list-setf-nth
-                 (+ pt 1) nil manipulate-list))
-              (pop manipulate-list)
-              (setq manipulate-list
-                    (cl-delete nil manipulate-list)))))))
-    (dolist (el (reverse pretty-hydra-cabinet-fake))
-      (setq rtn (append rtn el)))
-    rtn))
+              (push (copy-sequence (pop manipulate-list))
+                    pretty-hydra-cabinet-fake)
+            ;; generate heads in same group
+            (dolist (el pointer-list)
+              (push (caadr (nth el rest)) group-hydra-heads))
+            (push (caadar manipulate-list) group-hydra-heads)
+            ;; build the group cabinet
+            (push (list group (cl-delete nil group-hydra-heads))
+                  pretty-hydra-cabinet-fake)
+            ;; remove the selected caskets
+            (dolist (pt pointer-list)
+              ;; we can direct delete the elt from points list since
+              ;; its already sorted from tail to head so that each
+              ;; deletion will not change the next pre-deletion index.
+              (entropy/emacs-list-delete-elt
+               manipulate-list (1+ pt)
+               ;; each deleton should be successfully or is an
+               ;; internal error.
+               :with-error t))
+            (pop manipulate-list)))))
+    (apply 'nconc (nreverse pretty-hydra-cabinet-fake))))
 
 (defun entropy/emacs-hydra-hollow-pretty-hydra-head-notation-handler
     (pretty-hydra-head-notation type &optional not-beautify-notation)
