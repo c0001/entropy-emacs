@@ -3104,7 +3104,7 @@ exist file system node.
 Return non-nil when not thus."
   (or (entropy/emacs-filesystem-node-exists-p filesystem-node-name)
       (signal 'file-missing
-              (list (format "the filesystem-node-name doesn't point \
+              (list (format "the filesystem-node-name \"%s\" doesn't point \
 to any exist filesystem-node"
                             filesystem-node-name)))))
 
