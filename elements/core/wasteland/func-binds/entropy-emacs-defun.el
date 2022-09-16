@@ -3096,6 +3096,16 @@ the FILESYSTEM-NODE-NAME's file attributes grabbed by
   ;; status quickly than this?
   (file-attributes filesystem-node-name))
 
+(defun entropy/emacs-filesystem-node-name-nomatch-error
+    (filesystem-node-name)
+  "Throw an error when FILESYSTEM-NODE-NAME doesn't point to any
+exist file system node."
+  (or (entropy/emacs-filesystem-node-exists-p filesystem-node-name)
+      (signal 'file-missing
+              (list (format "the filesystem-node-name doesn't point \
+to any exist filesystem-node"
+                            filesystem-node-name)))))
+
 (defun entropy/emacs-get-filesystem-node-attributes (filesystem-node-name)
   "Like `file-attributes' but return a plist to represent its
 structure so that its more human readable and easy to get its
