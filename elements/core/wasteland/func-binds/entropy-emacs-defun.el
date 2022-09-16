@@ -3087,19 +3087,19 @@ A file system node name is an non-empty string at least."
               (list 'stringp
                     (format "file system node name: %s" el))))))
 
-(defun entropy/emacs-filesystem-node-exists-p
-    (filesystem-node-name &optional _file-attributes)
+(defsubst entropy/emacs-filesystem-node-exists-p
+  (filesystem-node-name &optional _return-file-attributes)
   "Return non-nil while a file system node pointed by
 FILESYSTEM-NODE-NAME is existed, or nil otherwise.
 
 Like `file-exists-p' but support all file system node type i.e. a
 broken symbolic link is also treat as existed.
 
-If optional argument FILE-ATTRIBUTES is non-nil, The non-nil return is
-the FILESYSTEM-NODE-NAME's file attributes grabbed by
-`file-attributes' after the existed status check out.
+If optional argument RETURN-FILE-ATTRIBUTES is non-nil, The
+non-nil return is the FILESYSTEM-NODE-NAME's file attributes
+grabbed by `file-attributes' after the existed status check out.
 
-\(fn FILESYSTEM-NODE-NAME &optional FILE-ATTRIBUTES)"
+\(fn FILESYSTEM-NODE-NAME &optional RETURN-FILE-ATTRIBUTES)"
   (entropy/emacs-filesystem-node-name-invalid-error filesystem-node-name)
   ;; FIXME: is there another way can be check a fsnode-name exist
   ;; status quickly than this?
