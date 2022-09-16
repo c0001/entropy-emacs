@@ -3096,12 +3096,12 @@ the FILESYSTEM-NODE-NAME's file attributes grabbed by
   ;; status quickly than this?
   (file-attributes filesystem-node-name))
 
-(defun entropy/emacs-get-filesystem-node-attributes (filesystem-node)
+(defun entropy/emacs-get-filesystem-node-attributes (filesystem-node-name)
   "Like `file-attributes' but return a plist to represent its
 structure so that its more human readable and easy to get its
 sub-attribute.
 
-FILESYSTEM-NODE must be existed (predicated by
+FILESYSTEM-NODE-NAME must be existed (predicated by
 `entropy/emacs-filesystem-node-exists-p') or will throw an error.
 
 Plist keys:
@@ -3117,9 +3117,9 @@ Plist keys:
 - =:status-change-time= : returned by `file-attribute-status-change-time'
 - =:access-time=        : returned by `file-attribute-access-time'
 "
-  (let ((fattrs (or (entropy/emacs-filesystem-node-exists-p filesystem-node t)
+  (let ((fattrs (or (entropy/emacs-filesystem-node-exists-p filesystem-node-name t)
                     (user-error "[entropy/emacs-get-filesystem-node-attributes] file-not-existed: <%s>"
-                                filesystem-node))))
+                                filesystem-node-name))))
     (if fattrs
         (list
          :type (file-attribute-type fattrs)
@@ -3135,21 +3135,21 @@ Plist keys:
       (error "[entropy/emacs-get-filesystem-node-attributes]: internal error"))))
 
 (defun entropy/emacs-filesystem-node-is-regular-file-p
-    (filesystem-node &optional symlink-also force-use-filename)
-  "Return non-nil when FILESYSTEM-NODE whether is a regular file.
+    (filesystem-node-name &optional symlink-also force-use-filename)
+  "Return non-nil when FILESYSTEM-NODE-NAME whether is a regular file.
 
 If optional argument SYMLINK-ALSO is non-nil, then a symbolink
 (whether broken or not) is treat as a regular file also.
 
 If optional argument FORCE-USE-FILENAME is non-nil, then use
 `entropy/emacs-directory-file-name' to deal the name of
-FILESYSTEM-NODE firstly."
+FILESYSTEM-NODE-NAME firstly."
   (when force-use-filename
-    (setq filesystem-node
-          (entropy/emacs-directory-file-name filesystem-node)))
+    (setq filesystem-node-name
+          (entropy/emacs-directory-file-name filesystem-node-name)))
   (let ((fsn-attrs (ignore-errors
                      (entropy/emacs-get-filesystem-node-attributes
-                      filesystem-node)))
+                      filesystem-node-name)))
         fsn-type)
     (cond
      ((not fsn-attrs)
@@ -3163,19 +3163,19 @@ FILESYSTEM-NODE firstly."
         (null fsn-type)))))))
 
 (defun entropy/emacs-filesystem-node-is-symlink-p
-    (filesystem-node &optional force-use-filename)
-  "Return non-nil when FILESYSTEM-NODE is a symbolic link (whether
+    (filesystem-node-name &optional force-use-filename)
+  "Return non-nil when FILESYSTEM-NODE-NAME is a symbolic link (whether
 broken or existed).
 
 If optional argument FORCE-USE-FILENAME is non-nil, then use
 `entropy/emacs-directory-file-name' to deal the name of
-FILESYSTEM-NODE firstly."
+FILESYSTEM-NODE-NAME firstly."
   (when force-use-filename
-    (setq filesystem-node
-          (entropy/emacs-directory-file-name filesystem-node)))
+    (setq filesystem-node-name
+          (entropy/emacs-directory-file-name filesystem-node-name)))
   (let ((fsn-attrs (ignore-errors
                      (entropy/emacs-get-filesystem-node-attributes
-                      filesystem-node)))
+                      filesystem-node-name)))
         fsn-type)
     (cond
      ((not fsn-attrs)
@@ -3185,11 +3185,11 @@ FILESYSTEM-NODE firstly."
       (stringp fsn-type)))))
 
 (defun entropy/emacs-filesystem-node-is-regular-directory-p
-    (filesystem-node &optional symlink-also force-use-filename)
-  "Return non-nil when FILESYSTEM-NODE whether is a regular directory.
+    (filesystem-node-name &optional symlink-also force-use-filename)
+  "Return non-nil when FILESYSTEM-NODE-NAME whether is a regular directory.
 
 If optional argument SYMLINK-ALSO is non-nil, then when
-FILESYSTEM-NODE is a symbolink (justify by
+FILESYSTEM-NODE-NAME is a symbolink (justify by
 `entropy/emacs-filesystem-node-is-symlink-p' with force filename
 deals) links from a existed directory treat as a regular
 directory also. In this case, the link chase using
@@ -3197,13 +3197,13 @@ directory also. In this case, the link chase using
 
 If optional argument FORCE-USE-FILENAME is non-nil, then use
 `entropy/emacs-directory-file-name' to deal the name of
-FILESYSTEM-NODE firstly."
+FILESYSTEM-NODE-NAME firstly."
   (when force-use-filename
-    (setq filesystem-node
-          (entropy/emacs-directory-file-name filesystem-node)))
+    (setq filesystem-node-name
+          (entropy/emacs-directory-file-name filesystem-node-name)))
   (let ((fsn-attrs (ignore-errors
                      (entropy/emacs-get-filesystem-node-attributes
-                      filesystem-node)))
+                      filesystem-node-name)))
         fsn-type)
     (cond
      ((not fsn-attrs)
@@ -3213,9 +3213,9 @@ FILESYSTEM-NODE firstly."
       (cond
        (symlink-also
         (if (entropy/emacs-filesystem-node-is-symlink-p
-             filesystem-node 'use-fname)
+             filesystem-node-name 'use-fname)
             (entropy/emacs-filesystem-node-is-regular-directory-p
-             (file-truename filesystem-node) nil 'use-fname)
+             (file-truename filesystem-node-name) nil 'use-fname)
           (eq t fsn-type)))
        (t
         (eq t fsn-type)))))))
@@ -4259,7 +4259,7 @@ arguments (and respect the order):
 4. FORCE-USE-SYMBOLIC-LINK-P: t or nil for indicate current
    SRCSUBFILE can not used to hardlinked to the DEESTSUBFILE.
 
-5. SRCSUBFILE-TYPE: the source sub-file's filesystem-node type
+5. SRCSUBFILE-TYPE: the source sub-file's filesystem-node-name type
    =node-type= a list of =node-sub-type= (symbol) whose car is the
    default =note-sub-type= called =node-core-type= and must be placed
    in i.e the =node-type= has at least one element and the cdr is
@@ -4317,7 +4317,7 @@ arguments (and respect the order):
    nested level of SRCDIR of which the DESTSUBDIF owned, actually this
    framework use it as the core mapping subroutine.
 
-4. SRCSUBDIR-TYPE: the source sub-dir's filesystem-node =node-type=.
+4. SRCSUBDIR-TYPE: the source sub-dir's filesystem-node-name =node-type=.
 
    Its =node-core-type= is 'dir' and it can coexisted with below
    =node-sub-type=:
@@ -4479,7 +4479,7 @@ detailes by the POP-LOG value described as below list:
    6) =:src-node-type=     : obtained by SRCSUBFILE-TYPE when the =op-function= is FILE-MIRROR-FUNC
                              or SRCSUBDIR-TYPE when the =op-function= is DIR-MIRROR-FUNC.
 
-   7) =:dest-node-type=    : the dest node filesystem-node type what opbtained by =sub-op-return='s
+   7) =:dest-node-type=    : the dest node filesystem-node-name type what opbtained by =sub-op-return='s
                              =op-target-node-type=.
 
    8) =:src-relative-list= : the relative path list based on SRCDIR
@@ -5418,12 +5418,12 @@ Notice there's no backup naming regexp convention guarantee! "
 (defvar entropy/emacs-add-filesystem-node-watcher--id-pool 0)
 (defvar entropy/emacs-filesystem-node-watcher--register nil)
 (cl-defun entropy/emacs-add-filesystem-node-watcher
-    (filesystem-node
+    (filesystem-node-name
      func-name idle-delay &rest body
      &key
      do-at-init
      &allow-other-keys)
-  "Add a watcher to FILESYSTEM-NODE which do BODY when it is
+  "Add a watcher to FILESYSTEM-NODE-NAME which do BODY when it is
 modified after the first time checking (or did at first time also
 when DO-AT-INIT is non-nil).
 
@@ -5449,17 +5449,17 @@ Return a =filesystem-node-watcher-object= formed as:
 #+end_src
 
 The =filesystem-node-watcher-object= can be used to delete
-enabled filesystem-node watcher by
+enabled filesystem-node-name watcher by
 `entropy/emacs-remove-filesystem-node-watcher-core'. You can also
 use `entropy/emacs-remove-filesystem-node-watcher' to remove all
-the FILESYSTEM-NODE related =filesystem-node-watcher=.
+the FILESYSTEM-NODE-NAME related =filesystem-node-watcher=.
 
 DO-AT-INIT can either a form since its be expanded in the timer func
 body.
 "
   ;; Using the expanded node name since we must identify it
   ;; `entropy/emacs-filesystem-node-watcher--register'.
-  (setq filesystem-node (expand-file-name filesystem-node))
+  (setq filesystem-node-name (expand-file-name filesystem-node-name))
   (let* ((this-id entropy/emacs-add-filesystem-node-watcher--id-pool)
          (timer-func-name
           (intern
@@ -5474,7 +5474,7 @@ body.
            (format "eemacs-filesystem-watcher-timer-var/%s--%d"
                    func-name this-id)))
          (this-do-at-init do-at-init)
-         (this-fsysnode filesystem-node)
+         (this-fsysnode filesystem-node-name)
          (this-idle-delay idle-delay)
          (this-body (entropy/emacs-get-plist-body body))
          (rtn
@@ -5498,10 +5498,10 @@ body.
     (entropy/emacs-eval-with-lexical
      `(progn
         (defvar ,modi-var-name nil
-          ,(format "Filesystem-node [%s] modification timestamp host for =filesystem-node-watcher= `%s'"
+          ,(format "filesystem-node-name [%s] modification timestamp host for =filesystem-node-watcher= `%s'"
                    this-fsysnode timer-func-name))
         (defvar ,timer-var-name nil
-          ,(format "Filesystem-node [%s] modification guard timer for =filesystem-node-watcher= `%s'"
+          ,(format "filesystem-node-name [%s] modification guard timer for =filesystem-node-watcher= `%s'"
                    this-fsysnode timer-func-name))
         (defun ,timer-func-name (&rest _)
           ,(format "=filesystem-node-watcher= for =filesystem-node= [%s], \
@@ -5547,12 +5547,12 @@ FILESYSTEM-NODE-WATCHER-OBJ created by
            entropy/emacs-filesystem-node-watcher--register))))
 
 (defun entropy/emacs-remove-filesystem-node-watcher
-    (filesystem-node)
+    (filesystem-node-name)
   "Remove all =filesystem-node-watcher= created by
 `entropy/emacs-add-filesystem-node-watcher' with
 FILESYSTEM-NODE."
   (let* ((fsysname (entropy/emacs-directory-file-name
-                    (expand-file-name filesystem-node))))
+                    (expand-file-name filesystem-node-name))))
     (dolist (fobj (copy-sequence
                    entropy/emacs-filesystem-node-watcher--register))
       (let ((ffname (plist-get fobj :guard-for-fsysnode)))
