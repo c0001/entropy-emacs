@@ -3105,8 +3105,25 @@ grabbed by `file-attributes' after the existed status check out.
   ;; status quickly than this?
   (file-attributes filesystem-node-name))
 
+(defsubst entropy/emacs--filesystem-node-exists-p
+  (filesystem-node-name &optional return-file-attributes attributes)
+  "Like `entropy/emacs-filesystem-node-exists-p' but just return
+non-nil when ATTRIBUTES is set.
+
+ATTRIBUTES should be the non-nil value return by
+`file-attributes' for FILESYSTEM-NODE-NAME and if set and
+RETURN-FILE-ATTRIBUTES is set the return is ATTRUBUTES.
+
+The existence of this function is used to fake usage the existed
+checker when context has already grab the FILESYSTEM-NODE-NAME,
+so that there's no need to call the checker again."
+  (if attributes (if return-file-attributes attributes t)
+    (entropy/emacs-filesystem-node-exists-p
+     filesystem-node-name return-file-attributes)))
+
 (cl-defun entropy/emacs-filesystem-node-is-symlink-p
     (filesystem-node-name
+     &optional attributes
      &key
      with-validation with-chase-all-validation
      validation-with-file-attributes)
@@ -3150,13 +3167,15 @@ When VALIDATION-WITH-FILE-ATTRIBUTES is set non-nil, for
 ':symlink-final-target-existence' are set to their absolute path's
 `file-attributes' or nil while corresponding path is not existed.
 
-All the existence check is powered by
-`entropy/emacs-filesystem-node-exists-p'.
+All the existence check is powered by `entropy/emacs-filesystem-node-exists-p'.
+
+If optional argument ATTRIBUTES is set, it should be the non-nil
+return of `file-attributes' of FILESYSTEM-NODE-NAME, and we use it
+internally to reduce the duplicated `file-attributes' computation.
 "
-  (entropy/emacs-filesystem-node-name-invalid-error
-   filesystem-node-name)
   (unless (directory-name-p filesystem-node-name)
-    (let ((general-result (file-symlink-p filesystem-node-name))
+    (let ((general-result (or (and attributes (file-attribute-type attributes))
+                              (file-symlink-p filesystem-node-name)))
           first-dest-abs-path first-dest-fattrs
           final-dest-abs-path final-dest-fattrs)
       (when general-result
@@ -3187,10 +3206,11 @@ All the existence check is powered by
                       :symlink-final-target-existence
                       final-dest-fattrs)))))))
 
-(defun entropy/emacs-filesystem-node--match-type-p
+(cl-defun entropy/emacs-filesystem-node--match-type-p
     (filesystem-node-type
      filesystem-node-name
-     &optional with-symlink without-chasing-all-symlink)
+     &optional attributes
+     &key with-symlink without-chasing-all-symlink )
   "Return non-nil if FILESYSTEM-NODE-NAME pointed FILESYSTEM-NODE matched
 a specified node type FILESYSTEM-NODE-TYPE.
 
@@ -3202,11 +3222,15 @@ When WITH-SYMLINK is set non-nil, then a symlink linkage to a
 specified FILESYSTEM-NODE-TYPE is also return non-nil. The
 WITH-SYMLINK can be precision for whether chasing to the symbolic
 linkage chain's end for setting WITHOUT-CHASING-ALL-SYMLINK to nil (or
-omitted) or non-nil respectively."
+omitted) or non-nil respectively.
+
+If optional argument ATTRIBUTES is set, it should be the non-nil
+return of `file-attributes' of FILESYSTEM-NODE-NAME, and we use it
+internally to reduce the duplicated `file-attributes' computation."
   (setq filesystem-node-name
         (entropy/emacs-directory-file-name filesystem-node-name))
-  (let ((fattrs (entropy/emacs-filesystem-node-exists-p
-                 filesystem-node-name t)))
+  (let ((fattrs (entropy/emacs--filesystem-node-exists-p
+                 filesystem-node-name t attributes)))
     (when fattrs
       (let* ((ftype (file-attribute-type fattrs))
              (ftype-p (cond
@@ -3214,44 +3238,50 @@ omitted) or non-nil respectively."
                         (not ftype))
                        ((eq filesystem-node-type 'directory)
                         (eq ftype t))
-                       (t
-                        (signal 'wrong-type-argument
-                                (list 'filesystem-node-type-p
-                                      filesystem-node-type))))))
+                       (t (signal 'wrong-type-argument
+                                  (list 'filesystem-node-type-p
+                                        filesystem-node-type))))))
         (if (or ftype-p (not with-symlink)) ftype-p
-          (if without-chasing-all-symlink
+          (when ftype                   ;confirm that it is a symbolic link
+            (if without-chasing-all-symlink
+                (entropy/emacs-filesystem-node-is-regular-file-p
+                 (if (file-name-absolute-p ftype) ftype
+                   (expand-file-name
+                    ftype
+                    (file-name-directory
+                     filesystem-node-name))))
               (entropy/emacs-filesystem-node-is-regular-file-p
-               (if (file-name-absolute-p ftype) ftype
-                 (expand-file-name
-                  ftype
-                  (file-name-directory
-                   filesystem-node-name))))
-            (entropy/emacs-filesystem-node-is-regular-file-p
-             (file-truename filesystem-node-name))))))))
+               (file-truename filesystem-node-name)))))))))
 
-(defun entropy/emacs-filesystem-node-is-regular-file-p
+(cl-defun entropy/emacs-filesystem-node-is-regular-file-p
     (filesystem-node-name
-     &optional with-symlink without-chasing-all-symlink)
+     &optional attributes
+     &key with-symlink without-chasing-all-symlink)
   "Return non-nil when FILESYSTEM-NODE-NAME named FILESYSTEM-NODE
 is a regular file.
 
 See `entropy/emacs-filesystem-node--match-type-p' for what is a
-regular file and usage of the optional arguments."
+regular file and usage of the optional arguments and keys."
   (entropy/emacs-filesystem-node--match-type-p
-   'file filesystem-node-name
-   with-symlink without-chasing-all-symlink))
+   'file filesystem-node-name attributes
+   :with-symlink with-symlink
+   :without-chasing-all-symlink
+   without-chasing-all-symlink))
 
-(defun entropy/emacs-filesystem-node-is-regular-directory-p
+(cl-defun entropy/emacs-filesystem-node-is-regular-directory-p
     (filesystem-node-name
-     &optional with-symlink without-chasing-all-symlink)
+     &optional attributes
+     &key with-symlink without-chasing-all-symlink)
   "Return non-nil when FILESYSTEM-NODE-NAME named FILESYSTEM-NODE
 is a regular directory.
 
 See `entropy/emacs-filesystem-node--match-type-p' for what is a
-regular directory and usage of the optional arguments."
+regular directory and usage of the optional arguments and keys."
   (entropy/emacs-filesystem-node--match-type-p
-   'directory filesystem-node-name
-   with-symlink without-chasing-all-symlink))
+   'directory filesystem-node-name attributes
+   :with-symlink with-symlink
+   :without-chasing-all-symlink
+   without-chasing-all-symlink))
 
 (defun entropy/emacs-filesystem-node-name-nomatch-error
     (filesystem-node-name)
