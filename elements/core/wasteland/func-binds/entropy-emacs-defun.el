@@ -3295,7 +3295,8 @@ Return non-nil when not thus."
 to any exist filesystem-node"
                             filesystem-node-name)))))
 
-(defun entropy/emacs-get-filesystem-node-attributes (filesystem-node-name &optional noerror)
+(defun entropy/emacs-get-filesystem-node-attributes
+    (filesystem-node-name &optional noerror attribtues)
   "Like `file-attributes' but return a plist to represent its
 structure so that its more human readable and easy to get its
 sub-attribute.
@@ -3317,11 +3318,16 @@ Plist keys:
 - =:link-number=        : returned by `file-attribute-link-number'
 - =:status-change-time= : returned by `file-attribute-status-change-time'
 - =:access-time=        : returned by `file-attribute-access-time'
+
+If optional argument ATTRIBUTES is set, it should be the non-nil
+return of `file-attributes' of FILESYSTEM-NODE-NAME, and we use it
+internally to reduce the duplicated `file-attributes' computation.
 "
-  (let ((fattrs (and (or noerror
-                         (entropy/emacs-filesystem-node-name-nomatch-error
-                          filesystem-node-name))
-                     (file-attributes filesystem-node-name))))
+  (let ((fattrs (or attribtues
+                    (and (or noerror
+                             (entropy/emacs-filesystem-node-name-nomatch-error
+                              filesystem-node-name))
+                         (file-attributes filesystem-node-name)))))
     (if fattrs
         (list
          :type (file-attribute-type fattrs)
@@ -3338,45 +3344,58 @@ Plist keys:
         (error "[entropy/emacs-get-filesystem-node-attributes]: \
 internal error")))))
 
-(defun entropy/emacs-filesystem-nodes-in-same-filesystem-p (&rest filesystem-nodes)
-  "Judge all file of FILESYSTEM-NODES are in the same filesystem, return t if
-thus, nil otherwise.
+(defun entropy/emacs-filesystem-nodes-in-same-filesystem-p
+    (noerror &rest filesystem-node-names)
+  "Judge all FILESYSTEM-NODE-NAME of FILESYSTEM-NODE-NAMES are in the
+same filesystem, return non-nil if thus, nil otherwise.
 
-Filesystem-Nodes must be existed (predicated by
-`entropy/emacs-filesystem-node-exists-p') or will throw an error for any one
-who is not existed.
+FILESYSTEM-NODE-NAMES must be existed (predicated by
+`entropy/emacs-filesystem-node-exists-p') or will throw an error for
+any one who is not existed. Unless NOERROR is set as non-nil and in
+which case return nil immediately.
 
-Always return t when filesystem-nodes just has one file and its existed.
+Always return nil when FILESYSTEM-NODE-NAMES is empty since there's
+nothing which we can do confirmation for. Unless NOERROR is not set as
+non-nil in which case the error will be throwed out.
+
+Always return non-nil when FILESYSTEM-NODE-NAMES just has one file and
+it's existed.
 
 Be aware that the name of file or directory should be indicated
-significantly since an symbolic to an another filesystem is also
+significantly since an symbolic to an another filesystem also can be
 an directory but its file name is an file hosted in the current
-filesystem in which case you should use `file-name-as-directory'
-to quote it when you treat it as an directory."
-  (let (dev-ids
-        remote-files
-        indc)
-    (catch :exit
-      (dolist (f filesystem-nodes)
-        (unless (entropy/emacs-filesystem-node-exists-p f)
-          (user-error "[entropy/emacs-filesystem-nodes-in-same-filesystem-p]: '%s' not existed!"
-                      f))
-        (when (file-remote-p f)
-          (push f remote-files))
-        (push (file-attribute-device-number
-               (file-attributes f))
-              dev-ids))
-      (when remote-files
-        (unless (= (length filesystem-nodes) remote-files)
-          (throw :exit nil)))
-      (setq indc (car dev-ids))
-      (unless (integerp indc)
-        (error "[entropy/emacs-filesystem-nodes-in-same-filesystem-p]: internal error"))
-      (mapc (lambda (x)
-              (unless (= x indc)
-                (throw :exit nil)))
-            dev-ids)
-      t)))
+filesystem in which case you should use `file-name-as-directory' to
+quote it when you treat it as an directory.
+
+Each element of FILESYSTEM-NODE-NAMES also can be a cons of
+FILESYSTEM-NODE-NAME and its `file-attributes' used to reduce
+duplicated `file-attributes' computation internally."
+  (when (or filesystem-node-names
+            (and (not noerror)
+                 (signal 'args-out-of-range
+                         (list 'consp filesystem-node-names))))
+    (let (dev-ids remote-files indc fattrs)
+      (catch :exit
+        (dolist (f filesystem-node-names)
+          (if (listp f) (setq fattrs (cdr f) f (car f)))
+          (unless
+              (setq fattrs
+                    (entropy/emacs--filesystem-node-exists-p f t fattrs))
+            (if noerror (throw :exit nil)
+              (signal 'file-missing (list f))))
+          (when (file-remote-p f)
+            (push f remote-files))
+          (push (file-attribute-device-number fattrs)
+                dev-ids))
+        (when remote-files
+          (unless (= (length filesystem-node-names) remote-files)
+            (throw :exit nil)))
+        (setq indc (car dev-ids))
+        (mapc (lambda (x) (unless (and x indc (= x indc))
+                            (throw :exit nil)))
+              dev-ids)
+        ;; commonly return
+        t))))
 
 (defun entropy/emacs-make-relative-filename
     (file dir &optional as-list)
@@ -4652,6 +4671,7 @@ Sign an error when POP-LOG is not matched valied values.
   ;; and DESTDIR is not in the same filesytem since the hardlink is
   ;; not usable for such case.
   (unless (entropy/emacs-filesystem-nodes-in-same-filesystem-p
+           nil
            (file-name-directory
             (entropy/emacs-directory-file-name destdir))
            ;; we should indicate that the SRCDIR is an directory
