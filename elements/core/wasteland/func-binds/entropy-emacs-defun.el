@@ -3066,6 +3066,15 @@ appended."
 
 ;; *** File and directory manipulation
 
+(defun entropy/emacs-directory-file-name (file-or-directory)
+  "like `directory-file-name' but checking its type by
+`directory-name-p' firstly so that both file and directory name
+is supported that return the origin FILE-OR-DIRECTORY when it's
+not an directory name."
+  (if (directory-name-p file-or-directory)
+      (directory-file-name file-or-directory)
+    file-or-directory))
+
 (defun entropy/emacs-filesystem-node-name-invalid-error (&rest fsnode-names-maybe)
   "Throw error immediately when any object which may be a file system
 node name in FSNODE-NAMES-MAYBE is not a file system node name.
@@ -3083,8 +3092,8 @@ A file system node name is an non-empty string at least."
   "Return non-nil while a file system node pointed by
 FILESYSTEM-NODE-NAME is existed, or nil otherwise.
 
-Like `file-exists-p' but support all file system node type i.e. also
-for a broken symbolink is also treat as existed.
+Like `file-exists-p' but support all file system node type i.e. a
+broken symbolic link is also treat as existed.
 
 If optional argument FILE-ATTRIBUTES is non-nil, The non-nil return is
 the FILESYSTEM-NODE-NAME's file attributes grabbed by
@@ -3095,6 +3104,89 @@ the FILESYSTEM-NODE-NAME's file attributes grabbed by
   ;; FIXME: is there another way can be check a fsnode-name exist
   ;; status quickly than this?
   (file-attributes filesystem-node-name))
+
+(cl-defun entropy/emacs-filesystem-node-is-symlink-p
+    (filesystem-node-name
+     &key
+     with-validation with-chase-all-validation
+     validation-with-file-attributes)
+  "Return the FILESYSTEM-NODE-NAME pointed FILESYSTEM-NODE's
+=first-target= only when FILESYSTEM-NODE is a symbolic link, nil
+otherwise.
+
+=first-target= is obtained by `file-truename' with
+FILESYSTE-NODE-NAME.
+
+When FILESYSTEM-NODE is a symbolic link, if either or both of
+WITH-VALIDATION and/or WITH-CHASE-ALL-VALIDATION is set, the return is
+a cons of =first-target= and a plist =target-desc-plist=.
+
+When WITH-VALIDATION is set non-nil , which has two keys used with
+meaningful to =target-desc-plist=:
+
+1. ':symlink-first-target-absolute-path':
+
+   the absolute path of =first-target=.
+
+2. 'symlink-first-target-existence':
+
+   non-nil while ':symlink-first-target-absolute-path' is existed, nil
+   otherwise.
+
+When WITH-CHASE-ALL-VALIDATION is set, two keys will be used with
+meaningfull to =target-desc-plist= and they are:
+1. ':symlink-final-target-absolute-path':
+
+   `null' when the =first-target= is not a symbolic link or
+   the symbolic linkage's chasing end path of the FILESYSTEM-NODE.
+
+2. ':symlink-final-target-existence':
+
+   non-nil while ':symlink-final-target-absolute-path' is existed, nil
+   otherwise.
+
+When VALIDATION-WITH-FILE-ATTRIBUTES is set non-nil, for
+=target-desc-plist='s both ':symlink-first-target-existence' and
+':symlink-final-target-existence' are set to their absolute path's
+`file-attributes' or nil while corresponding path is not existed.
+
+All the existence check is powered by
+`entropy/emacs-filesystem-node-exists-p'.
+"
+  (entropy/emacs-filesystem-node-name-invalid-error
+   filesystem-node-name)
+  (unless (directory-name-p filesystem-node-name)
+    (let ((general-result (file-symlink-p filesystem-node-name))
+          (va-use-fsattr-p validation-with-file-attributes)
+          first-dest-abs-path first-dest-fattrs
+          final-dest-abs-path final-dest-fattrs)
+      (when general-result
+        (if (not (or with-validation with-chase-all-validation)) general-result
+          (when with-validation
+            (setq first-dest-abs-path
+                  (if (file-name-absolute-p general-result)
+                      general-result
+                    (expand-file-name
+                     general-result
+                     (file-name-directory filesystem-node-name)))
+                  first-dest-fattrs
+                  (entropy/emacs-filesystem-node-exists-p
+                   first-dest-abs-path validation-with-file-attributes)))
+          (when with-chase-all-validation
+            (setq final-dest-abs-path
+                  (file-truename filesystem-node-name)
+                  final-dest-fattrs
+                  (entropy/emacs-filesystem-node-exists-p
+                   final-dest-abs-path validation-with-file-attributes)))
+          (cons general-result
+                (list :symlink-first-target-absolute-path
+                      first-dest-abs-path
+                      :symlink-first-target-existence
+                      first-dest-fattrs
+                      :symlink-final-target-absolute-path
+                      final-dest-abs-path
+                      :symlink-final-target-existence
+                      final-dest-fattrs)))))))
 
 (defun entropy/emacs-filesystem-node-name-nomatch-error
     (filesystem-node-name)
@@ -3108,13 +3200,15 @@ Return non-nil when not thus."
 to any exist filesystem-node"
                             filesystem-node-name)))))
 
-(defun entropy/emacs-get-filesystem-node-attributes (filesystem-node-name)
+(defun entropy/emacs-get-filesystem-node-attributes (filesystem-node-name &optional noerror)
   "Like `file-attributes' but return a plist to represent its
 structure so that its more human readable and easy to get its
 sub-attribute.
 
-FILESYSTEM-NODE-NAME must be existed (predicated by
-`entropy/emacs-filesystem-node-exists-p') or will throw an error.
+The FILESYSTEM-NODE-NAME pointed FILESYSTEM-NODE must be existed
+(predicated by `entropy/emacs-filesystem-node-exists-p') or will
+throw an error unless NOERROR is set as non-nil in which case
+the return is always nil when it's not existed.
 
 Plist keys:
 
@@ -3129,9 +3223,10 @@ Plist keys:
 - =:status-change-time= : returned by `file-attribute-status-change-time'
 - =:access-time=        : returned by `file-attribute-access-time'
 "
-  (let ((fattrs (or (entropy/emacs-filesystem-node-exists-p filesystem-node-name t)
-                    (user-error "[entropy/emacs-get-filesystem-node-attributes] file-not-existed: <%s>"
-                                filesystem-node-name))))
+  (let ((fattrs (and (or noerror
+                         (entropy/emacs-filesystem-node-name-nomatch-error
+                          filesystem-node-name))
+                     (file-attributes filesystem-node-name))))
     (if fattrs
         (list
          :type (file-attribute-type fattrs)
@@ -3144,93 +3239,9 @@ Plist keys:
          :link-number (file-attribute-link-number fattrs)
          :status-change-time (file-attribute-status-change-time fattrs)
          :access-time (file-attribute-access-time fattrs))
-      (error "[entropy/emacs-get-filesystem-node-attributes]: internal error"))))
-
-(defun entropy/emacs-filesystem-node-is-regular-file-p
-    (filesystem-node-name &optional symlink-also force-use-filename)
-  "Return non-nil when FILESYSTEM-NODE-NAME whether is a regular file.
-
-If optional argument SYMLINK-ALSO is non-nil, then a symbolink
-(whether broken or not) is treat as a regular file also.
-
-If optional argument FORCE-USE-FILENAME is non-nil, then use
-`entropy/emacs-directory-file-name' to deal the name of
-FILESYSTEM-NODE-NAME firstly."
-  (when force-use-filename
-    (setq filesystem-node-name
-          (entropy/emacs-directory-file-name filesystem-node-name)))
-  (let ((fsn-attrs (ignore-errors
-                     (entropy/emacs-get-filesystem-node-attributes
-                      filesystem-node-name)))
-        fsn-type)
-    (cond
-     ((not fsn-attrs)
-      nil)
-     (t
-      (setq fsn-type (plist-get fsn-attrs :type))
-      (cond
-       (symlink-also
-        (or (null fsn-type) (stringp fsn-type)))
-       (t
-        (null fsn-type)))))))
-
-(defun entropy/emacs-filesystem-node-is-symlink-p
-    (filesystem-node-name &optional force-use-filename)
-  "Return non-nil when FILESYSTEM-NODE-NAME is a symbolic link (whether
-broken or existed).
-
-If optional argument FORCE-USE-FILENAME is non-nil, then use
-`entropy/emacs-directory-file-name' to deal the name of
-FILESYSTEM-NODE-NAME firstly."
-  (when force-use-filename
-    (setq filesystem-node-name
-          (entropy/emacs-directory-file-name filesystem-node-name)))
-  (let ((fsn-attrs (ignore-errors
-                     (entropy/emacs-get-filesystem-node-attributes
-                      filesystem-node-name)))
-        fsn-type)
-    (cond
-     ((not fsn-attrs)
-      nil)
-     (t
-      (setq fsn-type (plist-get fsn-attrs :type))
-      (stringp fsn-type)))))
-
-(defun entropy/emacs-filesystem-node-is-regular-directory-p
-    (filesystem-node-name &optional symlink-also force-use-filename)
-  "Return non-nil when FILESYSTEM-NODE-NAME whether is a regular directory.
-
-If optional argument SYMLINK-ALSO is non-nil, then when
-FILESYSTEM-NODE-NAME is a symbolink (justify by
-`entropy/emacs-filesystem-node-is-symlink-p' with force filename
-deals) links from a existed directory treat as a regular
-directory also. In this case, the link chase using
-`file-truename'.
-
-If optional argument FORCE-USE-FILENAME is non-nil, then use
-`entropy/emacs-directory-file-name' to deal the name of
-FILESYSTEM-NODE-NAME firstly."
-  (when force-use-filename
-    (setq filesystem-node-name
-          (entropy/emacs-directory-file-name filesystem-node-name)))
-  (let ((fsn-attrs (ignore-errors
-                     (entropy/emacs-get-filesystem-node-attributes
-                      filesystem-node-name)))
-        fsn-type)
-    (cond
-     ((not fsn-attrs)
-      nil)
-     (t
-      (setq fsn-type (plist-get fsn-attrs :type))
-      (cond
-       (symlink-also
-        (if (entropy/emacs-filesystem-node-is-symlink-p
-             filesystem-node-name 'use-fname)
-            (entropy/emacs-filesystem-node-is-regular-directory-p
-             (file-truename filesystem-node-name) nil 'use-fname)
-          (eq t fsn-type)))
-       (t
-        (eq t fsn-type)))))))
+      (unless noerror
+        (error "[entropy/emacs-get-filesystem-node-attributes]: \
+internal error")))))
 
 (defun entropy/emacs-filesystem-nodes-in-same-filesystem-p (&rest filesystem-nodes)
   "Judge all file of FILESYSTEM-NODES are in the same filesystem, return t if
@@ -3271,15 +3282,6 @@ to quote it when you treat it as an directory."
                 (throw :exit nil)))
             dev-ids)
       t)))
-
-(defun entropy/emacs-directory-file-name (file-or-directory)
-  "like `directory-file-name' but checking its type by
-`directory-name-p' firstly so that both file and directory name
-is supported that return the origin FILE-OR-DIRECTORY when it's
-not an directory name."
-  (if (directory-name-p file-or-directory)
-      (directory-file-name file-or-directory)
-    file-or-directory))
 
 (defun entropy/emacs-make-relative-filename
     (file dir &optional as-list)
