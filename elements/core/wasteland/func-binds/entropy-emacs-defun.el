@@ -3157,7 +3157,6 @@ All the existence check is powered by
    filesystem-node-name)
   (unless (directory-name-p filesystem-node-name)
     (let ((general-result (file-symlink-p filesystem-node-name))
-          (va-use-fsattr-p validation-with-file-attributes)
           first-dest-abs-path first-dest-fattrs
           final-dest-abs-path final-dest-fattrs)
       (when general-result
