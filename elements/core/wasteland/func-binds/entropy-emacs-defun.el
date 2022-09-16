@@ -3066,26 +3066,35 @@ appended."
 
 ;; *** File and directory manipulation
 
-(defun entropy/emacs-filesystem-node-name-legal-p (filesystem-node-name-maybe)
-  "Return non-nil when a user spec filesystem node name
-FILESYSTEM-NODE-NAME-MAYBE is legal in current platform."
-  (let ((absname (expand-file-name filesystem-node-name-maybe)))
-    (file-name-absolute-p absname)))
+(defun entropy/emacs-filesystem-node-name-invalid-error (&rest fsnode-names-maybe)
+  "Throw error immediately when any object which may be a file system
+node name in FSNODE-NAMES-MAYBE is not a file system node name.
 
-(defun entropy/emacs-filesystem-node-exists-p (file-or-dir-name &optional file-attributes)
-  "Like `file-exists-p' but apply all FILE-OR-DIR-NAME's file system node
-type e.g. a broken symbolink is also treat as existed.
+A file system node name is an non-empty string at least."
+  (dolist (el fsnode-names-maybe)
+    (unless (and (stringp el)
+                 (not (string-empty-p el)))
+      (signal 'wrong-type-argument
+              (list 'stringp
+                    (format "file system node name: %s" el))))))
 
-Return t or nil for the status.
+(defun entropy/emacs-filesystem-node-exists-p
+    (filesystem-node-name &optional _file-attributes)
+  "Return non-nil while a file system node FILESYSTEM-NODE-NAME is
+existed, or nil otherwise.
 
-If optional argument FILE-ATTRIBUTES is non-nil, return FILE-OR-DIR-NAME's
-file attributes predicated by `file-attributes' after the existed
-status checking, so return nil when file not exists as well."
-  (let ((fattrs (ignore-errors (file-attributes file-or-dir-name))))
-    (if file-attributes
-        fattrs
-      (and fattrs
-           t))))
+Like `file-exists-p' but support all file system node type i.e. a
+broken symbolink is also treat as existed.
+
+If optional argument FILE-ATTRIBUTES is non-nil, The non-nil return is
+the FILESYSTEM-NODE-NAME's file attributes grabbed by
+`file-attributes' after the existed status check out.
+
+\(fn FILESYSTEM-NODE-NAME &optional FILE-ATTRIBUTES)"
+  (entropy/emacs-filesystem-node-name-invalid-error filesystem-node-name)
+  ;; FIXME: is there another way can be check a fsnode-name exist
+  ;; status quickly than this?
+  (file-attributes filesystem-node-name))
 
 (defun entropy/emacs-get-filesystem-node-attributes (filesystem-node)
   "Like `file-attributes' but return a plist to represent its

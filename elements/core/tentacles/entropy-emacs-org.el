@@ -1792,8 +1792,7 @@ Now just supply localization image file analyzing."
               (let ((default-directory base-dir))
                 (push (expand-file-name non-abbrev) links)))
              (t
-              (when (entropy/emacs-filesystem-node-name-legal-p non-abbrev)
-                (push non-abbrev links))))))))
+              (push non-abbrev links)))))))
     links))
 
 
