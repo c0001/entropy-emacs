@@ -3080,11 +3080,11 @@ A file system node name is an non-empty string at least."
 
 (defun entropy/emacs-filesystem-node-exists-p
     (filesystem-node-name &optional _file-attributes)
-  "Return non-nil while a file system node FILESYSTEM-NODE-NAME is
-existed, or nil otherwise.
+  "Return non-nil while a file system node pointed by
+FILESYSTEM-NODE-NAME is existed, or nil otherwise.
 
-Like `file-exists-p' but support all file system node type i.e. a
-broken symbolink is also treat as existed.
+Like `file-exists-p' but support all file system node type i.e. also
+for a broken symbolink is also treat as existed.
 
 If optional argument FILE-ATTRIBUTES is non-nil, The non-nil return is
 the FILESYSTEM-NODE-NAME's file attributes grabbed by
@@ -3099,7 +3099,9 @@ the FILESYSTEM-NODE-NAME's file attributes grabbed by
 (defun entropy/emacs-filesystem-node-name-nomatch-error
     (filesystem-node-name)
   "Throw an error when FILESYSTEM-NODE-NAME doesn't point to any
-exist file system node."
+exist file system node.
+
+Return non-nil when not thus."
   (or (entropy/emacs-filesystem-node-exists-p filesystem-node-name)
       (signal 'file-missing
               (list (format "the filesystem-node-name doesn't point \
