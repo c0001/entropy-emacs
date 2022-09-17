@@ -3569,9 +3569,9 @@ i.e. without '.' or '..' node included.
              (unless with-only-regular-file
                (setq rtn (cons 'file x))))
            rtn))
-       rtn-lite))
-    (when (setq rtn-lite (cl-delete nil rtn-lite))
-      (nreverse rtn-lite))))
+       rtn-lite)
+      (when (setq rtn-lite (cl-delete nil rtn-lite))
+        (nreverse rtn-lite)))))
 
 (defun entropy/emacs-list-dir-subdirs (dir-root &optional not-abs)
   "List subdir of root dir DIR-ROOT, ordered by `string-lessp'.
