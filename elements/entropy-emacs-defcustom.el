@@ -832,17 +832,21 @@ way but with more extensively meaning."
 ;; **** web preview setting
 
 (defcustom entropy/emacs-browse-url-function-for-web-preview t
-  "The `browse-url-browser-function' used for web preview.
+  "Like `browse-url-browser-function' but used for web preview.
+
+This customized variable existed since a browser for web
+development occasion is usually different by the daily using one.
 
 Valid values are:
 
 - 'nil':                follow eemacs browse url function trigger
 - 't':                  use `browse-url-default-browser'
-- a function:             user spec function.
+- a function:           user spec function.
 
 For eemacs developer, use
-`entropy/emacs-browse-url-function-get-for-web-preview' to get the
-actual `browse-url-browse-function' used for internal lisp context."
+`entropy/emacs-browse-url-function-get-for-web-preview' to get
+the actual `browse-url-browse-function' used for internal lisp
+context."
   :type '(choice
           function
           (const :tag "follow eemacs browser change trigger" t)
@@ -861,8 +865,9 @@ actual `browse-url-browse-function' used for internal lisp context."
      ((functionp entropy/emacs-browse-url-function-for-web-preview)
       entropy/emacs-browse-url-function-for-web-preview)
      (t
-      (user-error "Invalid value of `entropy/emacs-browse-url-function-for-web-preview'"
-                  entropy/emacs-browse-url-function-for-web-preview)))))
+      (user-error
+       "Invalid value of `entropy/emacs-browse-url-function-for-web-preview': %s"
+       entropy/emacs-browse-url-function-for-web-preview)))))
 
 ;; *** IME
 (defgroup entropy/emacs-customize-group-for-IME nil
