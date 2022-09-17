@@ -3487,32 +3487,61 @@ be real file system path hierarchy."
           (setq rtn (expand-file-name name base-dir))))
       rtn)))
 
-(defun entropy/emacs-list-dir-lite (dir-root &optional not-abs)
-  "Return an alist of fsystem nodes as:
+(cl-defun entropy/emacs-list-dir-lite
+    (dir-root &optional not-abs
+              &key with-only-regular-file with-only-regular-directory)
+  "Return an alist of key of a file system node type and rest of the
+node's file name for directory DIR-ROOT as:
 
 #+begin_src elisp
-'((dir . \"a-dir\")
-  (file . \"a.txt\"))
+  '((dir . \"a-dir\") (file . \"a.txt\") ...)
 #+end_src
 
-where the car of each elements is the node type with follow symols to
-indicate that:
+Return nil while DIR-ROOT is empty.
 
-- 'file': the node is an file (or an symbolic to an regular file)
-- 'dir':  the node is an directory (or an symbolic to an directory)
+The car of each element of that alist is the node type with follow
+symols to indicate that:
 
-The node sort ordered by `string-lessp'
+1) 'dir': the node is an directory (or an symbolic to an regular
+   directory).
 
-If optional arg NOT-ABS is non-nil then each node is relative to
-the DIR-ROOT.
+   A regular directory is judged by
+   `entropy/emacs-filesystem-node-is-regular-directory-p' without
+   optional enabled.
 
-The returned list is filtered by
-`directory-files-no-dot-files-regexp' i.e. without '.' or '..'
-included.
+   If WITH-ONLY-REGULAR-DIRECTORY is set non-nil, then only a regular
+   directory is recognized.
+
+2) 'file': the node is an file (or an symbolic to an regular file,
+   even if for any symbolic links with limitations see below).
+
+   A regular file is judged by
+   `entropy/emacs-filesystem-node-is-regular-file-p' without optional
+   enabled.
+
+   If WITH-ONLY-REGULAR-FILE is set non-nil, then only a regular file
+   is recognized.
+
+   If WITH-ONLY-REGULAR-FILE is not set and
+   WITH-ONLY-REGULAR-DIRECTORY is set then any symbolic link linked to
+   a regular directory is recognized as a 'file'.
+
+   If WITH-ONLY-REGULAR-FILE is not set, any broken symbolic links is
+   also recognized as a 'file'.
+
+
+The return is sorted as ordering those file names by `string-lessp'.
+
+If optional arg NOT-ABS is non-nil then each node's file name is
+grabbed relative to the DIR-ROOT.
+
+The returned is filtered by `directory-files-no-dot-files-regexp'
+i.e. without '.' or '..' node included.
+
 "
-  (let (rtn-full rtn-lite rtn-attr)
-    (setq rtn-full (directory-files dir-root (not not-abs)))
-    (dolist (el rtn-full)
+  (let ((default-directory (expand-file-name dir-root))
+        rtn-lite)
+    (dolist (el (directory-files default-directory (not not-abs)))
       ;; filter the . and ..
       (if (string-match-p
            directory-files-no-dot-files-regexp
@@ -3524,14 +3553,25 @@ included.
              ;; the filename.
              (file-name-nondirectory el)))
           (push el rtn-lite)))
-    (if rtn-lite
-        (progn
-          (dolist (el rtn-lite)
-            (if (file-directory-p (expand-file-name el dir-root))
-                (push `(dir . ,el) rtn-attr)
-              (push `(file . ,el) rtn-attr)))
-          rtn-attr)
-      nil)))
+    (when rtn-lite
+      (entropy/emacs-list-map-replace
+       (lambda (x)
+         (let ((fattrs (entropy/emacs-filesystem-node-exists-p
+                        x t))
+               rtn)
+           (if (entropy/emacs-filesystem-node-is-regular-file-p
+                x fattrs :with-symlink (not with-only-regular-file))
+               (setq rtn (cons 'file x))
+             (if (entropy/emacs-filesystem-node-is-regular-directory-p
+                  x fattrs :with-symlink (not with-only-regular-directory))
+                 (setq rtn (cons 'dir x))))
+           (unless rtn
+             (unless with-only-regular-file
+               (setq rtn (cons 'file x))))
+           rtn))
+       rtn-lite))
+    (when (setq rtn-lite (cl-delete nil rtn-lite))
+      (nreverse rtn-lite))))
 
 (defun entropy/emacs-list-dir-subdirs (dir-root &optional not-abs)
   "List subdir of root dir DIR-ROOT, ordered by `string-lessp'.
