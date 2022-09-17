@@ -266,16 +266,6 @@ you must set it smaller than 24 for adapting to other entropy-emacs settings."))
     ;; run font-set after hooks
     (run-hooks 'entropy/emacs-font-set-end-hook)))
 
-(defun entropy/emacs-font-set--setfont-initial ()
-  (unless (or (daemonp) entropy/emacs-fall-love-with-pdumper)
-    ;; use the idle timer to prevent eemacs startup redisplay lag
-    (run-with-idle-timer
-     0.1 nil #'entropy/emacs-font-set-setfont-core))
-  (add-hook 'entropy/emacs-after-startup-hook
-            #'(lambda ()
-                (add-hook 'entropy/emacs-theme-load-after-hook
-                          #'entropy/emacs-font-set-setfont-core))))
-
 (defun entropy/emacs-font-set--prog-font-set ()
   "Remap `prog-mode' face font using mordern programming fonts
 when available."
@@ -321,8 +311,6 @@ fontset using `entropy/emacs-font-set-setfont-core'."
   (when (eq operation 'set)
     (unless (eq newval (symbol-value symbol))
       (run-with-idle-timer 0.1 nil #'entropy/emacs-font-set-setfont-core))))
-(add-variable-watcher 'entropy/emacs-font-size-default
-                      #'entropy/emacs--fontsize-set-guard)
 
 (defun entropy/emacs--fontenable-set-guard (symbol newval operation _where)
   "`entropy/emacs-font-setting-enable' vairable wather guard to reset
@@ -330,7 +318,27 @@ fontset using `entropy/emacs-font-set-setfont-core'."
   (when (eq operation 'set)
     (unless (eq newval (symbol-value symbol))
       (run-with-idle-timer 0.1 nil #'entropy/emacs-font-set-setfont-core))))
-(add-variable-watcher 'entropy/emacs-font-setting-enable
-                      #'entropy/emacs--fontenable-set-guard)
+
+(defvar entropy/emacs-font-set--var-watcher-initial-done nil)
+(defun entropy/emacs-font-set--var-watcher-initial ()
+  (unless entropy/emacs-font-set--var-watcher-initial-done
+    (add-variable-watcher 'entropy/emacs-font-setting-enable
+                          #'entropy/emacs--fontenable-set-guard)
+    (add-variable-watcher 'entropy/emacs-font-size-default
+                          #'entropy/emacs--fontsize-set-guard)
+    (setq entropy/emacs-font-set--var-watcher-initial-done t)))
+
+(defun entropy/emacs-font-set--setfont-initial ()
+  (unless (or (daemonp) entropy/emacs-fall-love-with-pdumper)
+    ;; use the idle timer to prevent eemacs startup redisplay lag
+    (run-with-idle-timer
+     0.1 nil
+     #'(lambda () (entropy/emacs-font-set-setfont-core)
+         (entropy/emacs-font-set--var-watcher-initial))))
+  (add-hook 'entropy/emacs-after-startup-hook
+            #'(lambda ()
+                (add-hook 'entropy/emacs-theme-load-after-hook
+                          #'entropy/emacs-font-set-setfont-core)
+                (entropy/emacs-font-set--var-watcher-initial))))
 
 (provide 'entropy-emacs-font-set)
