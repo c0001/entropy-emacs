@@ -315,11 +315,13 @@ interactive session."
                         (error
                          "entropy/emacs-message--do-message-popup: current-buffer not eq window-buffer"
                          )))))
-               (progn
+               (let* ((fn-msgstr (concat "-> " message-str))
+                      (fn-insertion (concat fn-msgstr "\n")))
                  (funcall err-func)
                  (goto-char (point-max))
                  (funcall err-func)
-                 (insert (concat "-> " message-str "\n"))
+                 (message "%s" fn-msgstr)
+                 (insert fn-insertion)
                  (funcall err-func)
                  (setq-local entropy/emacs-message--cur-buf-is-popup-p t)
                  ))
@@ -498,8 +500,7 @@ NOTE: Just use it in `noninteractive' session."
 (defun entropy/emacs-message-hide-popup (&optional force)
   "Hide popup window which display `entropy/emacs-message-message-buffname'."
   (let* ((buf-name entropy/emacs-message-message-buffname)
-         (win (ignore-errors
-                (get-buffer-window buf-name))))
+         (win (get-buffer-window buf-name)))
     (when (and (and (bound-and-true-p entropy/emacs-startup-done)
                     (windowp win))
                (or force
