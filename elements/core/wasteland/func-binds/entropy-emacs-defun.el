@@ -3452,31 +3452,40 @@ common return value is string \".\" and the AS-LIST return type is
             (setq rtn (list cursubname))))))
     rtn))
 
-(defun entropy/emacs-batch-expand-file-name
-    (names &optional base-dir)
-  "`expand-file-name' batch mode for list of name NAMES, based on
-BASE-DIR when non-nil or `default-directory' as fallback.
+(defmacro entropy/emacs-batch-expand-file-name-macro
+    (base-dir &rest names)
+  "`expand-file-name' batch mode for sets of file name NAMES, based on
+directory BASE-DIR when non-nil or `default-directory' as fallback.
 
 If NAMES is empty, return the BASE-DIR's expanded filename.
 
-NOTE: The NAMES is expanded using its reverse order, thus NAMES
-has to be real file system path hierarchy."
+NOTE: The NAMES is expanded using its reverse order, thus NAMES has to
+be real file system path hierarchy."
   (let (form cur-name)
     (while names
       (setq cur-name (pop names))
       (if form
-          (setq form
-                `(expand-file-name
-                  ,cur-name
-                  ,form))
+          (setq form `(expand-file-name ,cur-name ,form))
         (setq form
               `(expand-file-name
                 ,cur-name
-                ,(or base-dir default-directory)))))
-    (if form
-        (entropy/emacs-eval-with-lexical form)
-      (expand-file-name
-       (or base-dir default-directory)))))
+                ,(or base-dir 'default-directory)))))
+    (or form
+        `(expand-file-name
+          (or ,base-dir default-directory)))))
+
+(defun entropy/emacs-batch-expand-file-name
+    (&optional base-dir &rest names)
+  "Function variant of
+`entropy/emacs-batch-expand-file-name-macro'."
+  (setq base-dir (or base-dir default-directory))
+  (if (not names) (expand-file-name base-dir)
+    (let (rtn name)
+      (while names
+        (setq name (pop names))
+        (if rtn (setq rtn (expand-file-name name rtn))
+          (setq rtn (expand-file-name name base-dir))))
+      rtn)))
 
 (defun entropy/emacs-list-dir-lite (dir-root &optional not-abs)
   "Return an alist of fsystem nodes as:
@@ -4889,8 +4898,8 @@ Sign an error when POP-LOG is not matched valied values.
                      (dir-src-abspath-node-type
                       (funcall f-type-check-func dir-src-abspath 'dir))
                      (dir-dest-abspath
-                      (entropy/emacs-batch-expand-file-name
-                       dir-rel-path-list destdir))
+                      (apply 'entropy/emacs-batch-expand-file-name
+                             destdir dir-rel-path-list))
                      dir-op-return-attrs
                      (dir-op-target-node-type nil)
                      dir-dest-abspath-new
