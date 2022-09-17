@@ -119,7 +119,8 @@
 ;; load fontset fistly prevents ui position calculating bug.
 (entropy/emacs-start--require-with-duration-log 'entropy-emacs-font-set)
 (entropy/emacs-start--require-with-duration-log 'entropy-emacs-ui)
-;; (redisplay t)
+;;this redisplay is indeed needed
+(redisplay t)
 
 ;; *** load baron
 ;; **** summons

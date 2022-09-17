@@ -364,8 +364,8 @@ progress."
       (progn
         (entropy/emacs-themes-strictly-load-theme
          entropy/emacs-theme-options t)
-        ;; (redisplay t)
-        )
+        ;; this redisplay is indeed needed
+        (redisplay t))
     (t
      (error "Problem loading theme %s" entropy/emacs-theme-options)))
   (when (and (fboundp 'powerline-reset)

@@ -127,30 +127,12 @@ determined by above variable you setted."
     (set-frame-height (selected-frame) height nil t)
     (set-frame-position (selected-frame) x y)))
 
-(defvar entropy/emacs-ui--init-frame-maximized nil)
-(when (and (display-graphic-p)
-           (not entropy/emacs-fall-love-with-pdumper))
-  ;; gurantee all init promting showed available since the small
-  ;; startup frame size was ugly.
-  (toggle-frame-maximized)
-  (setq entropy/emacs-ui--init-frame-maximized t)
-  ;; gurantee for toggled done!
-  ;; (sleep-for 0.1)
-  ;; (redisplay t)
-  )
-
-(entropy/emacs-lazy-with-load-trail 'frame-reset-size&width
-  :start-end t
-  (when (display-graphic-p)
-    (when (and entropy/emacs-init-fpos-enable
-               (< entropy/emacs-init-frame-width-scale 1))
-      (when entropy/emacs-ui--init-frame-maximized
-        (toggle-frame-maximized))
-      (sleep-for 0.1)
-      ;; (redisplay t)
-      (entropy/emacs-ui-set-frame-position)
-      ;; (redisplay t)
-      )))
+(when (and entropy/emacs-init-fpos-enable
+           (< entropy/emacs-init-frame-width-scale 1))
+  ;; use the idle timer to prevent eemacs startup redisplay lag
+  (run-with-idle-timer
+   0.2 nil #'(lambda () (when (display-graphic-p)
+                          (entropy/emacs-ui-set-frame-position)))))
 
 ;; ** elisp show parent
 (unless entropy/emacs-use-highlight-features
@@ -786,7 +768,8 @@ value as optional interaction while `PREFIX' is non-nil."
 ;; ** Misc
 ;; *** minor misc
 ;; **** indication mode
-(size-indication-mode 1)                ; Toggle buffer size display in the mode line (Size Indication mode).
+;; Toggle buffer size display in the mode line (Size Indication mode).
+(run-with-idle-timer 0.2 nil #'size-indication-mode)
 
 (defun entropy/emacs-show-col-row ()
   "Display buffer-position."

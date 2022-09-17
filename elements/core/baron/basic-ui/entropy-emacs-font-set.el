@@ -268,7 +268,9 @@ you must set it smaller than 24 for adapting to other entropy-emacs settings."))
 
 (defun entropy/emacs-font-set--setfont-initial ()
   (unless (or (daemonp) entropy/emacs-fall-love-with-pdumper)
-    (entropy/emacs-font-set-setfont-core))
+    ;; use the idle timer to prevent eemacs startup redisplay lag
+    (run-with-idle-timer
+     0.1 nil #'entropy/emacs-font-set-setfont-core))
   (add-hook 'entropy/emacs-after-startup-hook
             #'(lambda ()
                 (add-hook 'entropy/emacs-theme-load-after-hook

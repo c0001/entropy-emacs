@@ -37,11 +37,6 @@
 
 ;; ** require
 
-(require 'tramp)
-;; preload the tramp sh pkg to generate the `tramp-methods' completely
-;; before modify it which prevent duplicate cover the modified patch.
-(require 'tramp-sh)
-
 ;; ** library
 
 (defun entropy/emacs-tramp--methods-alist-put
@@ -66,7 +61,7 @@ reserved as origin."
                 (push (cons key val) new-params))
             (push el new-params))))
       (when new-params
-        (setq new-params (reverse new-params))
+        (setq new-params (nreverse new-params))
         (setf (alist-get method tramp-methods nil nil 'string=)
               new-params)))))
 
@@ -99,7 +94,7 @@ GROUP is the substring get from ssh config file and splitting by
     source-tidy))
 
 (defun entropy/emacs-tramp--tidy-ssh-config-source (source)
-    "Make alist from group GROUP which are the string contained ssh
+  "Make alist from group GROUP which are the string contained ssh
 config group info as:
 
 ==========
@@ -200,14 +195,6 @@ This func divided this string into the return list as:
   (tramp-cleanup-all-buffers)
   (message "Clean up all tramp refers."))
 
-;; let sudo like tramp method has eemacs union password expire
-;; timeout sets.
-(dolist (method '("sudo"))
-  (apply
-   'entropy/emacs-tramp--methods-alist-put
-   method
-   `((tramp-session-timeout ,password-cache-expiry))))
-
 (defun entropy/emacs-tramp--add-to-list-adv (orig-func &rest orig-args)
   "Around advice for `add-to-list' to prevent duplicate regist
 `tramp-methods' since:
@@ -239,6 +226,20 @@ session init or in some cases?
  "eemacs-tramp-hydra-hollow-init"
  :prompt-type 'prompt-echo
  :pdumper-no-end t
+
+ (require 'tramp)
+ ;; preload the tramp sh pkg to generate the `tramp-methods' completely
+ ;; before modify it which prevent duplicate cover the modified patch.
+ (require 'tramp-sh)
+
+ ;; let sudo like tramp method has eemacs union password expire
+ ;; timeout sets.
+ (dolist (method '("sudo"))
+   (apply
+    'entropy/emacs-tramp--methods-alist-put
+    method
+    `((tramp-session-timeout ,password-cache-expiry))))
+
  ;; the hydra hollow instance
  (entropy/emacs-hydra-hollow-add-for-top-dispatch
   '("Tramp"
