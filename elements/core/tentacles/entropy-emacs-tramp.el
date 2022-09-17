@@ -227,18 +227,25 @@ session init or in some cases?
  :prompt-type 'prompt-echo
  :pdumper-no-end t
 
- (require 'tramp)
- ;; preload the tramp sh pkg to generate the `tramp-methods' completely
- ;; before modify it which prevent duplicate cover the modified patch.
- (require 'tramp-sh)
+ (entropy/emacs-lazy-initial-advice-before
+  '(entropy/emacs-tramp-clean-all
+    entropy/emacs-tramp-query-ssh-config-groups-chosen-open
+    entropy/emacs-sudoedit-current-path-maybe
+    tramp-cleanup-connection tramp-cleanup-this-connection)
+  "entropy-emacs-tramp-methods-patch" "entropy-emacs-tramp-methods-patch"
+  :prompt-type 'prompt-echo
+  (require 'tramp)
+  ;; preload the tramp sh pkg to generate the `tramp-methods' completely
+  ;; before modify it which prevent duplicate cover the modified patch.
+  (require 'tramp-sh)
 
- ;; let sudo like tramp method has eemacs union password expire
- ;; timeout sets.
- (dolist (method '("sudo"))
-   (apply
-    'entropy/emacs-tramp--methods-alist-put
-    method
-    `((tramp-session-timeout ,password-cache-expiry))))
+  ;; let sudo like tramp method has eemacs union password expire
+  ;; timeout sets.
+  (dolist (method '("sudo"))
+    (apply
+     'entropy/emacs-tramp--methods-alist-put
+     method
+     `((tramp-session-timeout ,password-cache-expiry)))))
 
  ;; the hydra hollow instance
  (entropy/emacs-hydra-hollow-add-for-top-dispatch
