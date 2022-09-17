@@ -3398,56 +3398,58 @@ duplicated `file-attributes' computation internally."
         t))))
 
 (defun entropy/emacs-make-relative-filename
-    (file dir &optional as-list)
-  "Convert FILE to a name relative to DIR.  If DIR is omitted or
-nil, it defaults to `default-directory'.  If FILE is not in the
-directory tree of DIR, return nil.
+    (file &optional dir as-list)
+  "Generate a relative file name between from DIR to FILE. If DIR is
+omitted or nil, it defaults to `default-directory'.  If FILE is not in
+the directory tree of DIR, return nil.
 
-FILE and DIR are all expanded as file and directory before
-calculating their relative relationship.
+FILE and DIR are all expanded as file or directory respectively based
+on `default-directory' before calculating their relative relationship.
 
-The returned rel-filename is *not* leading or tail with the
-system filepath separator i.e. in Windows '\\' and in *nix system
-is '/'. (i.e. are all filenames)
+The returned relative filename is *not* leading or tail with the
+system filepath separator e.g. in Windows is '\\' and in *nix system
+is '/'. (e.g. as for file \"/a/b/c\" in dir \"/a\" then \"b/c\")
 
-If optional arg AS-LIST is non-nil, return a relative path list whose
-each element is the *node-name*(i.e. file name) of the relative path
-string returned.
+If optional arg AS-LIST is non-nil, return a list whose each element
+is the *node-name* (i.e. `file-name-nondirectory' of each path
+component) of the relative path string returned and ordered as them in
+that string.
 
 If FILE and DIR are equalized by expanded by
-`entropy/emacs-directory-file-name' than the common return value is string
-\".\" and the AS-LIST return type is '(\".\")'
-
-*Always return nil of file and dir are not relatived.*
+`entropy/emacs-directory-file-name' or explictly `string=' then the
+common return value is string \".\" and the AS-LIST return type is
+'(\".\")'
 "
   (or dir (setq dir default-directory))
   (setq file (entropy/emacs-directory-file-name (expand-file-name file)))
   (setq dir (file-name-as-directory
              (entropy/emacs-directory-file-name (expand-file-name dir))))
-  (let ((rtn
-         (if (string-match (concat "^" (regexp-quote dir)) file)
-             (substring file (match-end 0))
-           nil)))
-    (unless rtn
+  (let* ((rtn
+          (if (string-match (concat "^" (regexp-quote dir)) file)
+              (substring file (match-end 0)) nil))
+         (is-same (and rtn (string-empty-p rtn) (setq rtn "."))))
+    (unless (or rtn is-same)
       (when (string= (entropy/emacs-directory-file-name file)
                      (entropy/emacs-directory-file-name dir))
-        (setq rtn ".")))
-    (when rtn
-      (when as-list
-        (if (string= rtn ".")
-            (setq rtn (list rtn))
-          (let ((cursubname (file-name-nondirectory rtn))
-                (curparename (file-name-directory rtn))
-                tmpvar itervar)
-            (if curparename
-                (progn
-                  (while (or curparename (not (string-empty-p (or cursubname ""))))
-                    (push cursubname tmpvar)
-                    (setq itervar (and curparename (entropy/emacs-directory-file-name curparename))
-                          cursubname (and itervar (file-name-nondirectory itervar))
-                          curparename (and itervar (file-name-directory itervar))))
-                  (setq rtn tmpvar))
-              (setq rtn (list cursubname)))))))
+        (setq rtn "." is-same t)))
+    (when (and rtn as-list)
+      (if is-same (setq rtn (list rtn))
+        (let ((cursubname  (file-name-nondirectory rtn))
+              (curparename (file-name-directory rtn))
+              tmpvar itervar)
+          (if curparename
+              (progn
+                (while (or curparename (not (string-empty-p (or cursubname ""))))
+                  (push cursubname tmpvar)
+                  (setq itervar
+                        (and curparename
+                             (entropy/emacs-directory-file-name curparename))
+                        cursubname
+                        (and itervar (file-name-nondirectory itervar))
+                        curparename
+                        (and itervar (file-name-directory itervar))))
+                (setq rtn tmpvar))
+            (setq rtn (list cursubname))))))
     rtn))
 
 (defun entropy/emacs-batch-expand-file-name
