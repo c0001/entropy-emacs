@@ -1111,9 +1111,9 @@ style which defined in `entropy/emacs-modeline-style'."
 ;; ** init procedure
 (entropy/emacs-lazy-with-load-trail
   'eemacs-modeline-init
-  (redisplay t)
+  ;; (redisplay t)
   (entropy/emacs-modeline--mdl-init)
-  (redisplay t)
+  ;; (redisplay t)
   (entropy/emacs-with-daemon-make-frame-done
    'eemacs-modeline-init nil nil
    '(progn

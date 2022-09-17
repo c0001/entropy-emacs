@@ -364,7 +364,8 @@ progress."
       (progn
         (entropy/emacs-themes-strictly-load-theme
          entropy/emacs-theme-options t)
-        (redisplay t))
+        ;; (redisplay t)
+        )
     (t
      (error "Problem loading theme %s" entropy/emacs-theme-options)))
   (when (and (fboundp 'powerline-reset)
@@ -378,7 +379,7 @@ progress."
 (unless entropy/emacs-fall-love-with-pdumper
   (entropy/emacs-lazy-with-load-trail
     'enable-theme
-    (redisplay t)
+    ;; (redisplay t)
     (if (null (daemonp))
         ;; common status theme load process
         (entropy/emacs-themes-init-setup-user-theme)

@@ -57,7 +57,8 @@ non-nil."
       (tool-bar-mode 0)
       (menu-bar-mode 0)
       (setq this-init-done t)
-      (redisplay t))))
+      ;; (redisplay t)
+      )))
 
 (cond
  (entropy/emacs-fall-love-with-pdumper
@@ -134,8 +135,9 @@ determined by above variable you setted."
   (toggle-frame-maximized)
   (setq entropy/emacs-ui--init-frame-maximized t)
   ;; gurantee for toggled done!
-  (sleep-for 0.1)
-  (redisplay t))
+  ;; (sleep-for 0.1)
+  ;; (redisplay t)
+  )
 
 (entropy/emacs-lazy-with-load-trail 'frame-reset-size&width
   :start-end t
@@ -145,9 +147,10 @@ determined by above variable you setted."
       (when entropy/emacs-ui--init-frame-maximized
         (toggle-frame-maximized))
       (sleep-for 0.1)
-      (redisplay t)
+      ;; (redisplay t)
       (entropy/emacs-ui-set-frame-position)
-      (redisplay t))))
+      ;; (redisplay t)
+      )))
 
 ;; ** elisp show parent
 (unless entropy/emacs-use-highlight-features
@@ -713,7 +716,8 @@ for adding to variable `window-size-change-functions' and hook
           (when (eq major-mode 'org-mode)
             (kill-buffer buffer))))
       (buffer-list))
-    (redisplay t))
+    ;; (redisplay t)
+    )
 
   (let (_)
     (entropy/emacs-lazy-with-load-trail 'rich-dashboard-init

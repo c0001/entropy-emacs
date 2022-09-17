@@ -119,7 +119,7 @@
 ;; load fontset fistly prevents ui position calculating bug.
 (entropy/emacs-start--require-with-duration-log 'entropy-emacs-font-set)
 (entropy/emacs-start--require-with-duration-log 'entropy-emacs-ui)
-(redisplay t)
+;; (redisplay t)
 
 ;; *** load baron
 ;; **** summons
@@ -390,7 +390,8 @@ notation.
     (entropy/emacs-message-do-message
      "%s"
      (green "Loading =eemacs-intenal-IME=, please waiting ......"))
-    (redisplay t))
+    ;; (redisplay t)
+    )
   ;; initialize =eemacs-intenal-IME=
   (entropy/emacs-internal-ime-starter t)
   ;; prompt for loading =eemacs-intenal-IME= done.
@@ -730,7 +731,7 @@ Currently detected env variables:")
 
 (entropy/emacs-start--run-with-duration-log
  form/start-tentacles
- (redisplay t)
+ ;; (redisplay t)
  (entropy/emacs-start-do-load))
 
 ;; * provide

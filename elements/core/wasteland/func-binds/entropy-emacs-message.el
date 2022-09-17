@@ -295,7 +295,8 @@ interactive session."
                        0.1
                      0.22))))
               (selected-frame))))
-         (redisplay t))
+         ;; (redisplay t)
+         )
 
        (if (window-live-p (get-buffer-window (funcall buff-get)))
            ;; we must do insert withins window selected since we can
@@ -340,7 +341,8 @@ interactive session."
 (defmacro entropy/emacs-message-do-message-1 (message &rest args)
   "An alternative to `message' that strips out ANSI codes."
   `(let (_)
-     (redisplay t)
+     ;; (redisplay t)
+
      ;; we shouldn't use `message' directly to touch the message in
      ;; this place since any string contain format notaion will cause
      ;; it corrupt, thus we use single `%s' to format the result.
@@ -348,7 +350,8 @@ interactive session."
          (message "%s"
                   (entropy/emacs-message--do-message-ansi-apply
                    ,message ,@args))
-       (redisplay t))))
+       ;; (redisplay t)
+       )))
 
 (defmacro entropy/emacs-message-do-warn-1 (message &rest args)
   "An alternative to `message' that strips out ANSI codes."
