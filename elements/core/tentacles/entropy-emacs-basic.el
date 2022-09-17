@@ -5837,14 +5837,13 @@ This function will store the `rime' loading callback to
       (require 'rime)
       (let ((build-func (lambda ()
                           (let ((env (rime--build-compile-env))
-                                (process-environment process-environment)
+                                (process-environment (copy-sequence process-environment))
                                 (default-directory rime--root))
                             (cl-loop for pair in env
                                      when pair
-                                     do (add-to-list 'process-environment pair))
+                                     do (push pair process-environment))
                             (if (zerop (shell-command "make lib"))
-                                (prog1
-                                    t
+                                (prog1 t
                                   (message "Compile succeed!"))
                               (entropy/emacs-message-do-warn
                                "Compile Rime dynamic module failed")
