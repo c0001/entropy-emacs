@@ -38,7 +38,7 @@
 ;; ** require
 
 ;; ** library
-
+(defvar tramp-methods)
 (defun entropy/emacs-tramp--methods-alist-put
     (method &rest params)
   "Modify `tramp-methods''s METHOD's parameters with new PARAMS.
