@@ -1041,20 +1041,19 @@ which case variable: `entropy/emacs-coworker-bin-host-path',
 `entropy/emacs-coworker-archive-host-root' will be temporally set
 also."
   (declare (indent defun))
-  `(let ()
-     (if (and (not (null ,newhost))
-              (progn
-                (make-directory ,newhost t)
-                t))
-         (let* ((entropy/emacs-coworker-host-root ,newhost)
-                (entropy/emacs-coworker-bin-host-path
-                 (expand-file-name "bin" entropy/emacs-coworker-host-root))
-                (entropy/emacs-coworker-lib-host-root
-                 (expand-file-name "lib" entropy/emacs-coworker-host-root))
-                (entropy/emacs-coworker-archive-host-root
-                 (expand-file-name "archive" entropy/emacs-coworker-host-root)))
-           ,@body)
-       ,@body)))
+  (let ((newhost-sym (make-symbol "newhost-dir")))
+    `(let ((,newhost-sym ,newhost))
+       (if (and (not (null ,newhost-sym))
+                (progn (make-directory ,newhost-sym t) t))
+           (let* ((entropy/emacs-coworker-host-root ,newhost-sym)
+                  (entropy/emacs-coworker-bin-host-path
+                   (expand-file-name "bin"     entropy/emacs-coworker-host-root))
+                  (entropy/emacs-coworker-lib-host-root
+                   (expand-file-name "lib"     entropy/emacs-coworker-host-root))
+                  (entropy/emacs-coworker-archive-host-root
+                   (expand-file-name "archive" entropy/emacs-coworker-host-root)))
+             ,@body)
+         ,@body))))
 
 ;; ** codeserver refer
 (defvar entropy/emacs-codeserver-lsp-mode-extra-clients nil
