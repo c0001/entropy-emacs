@@ -524,7 +524,7 @@ faild with hash '%s' which must match '%s'"
          :synchronously t
          :buffer (get-buffer-create " *install eemacs-fonts process buffer* ")
          :command '("sh" "-c" "./install.sh")
-         :default-directory ,repo-path
+         :default-directory ,(entropy/emacs-return-as-default-directory repo-path)
          :after
          (with-current-buffer $sentinel/destination
            (let ((msg (buffer-substring-no-properties (point-min) (point-max))))

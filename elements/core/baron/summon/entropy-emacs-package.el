@@ -294,7 +294,7 @@ command and rest of the command's arguments"
           (cadr (assq pkg (package--alist))))))
     (unless (ignore-errors (file-exists-p pkg-dir))
       (error "Package '%s' not installed yet" pkg))
-    (let* ((default-directory pkg-dir)
+    (let* ((default-directory (entropy/emacs-return-as-default-directory pkg-dir))
            (process-format-func
             (lambda (command uid)
               `(:name

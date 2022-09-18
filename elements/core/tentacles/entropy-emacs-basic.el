@@ -2307,7 +2307,8 @@ overwrited.
             (unless (executable-find "convert")
               (setq error-symbol 'convert-not-found)
               (user-error "imagemgick convert not found"))
-            (let ((default-directory temporary-file-directory))
+            (let ((default-directory (entropy/emacs-return-as-default-directory
+                                      temporary-file-directory)))
               (message "convert '%s' to '%s' jpeg file ..."
                        srcfname destfname)
               (unless (zerop
@@ -3486,7 +3487,7 @@ specified."
           (erase-buffer)			; NEEDED for reformat
           (woman-insert-file-contents filename compressed)
           ;; Set buffer's default directory to that of the file.
-          (setq default-directory (file-name-directory filename))
+          (entropy/emacs-set-default-directory (file-name-directory filename))
           (setq-local backup-inhibited t)
           (set-visited-file-name "")
           (woman-process-buffer)
@@ -5838,7 +5839,8 @@ This function will store the `rime' loading callback to
       (let ((build-func (lambda ()
                           (let ((env (rime--build-compile-env))
                                 (process-environment (copy-sequence process-environment))
-                                (default-directory rime--root))
+                                (default-directory (entropy/emacs-return-as-default-directory
+                                                    rime--root)))
                             (cl-loop for pair in env
                                      when pair
                                      do (push pair process-environment))
@@ -6211,7 +6213,8 @@ otherwise returns nil."
       (cl-case system-type
         (windows-nt
          (when (fboundp 'w32-shell-execute)
-           (let ((default-directory temporary-file-directory))
+           (let ((default-directory (entropy/emacs-return-as-default-directory
+                                     temporary-file-directory)))
              (w32-shell-execute
               "open" $executable)
              (message (format "Start with '%s'."

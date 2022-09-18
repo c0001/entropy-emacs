@@ -1789,7 +1789,7 @@ Now just supply localization image file analyzing."
           (let ((non-abbrev (replace-regexp-in-string "^file:" "" el)))
             (cond
              ((string-match-p "^\\.+" non-abbrev)
-              (let ((default-directory base-dir))
+              (let ((default-directory (entropy/emacs-return-as-default-directory base-dir)))
                 (push (expand-file-name non-abbrev) links)))
              (t
               (push non-abbrev links)))))))

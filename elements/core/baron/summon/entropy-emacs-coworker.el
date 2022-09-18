@@ -252,7 +252,7 @@ EXIT /b
            '("npm"
              "install" ,server-repo-string)
            :buffer (get-buffer-create "*eemacs-coworker-npm-install-proc*")
-           :default-directory ,this-npm-prefix
+           :default-directory ,(entropy/emacs-return-as-default-directory this-npm-prefix)
            :prepare
            (entropy/emacs-coworker--coworker-message-do-task
             ,server-name-string)
@@ -646,7 +646,8 @@ EXIT /b
     (setq clone-task
           `(:name
             "git clone pyls-lsp-ms"
-            :default-directory entropy/emacs-coworker-archive-host-root
+            :default-directory ,(entropy/emacs-return-as-default-directory
+                                 entropy/emacs-coworker-archive-host-root)
             :command
             '("git" "clone" "https://github.com/Microsoft/python-language-server.git")
             :synchronously t
@@ -662,7 +663,8 @@ EXIT /b
           `(:name
             "dotnet compile pyls-lsp-ms"
             :default-directory
-            ,(expand-file-name "src/LanguageServer/Impl/" pyls-ms-archive)
+            ,(entropy/emacs-return-as-default-directory
+              (expand-file-name "src/LanguageServer/Impl/" pyls-ms-archive))
             :command
             '("dotnet" "publish" "-c" "Release" "-r"
               ,entropy/emacs-coworker--pyls-ms-release-name)

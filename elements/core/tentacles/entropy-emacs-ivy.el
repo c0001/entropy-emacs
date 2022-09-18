@@ -1078,7 +1078,8 @@ type by function `entropy/emacs-transfer-wvol'"
 this variable used to patching for origin `counsel-git'.")
 
   (defun counsel-git-cands (&rest _)
-    (let ((default-directory (counsel-locate-git-root)))
+    (let ((default-directory (entropy/emacs-return-as-default-directory
+                              (counsel-locate-git-root))))
       (setq entropy/emacs-ivy-counsel-git-root default-directory)
       (split-string
        (shell-command-to-string counsel-git-cmd)
@@ -1815,7 +1816,9 @@ NOTE: this function has been redefined by =entropy-emacs=."
         (setq selected (or (assoc selected collection) selected))))
       (when selected
         ;; make sure only the string/file is passed to action
-        (let* ((default-directory (ffip-get-project-root-directory))
+        (let* ((default-directory
+                 (entropy/emacs-return-as-default-directory
+                  (ffip-get-project-root-directory)))
                (result (if (consp selected) (cdr selected) selected)))
           (if action (funcall action result) result)))))
 

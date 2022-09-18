@@ -275,7 +275,7 @@ code defined in `entropy/emacs-ext--extras-trouble-table' or t."
 ;; *** adding load path
 (defun entropy/emacs-ext--add-subdirs-to-load-path (dir)
   "Recursive add directories to `load-path'."
-  (let ((default-directory (file-name-as-directory dir)))
+  (let ((default-directory (entropy/emacs-return-as-default-directory dir)))
     (when (not (string-match-p "yasnippet-snippets" dir))
       (normal-top-level-add-subdirs-to-load-path))))
 

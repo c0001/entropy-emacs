@@ -3066,6 +3066,42 @@ appended."
 
 ;; *** File and directory manipulation
 
+(defmacro entropy/emacs-return-as-default-directory (&rest body)
+  "Return a valid `default-directory' value equalized with BODY's value.
+
+This operation exists since `default-directory' has its meaningful
+special constructed contention but most of times we did not obey thus
+both of our neglects and misusing.
+
+See `default-directory' for its convention details."
+  (let ((dfd-sym (make-symbol "dfd-rtn-val")))
+    `(let ((,dfd-sym (progn ,@body)))
+       (unless (stringp ,dfd-sym)
+         (signal 'wrong-type-argument
+                 (list 'stringp
+                       (format "directory name: %s" ,dfd-sym))))
+       (unless (or (string-empty-p ,dfd-sym)
+                   (not (directory-name-p ,dfd-sym)))
+         (setq ,dfd-sym (directory-file-name ,dfd-sym)))
+       (file-name-as-directory ,dfd-sym))))
+
+(defmacro entropy/emacs-set-default-directory (&rest body)
+  "Set `default-directory' using the equalized value return by BODY.
+
+This operation exists since `default-directory' has its meaningful
+special constructed contention but most of times we did not obey thus
+both of our neglects and misusing.
+
+Return the new value of `default-directory'.
+
+See `default-directory' for its convention details.
+
+See also `entropy/emacs-return-as-default-directory'."
+  (macroexpand-1
+   `(setq default-directory
+          (entropy/emacs-return-as-default-directory
+           ,@body))))
+
 (defun entropy/emacs-directory-file-name (file-or-directory)
   "like `directory-file-name' but checking its type by
 `directory-name-p' firstly so that both file and directory name
@@ -3541,7 +3577,8 @@ i.e. without '.' or '..' node included.
 "
   (let ((default-directory
           ;; NOTE: `default-directory' must be a dirctory name
-          (file-name-as-directory (expand-file-name dir-root)))
+          (entropy/emacs-return-as-default-directory
+           (expand-file-name dir-root)))
         rtn-lite)
     (dolist (el (directory-files default-directory (not not-abs)))
       ;; filter the . and ..
@@ -5972,10 +6009,12 @@ can be used into your form:
           (entropy/emacs-get-plist-form
            eemacs-make-proc-args :synchronously t t)))
         (default-directory
-          (or (entropy/emacs-eval-with-lexical
-               (entropy/emacs-get-plist-form
-                eemacs-make-proc-args :default-directory t t))
-              default-directory))
+          (entropy/emacs-return-as-default-directory
+           (or
+            (entropy/emacs-eval-with-lexical
+             (entropy/emacs-get-plist-form
+              eemacs-make-proc-args :default-directory t t))
+            default-directory)))
         ;; make-proc args
         ($make_proc_name
          (entropy/emacs-eval-with-lexical
@@ -7811,7 +7850,8 @@ so that following keys are supported:
                             (format-time-string "%Y%m%d%H%M%S")
                             (random))
                     temporary-file-directory))
-         (default-directory temporary-file-directory)
+         (default-directory (entropy/emacs-return-as-default-directory
+                             temporary-file-directory))
          (cbk-symbol (let ((make-sym-func
                             (lambda ()
                               (intern (format "eemacs-network-download-random-cbk_%s"
@@ -8223,7 +8263,7 @@ original."
     (set-window-buffer window buff)
     (unless buffname
       (with-current-buffer buff
-        (setq-local default-directory orig-dfdir)
+        (entropy/emacs-set-default-directory orig-dfdir)
         (let ((inhibit-read-only t))
           (erase-buffer)
           (insert
