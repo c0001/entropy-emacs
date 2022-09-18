@@ -71,7 +71,7 @@ To get the real-body in BODY use
             (setq it (cddr it))
           (throw 'break it))))))
 
-(defun entropy/emacs-eval-with-lexical (form &optional actual-lexical-binding)
+(defsubst entropy/emacs-eval-with-lexical (form &optional actual-lexical-binding)
   "Like `eval' but forcely enable `lexical-binding' as t.
 
 ACTUAL-LEXICAL-BINDING when set then it is replaced the LEXICAL

@@ -48,7 +48,7 @@
     (cl-incf entropy/emacs/c-mode/change-iterate)
     ;; fontify the buffer context round at `current-point' with idle
     ;; style
-    (eval
+    (entropy/emacs-eval-with-lexical
      `(entropy/emacs-run-at-idle-immediately
        idle-fontify-c-type-buffer
        :which-hook 0.5

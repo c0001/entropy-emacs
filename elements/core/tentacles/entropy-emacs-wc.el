@@ -1143,7 +1143,7 @@ issue."
                        entropy/emacs-basic-winner---winner-save-old-config-run-with-idle-type-cache)
           (setq entropy/emacs-basic-winner---winner-save-old-config-run-with-idle-type-cache
                 idle-delay)
-          (eval
+          (entropy/emacs-eval-with-lexical
            `(entropy/emacs-run-at-idle-immediately
              __idle/winner-save-old-config
              ;; use enlarge idle hook to reduce lag
