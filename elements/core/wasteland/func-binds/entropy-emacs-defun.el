@@ -3234,23 +3234,23 @@ internally to reduce the duplicated `file-attributes' computation."
     (when fattrs
       (let* ((ftype (file-attribute-type fattrs))
              (ftype-p (cond
-                       ((eq filesystem-node-type 'file)
-                        (not ftype))
-                       ((eq filesystem-node-type 'directory)
-                        (eq ftype t))
+                       ((eq filesystem-node-type 'file) (null ftype))
+                       ((eq filesystem-node-type 'directory) (eq ftype t))
                        (t (signal 'wrong-type-argument
                                   (list 'filesystem-node-type-p
                                         filesystem-node-type))))))
         (if (or ftype-p (not with-symlink)) ftype-p
           (when ftype                   ;confirm that it is a symbolic link
             (if without-chasing-all-symlink
-                (entropy/emacs-filesystem-node-is-regular-file-p
+                (entropy/emacs-filesystem-node--match-type-p
+                 filesystem-node-type
                  (if (file-name-absolute-p ftype) ftype
                    (expand-file-name
-                    ftype
-                    (file-name-directory
-                     filesystem-node-name))))
-              (entropy/emacs-filesystem-node-is-regular-file-p
+                    ftype (file-name-directory
+                           (entropy/emacs-directory-file-name
+                            filesystem-node-name)))))
+              (entropy/emacs-filesystem-node--match-type-p
+               filesystem-node-type
                (file-truename filesystem-node-name)))))))))
 
 (cl-defun entropy/emacs-filesystem-node-is-regular-file-p
@@ -3539,7 +3539,9 @@ The returned is filtered by `directory-files-no-dot-files-regexp'
 i.e. without '.' or '..' node included.
 
 "
-  (let ((default-directory (expand-file-name dir-root))
+  (let ((default-directory
+          ;; NOTE: `default-directory' must be a dirctory name
+          (file-name-as-directory (expand-file-name dir-root)))
         rtn-lite)
     (dolist (el (directory-files default-directory (not not-abs)))
       ;; filter the . and ..
