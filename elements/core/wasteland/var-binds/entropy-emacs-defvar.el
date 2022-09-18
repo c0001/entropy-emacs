@@ -466,26 +466,57 @@ wrong type of type: %s"
               (hook-idle-trigger-done-varname
                (__eemacs--get-idle-hook-refer-symbol-name
                 'hook-trigger-done-var idle-sec)))
-          (eval
-           `(progn
-              (when (bound-and-true-p ,hook-idle-trigger-start-varname)
-                (setq ,hook-idle-trigger-start-varname nil))
-              (when (bound-and-true-p ,hook-idle-trigger-done-varname)
-                (setq ,hook-idle-trigger-done-varname nil)))))))))
+          (progn
+            (when (entropy/emacs-bound-and-true-p hook-idle-trigger-start-varname)
+              (set hook-idle-trigger-start-varname nil))
+            (when (entropy/emacs-bound-and-true-p hook-idle-trigger-done-varname)
+              (set hook-idle-trigger-done-varname nil))))))))
 
-(defun entropy/emacs--set-idle-signal ()
-  (setq entropy/emacs-current-session-is-idle-p t)
-  (if entropy/emacs-session-idle-trigger-debug
-      (unwind-protect
-          (run-hooks 'entropy/emacs-session-idle-trigger-hook)
-        (setq entropy/emacs-session-idle-trigger-hook nil))
-    (condition-case error
-        (run-hooks 'entropy/emacs-session-idle-trigger-hook)
-      (error
-       (push error
-             entropy/emacs-session-idle-trigger-hook-error-list)))
-    (setq entropy/emacs-session-idle-trigger-hook nil))
-  (setq entropy/emacs-current-session-idle-hook-ran-done t))
+(cl-defmacro entropy/emacs--generate-idle-signal-setter-func
+    (&key
+     doc
+     idle-func-name
+     idle-p-indc-var-name
+     idle-hook-name idle-hook-ran-done-p-var-name
+     idle-error-list-var-name)
+  (let ((doc-sym (make-symbol "doc")))
+    `(let ((,doc-sym ,doc))
+       (defalias ',idle-func-name
+         (lambda (&rest _)
+           (let ((inhibit-quit t))
+             (setq ,idle-p-indc-var-name t)
+             (if entropy/emacs-session-idle-trigger-debug
+                 (unwind-protect (run-hooks ',idle-hook-name)
+                   (setq ,idle-hook-name nil))
+               (condition-case error (run-hooks ',idle-hook-name)
+                 (error (push error ,idle-error-list-var-name)))
+               (setq ,idle-hook-name nil))
+             (setq ,idle-hook-ran-done-p-var-name t)))
+         ,doc-sym)
+       (byte-compile ',idle-func-name))))
+
+(entropy/emacs--generate-idle-signal-setter-func
+ :doc
+ "The guard for set the eemacs idle indicatror
+`entropy/emacs-current-session-is-idle-p' and run its corresponding
+hook `entropy/emacs-session-idle-trigger-hook'.
+
+When that hook is ran out, variable
+`entropy/emacs-current-session-idle-hook-ran-done''s value is set
+otherwise it is always nil.
+
+Any function in that hook is ran without any errors will be
+conspicuous thrown out unless
+`entropy/emacs-session-idle-trigger-debug' is non-nil in which case an
+error will be caught and thrown out immediately, otherwise any error
+is just logged into
+`entropy/emacs-session-idle-trigger-hook-error-list'."
+ :idle-func-name entropy/emacs--set-idle-signal
+ :idle-p-indc-var-name entropy/emacs-current-session-is-idle-p
+ :idle-hook-name entropy/emacs-session-idle-trigger-hook
+ :idle-hook-ran-done-p-var-name entropy/emacs-current-session-idle-hook-ran-done
+ :idle-error-list-var-name entropy/emacs-session-idle-trigger-hook-error-list)
+
 (defvar entropy/emacs-session-idle-trigger-timer--init-delay-sec
   (let ((idle-sec
          (- entropy/emacs-safe-idle-minimal-secs
@@ -563,20 +594,15 @@ but used for hook `%s'."
 but used for hook `%s'."
                   ',hook-idle-trigger-hookname))
 
-        (defun ,func-idle-trigger-name (&rest _)
-          ,(format "Like `entropy/emacs--set-idle-signal' but latency of %s seconds."
-                   idle-sec)
-          (setq ,hook-idle-trigger-start-varname t)
-          (if entropy/emacs-session-idle-trigger-debug
-              (unwind-protect
-                  (run-hooks ',hook-idle-trigger-hookname)
-                (setq ,hook-idle-trigger-hookname nil))
-            (condition-case error
-                (run-hooks ',hook-idle-trigger-hookname)
-              (error
-               (push error ,hook-idle-trigger-error-list)))
-            (setq ,hook-idle-trigger-hookname nil))
-          (setq ,hook-idle-trigger-done-varname t))
+        (entropy/emacs--generate-idle-signal-setter-func
+         :doc
+         ,(format "Like `entropy/emacs--set-idle-signal' but latency of %s seconds."
+                  idle-sec)
+         :idle-func-name ,func-idle-trigger-name
+         :idle-p-indc-var-name ,hook-idle-trigger-start-varname
+         :idle-hook-name ,hook-idle-trigger-hookname
+         :idle-hook-ran-done-p-var-name ,hook-idle-trigger-done-varname
+         :idle-error-list-var-name ,hook-idle-trigger-error-list)
 
         (push ,idle-sec
               entropy/emacs-idle-session-trigger-delay-clusters)
