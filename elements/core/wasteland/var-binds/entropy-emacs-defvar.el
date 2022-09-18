@@ -651,16 +651,6 @@ indicator `entropy/emacs-current-session-is-idle-p'."
               name
               (symbol-value hook)))))))
 
-(defmacro entropy/emacs-run-at-idle-immediately--append-hook
-    (hook-name func)
-  `(progn
-     ;; escape byte-compile warning
-     (eval-when-compile
-       (unless (boundp ',hook-name)
-         (defvar ,hook-name)))
-     (entropy/emacs-nconc-with-setvar-use-rest ,hook-name
-       (list ,func))))
-
 (cl-defmacro entropy/emacs-run-at-idle-immediately
     (name &rest body
           &key
@@ -799,8 +789,12 @@ context."
           ',name)
          ;; We should append the hook to the tail since follow the time
          ;; order.
-         (entropy/emacs-run-at-idle-immediately--append-hook
-          ,hook #',name)
+         ;;
+         ;; escape byte-compile warning
+         (eval-when-compile
+           (unless (boundp ',hook) (defvar ,hook)))
+         (entropy/emacs-nconc-with-setvar-use-rest ,hook
+           (list #',name))
 
          ;; Intial the trigger timer when not bound
          (unless (bound-and-true-p ,hook-timer-varname)
