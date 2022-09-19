@@ -304,6 +304,11 @@ byte-code."
                      :with-preparation (lambda nil (end-of-line))))))
       (save-excursion
         (unless (funcall reg-get-func) (end-of-defun)
+                ;; try to back to the end of defun line since commonly
+                ;; `end-of-defun' will jump to next line of thus.
+                (if (looking-at-p entropy/emacs-buffer-blank-line-regexp)
+                    (goto-char (1- (point))))
+                (funcall reg-get-func)
                 (unless region
                   (error "No top-level form found for read at point!"))))
       (entropy/emacs-lisp--elisp-inct-eval-safaty-wrap

@@ -7505,7 +7505,7 @@ after return). Its return is meaningful, if non-nil just return nil
 immediately, otherwise do the subroutines."
   (declare (side-effect-free t))
   (let* (cur-ln-with-psis-p
-         start-psis-pos beg end prepare-result
+         start-psis-pos start end prepare-result
          start-psis-search-func (i 0))
     (entropy/emacs-save-excurstion-and-mark-and-match-data
       (and position (goto-char position))
