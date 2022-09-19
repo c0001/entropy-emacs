@@ -418,10 +418,11 @@ query dict recalling this again."
   (let (command
         response
         (default-directory
-          (cond
-           ((eq system-type 'windows-nt)
-            (getenv "temp"))
-           (t "/tmp/"))))
+          (entropy/sdcv-core-return-as-default-directory
+           (cond
+            ((eq system-type 'windows-nt)
+             (getenv "temp"))
+            (t "/tmp/")))))
     (cond
      ((not (listp dict-path))
       (setq command (format "%s %s %s -n %s -2 %s"
