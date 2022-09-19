@@ -139,6 +139,25 @@ package."
                  (const nil))
   :group 'entropy-portableapps-group)
 
+(defmacro entropy/poapps--return-as-default-directory (&rest body)
+  "Return a valid `default-directory' value equalized with BODY's value.
+
+This operation exists since `default-directory' has its meaningful
+special constructed contention but most of times we did not obey thus
+both of our neglects and misusing.
+
+See `default-directory' for its convention details."
+  (let ((dfd-sym (make-symbol "dfd-rtn-val")))
+    `(let ((,dfd-sym (progn ,@body)))
+       (unless (stringp ,dfd-sym)
+         (signal 'wrong-type-argument
+                 (list 'stringp
+                       (format "directory name: %s" ,dfd-sym))))
+       (unless (or (string-empty-p ,dfd-sym)
+                   (not (directory-name-p ,dfd-sym)))
+         (setq ,dfd-sym (directory-file-name ,dfd-sym)))
+       (file-name-as-directory ,dfd-sym))))
+
 (defun entropy/poapps--list-dir-lite (dir-root &optional not-abs)
   "Return an alist of fsystem nodes as:
 
@@ -255,7 +274,9 @@ then retun name-alist:
          (choice (ivy-read "Query portableapps: " apps
                            :require-match t))
          (stick (cdr (assoc choice apps))))
-    (let ((default-directory (getenv "TEMP")))
+    (let ((default-directory
+            (entropy/poapps--return-as-default-directory
+             (or (getenv "TEMP") (error "Without windows TEMP env var set!")))))
       (w32-shell-execute "open" stick))))
 
 (provide 'entropy-portableapps)
