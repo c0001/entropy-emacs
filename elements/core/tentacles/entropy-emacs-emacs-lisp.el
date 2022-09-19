@@ -137,15 +137,120 @@ For lisp coding aim, always return the transfered buffer.
   ;; disbale `eval-last-sexp' in `ctl-x-map' for reducing mistakes
   (define-key ctl-x-map "\C-e" nil)
 
-  (eval-when-compile
-    (defmacro entropy/emacs-lisp--elisp-inct-eval-safaty-wrap
-        (type &rest body)
-      "Wrap eval type BODY in safety way i.e. promtp before did
-anything."
-      `(when (yes-or-no-p
-              (format "Really eval %s" ',type))
-         (entropy/emacs-general-run-with-gc-strict
-          ,@body))))
+  (eval-and-compile
+    (cl-defmacro entropy/emacs-lisp--elisp-inct-eval-safaty-wrap
+        (type &rest body
+              &key use-byte-compile without-confirm
+              &allow-other-keys)
+      "Run BODY in safety way i.e. promtp before did anything unless
+WITHOUT-CONFIRM is non-nil in which case body is ran as normal
+directrly. Return the last form's evaluated value of BODY.
+
+If USE-BYTE-COMPILE is set, if its value is a cons of a region start
+and end, then read that region contents as a form and `byte-compile'
+the form, or `byte-compile' the BODY's value, with print out the
+byte-code into a popup buffer.
+"
+      (let ((rtn-sym (make-symbol "rtn"))
+            (msg-core-sym (make-symbol "msg-core"))
+            (bytecmp-type-sym (make-symbol "byte-compile-type"))
+            (body (entropy/emacs-get-plist-body body)))
+        `(let (,rtn-sym
+               ,msg-core-sym
+               (,bytecmp-type-sym ,use-byte-compile))
+           (when (or ,(if (null body) t) ,without-confirm
+                     (yes-or-no-p (format "Really eval %s" ',type)))
+             ,(if body
+                  `(setq ,rtn-sym (entropy/emacs-general-run-with-gc-strict ,@body)))
+             (let ((eval-form nil) (orig-buff (current-buffer))
+                   msg-core-get-func)
+               (when ,bytecmp-type-sym
+                 (cond ((consp ,bytecmp-type-sym)
+                        (let ((region-contents
+                               (buffer-substring-no-properties
+                                (car ,bytecmp-type-sym) (cdr ,bytecmp-type-sym))))
+                          (setq eval-form
+                                (with-temp-buffer
+                                  (insert region-contents) (goto-char (point-min))
+                                  (condition-case err
+                                      (read (current-buffer))
+                                    (error (error "pre byte-compile form with error: %s"
+                                                  err)))))))
+                       (t (setq eval-form ,rtn-sym)))
+                 (setq msg-core-get-func
+                       (lambda nil
+                         (setq ,msg-core-sym
+                               (cond
+                                ((symbolp eval-form)
+                                 (format "byte-compile -> symbol's function '%S'" eval-form))
+                                ((or (functionp eval-form)
+                                     (macrop eval-form))
+                                 (format "byte-compile -> lambda-for-macro '%S'" eval-form))
+                                (t
+                                 (format "byte-compile -> form '%S'" eval-form))))))
+                 (let ((buffnm "*eemacs eval with byte-compile*")
+                       buff win confirm-p bytecmp-result)
+                   (display-buffer
+                    (setq buff (generate-new-buffer buffnm))
+                    `((display-buffer-at-bottom) .
+                      ((inhibit-switch-frame . t)
+                       ;; let this window be dedicated to the form
+                       ;; exhibition so that any display buffer action
+                       ;; before hide this window doesn't operation on
+                       ;; this window.
+                       (dedicated . t)
+                       (align . below)
+                       (window-height . 0.4)))
+                    (selected-frame))
+                   (unless (setq win (get-buffer-window buff))
+                     (error "[internal error] can not create eval exhibition window"))
+                   (with-current-buffer buff
+                     (unwind-protect
+                         (let ((print-level nil)
+                               (print-length nil)
+                               (print-escape-nonascii t)
+                               (print-circle t))
+                           (prin1 eval-form buff)
+                           (lisp-data-mode)
+                           ;; FIXME: please add hook for that to disable as instead of this.
+                           (if hl-line-mode (hl-line-mode -1))
+                           (pp-buffer)
+                           (setq buffer-read-only t)
+                           (with-current-buffer orig-buff
+                             (if (and (memq (car eval-form) '(defun cl-defun))
+                                      (yes-or-no-p
+                                       (format "It's seemes like a function defination form \
+for function '%s', eval and compile its defination instead?"
+                                               (cadr eval-form))))
+                                 (let ((orig-form eval-form))
+                                   (setq eval-form (eval eval-form lexical-binding)
+                                         confirm-p t)
+                                   (unless (and (symbolp eval-form)
+                                                (eq eval-form (cadr orig-form)))
+                                     (error "[internal error] emacs `defun' api changed.")))
+                               (setq confirm-p
+                                     (yes-or-no-p "Really byte-compile above form?")))))
+                       (unless confirm-p
+                         (kill-buffer buff) (and (windowp win) (window-live-p win)
+                                                 (delete-window win))
+                         (error "Abort!"))))
+                   (funcall msg-core-get-func)
+                   (entropy/emacs-message-simple-progress-message
+                    (format "%s" ,msg-core-sym)
+                    (with-current-buffer orig-buff
+                      (setq bytecmp-result (byte-compile eval-form)))
+                    (with-current-buffer buff
+                      (let ((inhibit-read-only t)
+                            (print-level nil)
+                            (print-length nil)
+                            (print-escape-nonascii t)
+                            (print-circle t))
+                        (erase-buffer)
+                        (prin1 bytecmp-result buff)
+                        (toggle-truncate-lines -1)
+                        (goto-char (point-min))))))))
+             ;; return
+             ,rtn-sym)))))
 
   (defun entropy/emacs-lisp-elisp-eval-defun ()
     "Like `eval-defun' but in safety way."
@@ -174,6 +279,32 @@ anything."
     (entropy/emacs-lisp--elisp-inct-eval-safaty-wrap
      last-sexp
      (call-interactively 'eval-last-sexp)))
+
+  (defun entropy/emacs-lisp-elisp-byte-compile-defun-form ()
+    "`byte-compile' the top-level form whose ending at line at `point'.
+
+see `entropy/emacs-buffer-pos-at-top-level-parenthesis-sibling-p' for
+what is a top-leve form.
+
+This function is commonly used for a `defun' like function defination
+form, but by the way you can `byte-compile' any form to see its
+byte-code."
+    (declare (interactive-only t))
+    (interactive)
+    (let (region reg-get-func)
+      (setq reg-get-func
+            (lambda nil
+              (setq region
+                    (entropy/emacs-buffer-pos-at-top-level-parenthesis-sibling-p
+                     nil :for-close-paren t
+                     :with-preparation (lambda nil (end-of-line))))))
+      (save-excursion
+        (unless (funcall reg-get-func) (end-of-defun)
+                (unless region
+                  (error "No top-level form found for read at point!"))))
+      (entropy/emacs-lisp--elisp-inct-eval-safaty-wrap
+       byte-compile
+       :use-byte-compile region)))
   )
 
 (use-package eldoc-eval

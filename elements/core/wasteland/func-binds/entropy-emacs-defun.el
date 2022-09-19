@@ -6631,6 +6631,23 @@ See also `entropy/emacs-point-min'."
         (point-max))
     (point-max)))
 
+(defun entropy/emacs-forward-line (&optional n)
+  "Same as `forward-line' but return a cons of car of the movement
+fully success status `booleanp' value and cdr of the origin
+result.
+
+If the movement final stand on `eobp' position of the current
+buffer visible portion and the origin result is 0 then the
+success status boolean value is always 'nil' since it's actually
+not satisfied for what we are diretly expecting."
+  (unless n (setq n 1))                 ;follow `forward-line''s defaults
+  (let ((result (forward-line n)) (rtn t))
+    (if (= result 0)
+        (if (and (> n 0) (eobp) (save-match-data (not (looking-at "^$"))))
+            (setq rtn nil))
+      (setq rtn nil))
+    (cons rtn result)))
+
 (cl-defun entropy/emacs-buffer-position-p
     (position &key do-error with-range-check without-restriction)
   "Return non-nil when POSITION is a vaid buffer position of
@@ -7437,6 +7454,97 @@ Commonly a position in a overlay is that:
                  (unless return-all
                    (throw :exit t)))))))
     (if return-all rtn (car rtn))))
+
+;; **** buffer sexp rounding manipulation
+
+(defun entropy/emacs-buffer-pos-at-comment-region-p
+    (&optional position without-comment-start)
+  "Return the comment region begining position when
+POSITION (default to `point') of `current-buffer' is in a comment
+region. Return nil otherwise.
+
+If WITHOUT-COMMENT-START is non-nil then return nil when POSITION
+is at the `comment-beginning'. Otherwise, as defaulty any
+position in the comment region was a predicated as true.
+
+This function is based on `comment-beginning'."
+  (declare (side-effect-free t))
+  (entropy/emacs-save-excurstion-and-mark-and-match-data
+    (and position (goto-char position))
+    (let (cmbeg)
+      (if (setq cmbeg (save-excursion (comment-beginning))) cmbeg
+        (unless (or without-comment-start (eolp))
+          ;; for case when poin at the start of comment region
+          ;; i.e. the first open delimiter.
+          (goto-char (1+ (point)))
+          (comment-beginning))))))
+
+(cl-defun entropy/emacs-buffer-pos-at-top-level-parenthesis-sibling-p
+    (&optional
+     position
+     &key for-close-paren with-preparation)
+  "Return the a region (i.e. cons of start and end) of `current-buffer'
+which contained a top-level parentheses region, only when
+`re-search-forward' (or `re-search-backward', when FOR-CLOSE-PAREN is
+non-nil) from POSITION (defaults to `point') (when FOR-CLOSE-PAREN is
+non-nil, the search starts from POSITION when `eolp' or POSITION+1) to
+the end (or begin when FOR-CLOSE-PAREN is non-nil) of current line
+where POSITION at that can match `current-buffer''s major-mode's
+defined open (or close if FOR-CLOSE-PAREN is non-nil) parenthesis
+syntax matched char with skipped all comment regions and it's must be
+the top-level parenthesis char. Return nil otherwise.
+
+A top-level parenthesis char is a parenthesis char who is at the depth
+0 of its sub-parenthese-groups and it's not a sub-parenthese-group of
+any of outers within visible portion of `current-buffer'.
+
+When WITH-PREPARATION is set, it should be a function without any
+arguments requested for did any operations in a safe way i.e. (without
+the mark modification or position movement or match data modification
+after return). Its return is meaningful, if non-nil just return nil
+immediately, otherwise do the subroutines."
+  (declare (side-effect-free t))
+  (let* (cur-ln-with-psis-p
+         start-psis-pos beg end prepare-result
+         start-psis-search-func (i 0))
+    (entropy/emacs-save-excurstion-and-mark-and-match-data
+      (and position (goto-char position))
+      (and with-preparation (setq prepare-result
+                                  (funcall with-preparation)))
+      (unless prepare-result
+        (setq start-psis-search-func
+              (lambda (&optional backward-no-repos)
+                (setq cur-ln-with-psis-p
+                      (if (not for-close-paren)
+                          (re-search-forward "\\s(" (line-end-position) t)
+                        (unless (or backward-no-repos (eolp)) (goto-char (1+ (point))))
+                        (re-search-backward "\\s)" (line-beginning-position) t)))))
+        (while (and (funcall start-psis-search-func (not (= i 0)))
+                    (entropy/emacs-buffer-pos-at-comment-region-p
+                     (let ((pt (point)))
+                       (if for-close-paren pt (1- pt)))))
+          (cl-incf i))
+        (when cur-ln-with-psis-p
+          (if for-close-paren (setq start-psis-pos (1+ (point)) end start-psis-pos)
+            (setq start-psis-pos (1- (point)) start start-psis-pos))
+          (let ((parse-sexp-ignore-comments t))
+            (condition-case _
+                (progn
+                  (goto-char
+                   (scan-lists start-psis-pos (if for-close-paren -1 1) 0)))
+              (scan-error
+               (setq start-psis-pos nil)))
+            (when start-psis-pos
+              (condition-case _
+                  (when (goto-char
+                         (scan-lists (point) (if for-close-paren 1 -1) 1))
+                    (setq start-psis-pos nil))
+                (scan-error nil))
+              (when start-psis-pos
+                (if for-close-paren (setq start (point))
+                  (setq end (point)))
+                ;; return
+                (cons start end)))))))))
 
 ;; *** Hook manipulation
 

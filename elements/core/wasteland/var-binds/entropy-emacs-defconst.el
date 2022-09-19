@@ -34,6 +34,31 @@
 ;; ** require
 (entropy/emacs-common-require-feature 'entropy-emacs-defcustom)
 
+;; ** Lisp referred constant
+;; *** regexp
+
+(defconst entropy/emacs-cjk-punc-regexp
+  "[\u3002\uff1b\uff0c\uff1a\u201c\u201d\uff08\uff09\u3001\uff1f\u300a\u300b]"
+  "CJK punctuation regexp presentation")
+
+(defconst entropy/emacs-cjk-char-regexp
+  "[\u4e00-\u9fa5]"
+  "CJK char regexp presentation")
+
+(defconst entropy/emacs-buffer-blank-line-regexp "^\\s-*$"
+  "Regexp matched a buffer blank line i.e. a line of buffer whose
+contents is empty or just any whitespaces.
+
+The usage of this regexp is via `looking-at' or
+`re-search-forward' with `point' at the `beginning-of-line'.")
+
+(defconst entropy/emacs-buffer-nblank-line-regexp "^[^\n\r]*[^\n\r\t ]\\{1\\}[^\n\r]*$"
+  "Regexp matched a buffer non blank line i.e. a line of buffer
+whose contents at least has an non-whitespace char.
+
+The usage of this regexp is via `looking-at' or
+`re-search-forward' with `point' at the `beginning-of-line'.")
+
 ;; ** system type
 ;; *** basic conditions
 (defconst sys/win32p
@@ -516,14 +541,6 @@ see `entropy/emacs-api-restriction-detection-log' for details."
        hl)))
   "Allowed chars ': / % & = ?' for url-protocal heads in function
 `url-hexify-string'")
-
-(defconst entropy/emacs-cjk-punc-regexp
-  "[\u3002\uff1b\uff0c\uff1a\u201c\u201d\uff08\uff09\u3001\uff1f\u300a\u300b]"
-  "CJK punctuation regexp presentation")
-
-(defconst entropy/emacs-cjk-char-regexp
-  "[\u4e00-\u9fa5]"
-  "CJK char regexp presentation")
 
 ;; * provide
 (provide 'entropy-emacs-defconst)
