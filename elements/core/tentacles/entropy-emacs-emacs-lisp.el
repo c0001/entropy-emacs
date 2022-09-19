@@ -254,6 +254,7 @@ for function '%s', eval and compile its defination instead?"
 
   (defun entropy/emacs-lisp-elisp-eval-defun ()
     "Like `eval-defun' but in safety way."
+    (declare (interactive-only t))
     (interactive)
     (entropy/emacs-lisp--elisp-inct-eval-safaty-wrap
      defun
@@ -261,6 +262,7 @@ for function '%s', eval and compile its defination instead?"
 
   (defun entropy/emacs-lisp-elisp-eval-buffer ()
     "Like `eval-buffer' but in safety way."
+    (declare (interactive-only t))
     (interactive)
     (entropy/emacs-lisp--elisp-inct-eval-safaty-wrap
      buffer
@@ -268,6 +270,7 @@ for function '%s', eval and compile its defination instead?"
 
   (defun entropy/emacs-lisp-elisp-eval-region ()
     "Like `eval-region' but in safety way."
+    (declare (interactive-only t))
     (interactive)
     (entropy/emacs-lisp--elisp-inct-eval-safaty-wrap
      region
@@ -275,6 +278,7 @@ for function '%s', eval and compile its defination instead?"
 
   (defun entropy/emacs-lisp-elisp-eval-last-sexp ()
     "Like `eval-last-sexp' but in safety way."
+    (declare (interactive-only t))
     (interactive)
     (entropy/emacs-lisp--elisp-inct-eval-safaty-wrap
      last-sexp
