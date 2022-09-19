@@ -216,6 +216,10 @@ byte-code into a popup buffer.
                            (if hl-line-mode (hl-line-mode -1))
                            (pp-buffer)
                            (setq buffer-read-only t)
+                           ;; we must wrap the context to origin
+                           ;; buffer since we may be want to do
+                           ;; evalulation in which case judging to use
+                           ;; lexical or dynamic interpretation.
                            (with-current-buffer orig-buff
                              (if (and (memq (car eval-form) '(defun cl-defun))
                                       (yes-or-no-p
@@ -223,6 +227,10 @@ byte-code into a popup buffer.
 for function '%s', eval and compile its defination instead?"
                                                (cadr eval-form))))
                                  (let ((orig-form eval-form))
+                                   ;; we must obey the
+                                   ;; `lexical-binding' as in origin
+                                   ;; buffer, otherwise messy will be
+                                   ;; occurred maybe.
                                    (setq eval-form (eval eval-form lexical-binding)
                                          confirm-p t)
                                    (unless (and (symbolp eval-form)
