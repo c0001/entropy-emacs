@@ -88,8 +88,19 @@ key-stroke experience."
   :group 'entropy/emacs-customize-group-for-fundametal-configuration)
 
 (defcustom entropy/emacs-temporary-file-directory
-  (expand-file-name "tmp" entropy/emacs-stuffs-topdir)
-  "The emacs session spec tmp host path as the system '/tmp' dir."
+  (file-name-as-directory
+   (expand-file-name "tmp" entropy/emacs-stuffs-topdir))
+  "The eemacs session specified temporarily host path as the system
+'/tmp' dir.
+
+This variable exists because in some operation system there's no
+temporarily directory hosted for using while emacs needed. Thus eemacs
+internally unified the result to its framework's subjet temporarily
+directory to avoid that.
+
+If set must be a directory name i.e. wrapped result using
+`file-name-as-directory'. Since it should follow `default-directory''s
+convention."
   :type 'directory
   :group 'entropy/emacs-customize-group-for-fundametal-configuration)
 
