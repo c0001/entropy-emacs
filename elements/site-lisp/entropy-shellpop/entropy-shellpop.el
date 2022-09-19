@@ -414,6 +414,25 @@ shellpop type")
 
 ;;;;; common libs
 
+(defmacro entropy/shellpop--return-as-default-directory (&rest body)
+  "Return a valid `default-directory' value equalized with BODY's value.
+
+This operation exists since `default-directory' has its meaningful
+special constructed contention but most of times we did not obey thus
+both of our neglects and misusing.
+
+See `default-directory' for its convention details."
+  (let ((dfd-sym (make-symbol "dfd-rtn-val")))
+    `(let ((,dfd-sym (progn ,@body)))
+       (unless (stringp ,dfd-sym)
+         (signal 'wrong-type-argument
+                 (list 'stringp
+                       (format "directory name: %s" ,dfd-sym))))
+       (unless (or (string-empty-p ,dfd-sym)
+                   (not (directory-name-p ,dfd-sym)))
+         (setq ,dfd-sym (directory-file-name ,dfd-sym)))
+       (file-name-as-directory ,dfd-sym))))
+
 (defun entropy/shellpop--make-name-alist (olist &optional naming-func)
   "Make a named alist from a list OLIST.
 
@@ -511,26 +530,28 @@ for current maximized pop-shell."))))))
 
 ;;;;; cdw functions
 (defmacro entropy/shellpop--cd-to-cwd-with-judge (path-given prompt &rest body)
-  `(unless (or
-            ;; when the current shell host not as same as the new one,
-            ;; we ignore the auto CDW feature, since its may cause
-            ;; current shellpop slot unreliable for user common
-            ;; operation which is usually not the user's expection.
-            (not (entropy/shellpop--remote-files-same-host-p
-                  default-directory ,path-given))
-            (eq
-             ;; FIXME: the non-nil return is not extremely indicate
-             ;; TRUE which is described in docstring of `file-equal-p'.
-             (file-equal-p
-              (expand-file-name default-directory)
-              (expand-file-name ,path-given))
-             t))
-     (cond (,prompt
-            (when (entropy/shellpop--confirm
-                   (format "CD to '%s'" ,path-given))
-              ,@body))
-           ((null ,prompt)
-            ,@body))))
+  (let ((path-sym (make-symbol "path-specified")))
+    `(let ((,path-sym ,path-given))
+       (unless (or
+                ;; when the current shell host not as same as the new one,
+                ;; we ignore the auto CDW feature, since its may cause
+                ;; current shellpop slot unreliable for user common
+                ;; operation which is usually not the user's expection.
+                (not (entropy/shellpop--remote-files-same-host-p
+                      default-directory ,path-sym))
+                (eq
+                 ;; FIXME: the non-nil return is not extremely indicate
+                 ;; TRUE which is described in docstring of `file-equal-p'.
+                 (file-equal-p
+                  (expand-file-name default-directory)
+                  (expand-file-name ,path-sym))
+                 t))
+         (cond (,prompt
+                (when (entropy/shellpop--confirm
+                       (format "CD to '%s'" ,path-sym))
+                  ,@body))
+               ((null ,prompt)
+                ,@body))))))
 
 (declare-function eshell-reset "esh-mode")
 (defun entropy/shellpop--cd-to-cwd-eshell (cwd)
@@ -538,7 +559,8 @@ for current maximized pop-shell."))))))
       (message "Won't change CWD because of running process.")
     (entropy/shellpop--cd-to-cwd-with-judge
      cwd nil
-     (setq-local default-directory cwd)
+     (setq default-directory
+           (entropy/shellpop--return-as-default-directory cwd))
      (eshell-reset))))
 
 (defun entropy/shellpop--cd-to-cwd-shell (cwd)
