@@ -237,6 +237,25 @@
 ;;
 ;;; Code:
 
+(defmacro entropy/openwith--return-as-default-directory (&rest body)
+  "Return a valid `default-directory' value equalized with BODY's value.
+
+This operation exists since `default-directory' has its meaningful
+special constructed contention but most of times we did not obey thus
+both of our neglects and misusing.
+
+See `default-directory' for its convention details."
+  (let ((dfd-sym (make-symbol "dfd-rtn-val")))
+    `(let ((,dfd-sym (progn ,@body)))
+       (unless (stringp ,dfd-sym)
+         (signal 'wrong-type-argument
+                 (list 'stringp
+                       (format "directory name: %s" ,dfd-sym))))
+       (unless (or (string-empty-p ,dfd-sym)
+                   (not (directory-name-p ,dfd-sym)))
+         (setq ,dfd-sym (directory-file-name ,dfd-sym)))
+       (file-name-as-directory ,dfd-sym))))
+
 (defun entropy/openwith--strict-plistp (arg)
   "Strict plist true-p checker.
 
@@ -536,18 +555,21 @@ will be the current process handle which will protect it's handle
 associated file location be deleted by file removing operaion,
 this be for redirected the `default-directory' for each subprocess
 procedure who don't want to be as the state as what."
-  (or (ignore-errors (or (and
-                          (file-directory-p temporary-file-directory)
-                          (file-writable-p temporary-file-directory)
-                          temporary-file-directory)
-                         (and
-                          (file-directory-p (getenv "TEMP"))
-                          (file-writable-p (getenv "TEMP"))
-                          (getenv "TEMP"))
-                         (and
-                          (file-directory-p "/tmp")
-                          (file-writable-p "/tmp")
-                          "/tmp")))
+  (or (ignore-errors
+        (entropy/openwith--return-as-default-directory
+         (or (and
+              (file-directory-p temporary-file-directory)
+              (file-writable-p temporary-file-directory)
+              temporary-file-directory)
+             (let ((tmpdir-env (getenv "TEMP")))
+               (and
+                (file-directory-p tmpdir-env)
+                (file-writable-p tmpdir-env)
+                tmpdir-env))
+             (and
+              (file-directory-p "/tmp")
+              (file-writable-p "/tmp")
+              "/tmp"))))
       (error "We can not auto detect an temporally directory for
 entropy-open-with to run with!
 
