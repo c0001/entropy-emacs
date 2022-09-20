@@ -3097,10 +3097,10 @@ Return the new value of `default-directory'.
 See `default-directory' for its convention details.
 
 See also `entropy/emacs-return-as-default-directory'."
-  (macroexpand-1
-   `(setq default-directory
-          (entropy/emacs-return-as-default-directory
-           ,@body))))
+  `(setq default-directory
+         ,(macroexpand-1
+           `(entropy/emacs-return-as-default-directory
+             ,@body))))
 
 (defun entropy/emacs-directory-file-name (file-or-directory)
   "like `directory-file-name' but checking its type by
