@@ -8162,7 +8162,7 @@ This macro exists because we can not define a keybinding of COMMAND
 with effective at interaction level since it's already remapped in
 KEYMAP before."
   (declare (indent defun))
-  (let ((keymap-sym (makey-symbol "keymap"))
+  (let ((keymap-sym (make-symbol "keymap"))
         (key-sym (make-symbol "key-sym"))
         (cmd-sym (make-symbol "cmd-sym")))
     `(let ((,keymap-sym ,keymap)
