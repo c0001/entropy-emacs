@@ -8130,32 +8130,46 @@ so that following keys are supported:
     cbk-symbol))
 
 ;; *** Key map manipulation
-(defun entropy/emacs-batch-define-key (key-obj-list)
-  "Define key to keymap for batching way.
+(defun entropy/emacs-batch-define-key (key-obj-list &optional without-kbd-recalc)
+  "Batch defining keybindings to keymaps via KEY-OBJ-LIST.
 
-KEY-OBJ-LIST's each element forms as (keymap . ((key func) ... )), 'key' was
-the string passed to `kbd'."
+KEY-OBJ-LIST is an alist whose each element forms as
+: (KEYMAP . ((KEY . DEF) ... ))
+Which all definations of DEFs binding with KEYs are posted to the
+KEYMAP. KEYMAP, KEY and DEF are used for `define-key' with same
+meaning excepts that if KEY is a string, we defaultly re-calculate it
+via `kbd' to generate the actual used KEY string unless
+WITHOUT-KBD-RECALC is non-nil in which case it is directly passed to
+`define-key'."
   (dolist (key-obj key-obj-list)
     (let ((key-map (car key-obj))
-          (key-binds (cdr key-obj)))
+          (key-binds (cdr key-obj))
+          key)
       (when (boundp key-map)
         (dolist (key-bind key-binds)
+          (setq key (car key-bind))
           (define-key key-map
-            (kbd (car key-bind)) (cdr key-bind)))))))
+            (if (and (not without-kbd-recalc) (stringp key))
+                (kbd key) key)
+            (cdr key-bind)))))))
 
 (defmacro entropy/emacs-set-key-without-remap
     (keymap key command)
-  "Like `define-key' but also remove any remap of COMMAND in
-KEYMAP before bind the new spec."
+  "Like `define-key' but also remove any remap of COMMAND in KEYMAP
+before bind the new spec.
+
+This macro exists because we can not define a keybinding of COMMAND
+with effective at interaction level since it's already remapped in
+KEYMAP before."
   (declare (indent defun))
-  `(let (_)
-     ;; Firstly remove the remap since the new spec may be a remap
-     ;; also
-     (define-key ,keymap
-       (vector 'remap ,command)
-       nil)
-     ;; Then we injecting the spec
-     (define-key ,keymap ,key ,command)))
+  (let ((keymap-sym (makey-symbol "keymap"))
+        (key-sym (make-symbol "key-sym"))
+        (cmd-sym (make-symbol "cmd-sym")))
+    `(let ((,keymap-sym ,keymap)
+           (,key-sym    ,key)
+           (,cmd-sym    ,command))
+       (define-key ,keymap-sym (vector 'remap ,cmd-sym) nil)
+       (define-key ,keymap-sym ,key-sym ,cmd-sym))))
 
 (defmacro entropy/emacs-!set-key (key command)
   "The specified `define-key' like key builder for
@@ -8164,14 +8178,21 @@ KEYMAP before bind the new spec."
   `(define-key entropy/emacs-top-keymap ,key ,command))
 
 (defun entropy/emacs-local-set-key (key command)
-  "Like `local-set-key' but always create a new keymap which copied
-by `current-local-map' when it has or as what `local-set-key'
-does."
+  "Like `local-set-key' but always create a new local map for
+`current-buffer' which copied from the origin used local map obtained
+by `current-local-map' when it has one or create a new empty keymap
+for pre set, and use that clone/created keymap as the local map of
+`current-buffer' via `use-local-map'.
+
+This function exists since `local-set-key' set the local map of
+`current-buffer' is shared for other buffers who are using the same
+`major-mode' as `current-buffer' using, in most of cases. Thus
+`local-set-key' will effect all those buffers which commonly is not
+what we expect."
   (or (vectorp key) (stringp key)
       (signal 'wrong-type-argument (list 'arrayp key)))
   (let ((map (current-local-map)))
-    (if map
-        (use-local-map (setq map (copy-tree map)))
+    (if map (use-local-map (setq map (copy-tree map)))
       (use-local-map (setq map (make-sparse-keymap))))
     (define-key map key command)))
 
