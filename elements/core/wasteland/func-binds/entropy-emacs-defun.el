@@ -8213,25 +8213,23 @@ are (key . command) paire formed list."
 
 ;; *** Compress or decompress file
 
-(defvar entropy/emacs-archive-dowith-alist
-  '((tar
-     :compress "tar -cf %o %i"
-     :extract  "tar -xf %i -C %o")
+(defconst entropy/emacs-archive-dowith-alist
+  `((tar
+     :compress ,#'(lambda (i o) (format "tar -cf %s %s" o i))
+     :extract  ,#'(lambda (i o) (format "tar -xf %s -C %s" i o)))
     (tgz
-     :compress "tar -zcf %o %i"
-     :extract  "tar -zxf %i -C %o")
+     :compress ,#'(lambda (i o) (format "tar -zcf %s %s" o i))
+     :extract  ,#'(lambda (i o) (format "tar -zxf %s -C %s" i o)))
     (txz
-     :compress "tar -Jcf %o %i"
-     :extract  "tar -Jxf %i -C %o")
+     :compress ,#'(lambda (i o) (format "tar -Jcf %s %s" o i))
+     :extract  ,#'(lambda (i o) (format "tar -Jxf %s -C %s" i o)))
     (t7z
-     :compress "tar -cf - %i | 7z a -si %o"
-     :extract  "7z x -so %i | tar -xf - -C %o")
+     :compress ,#'(lambda (i o) (format "tar -cf - %s | 7z a -si %s" i o))
+     :extract  ,#'(lambda (i o) (format "7z x -so %s | tar -xf - -C %s" i o)))
     (zip
-     :compress "zip %o -r --filesync %i"
-     :extract  "unzip -o %i -d %o")))
+     :compress ,#'(lambda (i o) (format "zip %s -r --filesync %s" o i))
+     :extract  ,#'(lambda (i o) (format "unzip %s -d %s" i o)))))
 
-;; FIXME: the replace may cover the filename which include the pseudo
-;; substitution
 (defun entropy/emacs-gen-archive-dowith-shell-command
     (archive-type input output dowith)
   "Generate a shell command to do with an archive dealing
@@ -8261,14 +8259,14 @@ The ARCHVE-TYPE can be one of internal support archive type that:
   (let* ((archive-dowith-plist
           (alist-get archive-type
                      entropy/emacs-archive-dowith-alist))
-         (command-fmstr
+         (_ (unless archive-dowith-plist
+              (signal 'wrong-type-argument
+                      (list 'archive-dowith-type-p archive-type))))
+         (dowith-func
           (plist-get archive-dowith-plist dowith)))
-    (replace-regexp-in-string
-     "%o" (shell-quote-argument output)
-     (replace-regexp-in-string
-      "%i" (shell-quote-argument input)
-      command-fmstr nil t)
-     nil t)))
+    (funcall dowith-func
+             (shell-quote-argument input)
+             (shell-quote-argument output))))
 
 (defun entropy/emacs-archive-dowith
     (archive-type input output dowith)
