@@ -179,46 +179,73 @@ kernel based and its environment whether support graphic
 display.")
 
 ;; ** Eemacs Error Framework
+;; *** eemacs top error
+(defconst entropy/emacs-top-error-symbol
+  'entropy/emacs-top-error-signal
+  "The entropy-emacs defined to error type inherit from 'error'.
 
-(defvar entropy/emacs-top-error-symbol
-  'entropy/emacs-top-error-signal)
+Use `entropy/emacs-do-eemacs-top-error' to signal an error with
+this type.")
 (define-error entropy/emacs-top-error-symbol
   "Eemacs top error" 'error)
-(defun entropy/emacs-do-eemacs-top-error (msg)
+(defun entropy/emacs-do-eemacs-top-error (&rest args)
+  "Like `error', Signal an `entropy/emacs-top-error-symbol' type error,
+making a message by passing ARGS to `format-message'.  Errors cause
+entry to the debugger when `debug-on-error' is non-nil.  This can be
+overridden by `debug-ignored-errors'.
+
+To signal with MESSAGE without interpreting format characters like
+`%', `\\=`' and `\\='', use (error \"%s\" MESSAGE).  In Entropy-Emacs,
+the convention is that error messages start with a capital letter but
+*do not* end with a period.  Please follow this convention for the
+sake of consistency.
+
+\(fn STRING &rest ARGS)"
   (signal
    entropy/emacs-top-error-symbol
-   (list msg)))
+   (list (apply #'format-message args))))
 
-(defvar entropy/emacs-buffer-position-invalid-error-symbol
-  'entropy/emacs-buffer-position-invalid-error)
+;; *** eemacs other error types
+;; **** eemacs buffer position invalid error
+(defconst entropy/emacs-buffer-position-invalid-error-symbol
+  'entropy/emacs-buffer-position-invalid-error
+  "The entropy-emacs specified buffer position error type, inherit
+by `entropy/emacs-top-error-symbol'.
+
+Use `entropy/emacs-do-error-for-buffer-position-invalid' to signal an
+error of this type with its incidental powerful buffer position
+validation mechanism.")
 (define-error entropy/emacs-buffer-position-invalid-error-symbol
   "Eemacs wrong type of buffer position" entropy/emacs-top-error-symbol)
 (cl-defun entropy/emacs-do-error-for-buffer-position-invalid
     (position &key use-any-msg with-range-check without-restriction)
-  "Do error when a POSITION is not a valid buffer position value of
-`current-buffer' or error with message USE-ANY-MSG directly
-without any checks.
+  "Do `entropy/emacs-buffer-position-invalid-error-symbol' type error
+when a POSITION is not a valid buffer position value of
+`current-buffer' or error with message USE-ANY-MSG directly without
+any checks.
 
-When USE-ANY-MSG is not set and when POSITION is a marker, error
-when its `marker-position' doesn't be set i.e. empty. It success
-in this occasion, also check the marker's integer value, see
-below:
+When USE-ANY-MSG is not set and when POSITION is a marker, error when
+its `marker-position' doesn't be set i.e. empty. In this occasion,
+also check the marker's integer value, see below:
 
-When USE-ANY-MSG is not set and POSTION is not a maker or after
-the marker checking, error when POSITION is not a `natnump' or a
-`zerop' object.
+When USE-ANY-MSG is not set and POSTION is not a maker or after the
+marker checking, error when POSITION is not a `natnump' or a `zerop'
+object.
 
-When USE-ANY-MSG is not set and WITH-RANGE-CHECK is set, also
-error when position is not `<' the `point-min' or `>' the
-`point-max'. With WITHOUT-RESTRICTION set, the buffer restriction
-is temporarily disabled using `save-restriction' to get the
-minimal `point-min' and max `point-marker'.
+When USE-ANY-MSG is not set and WITH-RANGE-CHECK is set, also error
+when position is not `<' the `point-min' or `>' the `point-max'. With
+WITHOUT-RESTRICTION set, the buffer restriction is temporarily
+disabled using `save-restriction' to get the minimal `point-min' and
+max `point-max'.
 
 Return non-nil when no error matched.
 "
   (if use-any-msg
-      (format "the buffer-position var '%s' invalid since: %s."
-              use-any-msg)
+      (signal
+       entropy/emacs-buffer-position-invalid-error-symbol
+       (list
+        (format "The buffer-position var '%s' invalid since: %s"
+                position use-any-msg)))
     (let* ((posmk-p  (markerp position))
            (pt       (if posmk-p (marker-position position) position))
            (ptwp     (and (natnump pt) (> pt 0)))
@@ -256,48 +283,123 @@ current buffer %S's %s."
         ;; return true
         t))))
 
-(defvar entropy/emacs-major-mode-incompatible-error-symbol
-  'entropy/emacs-major-mode-incompatible-error)
+;; **** eemacs major-mode incompatible error
+(defconst entropy/emacs-major-mode-incompatible-error-symbol
+  'entropy/emacs-major-mode-incompatible-error
+  "The entropy-emacs `major-mode' incompatible error type, inherits from
+`entropy/emacs-top-error-symbol'.
+
+Use `entropy/emacs-do-error-for-major-mode-incompatible' to signal an
+error of this type with its convenient internal major mode comparation
+mechanism.")
 (define-error entropy/emacs-major-mode-incompatible-error-symbol
   "Eemacs major mode incompatible" entropy/emacs-top-error-symbol)
-(defun entropy/emacs-do-error-for-major-moe-incompatible
-    (need-major-mode &optional cur-major-mode)
-  (setq cur-major-mode (or cur-major-mode major-mode))
-  (unless (eq cur-major-mode need-major-mode)
-    (signal
-     entropy/emacs-major-mode-incompatible-error-symbol
-     (list
-      (format "current major-mode '%s' is not '%s'"
-              cur-major-mode need-major-mode)))))
+(defun entropy/emacs-do-error-for-major-mode-incompatible
+    (request-major-mode &optional noerror current-major-mode)
+  "Signal a `entropy/emacs-major-mode-incompatible-error-symbol'
+type error when the current major mode is not `eq' to the major
+mode requested as REQUEST-MAJOR-MODE.
 
-(defvar entropy/emacs-emacs-version-incompatible-error-symbol
-  'entropy/emacs-emacs-version-incompatible-error-signal)
+When NOERROR is non-nil, then return non-nil when every thing is
+ok, nil otherwise.
+
+Unless CURRENT-MAJOR-MODE is specified, current major mode is
+obtained by `major-mode' in `current-buffer'."
+  (setq current-major-mode (or current-major-mode major-mode))
+  (let ((cmp-rtn (eq current-major-mode request-major-mode)))
+    (if noerror cmp-rtn
+      (unless cmp-rtn
+        (signal
+         entropy/emacs-major-mode-incompatible-error-symbol
+         (list
+          (format "Current major-mode is '%s' but '%s' is requested"
+                  current-major-mode request-major-mode)))))))
+
+;; **** eemacs emacs-version incompatible error
+(defconst entropy/emacs-emacs-version-incompatible-error-symbol
+  'entropy/emacs-emacs-version-incompatible-error-signal
+  "The entropy-emacs specified error type for `emacs-version'
+incompatible occasions, inherits from
+`entropy/emacs-top-error-symbol'.
+
+Use `entropy/emacs-do-error-for-emacs-version-incompatible' to
+signal an error of this type with its internally emacs version
+comparation mechanism.")
 (define-error entropy/emacs-emacs-version-incompatible-error-symbol
   "Eemacs emacs version incompatible" entropy/emacs-top-error-symbol)
 (defun entropy/emacs-do-error-for-emacs-version-incompatible
-    (emacs-version-request)
-  (signal
-   entropy/emacs-emacs-version-incompatible-error-symbol
-   (list
-    (format "emacs version '%s' request but current stands on '%s'"
-            emacs-version-request emacs-version))))
+    (op request-emacs-version &optional noerror)
+  "Signal a `entropy/emacs-emacs-version-incompatible-error-symbol' type
+error when compare `emacs-version' with the requested emacs version
+REQUEST-EMACS-VERSION via compare operation OP is failed.
 
-(defvar entropy/emacs-package-version-incompatible-error-symbol
-  'entropy/emacs-package-version-incompatible-error-signal)
+The underline compare function is using
+`entropy/emacs-version-compare' so as OP is that OP and the
+REQUEST-EMACS-VERSION must as a version object declared as its did,
+usually should taken by `emacs-version'.
+
+When NOERROR is non-nil then return non-nil when compares as passed,
+nil otherwise."
+  (let ((cmp-rtn
+         (entropy/emacs-version-compare
+          op emacs-version request-emacs-version)))
+    (if noerror cmp-rtn
+      (unless cmp-rtn
+        (signal
+         entropy/emacs-emacs-version-incompatible-error-symbol
+         (list
+          (format "emacs version '%s' '%s' is requested but current stands on '%s'"
+                  op request-emacs-version emacs-version)))))))
+
+;; **** eemacs package version incompatible error
+(defconst entropy/emacs-package-version-incompatible-error-symbol
+  'entropy/emacs-package-version-incompatible-error-signal
+  "The entropy-emacs specified package version incompatible error
+type, inherits from `entropy/emacs-top-error-symbol'.
+
+Use `entropy/emacs-do-error-for-package-version-incompatible' to
+signal an error of this type with its powerful package version
+comparability checking functional.")
 (define-error entropy/emacs-package-version-incompatible-error-symbol
   "Eemacs package version incompatible" entropy/emacs-top-error-symbol)
 (defun entropy/emacs-do-error-for-package-version-incompatible
-    (package-name package-version-request)
-  ;; the package version should obtained by `pkg-info-package-version'
-  (require 'pkg-info)
-  (signal
-   entropy/emacs-package-version-incompatible-error-symbol
-   (list
-    (format "package '%s' version '%s' request but current stands on '%s'"
-            package-name
-            package-version-request
-            (pkg-info-package-version package-name)))))
+    (package-name op request-package-version
+                  &optional noerror current-package-version)
+  "Signal an `entropy/emacs-package-version-incompatible-error-symbol'
+type error when the version of a emacs package named by PACKAGE-NAME
+is compared by operation OP with its requested version
+REQUEST-PACAKGE-VERSION as false judged.
 
+The underline compare function is using
+`entropy/emacs-version-compare' so as OP is that OP and the
+REQUEST-PACAKGE-VERSION must as a version object declared as its did,
+usually should taken by `pkg-info-package-version'.
+
+If optional argument NOERROR is non-nil then return non-nil when the
+comparation is passed, nil otherwise.
+
+If optional argument CURRENT-PACKAGE-VERSION is non-nil, it should be
+the current package version of package PACKAGE-NAME obtained by
+`pkg-info-package-version' used for reducing duplicated internal
+pacakge version retrieval while calling this function in the context
+many times with same PACKAGE-NAME."
+  (unless (featurep 'pkg-info)
+    (require 'pkg-info))
+  (let* ((pkg-cur-ver (or current-package-version
+                          (pkg-info-package-version package-name)))
+         (cmp-rtn (entropy/emacs-version-compare
+                   op pkg-cur-ver request-package-version)))
+    (if noerror cmp-rtn
+      (unless cmp-rtn
+        (signal
+         entropy/emacs-package-version-incompatible-error-symbol
+         (list
+          (format "package '%s' request its version '%s' '%s' \
+but current stands on '%s'"
+                  package-name op
+                  request-package-version pkg-cur-ver)))))))
+
+;; *** eemacs api restriction defination
 (defun entropy/emacs-api-restriction-display-warn (msg &optional do-error)
   (if do-error
       (error msg)
@@ -418,6 +520,7 @@ see `entropy/emacs-api-restriction-detection-log' for details."
                 ,do-error))))
        (unless ,default-sym
          (entropy/emacs-do-eemacs-top-error
+          "%s"
           (format "invalid eemacs api restriction type - %s"
                   ,type-sym)))
        (cond ((funcall ,detector-sym)

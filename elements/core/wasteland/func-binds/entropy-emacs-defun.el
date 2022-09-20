@@ -8885,6 +8885,34 @@ the buffer-locally variable `buffer-read-only'."
        #'entropy/emacs--make-function-inhibit-readonly-localalso
      #'entropy/emacs--make-function-inhibit-readonly-common)))
 
+(defun entropy/emacs-version-compare (op v1 v2)
+  "Compare two version objects V1 an V2 using compare operation
+OP. Return non-nil when compares passed or nil otherwise.
+
+Both V1 and V2 should be a version string (i.e. used for
+`version-to-list') or a version list (i.e. the return of
+`version-to-list').
+
+Compare operation OP is a symbol which can be one of '=' '<' '<=' '>'
+'>=', used as its arithmetic meaning. And the final comparation is
+calculated by corresponding version list functions
+i.e. `version-list-=', `version-list-<' and `version-list-='. As see,
+that the OP of `>' and `>=' is just an alias for did the comparation
+after swapping V1 and V2."
+  (unless (memq op '(< = <= > >=))
+    (signal 'wrong-type-argument
+            (list 'entropy/emacs-version-compare-operation-p
+                  op)))
+  (when (memq op '(> >=)) (entropy/emacs-swap-two-places-value v1 v2 t)
+        (if (eq op '>) (setq op '<)
+          (setq op '<=)))
+  (let ((op (cond ((eq op '<)  'version-list-<)
+                  ((eq op '=)  'version-list-=)
+                  ((eq op '<=) 'version-list-<=))))
+    (unless (listp v1) (setq v1 (version-to-list v1)))
+    (unless (listp v2) (setq v2 (version-to-list v2)))
+    (eq t (funcall op v1 v2))))
+
 (defun entropy/emacs-version-compatible
     (version-limit version-current &optional strict)
   "Versions compatible judger for version spec basing rule of
@@ -10458,7 +10486,7 @@ when MOVE-TO-FILENAME is set, move to the beginning of the
 filename on the line at POSITION only when the result is non-nil,
 Otherwise no movement did.
 "
-  (entropy/emacs-do-error-for-major-moe-incompatible 'dired-mode)
+  (entropy/emacs-do-error-for-major-mode-incompatible 'dired-mode)
   (setq position (or position (point)))
   (entropy/emacs-use-markers-position position)
   (entropy/emacs-buffer-position-p position :do-error t :with-range-check t)
@@ -10498,7 +10526,7 @@ when MOVE-TO-FILENAME is set, move to the beginning of the
 filename on the current line after successfully movement
 done. Return nil when movement can not be did without movement.
 "
-  (entropy/emacs-do-error-for-major-moe-incompatible 'dired-mode)
+  (entropy/emacs-do-error-for-major-mode-incompatible 'dired-mode)
   (setq position (or position (point)))
   (entropy/emacs-use-markers-position position)
   (entropy/emacs-buffer-position-p position :do-error t :with-range-check t)
@@ -10545,7 +10573,7 @@ corresponding edge i.e. `point-max' when arg is positive or
 When MOVE-TO-LINE-BEGINNING-POSITION is non-nil, move `point' to
 the `line-beginning-position' after move down done.
 "
-  (entropy/emacs-do-error-for-major-moe-incompatible 'dired-mode)
+  (entropy/emacs-do-error-for-major-mode-incompatible 'dired-mode)
   (__entropy/emacs-dired-movement-arg-error arg)
   (let (rtn)
     (let ((line-move-visual)
@@ -10608,7 +10636,7 @@ without movement unless MOVE-TO-FILENAME is set, see below:
 When MOVE-TO-FILENAME is set, move to the beginning of the
 filename on the current line after successfully movement done.
 "
-  (entropy/emacs-do-error-for-major-moe-incompatible 'dired-mode)
+  (entropy/emacs-do-error-for-major-mode-incompatible 'dired-mode)
   (__entropy/emacs-dired-movement-arg-error arg)
   (let* ((steps (if arg arg 1))
          (bound (or bound (if (< steps 0) (point-min) (point-max))))
@@ -10683,7 +10711,7 @@ expection.
 MAP-FUNC return 'stop-iterate' is used forcely exist whole
 looping procedure.
 "
-  (entropy/emacs-do-error-for-major-moe-incompatible 'dired-mode)
+  (entropy/emacs-do-error-for-major-mode-incompatible 'dired-mode)
   (let* ((use-region (or use-region
                          (cons (set-marker (make-marker) (point-min))
                                (set-marker (make-marker) (point-max)))))
@@ -10739,7 +10767,7 @@ it should be in one of follow types:
 This function does not move point or change global state,
 including the match data defaulty.
 "
-  (entropy/emacs-do-error-for-major-moe-incompatible 'dired-mode)
+  (entropy/emacs-do-error-for-major-mode-incompatible 'dired-mode)
   (let (rtn)
     (save-excursion
       (entropy/emacs-dired-map-lines

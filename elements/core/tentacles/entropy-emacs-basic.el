@@ -595,7 +595,7 @@ JUMP-TO-FIRST-MARKED-FILE is non-nil.
 When USE-REGION-SELECTION is set, using `region-beginning' and
 `region-end' when `region-active-p' return non-nil, in which case
 cover the begin and end point sets."
-    (entropy/emacs-do-error-for-major-moe-incompatible 'dired-mode)
+    (entropy/emacs-do-error-for-major-mode-incompatible 'dired-mode)
     (if (and use-region-selection
              (region-active-p))
         (setq begin-pt (region-beginning)
@@ -724,7 +724,7 @@ Type `\\[revert-buffer]' to exhibit original full buffer
 contents."
     (declare (interactive-only t))
     (interactive nil dired-mode)
-    (entropy/emacs-do-error-for-major-moe-incompatible 'dired-mode)
+    (entropy/emacs-do-error-for-major-mode-incompatible 'dired-mode)
     (entropy/emacs-dired-narrow--to-marked-files-within-region
      :jump-to-first-marked-file t
      :use-region-selection t))
@@ -5034,7 +5034,7 @@ backtrace:
 "
   :detector (version< "29" (number-to-string emacs-major-version))
   :signal (entropy/emacs-do-error-for-emacs-version-incompatible
-           "29 or lower")
+           '<= "29")
   (when (or (not (display-graphic-p)) (daemonp))
     (advice-patch 'help--analyze-key
                   '(save-excursion
