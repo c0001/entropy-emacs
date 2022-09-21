@@ -165,43 +165,6 @@ With prefix argument binds, jump to the previous mark place."
   ;; using any key-bindings when active "C-<lwindow>-g" in WINDOWS
   (advice-add 'y-or-n-p :override #'entropy/emacs-basic-y-or-n-p))
 
-;; *** Disable gvfs
-
-;; EEMACS_MAINTENANCE
-;; Since tramp archive using simple magick filename regexp
-;; matching, and its internal
-;; `tramp-archive-file-name-handler-alist''s each corresponding
-;; implementation can not follow the equalization API defination of
-;; origin function, thus for most of tramp internal errors will
-;; pollute the thread operations. (e.g. local directory naming as an
-;; archive name will also invoking tramp-archive methods which throw
-;; out many more problems while its magick filename I/O deals)
-(if (> emacs-major-version 27)
-    (with-eval-after-load
-        ;; FIXME: we need to do this after load `tramp-archive' or may
-        ;; cause the invalid file-name-handler error in emacs-28 and
-        ;; why?
-        ;;
-        ;; Try below elisp snippets:
-        ;;
-        ;; #+begin_src elisp
-        ;;   (entropy/emacs-test-emacs-with-pure-setup-with-form
-        ;;    "tramp-archive-enabled-bug-reproduce"
-        ;;    :use-current-package-user-dir nil
-        ;;    :emacs-invocation-name "emacs-28.1"
-        ;;    '(progn
-        ;;       (setq debug-on-error t)
-        ;;       (setq tramp-archive-enabled nil)
-        ;;       (file-directory-p
-        ;;        "/home/entropy/.config/entropy-config/\
-        ;;   entropy-emacs/entropy-emacs/annex/emacs-src/\
-        ;;   test/lisp/net/tramp-archive-resources/foo.iso/foo")
-        ;;       ))
-        ;; #+end_src
-        'tramp-archive
-      (setq tramp-archive-enabled nil))
-  (setq tramp-archive-enabled nil))
-
 ;; ** Basic major-modes spec
 ;; *** Dired config
 ;; **** dired basic

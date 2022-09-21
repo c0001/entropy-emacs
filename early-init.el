@@ -106,5 +106,41 @@
 (setq make-pointer-invisible t
       mouse-highlight 1)
 
+;;;; FIXME Disable tramp archive (gvfs) handler
+
+;; EEMACS_MAINTENANCE
+;; Since tramp archive using simple magick filename regexp
+;; matching, and its internal
+;; `tramp-archive-file-name-handler-alist''s each corresponding
+;; implementation can not follow the equalization API defination of
+;; origin function, thus for most of tramp internal errors will
+;; pollute the thread operations. (e.g. local directory naming as an
+;; archive name will also invoking tramp-archive methods which throw
+;; out many more problems while its magick filename I/O deals)
+;;
+;; Try below elisp snippets:
+;;
+;; #+begin_src elisp
+;;   (entropy/emacs-test-emacs-with-pure-setup-with-form
+;;    "tramp-archive-enabled-bug-reproduce"
+;;    :use-current-package-user-dir nil
+;;    :emacs-invocation-name "emacs-28.1"
+;;    '(progn
+;;       (setq debug-on-error t)
+;;       (setq tramp-archive-enabled t)
+;;       (file-directory-p
+;;        "/home/entropy/.config/entropy-config/\
+;;   entropy-emacs/entropy-emacs/annex/emacs-src/\
+;;   test/lisp/net/tramp-archive-resources/foo.iso/foo")
+;;       ))
+;; #+end_src
+
+;; FIXME: we need to do set it after load `tramp-archive' or may cause
+;; the invalid file-name-handler error in emacs-28 and why?
+;;
+;; DONE [20220921]: this bug has been fix in emacs-28.2
+
+(setq tramp-archive-enabled nil)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; early-init.el ends here
