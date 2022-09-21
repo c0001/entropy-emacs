@@ -8607,7 +8607,7 @@ object which can be used for `eval'."
              (setq __this_eval_form_str ,form-encoded)
              (setq __this_eval_form
                    (,read-base64-func-name __this_eval_form_str))
-             (entropy/emacs-eval-with-lexical __this_eval_form)))
+             (eval __this_eval_form lexical-binding)))
          (proc-eval-form-file
           (with-temp-buffer
             (let ((inhibit-read-only t)
