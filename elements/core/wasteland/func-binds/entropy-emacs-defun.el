@@ -5427,12 +5427,12 @@ type:
   Return its parent directory path."
   (let (rtn (fname (entropy/emacs-directory-file-name file-name)))
     (cl-case type
-      ('non-trail-slash
+      (non-trail-slash
        (setq rtn fname))
-      ('file-name
+      (file-name
        (setq rtn
              (file-name-nondirectory fname)))
-      ('parent-dir
+      (parent-dir
        (setq rtn (file-name-directory fname))))
     rtn))
 

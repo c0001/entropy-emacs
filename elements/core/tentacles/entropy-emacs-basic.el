@@ -930,11 +930,11 @@ For lisp code, optional args:
                             :date (current-time-string))
                       entropy/emacs-basic--dired-files-deleted-history)
                 (cl-case cur-file-type
-                  ('symbol_link
+                  (symbol_link
                    (entropy/emacs-safety-message (format "Delete symbolink '%s' done! -v-" file)))
-                  ('file
+                  (file
                    (entropy/emacs-safety-message (format "Delete file '%s' done! -v-" file)))
-                  ('directory
+                  (directory
                    (entropy/emacs-safety-message (format "Delete directory '%s' done! -v-" file)))))
             (error
              (setq error-occurred t)

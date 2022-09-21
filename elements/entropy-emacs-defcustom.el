@@ -1055,7 +1055,7 @@ Throw an error while noting found when trying out all methods."
                 entropy/emacs-internal-ime-rime-system-share-data-host-path))
     (setq entropy/emacs-internal-ime-rime-system-share-data-host-path
           (cl-case system-type
-            ('gnu/linux
+            (gnu/linux
              (require 'xdg)
              (cl-some (lambda (parent)
                         (let ((dir (expand-file-name "rime-data" parent)))
@@ -1064,9 +1064,9 @@ Throw an error while noting found when trying out all methods."
                       (if (fboundp 'xdg-data-dirs)
                           (xdg-data-dirs)
                         '("/usr/local/share" "/usr/share"))))
-            ('darwin
+            (darwin
              "/Library/Input Methods/Squirrel.app/Contents/SharedSupport")
-            ('windows-nt
+            (windows-nt
              (if (getenv "MSYSTEM_PREFIX")
                  (concat (getenv "MSYSTEM_PREFIX") "/share/rime-data")
                (if (getenv "LIBRIME_ROOT")

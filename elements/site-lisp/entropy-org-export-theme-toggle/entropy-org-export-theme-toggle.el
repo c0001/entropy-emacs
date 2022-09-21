@@ -427,12 +427,12 @@ set as symbol for `cl-case' judged for.
 Core based was function `entropy/org-exptth-theme-urls-retrieve'."
   (let (rtn)
     (cl-case type
-      ('css (setq rtn (entropy/org-exptth-theme-urls-retrieve
-                       snippets
-                       '("<style>" . "</style>"))))
-      ('js (setq rtn (entropy/org-exptth-theme-urls-retrieve
+      (css (setq rtn (entropy/org-exptth-theme-urls-retrieve
                       snippets
-                      '("<script>" . "</script>")))))
+                      '("<style>" . "</style>"))))
+      (js (setq rtn (entropy/org-exptth-theme-urls-retrieve
+                     snippets
+                     '("<script>" . "</script>")))))
     rtn))
 
 (defun entropy/org-exptth-theme-urls-retrieve (snippets flag-cons)

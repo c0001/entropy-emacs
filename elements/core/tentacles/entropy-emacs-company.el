@@ -1212,7 +1212,7 @@ minibuffer."
            (company-grab-symbol)))
      ((eq command 'candidates)
       (cl-case entropy/emacs-company--minibuffer-command
-        ('execute-extended-command (all-completions arg obarray 'commandp))
+        (execute-extended-command (all-completions arg obarray 'commandp))
         (t (apply 'company-capf 'candidates arg ignored))))
      ((not (eq entropy/emacs-company--minibuffer-command 'execute-extended-command))
       (apply 'company-capf command arg ignored))))

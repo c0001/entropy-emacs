@@ -937,12 +937,12 @@
                   compare-func)
              (setq compare-func (funcall column-chl-func-chose counter table-proto))
              (cl-case compare-func
-               ('column-cl-chk-func
+               (column-cl-chk-func
                 (push (if (not info)
                           (funcall column-cl-chk-func sub-proto sub-cur)
                         (funcall column-cl-chk-func sub-proto sub-cur t))
                       rtn))
-               ('column-vt-chk-func
+               (column-vt-chk-func
                 (push (if (not info)
                           (funcall column-vt-chk-func sub-proto subv-proto sub-cur subv-cur)
                         (funcall column-vt-chk-func sub-proto subv-proto sub-cur subv-cur t))
