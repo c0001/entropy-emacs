@@ -8528,7 +8528,7 @@ supplied."
 
 ;; *** Test emacs with pure env
 
-(cl-defun entropy/emacs-test-emacs-with-pure-setup-with-form
+(cl-defun entropy/emacs-test-emacs-with-vanilla-setup
     (proc-name
      &rest forms
      &key
@@ -8552,7 +8552,7 @@ not set, else using that as `invocation-name' for as."
   (let* (proc
          (proc-buffer
           (generate-new-buffer
-           (format "*entropy/emacs-test-emacs-with-pure-setup-with-form/%s*"
+           (format "*entropy/emacs-test-emacs-with-vanilla-setup/%s*"
                    proc-name)))
          ;; -------------------- the read func --------------------
          (read-base64-func-name '__this-read-base64-encoded-sexp-from-buffer)
@@ -8651,7 +8651,7 @@ object which can be used for `eval'."
 
 (declare async-start "ext:async")
 (defun entropy/emacs-run-batch-with-eemacs-pure-env
-    (start-form finish-form &optional defdir)
+    (start-form finish-form &optional with-default-directory-as)
   "Invoke eemacs in batch-mode (i.e. `noninteractive' was non-nil)
 with `entropy/emacs-env-init-with-pure-eemacs-env-p' asynchronously.
 
@@ -8662,12 +8662,16 @@ the FINISH-FORM is invoke after the START-FORM ran out within
 current emacs session and optionally can use the result of
 START-FORM via the internal binding variable =$ASYNC-RESULT=.
 
-The process running `default-directory' is bind to DEFDIR if set
-or will fallback to `temporary-file-directory'."
+The process running `default-directory' is bind to
+WITH-DEFAULT-DIRECTORY-AS if set or will fallback to
+`temporary-file-directory'."
   (unless (featurep 'async)
     (require 'async))
   (entropy/emacs-env-with-pure-eemacs-env
-   (or defdir temporary-file-directory)
+   (or (and with-default-directory-as
+            (entropy/emacs-return-as-default-directory
+             with-default-directory-as))
+       temporary-file-directory)
    (async-start
     `(lambda (&rest _)
        (let ((start-file
@@ -8677,6 +8681,44 @@ or will fallback to `temporary-file-directory'."
          ,start-form))
     `(lambda ($async-result)
        ,finish-form))))
+
+(cl-defun entropy/emacs-run-body-with-eemacs-pure-env
+    (&rest body &key with-default-directory-as emacs-invocation-name &allow-other-keys)
+  "like `entropy/emacs-run-batch-with-eemacs-pure-env' but run BODY with
+gui interactive emacs session. Thus do noting while
+`display-graphic-p' is not checked as valid.
+
+(The main purpose for just using when `display-graphic-p' satisfied
+since we can not determin how to create a new emacs frame in an
+terminal emacs session.)
+
+Return the new emacs session process object when condition has
+been validated, nil or throw errors otherwise.
+
+If WITH-DEFAULT-DIRECTORY-AS is non-nil, use it as the new emacs
+session running start workspace i.e. the `default-directory' of that
+emacs session process. Defaults to use `temporary-file-directory' as
+thus.
+
+The main subroutine of this function is
+`entropy/emacs-test-emacs-with-vanilla-setup' thus for what
+EMACS-INVOCATION-NAME is as is.
+"
+  (when (display-graphic-p)
+    (let* ((body (entropy/emacs-defun--get-real-body body)))
+      (entropy/emacs-env-with-pure-eemacs-env
+       (or (and with-default-directory-as
+                (entropy/emacs-return-as-default-directory
+                 with-default-directory-as))
+           temporary-file-directory)
+       (entropy/emacs-test-emacs-with-vanilla-setup
+        "eemacs-pure-env-interactive-test"
+        :emacs-invocation-name emacs-invocation-name
+        `(progn
+           (load
+            (expand-file-name
+             "init.el" ,entropy/emacs-user-emacs-directory))
+           ,@body))))))
 
 ;; *** Read framework
 ;; **** read string enhanced

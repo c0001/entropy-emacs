@@ -217,9 +217,9 @@ emacs upstream")
             (current-time)))
     (funcall #'__init_eemacs__))
    (t
-    (add-hook 'after-init-hook
-              #'__init_eemacs__
-              ;; at end of init hook
-              100)
-    ))
+    (if after-init-time (funcall #'__init_eemacs__)
+      (add-hook 'after-init-hook
+                #'__init_eemacs__
+                ;; at end of init hook
+                100))))
   )
