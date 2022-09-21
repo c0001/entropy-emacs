@@ -5638,70 +5638,82 @@ Notice there's no backup naming regexp convention guarantee! "
 (defvar entropy/emacs-filesystem-node-watcher--register nil)
 (cl-defun entropy/emacs-add-filesystem-node-watcher
     (filesystem-node-name
-     func-name idle-delay &rest body
+     watcher-name idle-delay &rest body
      &key
      do-at-init
      &allow-other-keys)
   "Add a watcher to FILESYSTEM-NODE-NAME which do BODY when it is
-modified after the first time checking (or did at first time also
-when DO-AT-INIT is non-nil).
+modified after the first time checking (or also did at first time when
+DO-AT-INIT is non-nil).
 
-The =filesystem-node-watcher= is `run-with-idle-timer' repeatly
-delay with IDLE-DELAY seconds.
+The =filesystem-node-watcher= is `run-with-idle-timer' repeatly delay
+with IDLE-DELAY seconds defaultly. Unless IDLE-DELAY is a function in
+which case it should accept one argument i.e. the guard function name
+symbol and should return an timer object which can use in
+`cancel-timer'.
 
-The =filesystem-node-watcher= is named suffixed by FUNC-NAME (a
+The =filesystem-node-watcher= is named suffixed by WATCHER-NAME (a
 string).
 
 Return a =filesystem-node-watcher-object= formed as:
 
 #+begin_src elisp
-(list
- :guard-id fsysnode-watcher-id
- :guard-name fsysnode-watcher-name
- :guard-for-fsysnode fsysnode-for-watched
- :guard-idle-delay fsysnode-watcher-timer-idle-delay
- :guard-func fsysnode-watcher-function-name
- :guard-timer-var fsysnode-watcher-timer-varname
- :fsysnode-modification-timestamp-var
- fsysnode-watcher-modification-cache-varname
- )
+  (list
+   ;; the unique id of this watcher
+   :guard-id           fsysnode-watcher-id
+   ;; the name of this watcher
+   :guard-name         fsysnode-watcher-name
+   ;; which file is watched by this watcher
+   :guard-for-fsysnode fsysnode-for-watched
+   ;; this wather's timer funtion
+   :guard-func         fsysnode-watcher-function-name
+   ;; this wather's timer variable
+   :guard-timer-var    fsysnode-watcher-timer-varname
+   ;; the last modified time stamp hosted variable for this watcher watched file
+   :fsysnode-modification-timestamp-var
+   fsysnode-watcher-modification-cache-varname
+   )
 #+end_src
 
-The =filesystem-node-watcher-object= can be used to delete
-enabled filesystem-node-name watcher by
-`entropy/emacs-remove-filesystem-node-watcher-core'. You can also
-use `entropy/emacs-remove-filesystem-node-watcher' to remove all
-the FILESYSTEM-NODE-NAME related =filesystem-node-watcher=.
+The =filesystem-node-watcher-object= can be used to delete enabled
+filesystem-node-name watcher by
+`entropy/emacs-remove-filesystem-node-watcher-core'. You can also use
+`entropy/emacs-remove-filesystem-node-watcher' to remove all the
+FILESYSTEM-NODE-NAME related =filesystem-node-watcher=.
 
-DO-AT-INIT can either a form since its be expanded in the timer func
+DO-AT-INIT can either a form since it's be expanded in the timer func
 body.
 "
-  ;; Using the expanded node name since we must identify it
+  ;; Using the expanded node filename since we must identify it
   ;; `entropy/emacs-filesystem-node-watcher--register'.
-  (setq filesystem-node-name (expand-file-name filesystem-node-name))
+  (setq filesystem-node-name (entropy/emacs-directory-file-name
+                              (expand-file-name filesystem-node-name)))
   (let* ((this-id entropy/emacs-add-filesystem-node-watcher--id-pool)
          (timer-func-name
           (intern
-           (format "eemacs-filesystem-node-watcher-func/%s--%d"
-                   func-name this-id)))
+           (format "eemacs-filesystem-node-watcher/guard-func/%s--%d"
+                   watcher-name this-id)))
          (modi-var-name
           (intern
-           (format "eemacs-filesystem-node-watcher-modification-var/%s--%d"
-                   func-name this-id)))
+           (format "eemacs-filesystem-node-watcher/modification-var/%s--%d"
+                   watcher-name this-id)))
          (timer-var-name
           (intern
-           (format "eemacs-filesystem-watcher-timer-var/%s--%d"
-                   func-name this-id)))
+           (format "eemacs-filesystem-node-watcher/timer-var/%s--%d"
+                   watcher-name this-id)))
+         (file-attrs-sym (make-symbol "fattrs"))
+         (file-moditime-sym (make-symbol "fmoditime"))
          (this-do-at-init do-at-init)
          (this-fsysnode filesystem-node-name)
-         (this-idle-delay idle-delay)
+         (this-idle-delay (if (functionp idle-delay) (list 'function idle-delay)
+                            idle-delay))
+         (this-idle-delay-sym (make-symbol "idle-delay-var"))
          (this-body (entropy/emacs-get-plist-body body))
          (rtn
           `(:guard-for-fsysnode
             ,this-fsysnode
             :guard-id ,this-id
-            :guard-name ,func-name
-            :guard-idle-delay ,this-idle-delay
+            :guard-name ,watcher-name
             :guard-func ,timer-func-name
             :guard-timer-var ,timer-var-name
             :fsysnode-modification-timestamp-var
@@ -5711,45 +5723,54 @@ body.
                (progn
                  ,@this-body)
              (entropy/emacs-remove-filesystem-node-watcher-core
-              ',rtn)))
-         )
+              ',rtn))))
     (cl-incf entropy/emacs-add-filesystem-node-watcher--id-pool)
     (entropy/emacs-eval-with-lexical
-     `(progn
+     `(let ((,this-idle-delay-sym ,this-idle-delay))
         (defvar ,modi-var-name nil
-          ,(format "filesystem-node-name [%s] modification timestamp host for =filesystem-node-watcher= `%s'"
+          ,(format "filesystem-node-name \"%s\" modification timestamp \
+host for =filesystem-node-watcher= `%s'"
                    this-fsysnode timer-func-name))
         (defvar ,timer-var-name nil
-          ,(format "filesystem-node-name [%s] modification guard timer for =filesystem-node-watcher= `%s'"
+          ,(format "filesystem-node-name \"%s\" modification guard timer \
+for =filesystem-node-watcher= `%s'"
                    this-fsysnode timer-func-name))
         (defun ,timer-func-name (&rest _)
-          ,(format "=filesystem-node-watcher= for =filesystem-node= [%s], \
+          ,(format "=filesystem-node-watcher= for =filesystem-node= \"%s\", \
 using timer `%s' and `%s' as modification timestamp."
                    this-fsysnode timer-var-name modi-var-name)
           (if (entropy/emacs-filesystem-node-exists-p
                ,this-fsysnode)
-              (let* ((fattrs (entropy/emacs-get-filesystem-node-attributes
-                              ,this-fsysnode))
-                     (fmoditime (plist-get fattrs :modification-time)))
+              (let* ((,file-attrs-sym
+                      (entropy/emacs-get-filesystem-node-attributes
+                       ,this-fsysnode))
+                     (,file-moditime-sym (plist-get ,file-attrs-sym :modification-time)))
                 (if (bound-and-true-p ,modi-var-name)
-                    (unless (equal fmoditime ,modi-var-name)
+                    (unless (equal ,file-moditime-sym ,modi-var-name)
                       ,this-body-wrapper)
                   (when ,this-do-at-init
                     ,this-body-wrapper))
-                (setq ,modi-var-name fmoditime))
+                (setq ,modi-var-name ,file-moditime-sym))
             (setq ,modi-var-name nil)))
+        (let (byte-compile-warnings)
+          (byte-compile ',timer-func-name))
         (setq ,timer-var-name
-              (run-with-idle-timer ,this-idle-delay
-                                   t
-                                   #',timer-func-name))))
+              (if (functionp ,this-idle-delay-sym)
+                  (funcall ,this-idle-delay-sym ',timer-func-name)
+                (run-with-idle-timer ,this-idle-delay-sym t #',timer-func-name)))))
     (push rtn entropy/emacs-filesystem-node-watcher--register)
+    ;; return
     rtn))
 
 (defun entropy/emacs-remove-filesystem-node-watcher-core
     (filesystem-node-watcher-obj)
-  "Remove a =filesystem-node-watcher= whose
+  "Remove (destroy) a =filesystem-node-watcher=
 FILESYSTEM-NODE-WATCHER-OBJ created by
-`entropy/emacs-add-filesystem-node-watcher'."
+`entropy/emacs-add-filesystem-node-watcher'.
+
+With the removal, all variables and functions related to
+FILESYSTEM-NODE-WATCHER-OBJ is destroyed with `unintern', and related
+timer is canceled as well."
   (let* ((fobj filesystem-node-watcher-obj)
          (ffunc (plist-get fobj :guard-func))
          (fmovar (plist-get fobj :fsysnode-modification-timestamp-var))
@@ -5758,18 +5779,20 @@ FILESYSTEM-NODE-WATCHER-OBJ created by
     (when (timerp ftimer)
       (cancel-timer ftimer))
     (dolist (sym `(,ffunc ,fmovar ,ftimer-var))
-      (entropy/emacs-unintern-symbol
-       sym))
+      (entropy/emacs-unintern-symbol sym))
     (setq entropy/emacs-filesystem-node-watcher--register
-          (delete
-           fobj
-           entropy/emacs-filesystem-node-watcher--register))))
+          (delete fobj
+                  entropy/emacs-filesystem-node-watcher--register))))
 
 (defun entropy/emacs-remove-filesystem-node-watcher
     (filesystem-node-name)
   "Remove all =filesystem-node-watcher= created by
-`entropy/emacs-add-filesystem-node-watcher' with
-FILESYSTEM-NODE."
+`entropy/emacs-add-filesystem-node-watcher' with FILESYSTEM-NODE-NAME.
+
+The FILESYSTEM-NODE-NAME's comparation is did by `equal' with ignored
+directory name feature i.e. convert each FILESYSTEM-NODE-NAME to a
+filename.
+"
   (let* ((fsysname (entropy/emacs-directory-file-name
                     (expand-file-name filesystem-node-name))))
     (dolist (fobj (copy-sequence
