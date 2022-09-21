@@ -129,7 +129,7 @@
 ;;       (setq debug-on-error t)
 ;;       (setq tramp-archive-enabled t)
 ;;       (file-directory-p
-;;        "/home/entropy/.config/entropy-config/\
+;;        "~/.config/entropy-config/\
 ;;   entropy-emacs/entropy-emacs/annex/emacs-src/\
 ;;   test/lisp/net/tramp-archive-resources/foo.iso/foo")
 ;;       ))
