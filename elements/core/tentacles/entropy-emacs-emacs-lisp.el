@@ -213,7 +213,7 @@ byte-code into a popup buffer.
                            (prin1 eval-form buff)
                            (lisp-data-mode)
                            ;; FIXME: please add hook for that to disable as instead of this.
-                           (if hl-line-mode (hl-line-mode -1))
+                           (if (bound-and-true-p hl-line-mode) (hl-line-mode -1))
                            (pp-buffer)
                            (setq buffer-read-only t)
                            ;; we must wrap the context to origin
