@@ -935,8 +935,9 @@ For lisp code, optional args:
 
 ;; ******* Get both UNIX and WINDOWS style path string
   (defvar entropy/emacs-basic-dired-fpath-get-log nil
-    "The log list stored file path temporarily, will be reset
-when you call `entropy/emacs-basic-get-dired-fpath'.")
+    "The `dired-get-marked-files' result obtained by the last invocation of
+`entropy/emacs-basic-get-dired-fpath' with sort order as dired buffer
+list's top to bottom.")
 
   (defun entropy/emacs-basic-get-dired-fpath (type)
     "Get marked files path and push them to the `kill-ring'."
@@ -945,51 +946,47 @@ when you call `entropy/emacs-basic-get-dired-fpath'.")
      (list (completing-read "Choose path string type: "
                             '("unix" "win32")))
      dired-mode)
-    (let (rtn
-          (files_get (or (dired-get-marked-files)
-                         (list default-directory)))
-          ;; (curl-marked-p
-          ;;  (save-excursion
-          ;;    (forward-line 0)
-          ;;    (save-match-data
-          ;;      (re-search-forward (dired-marker-regexp)
-          ;;                         (line-end-position) t))))
-          (curl-fname (dired-get-filename))
-          (killring-save-func
-           (lambda (&rest strs)
-             (dolist (el strs)
-               (with-temp-buffer
-                 (when buffer-read-only
-                   (setq buffer-read-only nil))
-                 (goto-char (point-min))
-                 (insert el)
-                 (kill-ring-save (point-min) (point-max))
-                 (entropy/emacs-safety-message
-                  "Save '%s' to kill-ring."
-                  el))))))
-      (dolist (el files_get)
+    (let* ((cur-defdir (expand-file-name default-directory))
+           (curln-topdir-p (not (entropy/emacs-dired-fname-line-p)))
+           (curln-marked-p (and (not curln-topdir-p)
+                                (entropy/emacs-dired-marked-line-p)))
+           (curln-fname (unless curln-topdir-p (dired-get-filename)))
+           (dired-mkfiles (dired-get-marked-files))
+           (_ (if (entropy/emacs-lonely-listp dired-mkfiles)
+                  (unless curln-marked-p
+                    (if (string= curln-fname (car dired-mkfiles))
+                        (setq dired-mkfiles nil)))))
+           rtn
+           (win32-path-transfer-func
+            (lambda (x)
+              (replace-regexp-in-string "/" "\\\\" x)))
+           (killring-save-func
+            (lambda (&rest strs)
+              (dolist (el strs)
+                (with-temp-buffer
+                  (insert el)
+                  (kill-ring-save (point-min) (point-max))
+                  (entropy/emacs-safety-message
+                   "Save '%s' to kill-ring." el))))))
+      (when (string= type "win32")
+        (setq cur-defdir (funcall win32-path-transfer-func cur-defdir)))
+      (dolist (el dired-mkfiles)
         (cond
          ((string= type "win32")
-          (push (replace-regexp-in-string
-                 "/"
-                 "\\\\"
-                 el)
-                rtn))
-         (t
-          (push el rtn))))
-
+          (push (funcall win32-path-transfer-func el) rtn))
+         (t (push el rtn))))
       (cond
-       ((= (length rtn) 1)
-        (apply killring-save-func rtn))
+       ((null rtn)
+        (funcall killring-save-func (or curln-fname cur-defdir)))
+       ((and (entropy/emacs-lonely-listp rtn) curln-marked-p)
+        (funcall killring-save-func curln-fname))
        (t
-        (setq rtn (reverse rtn)
-              entropy/emacs-basic-dired-fpath-get-log nil
+        (setq rtn (nreverse rtn)
               entropy/emacs-basic-dired-fpath-get-log rtn)
-
-        (funcall killring-save-func curl-fname)
+        (funcall killring-save-func (or curln-fname cur-defdir))
         (message "Save all path string to log variable \
-'entropy/emacs-basic-dired-fpath-get-log' and the current line filename to the `kill-ring'.")
-        ))))
+'entropy/emacs-basic-dired-fpath-get-log' and \
+the current line filename to the `kill-ring'.")))))
 
 ;; ******* Dired add load path
   (defun entropy/emacs-basic--dired-add-to-load-path ()
