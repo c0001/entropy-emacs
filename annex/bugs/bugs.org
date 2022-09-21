@@ -1229,26 +1229,61 @@ in which case the backtrace is like:
 
 It's triggerred by call `entropy/emacs-basic-dired/print-tree' for
 print the dirctory "~/.emacs.d/annex/emacs-src" flow up to its subdir
-"test/lisp/net/tramp-archive-resources/foo.iso" done as like:
+"test/lisp/net/tramp-archive-resources/foo.iso".
 
+But we can not reproduce its bug with entropy-emacs pure env tester
+both of:
+1) for interactively call ~entropy/emacs-basic-dired/print-tree~
 #+begin_src elisp
-(progn
-  ;; forcely trigger an debug since some primitive error are not
-  ;; forcely popup the debugger
-  (unless debug-on-error (setq debug-on-error t))
-  (unwind-protect
-      ;; a fake error
-      (1+ 'a)
-    ;; forcely tidy up old debugger informations while we should use new
-    ;; since emacs will not print the debug tree if prevous debug tree is
-    ;; not cleanup.
-    (if (buffer-live-p (get-buffer "*Backtrace*"))
-        (with-current-buffer (get-buffer "*Backtrace*")
-          (debugger-quit)))
-    (entropy/emacs-print-dir-recursively
-     "~/.emacs.d/annex/emacs-src"
-     (get-buffer-create "*haha*") 'with-files)))
+  (entropy/emacs-run-body-with-eemacs-pure-env
+   '(let ((buff (get-buffer-create "*haha*")))
+      ;; forcely trigger an debug since some primitive error are not
+      ;; forcely popup the debugger
+      (unless debug-on-error (setq debug-on-error t))
+      (dired "~/.emacs.d/annex/")
+      (when (re-search-forward "emacs-src")
+        (unwind-protect
+            ;; a fake error
+            (1+ 'a)
+          (require 'entropy-emacs-package)
+          (entropy/emacs-package-common-start)
+          (require 'entropy-emacs-hydra-hollow)
+          (require 'entropy-emacs-basic)
+          ;; forcely tidy up old debugger informations while we should use new
+          ;; since emacs will not print the debug tree if prevous debug tree is
+          ;; not cleanup.
+          (if (buffer-live-p (get-buffer "*Backtrace*"))
+              (with-current-buffer (get-buffer "*Backtrace*")
+                (debugger-quit)))
+          (let ((current-prefix-arg 0))
+            (call-interactively #'entropy/emacs-basic-dired/print-tree))))))
 #+end_src
+
+1) Or use its core of  ~entropy/emacs-print-dir-recursively~
+#+begin_src elisp
+  (entropy/emacs-run-body-with-eemacs-pure-env
+   '(let ((buff (get-buffer-create "*haha*")))
+      (switch-to-buffer buff)
+      ;; forcely trigger an debug since some primitive error are not
+      ;; forcely popup the debugger
+      (unless debug-on-error (setq debug-on-error t))
+      (unwind-protect
+          ;; a fake error
+          (1+ 'a)
+        ;; forcely tidy up old debugger informations while we should use new
+        ;; since emacs will not print the debug tree if prevous debug tree is
+        ;; not cleanup.
+        (if (buffer-live-p (get-buffer "*Backtrace*"))
+            (with-current-buffer (get-buffer "*Backtrace*")
+              (debugger-quit)))
+        (entropy/emacs-print-dir-recursively
+         "~/.emacs.d/annex/emacs-src"
+         buff 'with-files))))
+#+end_src
+
+Thus it could only be reproduced while load entropy-emacs fully on. We
+suspect its caused for some third-party libs or eemacs internal
+fatals.
 
 There's a temporally fix that is to required =tramp-archive= before
 calling `entropy/emacs-basic-dired/print-tree' then anything is ok, so
