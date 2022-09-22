@@ -185,7 +185,7 @@ With prefix argument binds, jump to the previous mark place."
         :enable t
         :exit t
         :map-inject t)
-       ("M-o" entropy/emacs-dired-find-file-other-window "Open item in other window"
+       ("M-o" entropy/emacs-basic-dired-find-file-other-window "Open item in other window"
         :enable t
         :exit t
         :map-inject t)
@@ -205,11 +205,11 @@ With prefix argument binds, jump to the previous mark place."
         :exit t)
        ("S" hydra-dired-quick-sort/body "Sort dired with hydra dispatch"
         :enable (not sys/win32p) :map-inject t :exit t)
-       ("M-<up>" entropy/emacs-dired-Meta-up "Go/move point to parent dired-buffer/dir-node"
+       ("M-<up>" entropy/emacs-basic-dired-Meta-up "Go/move point to parent dired-buffer/dir-node"
         :enable t
         :map-inject t
         :exit t)
-       ("M-<down>" entropy/emacs-dired-Meta-down "Go/move point to next upgrade sibling dired-buffer/dir-node"
+       ("M-<down>" entropy/emacs-basic-dired-Meta-down "Go/move point to next upgrade sibling dired-buffer/dir-node"
         :enable t
         :map-inject t
         :exit t)
@@ -268,7 +268,7 @@ With prefix argument binds, jump to the previous mark place."
         :enable sys/is-linux-and-graphic-support-p :map-inject t :exit t)
        ("C" dired-do-copy "Copy all marked (or next ARG) files, or copy the current file"
         :enable t :map-inject t :exit t)
-       ("M" entropy/emacs-dired-do-hard-or-symbolic-links-union-processor
+       ("M" entropy/emacs-basic-dired-do-hard-or-symbolic-links-union-processor
         "Mirror(symlink/hardlink) all marked files, or mirror the current file"
         :enable t :map-inject t :exit t)
        ("L" dired-do-load "Load the marked (or next ARG) Emacs Lisp files"
@@ -308,7 +308,7 @@ With prefix argument binds, jump to the previous mark place."
         :enable t
         :map-inject t
         :exit t)
-       ("A" entropy/emacs-dired-do-counts-marked-files-recursively
+       ("A" entropy/emacs-basic-dired-do-counts-marked-files-recursively
         "Count marked items recursively"
         :enable t
         :map-inject t
@@ -452,7 +452,7 @@ modifcation is to remove this feature.
 ;; ****** Eemacs spec `dired' commands
 ;; ******* Dired sibling directory navigation dwim
 
-  (defun entropy/emacs-dired-Meta-up ()
+  (defun entropy/emacs-basic-dired-Meta-up ()
     "Goto parent `dired' buffer of `dired-current-directory' or goto
 the parent subtree sibling using `dired-sutree-up'."
     (declare (interactive-only t))
@@ -466,7 +466,7 @@ the parent subtree sibling using `dired-sutree-up'."
        (t
         (dired-up-directory)))))
 
-  (defun entropy/emacs-dired-Meta-down ()
+  (defun entropy/emacs-basic-dired-Meta-down ()
     "Downup to parent next sibling `dired' buffer of
 `dired-current-directory' or goto the next upgrade level 1
 subtree sibling using `dired-subtree''s subroutine."
@@ -505,7 +505,7 @@ subtree sibling using `dired-subtree''s subroutine."
 
 ;; ******* Yet another `narrow-to-region' to suite for `dired'
 
-  (defun entropy/emacs-dired-narrow-to-region ()
+  (defun entropy/emacs-basic-dired-narrow-to-region ()
     "Like `narrow-to-region' but with `dired' specfications and
 adapting thus and just enable when `region-active-p' is
 predicated."
@@ -542,7 +542,7 @@ predicated."
                        (point))))
         (narrow-to-region regbeg regend))))
   (define-key dired-mode-map [remap narrow-to-region]
-    #'entropy/emacs-dired-narrow-to-region)
+    #'entropy/emacs-basic-dired-narrow-to-region)
 
   (cl-defun entropy/emacs-dired-narrow--to-marked-files-within-region
       (&key begin-pt end-pt
@@ -678,7 +678,7 @@ cover the begin and end point sets."
          :use-filter 'mark
          :move-to-filename t))))
 
-  (defun entropy/emacs-dired-narrow-to-marked-files ()
+  (defun entropy/emacs-basic-dired-narrow-to-marked-files ()
     "Narrow `dired' buffer contents to only marked files with
 necessary extra informations preserved like dir header (or subdir
 header) and `dired-subtree' parent context's hierarchy.
@@ -694,7 +694,7 @@ contents."
 
 ;; ******* Yet another `dired-find-file-other-window'
 
-  (defun entropy/emacs-dired-find-file-other-window ()
+  (defun entropy/emacs-basic-dired-find-file-other-window ()
     "Like `dired-find-file-other-window' but tied toi eemacs spec."
     (declare (interactive-only t))
     (interactive nil dired-mode)
@@ -1281,7 +1281,7 @@ interaction hint."
   (defun entropy/emacs-basic--dired-do-hard-or-symbolic-link-prompt
       (op-type files-list)
     "A alternative `dired-mark-pop-up' for
-`entropy/emacs-dired-do-hard-or-symbolic-links-union-processor'
+`entropy/emacs-basic-dired-do-hard-or-symbolic-links-union-processor'
 predicating files with prompting and throw an error for quit when
 user refuse the prompts."
     (let ((op-name
@@ -1309,7 +1309,7 @@ user refuse the prompts."
         (error "Cancel %s files!"
                op-name))))
 
-  (defun entropy/emacs-dired-do-hard-or-symbolic-links-union-processor
+  (defun entropy/emacs-basic-dired-do-hard-or-symbolic-links-union-processor
       (use-hardlink)
     "Do files mirror using (symlink/hardlink) powered by
 `entropy/emacs-do-directory-mirror' for `dired-get-marked-files'
@@ -1596,7 +1596,7 @@ in current `dired' buffer. Use symbolic link type defautly unless
 
 ;; ******* Dired count marked files recursively
 
-  (defun entropy/emacs-dired-do-counts-marked-files-recursively (arg)
+  (defun entropy/emacs-basic-dired-do-counts-marked-files-recursively (arg)
     "Do count files recursively for marked items in `dired-mode'
 buffer with level restriction by ARG.
 
@@ -1806,7 +1806,7 @@ TODO:
   :commands
   (dired-subtree-toggle
    dired-subtree-cycle
-   entropy/emacs-dired-subtree-cycle)
+   entropy/emacs-basic-dired-subtree-cycle)
 ;; ***** eemacs mmphca
   :eemacs-mmphca
   (((:enable t :defer (:data (:adfors (dired-mode-hook) :adtype hook :pdumper-no-end t)))
@@ -1815,7 +1815,7 @@ TODO:
     (("TAB" dired-subtree-toggle
       "Insert subtree at point (vice versa)."
       :enable t :map-inject t :exit t)
-     ("<backtab>" entropy/emacs-dired-subtree-cycle
+     ("<backtab>" entropy/emacs-basic-dired-subtree-cycle
       "Org-mode like cycle visibilitya"
       :enable t :map-inject t :exit t))))
 ;; ***** config
@@ -2158,7 +2158,7 @@ is the minimal nested one from PT."
 ;; ****** eemacs spec commands
 ;; ******* multi `dired-subtree-cycle'
 
-  (defun entropy/emacs-dired-subtree-cycle (&optional max-depth)
+  (defun entropy/emacs-basic-dired-subtree-cycle (&optional max-depth)
     "Like `dired-subtree-cycle' but mapped with
 `dired-get-marked-files' when marked directories found."
     (declare (interactive-only t))
