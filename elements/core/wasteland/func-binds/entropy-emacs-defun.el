@@ -1313,6 +1313,28 @@ instead.
       :with-tail t
       (funcall func it))))
 
+(defun entropy/emacs-list-mapc-with-notify-endp (func list)
+  "Like `entropy/emacs-list-mapc' but FUNC should take another
+argument i.e. the non-nil value for indicate current element is
+the last in LIST.
+
+Thus FUNC showed formed as:
+(fn elt endp)
+
+The last element is the last non-nil cdr of LIST or last car of
+LIST while its last cdr is nil.
+"
+  (unless (listp list)
+    (signal 'wrong-type-argument (list 'listp list)))
+  (if (atom list) nil
+    (let (endp)
+      (entropy/emacs-list-map-cdr list
+        (if (null (cdr it)) (setq endp t))
+        (funcall func (car it) endp)
+        (unless endp
+          (if (atom (cdr it))
+              (funcall func (cdr it) (setq endp t))))))))
+
 (defun entropy/emacs-list-map-replace (func list)
   "Call function FUNC for each element of `listp' list and replace
 the element with the return of FUNC, in destructively way. Return
