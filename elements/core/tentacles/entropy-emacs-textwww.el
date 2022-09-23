@@ -48,7 +48,16 @@
           search-query
           search-engine
           open-history)
-  (let ()
+  (let ((cmd-get-func
+         (lambda (cmd-maybe)
+           (cond
+            ((symbolp cmd-maybe) cmd-maybe)
+            (t (car cmd-maybe)))))
+        (map-get-func
+         (lambda (cmd-maybe)
+           (cond
+            ((symbolp cmd-maybe) (list :map-inject (not (null mode-map))))
+            (t (cdr cmd-maybe))))))
     `(entropy/emacs-lazy-initial-for-hook
       '(eww-mode-hook w3m-mode-hook)
       ,(format"text-www-hydra-hollow-init/for-%s" mode)
@@ -58,44 +67,68 @@
       (entropy/emacs-hydra-hollow-define-major-mode-hydra-common-sparse-tree
        ',mode '(,feature ,mode-map) t
        '("Basic"
-         (("s" ,search-query "Search"
-           :enable (not (null ',search-query)) :map-inject (not (null ',mode-map))
+         (("s" ,(funcall cmd-get-func search-query)
+           "Search"
+           :enable ,(not (null search-query))
+           ,@(funcall map-get-func search-query)
            :exit t)
-          ("S" ,search-engine "Toggle search engine"
-           :enable (not (null ',search-engine)) :map-inject (not (null ',mode-map))
+          ("S" ,(funcall cmd-get-func search-engine)
+           "Toggle search engine"
+           :enable ,(not (null search-engine))
+           ,@(funcall map-get-func search-engine)
            :exit t)
-          ("t" ,toggle-inline-image "Toggle display current image"
-           :enable (not (null ',toggle-inline-image)) :map-inject (not (null ',mode-map))
+          ("t" ,(funcall cmd-get-func toggle-inline-image)
+           "Toggle display current image"
+           :enable ,(not (null toggle-inline-image))
+           ,@(funcall map-get-func toggle-inline-image)
            :exit t)
-          ("T" ,toggle-image "Toggle display all images "
-           :enable (not (null ',toggle-image)) :map-inject (not (null ',mode-map))
+          ("T" ,(funcall cmd-get-func toggle-image)
+           "Toggle display all images "
+           :enable ,(not (null toggle-image))
+           ,@(funcall map-get-func toggle-image)
            :exit t))
          "Page Move"
-         (("l" ,previous-page "Previous Page"
-           :enable (not (null ',previous-page)) :map-inject (not (null ',mode-map))
+         (("l" ,(funcall cmd-get-func previous-page)
+           "Previous Page"
+           :enable ,(not (null previous-page))
+           ,@(funcall map-get-func previous-page)
            :exit t)
-          ("n" ,next-page "Next Page"
-           :enable (not (null ',next-page)) :map-inject (not (null ',mode-map))
+          ("n" ,(funcall cmd-get-func next-page)
+           "Next Page"
+           :enable ,(not (null next-page))
+           ,@(funcall map-get-func next-page)
            :exit t)
-          ("e" ,browse-with-external "Browse Externally"
-           :enable (not (null ',browse-with-external)) :map-inject (not (null ',mode-map))
+          ("e" ,(funcall cmd-get-func browse-with-external)
+           "Browse Externally"
+           :enable ,(not (null browse-with-external))
+           ,@(funcall map-get-func browse-with-external)
            :exit t))
          "Link Retrieve"
-         (("c" ,current-page-url "Copy Current Page Url"
-           :enable (not (null ',current-page-url)) :map-inject (not (null ',mode-map))
+         (("c" ,(funcall cmd-get-func current-page-url)
+           "Copy Current Page Url"
+           :enable ,(not (null current-page-url))
+           ,@(funcall map-get-func current-page-url)
            :exit t)
-          ("u" ,current-link-url "Copy Current Link Url"
-           :enable (not (null ',current-link-url)) :map-inject (not (null ',mode-map))
+          ("u" ,(funcall cmd-get-func current-link-url)
+           "Copy Current Link Url"
+           :enable ,(not (null current-link-url))
+           ,@(funcall map-get-func current-link-url)
            :exit t))
          "Bookmark Operation"
-         (("b" ,bookmark-library-view "View Bookmarks"
-           :enable (not (null ',bookmark-library-view)) :map-inject (not (null ',mode-map))
+         (("b" ,(funcall cmd-get-func bookmark-library-view)
+           "View Bookmarks"
+           :enable ,(not (null bookmark-library-view))
+           ,@(funcall map-get-func bookmark-library-view)
            :exit t)
-          ("a" ,bookmark-add "Add Bookmark"
-           :enable (not (null ',bookmark-add)) :map-inject (not (null ',mode-map))
+          ("a" ,(funcall cmd-get-func bookmark-add)
+           "Add Bookmark"
+           :enable ,(not (null bookmark-add))
+           ,@(funcall map-get-func bookmark-add)
            :exit t)
-          ("h" ,open-history "Open browse history"
-           :enable (not (null ',open-history)) :map-inject (not (null ',mode-map))
+          ("h" ,(funcall cmd-get-func open-history)
+           "Open browse history"
+           :enable ,(not (null open-history))
+           ,@(funcall map-get-func open-history)
            :exit t)))))))
 
 ;; ** browsers
@@ -562,19 +595,19 @@ to restore."
 (use-package eww
   :preface
 ;; **** get image url
-  (entropy/emacs-lazy-load-simple 'shr
-    (defun entropy/emacs-textwww-get-eww-url ()
-      "Get image or point url at eww or it's derived modes."
-      (interactive nil eww-mode)
-      (let* (choice
-             (url (or (and (setq choice "image-url") (get-text-property (point) 'image-url))
-                      (and (setq choice "common-url") (get-text-property (point) 'shr-url)))))
-        (if url
-            (progn
-              (kill-new url)
-              (message "Copy %s: '%s' ." choice url)
-              url)
-          (error (format "Can not find %s here!" choice))))))
+  (defun entropy/emacs-textwww-get-eww-url ()
+    "Get image or point url at eww or it's derived modes."
+    (interactive nil eww-mode)
+    (let* (choice
+           (url (or (and (setq choice "image-url")
+                         (get-text-property (point) 'image-url))
+                    (and (setq choice "common-url")
+                         (get-text-property (point) 'shr-url)))))
+      (if (not url) (error (format "Can not find %s here!" choice))
+        (kill-new url)
+        (message "Copy %s: '%s' ." choice url)
+        url)))
+
   :init
 ;; **** uniform
 
@@ -588,7 +621,16 @@ to restore."
    :open-history eww-list-histories
    :browse-with-external entropy/emacs-textwww-eww-open-url-external
    :current-page-url eww-copy-page-url
-   :current-link-url entropy/emacs-textwww-get-eww-url
+   :current-link-url (entropy/emacs-textwww-get-eww-url
+                      :map-inject
+                      (:data
+                       :do-beautify-notation t
+                       :do-spec-hydra-injector
+                       (:data
+                        :self-list
+                        (eww eww-mode-map)
+                        (eww eww-link-keymap)
+                        (eww eww-image-link-keymap))))
    :previous-page eww-back-url
    :next-page eww-next-url
    :search-query eww

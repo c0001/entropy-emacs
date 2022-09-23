@@ -1900,7 +1900,7 @@ Both KEY and COMMAND can be nil expect that the ':inject-key' and
             (entropy/emacs-hydra-hollow-define-key
              ',(cadr pair)
              ,(or (plist-get (cddr pair) :inject-key) key)
-             #',command)))))
+             ',(or (plist-get (cddr pair) :inject-command) command))))))
      ((entropy/emacs-hydra-hollow-hydra-injector-valid-p hydra-injector)
       (entropy/emacs-eval-with-lexical
        `(entropy/emacs-lazy-load-simple ',(car hydra-injector)
@@ -1908,7 +1908,7 @@ Both KEY and COMMAND can be nil expect that the ':inject-key' and
           (entropy/emacs-hydra-hollow-define-key
            ',(cadr hydra-injector)
            ,(or (plist-get (cddr hydra-injector) :inject-key) key)
-           #',command)))))))
+           ',(or (plist-get (cddr hydra-injector) :inject-command) command))))))))
 
 (defun entropy/emacs-hydra-hollow-make-hydra-injector
     (hydra-injector-maybe feature-replace map-replace)
@@ -2227,11 +2227,11 @@ as for judging with 't' or 'nil'.
   "Sort RICHED-PRETTY-HYDRA-CASKET-PREDICATE-PATTERN with the
 priority as the same as the key order in
 `entropy/emacs-hydra-hollow-predicative-keys'."
-  (let (rtn)
+  (let (rtn tmpvar)
     (dolist (item entropy/emacs-hydra-hollow-predicative-keys)
-      (when (assoc (car item) riched-pretty-hydra-casket-predicate-pattern)
+      (when (setq tmpvar (assoc (car item) riched-pretty-hydra-casket-predicate-pattern))
         (entropy/emacs-nconc-with-setvar-use-rest rtn
-          (list (assoc (car item) riched-pretty-hydra-casket-predicate-pattern)))))
+          (list tmpvar))))
     rtn))
 
 (defun entropy/emacs-hydra-hollow-rebuild-pretty-hydra-cabinet
