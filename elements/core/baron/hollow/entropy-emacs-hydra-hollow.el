@@ -1889,26 +1889,26 @@ HYDRA-INJECTOR with key KEY and command COMMAND.
 Both KEY and COMMAND can be nil expect that the ':inject-key' and
 ':inject-command' slot in the HYDRA-INJECTOR are non-nil.
 "
-  (let (_)
+  (let ((type (entropy/emacs-hydra-hollow-hydra-injector-valid-p hydra-injector)))
     (cond
-     ((eq (entropy/emacs-hydra-hollow-hydra-injector-valid-p hydra-injector)
-          :self-list)
+     ((eq type :self-list)
       (dolist (pair (cdr hydra-injector))
-        (entropy/emacs-eval-with-lexical
-         `(entropy/emacs-lazy-load-simple ',(car pair)
-            :no-message t
-            (entropy/emacs-hydra-hollow-define-key
-             ',(cadr pair)
-             ,(or (plist-get (cddr pair) :inject-key) key)
-             ',(or (plist-get (cddr pair) :inject-command) command))))))
-     ((entropy/emacs-hydra-hollow-hydra-injector-valid-p hydra-injector)
-      (entropy/emacs-eval-with-lexical
-       `(entropy/emacs-lazy-load-simple ',(car hydra-injector)
+        (entropy/emacs-lazy-load-simple (car pair)
           :no-message t
+          :lexical-bindings `((pair . ,pair) (key . ,key) (command . ,command))
           (entropy/emacs-hydra-hollow-define-key
-           ',(cadr hydra-injector)
-           ,(or (plist-get (cddr hydra-injector) :inject-key) key)
-           ',(or (plist-get (cddr hydra-injector) :inject-command) command))))))))
+           (cadr pair)
+           (or (plist-get (cddr pair) :inject-key) key)
+           (or (plist-get (cddr pair) :inject-command) command)))))
+     (type
+      (entropy/emacs-lazy-load-simple (car hydra-injector)
+        :no-message t
+        :lexical-bindings `((hydra-injector . ,hydra-injector)
+                            (key . ,key) (command . ,command))
+        (entropy/emacs-hydra-hollow-define-key
+         (cadr hydra-injector)
+         (or (plist-get (cddr hydra-injector) :inject-key) key)
+         (or (plist-get (cddr hydra-injector) :inject-command) command)))))))
 
 (defun entropy/emacs-hydra-hollow-make-hydra-injector
     (hydra-injector-maybe feature-replace map-replace)
