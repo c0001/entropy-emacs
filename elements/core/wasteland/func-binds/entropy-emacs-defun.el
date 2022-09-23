@@ -1323,17 +1323,21 @@ Thus FUNC showed formed as:
 
 The last element is the last non-nil cdr of LIST or last car of
 LIST while its last cdr is nil.
+
+The FUNC's ENDP argument is non-nil as one of two valid values:
+- '0': ELT is the last car of the `entropy/emacs-common-listp' LIST
+- '1': ELT is the last cdr of the `entropy/emacs-dotted-listp' LIST
 "
   (unless (listp list)
     (signal 'wrong-type-argument (list 'listp list)))
   (if (atom list) nil
     (let (endp)
       (entropy/emacs-list-map-cdr list
-        (if (null (cdr it)) (setq endp t))
+        (if (null (cdr it)) (setq endp 0))
         (funcall func (car it) endp)
         (unless endp
           (if (atom (cdr it))
-              (funcall func (cdr it) (setq endp t))))))))
+              (funcall func (cdr it) (setq endp 1))))))))
 
 (defun entropy/emacs-list-map-replace (func list)
   "Call function FUNC for each element of `listp' list and replace

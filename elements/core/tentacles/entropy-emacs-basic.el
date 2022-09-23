@@ -5080,8 +5080,11 @@ backtrace:
            (if (null x)
                (funcall insert-func "nil")
              (funcall insert-func "(")
-             (entropy/emacs-list-mapc
-              (lambda (y)
+             (entropy/emacs-list-mapc-with-notify-endp
+              (lambda (y endp)
+                (when (eq endp 1)
+                  (funcall insert-group-begin-delmi-func 'as-sub)
+                  (funcall insert-func "."))
                 (funcall
                  (plist-get
                   (cdr (funcall
