@@ -5029,7 +5029,6 @@ backtrace:
 `current-buffer'"
   (unless depth (setq depth 0))
   (let* ((boundp      (and depth-limit (>= depth depth-limit)))
-         (cboundp     (and boundp (= depth depth-limit)))
          (parenboundp (and boundp (not (= depth 0)) (>= (1- depth) depth-limit)))
          (suboundp    (and depth-limit (>= (1+ depth) depth-limit)))
          (lookback-ln-func
@@ -5100,17 +5099,15 @@ backtrace:
            (unless x (setq x var))
            (funcall insert-group-begin-delmi-func)
            (funcall insert-func "[")
-           (let ((vindex-max (1- (length x))) (i 0))
-             (mapc
-              (lambda (y)
-                (funcall
-                 (plist-get
-                  (cdr (funcall #'entropy/emacs-basic-print-variable-core-func
-                                y (1+ depth) depth-limit))
-                  :print-func)
-                 y)
-                (cl-incf i))
-              x))
+           (mapc
+            (lambda (y)
+              (funcall
+               (plist-get
+                (cdr (funcall #'entropy/emacs-basic-print-variable-core-func
+                              y (1+ depth) depth-limit))
+                :print-func)
+               y))
+            x)
            (funcall insert-group-end-delmi-func)
            (funcall insert-func "]"))))
      ((cl-struct-p var)
