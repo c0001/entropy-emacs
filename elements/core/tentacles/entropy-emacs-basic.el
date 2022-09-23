@@ -5166,7 +5166,7 @@ backtrace:
      ((atom var)
       `(,(cond ((stringp var) 'string)
                ((numberp var) 'number)
-               (t 'unknow))
+               (t 'unknown))
         :print-func
         ,(lambda (&optional x)
            (unless x (setq x var))
