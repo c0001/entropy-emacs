@@ -5250,14 +5250,23 @@ from."
     (setq print-window (get-buffer-window print-buffer))
     (select-window print-window)
 
-    (sit-for 0)
-    (message "print value of `%S' ..." var-sym)
-    (sit-for 0)
-
     (with-current-buffer print-buffer
       (entropy/emacs-unwind-protect-unless-success
-          (let* ((prlimit (if current-prefix-arg
-                              (prefix-numeric-value current-prefix-arg)))
+          (let* ((prlimit
+                  (when (and
+                         (or (and (sequencep variable)
+                                  (not (stringp variable)))
+                             (cl-struct-p variable)
+                             (hash-table-p variable))
+                         (yes-or-no-p "Use vertical print style restriction?"))
+                    (entropy/emacs-read-natural-number-string-until-matched
+                     nil
+                     :detect-float t :convert-float t
+                     "Type vertical print style at least to level")))
+                 (_ (progn
+                      (sit-for 0)
+                      (message "print value of `%S' ..." var-sym)
+                      (sit-for 0)))
                  (var-type-obj
                   (funcall variable-type-get-func variable
                            0 prlimit)))

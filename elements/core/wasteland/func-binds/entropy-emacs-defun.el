@@ -8771,6 +8771,97 @@ of thus which ordered as input order."
           (car rtn)
         this-read-str))))
 
+(defun entropy/emacs-read-string-until-matched-type
+    (type-name type-predicate &optional type-convertor &rest args)
+  "Read a string via `read-string' by applying arguments ARGS to it
+until the result matched a user specified type named as TYPE-NAME
+which predicated via TYPE-PREDICATE. Return the final matched
+read string or the converted final result if TYPE-CONVERTOR is
+set as a function which accepts just one argument of that common
+return.
+
+TYPE-NAME is a symbol or string, and TYPE-PREDICATE is a function
+recieve one argument i.e. the read string and return non-nil to
+indicate that the reading is checked out.
+
+The ARGS is presented, its PROMPT should be a string without any
+trailing decoration e.g. a colon since we taked it as a prompt base
+string to generate the actual prompt string."
+  (let* ((prompt (or (car args) "Type string"))
+         (prompt-base prompt)
+         (_ (setq prompt (format "%s: " prompt)))
+         (read-args (cdr args))
+         (val (apply 'read-string prompt read-args)))
+    (while (not (funcall type-predicate val))
+      (setq prompt (format "%s (wrong-type-of-argment: %s, %s): "
+                           prompt-base type-name val))
+      (setq val (apply 'read-string prompt read-args)))
+    (funcall (or type-convertor 'identity) val)))
+
+(defun entropy/emacs-read-number-string-until-matched
+    (&optional type-name type-predicate use-type-predicate-return &rest args)
+  "Read a string and return a number value equalized with that string if
+the string can be `read' and the result can be predicated by
+`numberp', with looping read until success.
+
+If TYPE-PREDICATE is set, it should be a function with just one
+argument accept i.e. the read result which is used instead of the
+default type-predicate `numberp' and return non-nil while the result
+is matched the specification. If TYPE-NAME is set, it should be a
+symbol or string which used to prompt as that type to read.
+
+Although TYPE-PREDICATE can be used to type-predicate arbitrary types,
+but for the function name declared as for, we suggest to use number
+relevant predications or it will be messy in understanding coding
+context for furture maintaining.
+
+If USE-TYPE-PREDICATE-RETURN is set non-nil and TYPE-PREDICATE is set,
+the return value is what the non-nil return by TYPE-PREDICATE.
+
+If ARGS is set, they should be args applied to `read-string' and the
+PROMPT must not be end with any decoration e.g. colon in which case we
+use it as a base prompt string to generate the actual prompt string."
+  (let (rtn)
+    (apply 'entropy/emacs-read-string-until-matched-type
+           (or type-name "numberp")
+           (lambda (str)
+             (let ((form (ignore-errors (read str)))
+                   predi-result)
+               (if (null form) nil
+                 (if (setq predi-result
+                           (funcall (or type-predicate 'numberp) form))
+                     (if (and type-predicate use-type-predicate-return)
+                         (setq rtn predi-result)
+                       (setq rtn form))))))
+           (lambda (&rest _) rtn)
+           (or (car args) "Type a number")
+           (cdr args))))
+
+(cl-defun entropy/emacs-read-natural-number-string-until-matched
+    (&optional type-name &rest args
+               &key exclude-zero detect-float convert-float
+               &allow-other-keys)
+  "Using predicate as `entropy/emacs-natural-number-p' invokes
+`entropy/emacs-read-number-string-until-matched' with ARGS it
+declared for.
+
+All optional keys have same meaning as `entropy/emacs-natural-number-p'.
+
+If TYPE-NAME is set, it should be a string or symbol to indicate
+what current acceptable type is for as a part of PROMPT of
+`read-string'."
+  (setq args (entropy/emacs-defun--get-real-body args))
+  (apply 'entropy/emacs-read-number-string-until-matched
+         (or type-name "natural-numberp")
+         (lambda (x)
+           (entropy/emacs-natural-number-p
+            x
+            :exclude-zero exclude-zero
+            :detect-float detect-float
+            :convert-float convert-float))
+         'use-this-predicate-return
+         args))
+
 ;; **** ivy multiread framework
 
 (defvar ivy--prompt)
