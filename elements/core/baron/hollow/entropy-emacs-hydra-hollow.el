@@ -390,7 +390,8 @@ its doc for more details."
   "Hydra head notation handler for patching it with faces adding
 with specified indicator."
   (dolist (feature '(faces))
-    (require feature))
+    (unless (featurep feature)
+      (require feature)))
   (let* ((nface 'entropy/emacs-defface-face-for-hydra-grey-face)
          (match-map
           `((global-map-inject
@@ -847,7 +848,8 @@ hand, either 't' or 'nil' is for that.
                (or up-hint down-hint))
       (let ((num-fmstr (rx line-start "[" (group (any "0-9")) "] ")))
         (unless (string-match-p num-fmstr title-str)
-          (require 'faces)
+          (unless (featurep 'face)
+            (require 'faces))
           (setq title `(concat (propertize (format "[%s]" ,depth)
                                            'face 'show-paren-mismatch)
                                " " ,title)))))
