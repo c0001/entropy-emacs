@@ -583,7 +583,8 @@ Slots description:
       (unless (null (cadr el))
         (entropy/emacs-plist-setf
          (symbol-value pretty-hydra-category-name)
-         (car el) (cadr el)))))))
+         (car el) (cadr el)
+         :append-new-key t))))))
 
 ;; ******** category names get
 ;; This section makes the core defination for =pretty-hydra-category=
@@ -884,7 +885,9 @@ hand, either 't' or 'nil' is for that.
               "» "
               (propertize "Hint <up> to [Previous Hydra]"
                           'face 'error)))
-      (entropy/emacs-plist-setf new-pretty-hydra-body :title new-title))
+      (entropy/emacs-plist-setf
+       new-pretty-hydra-body :title new-title
+       :append-new-key t))
     new-pretty-hydra-body))
 
 ;; ******** category recursive match
@@ -1693,7 +1696,9 @@ otherwise as other purpose for.
                (entropy/emacs-hydra-hollow-pretty-hydra-category-hydra-name-p
                 new-command))
           (unless (plist-get ptt-plist :exit)
-            (entropy/emacs-plist-setf ptt-plist :exit t)))
+            (entropy/emacs-plist-setf
+             ptt-plist :exit t
+             :append-new-key t)))
 
         (entropy/emacs-nconc-with-setvar-use-rest rtn
           (if (null new-key)
