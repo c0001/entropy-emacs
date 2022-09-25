@@ -1614,8 +1614,7 @@ the altered LIST or nil when LIST is `null'."
                                                 (list topvar))))
           (push (cons
                  topvar
-                 (if (listp el)
-                     el
+                 (if (listp el) el
                    (list el)))
                 rtn)))
       (setq rtn (reverse rtn))
