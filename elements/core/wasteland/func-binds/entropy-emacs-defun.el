@@ -431,6 +431,242 @@ otherwise uses the original procedure."
            (apply orig-func orig-args))))
      ad-name)))
 
+(defun entropy/emacs-get-object-eemacs-print-method
+    (object &optional depth vstyle-most-level)
+  "Return a cons which car is the internal described type of OBJECT and
+cdr of a PLIST used to guide to print OBJECT in `standard-output'.
+
+The internal described type is one of belows:
+1. 'list'       : OBJECT is `listp'
+2. 'vector'     : OBJECT is `vectorp'
+3. 'cl-struct'  : OBJECT is `cl-struct-p'
+4. 'hash-table' : OBJECT is `hash-table-p'
+5. 'string'     : OBJECT is `stringp'
+6. 'number'     : OBJECT is `numberp'
+7. 'atom'       : OBJECT is `atom' used as fallback for any unspecified var
+                  type.
+
+PLIST's valid keys are:
+1. ':print-func' : function calling with an optional argument i.e. a
+   object or use OBJECT as default and print it in `standard-output'.
+
+DEPTH is used-internally as the recursive level indicator, do not set.
+
+Defaultly, the print style of OBJECT is vertical listing only unless
+VSTYLE-MOST-LEVEL is set as an `natnump' depth level in which case the
+depth from VSTYLE-MOST-LEVEL and larger is using horizontal style
+only.
+
+Only `print-level' and `print-length' are both internally supplied to
+each sub-type of OBJECT with either vertical or horizontal print type,
+and all `print' restrictions are supported via horizontal print style.
+"
+  (unless depth (setq depth 0))
+  (let* ((boundp      (and vstyle-most-level (>= depth vstyle-most-level)))
+         (parenboundp (and boundp (not (= depth 0)) (>= (1- depth) vstyle-most-level)))
+         (suboundp    (and vstyle-most-level (>= (1+ depth) vstyle-most-level)))
+         (level-overflow-p (if print-level (>= depth print-level)))
+         (print-level (if print-level (1- print-level)))
+         (lookback-ln-func
+          (lambda (regexp &optional limit)
+            (save-match-data
+              (looking-back regexp (or limit (line-beginning-position))))))
+         (lookback-is-delim-func
+          (lambda nil
+            (and (bufferp standard-output)
+                 (funcall lookback-ln-func "\\( \\|(\\|\\[\\)" (1- (point))))))
+         (boundp-print
+          (lambda (obj)
+            (funcall
+             (if (= 0 depth) 'princ 'prin1) obj)))
+         (insert-func
+          (lambda (&rest objs)
+            (dolist (ob objs) (princ ob))))
+         (insert-space-func
+          (lambda nil
+            (funcall insert-func " ")))
+         (insert-indent-func
+          (lambda (&optional offset)
+            (or offset (setq offset 0))
+            (princ (make-string (+ depth offset) ?\ ))))
+         (insert-newline-func
+          (lambda nil
+            (unless (and (bufferp standard-output) (looking-at-p "^$"))
+              (funcall insert-func "\n"))))
+         (insert-group-begin-delmi-func
+          (lambda (&optional as-sub)
+            (let* ((depth (if as-sub (1+ depth) depth))
+                   (parenboundp
+                    (if as-sub boundp parenboundp)))
+              (unless (or (= 0 depth) parenboundp)
+                (funcall insert-newline-func))
+              (if parenboundp
+                  (unless (funcall lookback-is-delim-func)
+                    (funcall insert-space-func))
+                (unless (= 0 depth)
+                  (funcall insert-indent-func (if as-sub 1)))))))
+         (insert-group-end-delmi-func
+          (lambda (&optional as-sub)
+            (let ((boundp (if as-sub suboundp boundp)))
+              (unless boundp
+                (funcall insert-newline-func)
+                (funcall insert-indent-func (if as-sub 1))))))
+         (insert-omit-func
+          (lambda (&optional as-sub)
+            (funcall insert-group-begin-delmi-func as-sub)
+            (let ((omit-str "..."))
+              (funcall insert-func omit-str)))))
+    (cond
+     ((listp object)
+      `(list
+        :print-func
+        ,(lambda (&optional x)
+           (if level-overflow-p (funcall insert-omit-func)
+             (unless x (setq x object))
+             (funcall insert-group-begin-delmi-func)
+             (if boundp (funcall boundp-print x)
+               (if (null x)
+                   (funcall insert-func "nil")
+                 (funcall insert-func "(")
+                 (let ((lcirp (entropy/emacs-circular-listp x))
+                       thecar (i 0) exit)
+                   (entropy/emacs-list-map-cdr x
+                     :with-exit t
+                     (if (and print-length (= i print-length))
+                         (and (setq exit t) (funcall insert-omit-func 'as-sub))
+                       (setq thecar (car it))
+                       (funcall
+                        (plist-get
+                         (cdr (funcall
+                               #'entropy/emacs-get-object-eemacs-print-method
+                               thecar (1+ depth) vstyle-most-level))
+                         :print-func))
+                       (when (and (setq thecar (cdr it)) (atom thecar))
+                         (funcall insert-group-begin-delmi-func 'as-sub)
+                         (funcall insert-func ".")
+                         (funcall
+                          (plist-get
+                           (cdr (funcall
+                                 #'entropy/emacs-get-object-eemacs-print-method
+                                 thecar (1+ depth) vstyle-most-level))
+                           :print-func)))
+                       (when (and (cl-incf i) lcirp)
+                         (when (= (1- i) lcirp)
+                           (funcall insert-group-begin-delmi-func 'as-sub)
+                           (funcall insert-func ".")
+                           (funcall insert-group-begin-delmi-func 'as-sub)
+                           (funcall insert-func "circular")
+                           (setq exit t))))
+                     exit))
+                 (funcall insert-group-end-delmi-func)
+                 (funcall insert-func ")")))))))
+     ((vectorp object)
+      `(vector
+        :print-func
+        ,(lambda (&optional x)
+           (if level-overflow-p (funcall insert-omit-func)
+             (unless x (setq x object))
+             (funcall insert-group-begin-delmi-func)
+             (if boundp (funcall boundp-print x)
+               (funcall insert-func "[")
+               (let ((vlen (length x)) (i 0))
+                 (catch :exit
+                   (dotimes (_ vlen)
+                     (when (and print-length (= i print-length))
+                       (funcall insert-omit-func 'as-sub)
+                       (throw :exit t))
+                     (funcall
+                      (plist-get
+                       (cdr (funcall #'entropy/emacs-get-object-eemacs-print-method
+                                     (aref x i) (1+ depth) vstyle-most-level))
+                       :print-func))
+                     (cl-incf i))))
+               (funcall insert-group-end-delmi-func)
+               (funcall insert-func "]"))))))
+     ((cl-struct-p object)
+      `(cl-struct
+        :print-func
+        ,(lambda (&optional x)
+           (if level-overflow-p (funcall insert-omit-func)
+             (unless x (setq x object))
+             (funcall insert-group-begin-delmi-func)
+             (if boundp (funcall boundp-print x)
+               (funcall insert-func "#s(")
+               (let* ((class (cl-find-class (type-of x)))
+                      (slots (cl--struct-class-slots class))
+                      (len (length slots)))
+                 (funcall insert-func (cl--struct-class-name class))
+                 (catch :exit
+                   (dotimes (i len)
+                     (when (and print-length (= i print-length))
+                       (funcall insert-omit-func 'as-sub)
+                       (throw :exit t))
+                     (let ((slot (aref slots i))
+                           (val (aref x (1+ i))))
+                       (funcall insert-group-begin-delmi-func 'as-sub)
+                       (funcall insert-func ":" (cl--slot-descriptor-name slot))
+                       (funcall
+                        (plist-get
+                         (cdr (funcall
+                               #'entropy/emacs-get-object-eemacs-print-method
+                               val (1+ depth) vstyle-most-level))
+                         :print-func)
+                        val)))))
+               (funcall insert-group-end-delmi-func)
+               (funcall insert-func ")"))))))
+     ((hash-table-p object)
+      `(hash-table
+        :print-func
+        ,(lambda (&optional x)
+           (if level-overflow-p (funcall insert-omit-func)
+             (unless x (setq x object))
+             (funcall insert-group-begin-delmi-func)
+             (if boundp (funcall boundp-print x)
+               (funcall insert-func
+                        (format "#<hash-table size %d \
+test %s rehash-size %s rehash-threshold %s data"
+                                (hash-table-size x)
+                                (hash-table-test x)
+                                (hash-table-rehash-size x)
+                                (hash-table-rehash-threshold x)))
+               (let ((i 0) omit-did)
+                 (maphash
+                  (lambda (yk yv)
+                    (if (and print-length (= i print-length))
+                        ;; FIXME: does `maphash' can be escape via
+                        ;; `print-length' exceeded.
+                        (unless omit-did
+                          (funcall insert-omit-func 'as-sub)
+                          (setq omit-did t))
+                      (funcall insert-group-begin-delmi-func 'as-sub)
+                      (funcall insert-func ":key")
+                      (funcall insert-group-begin-delmi-func 'as-sub)
+                      (funcall insert-func (pp-to-string yk))
+                      (funcall insert-group-begin-delmi-func 'as-sub)
+                      (funcall insert-func ":val")
+                      (funcall
+                       (plist-get
+                        (cdr (funcall
+                              #'entropy/emacs-get-object-eemacs-print-method
+                              yv (1+ depth) vstyle-most-level))
+                        :print-func)
+                       yv)
+                      (cl-incf i)))
+                  x))
+               (funcall insert-group-end-delmi-func)
+               (funcall insert-func ">"))))))
+     ((atom object)
+      `(,(cond ((stringp object) 'string)
+               ((numberp object) 'number)
+               (t 'atom))
+        :print-func
+        ,(lambda (&optional x)
+           (unless x (setq x object))
+           (funcall insert-group-begin-delmi-func)
+           (if (stringp x)
+               (funcall (if (> depth 0) 'prin1 'princ) x)
+             (funcall insert-func x))))))))
+
 ;; *** Place setf
 
 (defmacro entropy/emacs-swap-two-places-value
@@ -698,7 +934,7 @@ list 'bar', in other word foo is portion-circular.
            (if (consp (cdr it)) (setq rtn t)))
          (cl-incf i)
          exit)
-       rtn))))
+       (if rtn llen)))))
 
 (defsubst entropy/emacs-common-listp (object)
   "Return the `length' of OBJECT if it is a `proper-list-p' and

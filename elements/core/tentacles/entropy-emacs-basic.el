@@ -5023,159 +5023,6 @@ backtrace:
   "The current query on variable symbol's `default-value' of
 `describe-variable'.")
 
-(defun entropy/emacs-basic-print-variable-core-func
-    (var &optional depth depth-limit)
-  "Print VAR's value recursively according to its type in
-`current-buffer'"
-  (unless depth (setq depth 0))
-  (let* ((boundp      (and depth-limit (>= depth depth-limit)))
-         (parenboundp (and boundp (not (= depth 0)) (>= (1- depth) depth-limit)))
-         (suboundp    (and depth-limit (>= (1+ depth) depth-limit)))
-         (lookback-ln-func
-          (lambda (regexp)
-            (save-match-data
-              (looking-back regexp (line-beginning-position)))))
-         (lookback-is-delim-func
-          (lambda nil
-            (funcall lookback-ln-func "\\( \\|(\\|\\[\\)")))
-         (insert-func
-          (lambda (&rest objs)
-            (apply 'insert (mapcar (lambda (obj) (format "%s" obj)) objs))))
-         (insert-space-func
-          (lambda nil
-            (funcall insert-func " ")))
-         (insert-indent-func
-          (lambda (&optional offset)
-            (or offset (setq offset 0))
-            (insert (make-string (+ depth offset) ?\ ))))
-         (insert-newline-func
-          (lambda nil
-            (unless (looking-at-p "^$")
-              (funcall insert-func "\n"))))
-         (insert-group-begin-delmi-func
-          (lambda (&optional as-sub)
-            (let* ((depth (if as-sub (1+ depth) depth))
-                   (parenboundp
-                    (if as-sub boundp parenboundp)))
-              (unless (or (= 0 depth) parenboundp)
-                (funcall insert-newline-func))
-              (if parenboundp
-                  (unless (funcall lookback-is-delim-func)
-                    (funcall insert-space-func))
-                (unless (= 0 depth)
-                  (funcall insert-indent-func (if as-sub 1)))))))
-         (insert-group-end-delmi-func
-          (lambda (&optional as-sub)
-            (let ((boundp (if as-sub suboundp boundp)))
-              (unless boundp
-                (funcall insert-newline-func)
-                (funcall insert-indent-func (if as-sub 1)))))))
-    (cond
-     ((listp var)
-      `(list
-        :print-func
-        ,(lambda (&optional x)
-           (unless x (setq x var))
-           (funcall insert-group-begin-delmi-func)
-           (if (null x)
-               (funcall insert-func "nil")
-             (funcall insert-func "(")
-             (entropy/emacs-list-mapc-with-notify-endp
-              (lambda (y endp)
-                (when (eq endp 1)
-                  (funcall insert-group-begin-delmi-func 'as-sub)
-                  (funcall insert-func "."))
-                (funcall
-                 (plist-get
-                  (cdr (funcall
-                        #'entropy/emacs-basic-print-variable-core-func
-                        y (1+ depth) depth-limit))
-                  :print-func)
-                 y))
-              x)
-             (funcall insert-group-end-delmi-func)
-             (funcall insert-func ")")))))
-     ((vectorp var)
-      `(vector
-        :print-func
-        ,(lambda (&optional x)
-           (unless x (setq x var))
-           (funcall insert-group-begin-delmi-func)
-           (funcall insert-func "[")
-           (mapc
-            (lambda (y)
-              (funcall
-               (plist-get
-                (cdr (funcall #'entropy/emacs-basic-print-variable-core-func
-                              y (1+ depth) depth-limit))
-                :print-func)
-               y))
-            x)
-           (funcall insert-group-end-delmi-func)
-           (funcall insert-func "]"))))
-     ((cl-struct-p var)
-      `(cl-struct
-        :print-func
-        ,(lambda (&optional x)
-           (unless x (setq x var))
-           (funcall insert-group-begin-delmi-func)
-           (funcall insert-func "#s(")
-           (let* ((class (cl-find-class (type-of x)))
-                  (slots (cl--struct-class-slots class))
-                  (len (length slots)))
-             (funcall insert-func (cl--struct-class-name class))
-             (dotimes (i len)
-               (let ((slot (aref slots i))
-                     (val (aref x (1+ i))))
-                 (funcall insert-group-begin-delmi-func 'as-sub)
-                 (funcall insert-func ":" (cl--slot-descriptor-name slot))
-                 (funcall
-                  (plist-get
-                   (cdr (funcall
-                         #'entropy/emacs-basic-print-variable-core-func
-                         val (1+ depth) depth-limit))
-                   :print-func)
-                  val))))
-           (funcall insert-group-end-delmi-func)
-           (funcall insert-func ")"))))
-     ((hash-table-p var)
-      `(hash
-        :print-func
-        ,(lambda (&optional x)
-           (unless x (setq x var))
-           (funcall insert-group-begin-delmi-func)
-           (funcall insert-func "#<hash-table")
-           (maphash
-            (lambda (yk yv)
-              (funcall insert-group-begin-delmi-func 'as-sub)
-              (funcall insert-func ":key")
-              (funcall insert-group-begin-delmi-func 'as-sub)
-              (funcall insert-func (pp-to-string yk))
-              (funcall insert-group-begin-delmi-func 'as-sub)
-              (funcall insert-func ":val")
-              (funcall
-               (plist-get
-                (cdr (funcall
-                      #'entropy/emacs-basic-print-variable-core-func
-                      yv (1+ depth) depth-limit))
-                :print-func)
-               yv))
-            x)
-           (funcall insert-group-end-delmi-func)
-           (funcall insert-func ">"))))
-     ((atom var)
-      `(,(cond ((stringp var) 'string)
-               ((numberp var) 'number)
-               (t 'unknown))
-        :print-func
-        ,(lambda (&optional x)
-           (unless x (setq x var))
-           (funcall insert-group-begin-delmi-func)
-           (if (stringp x)
-               (funcall (if (> depth 0) 'prin1 'princ)
-                        x (current-buffer))
-             (funcall insert-func (pp-to-string x)))))))))
-
 (defun entropy/emacs-basic-print-variable (var-sym)
   "Print a variable into a transient buffer and popup to display
 it with focus on.
@@ -5236,7 +5083,7 @@ from."
                          (error (user-error "fatal: %s" err)))))
               (when orig-buffer-temp-p
                 (kill-buffer orig-buffer)))))
-         (variable-type-get-func 'entropy/emacs-basic-print-variable-core-func)
+         (variable-type-get-func 'entropy/emacs-get-object-eemacs-print-method)
          (print-level nil)
          (print-length nil)
          print-window)
@@ -5252,7 +5099,8 @@ from."
 
     (with-current-buffer print-buffer
       (entropy/emacs-unwind-protect-unless-success
-          (let* ((prlimit
+          (let* ((standard-output (current-buffer))
+                 (prlimit
                   (when (and
                          (or (and (sequencep variable)
                                   (not (stringp variable)))
@@ -5269,7 +5117,7 @@ from."
                       (sit-for 0)))
                  (var-type-obj
                   (funcall variable-type-get-func variable
-                           0 prlimit)))
+                           nil prlimit)))
             (insert (format ";; ========== print for [%s] type %s '%S' %s%s==========\n"
                             (car var-type-obj)
                             (if (symbolp var-sym) "variable" "value of expression")
