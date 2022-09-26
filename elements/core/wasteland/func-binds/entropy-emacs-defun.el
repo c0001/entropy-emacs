@@ -5187,7 +5187,7 @@ Sign an error when POP-LOG is not matched valied values.
                   (1 . ,user-dir-mirror-func)))
       (let* ((cat-slot-plist-p (entropy/emacs-strict-plistp (cdr el)))
              (func-as-slot (and cat-slot-plist-p (plist-get (cdr el) :op-function)))
-             (func-as-cdr (ignore-errors (cdr el)))
+             (func-as-cdr (cdr el))
              (def-op-sym-as-slot (and cat-slot-plist-p (plist-get el :op-symbol)))
              (def-op-name-as-slot (and cat-slot-plist-p (plist-get el :op-name)))
              (fbk-op-sym-file 'unknown-subfile-op)
@@ -5205,8 +5205,11 @@ Sign an error when POP-LOG is not matched valied values.
                     (symbolp operation-symbol)
                     (let* ((osstr (symbol-name operation-symbol)))
                       (cl-case (car el)
-                        (0 (make-symbol (format "%s-file-op" osstr)))
-                        (1 (make-symbol (format "%s-dir-op" osstr))))))
+                        ;; we should use `intern' instead of
+                        ;; `make-symbol' since we use `eq' in most of
+                        ;; case of the ordinary `obarray'.
+                        (0 (intern (format "%s-file-op" osstr)))
+                        (1 (intern (format "%s-dir-op" osstr))))))
                ;; or use internall set
                (cl-case (car el)
                  (0 fbk-op-sym-file)
