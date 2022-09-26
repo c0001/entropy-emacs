@@ -1586,52 +1586,44 @@ the altered LIST or nil when LIST is `null'."
 
 ;; **** Combinatorics
 (cl-defun __entropy/emacs-gen-list-permutations
-    (list-var nested-depths
-              &key use-tree
-              internal-not-top
-              internal-top-list)
+    (list-var nested-depths &key use-tree)
   (let ((listlen (length list-var))
-        (sublist nil)
-        rtn)
-    (unless (or
-             (= 0 nested-depths)
+        (i 0)
+        sublist subrtn rtn)
+    (unless (and
+             (<= 0 nested-depths)
              (< nested-depths listlen))
       (error "nested-depths %s (i.e elements number %s) is overflow than listlen %s"
              nested-depths (+ 1 nested-depths) listlen))
     (catch :exit
       (when (= nested-depths 0)
-        (throw :exit
-               (if (and use-tree internal-not-top)
-                   (list list-var)
-                 list-var)))
+        (throw :exit list-var))
       (dolist (topvar list-var)
-        (setq sublist (cl-remove topvar list-var))
-        (dolist (el (__entropy/emacs-gen-list-permutations
-                     sublist (- nested-depths 1)
-                     :use-tree use-tree
-                     :internal-not-top t
-                     :internal-top-list (append internal-top-list
-                                                (list topvar))))
-          (push (cons
-                 topvar
-                 (if (listp el) el
-                   (list el)))
-                rtn)))
-      (setq rtn (reverse rtn))
-      (if (and use-tree internal-not-top)
-          (list rtn)
-        rtn))))
+        (setq sublist (copy-sequence list-var))
+        ;; use pos deletion instead of `cl-remove' to reduce computations
+        (entropy/emacs-list-delete-elt sublist i :with-error t)
+        (cl-incf i)
+        (setq subrtn
+              (__entropy/emacs-gen-list-permutations
+               sublist (- nested-depths 1) :use-tree use-tree))
+        (if use-tree (push (cons topvar subrtn) rtn)
+          (dolist (el subrtn)
+            (if (= 1 nested-depths) (push (list topvar el) rtn)
+              (push (cons topvar el) rtn)))))
+      (nreverse rtn))))
 
 (cl-defun entropy/emacs-gen-list-permutations
-    (list-var sample-size &key use-tree use-combination)
-  "generate the =permutation-collection= of SAMPLE-SIZE of the sample space LIST-VAR.
+    (list sample-size
+          &optional noerror &key use-tree use-combination)
+  "Generate and return the =permutation-collection= of SAMPLE-SIZE of the
+sample space LIST.
 
 The =permutation-collectionn= is a list of =permutation-list= whose
 length is the SAMPLE-SIZE and each elements is one of the element of
-LIST-VAR. The length of =permutation-collectionn= is arithmetic
-arrangement of A(LIST-VAR length, SAMPLE-SIZE) i.e.  'a x (a-1) x
-(a-2) ... x (a - (SIMPLE-SIZE - 1))'. The return list formed like
-below list demo:
+LIST. The length of =permutation-collectionn= is the permutation
+arithmetic arrangement return of
+`entropy/emacs-calc-permutations'. The return list formed like below
+list demo:
 
 **The permutation of sample-space (1 2 3) for smaple-size 3 without tree style**
 #+begin_src elisp
@@ -1643,12 +1635,11 @@ below list demo:
   (3 2 1))
 #+end_src
 
-Which see, the order is related the origin element order of the
-LIST-VAR.
+Which see, the order is related the origin element order of the LIST.
 
 If USE-TREE is non-nil then =permutation-collectionn= is a list
-structured using the origin tree style of the permutations from
-top to bottom which can be illustrated as below:
+structured using the origin tree style of the permutations from top to
+bottom which can be illustrated as below:
 
 **The permutation of sample-space (1 2 3 4) for smaple-size 3 with tree style**
 
@@ -1656,62 +1647,75 @@ top to bottom which can be illustrated as below:
 #+begin_example
   level 1:            1                  2                  3                  4
                       |                  |                  |                  |
-                  _________          _________          _________          _________
+                  ____+____          ____+____          ____+____          ____+____
                  /    |    \\        /    |    \\        /    |    \\        /    |    \\
-  level 2:       2    3    4        1    3    4        1    2    4        1    2    3
-                /\\   /\\    /\\      /\\   /\\    /\\      /\\   /\\    /\\      /\\   /\\    /\\
-  level 3:     3  4 2  4  2  3    3  4 1  4  1  3    3  4 1  4  2  1    2  3 1  3  1  2
+  level 2:      2     3     4      1     3     4      1     2     4      1     2     3
+               / \\   / \\   / \\    / \\   / \\   / \\    / \\   / \\   / \\    / \\   / \\   / \\
+  level 3:    3   4 2   4 2   3  3   4 1   4 1   3  3   4 1   4 2   1  2   3 1   3 1   2
 #+end_example
 
 2) its list represention:
 
 #+begin_src elisp
-  '((1 . (2 . (3 4))
-         (3 . (2 4))
-         (4 . (2 3)))
-    (2 . (1 . (3 4))
-         (3 . (1 4))
-         (4 . (1 3)))
-    (3 . (1 . (2 4))
-         (2 . (1 4))
-         (4 . (1 2)))
-    (4 . (1 . (2 3))
-         (2 . (1 3))
-         (3 . (1 2))))
+'((1 (2 . (3 4))
+     (3 . (2 4))
+     (4 . (2 3)))
+  (2 (1 . (3 4))
+     (3 . (1 4))
+     (4 . (1 3)))
+  (3 (1 . (2 4))
+     (2 . (1 4))
+     (4 . (1 2)))
+  (4 (1 . (2 3))
+     (2 . (1 3))
+     (3 . (1 2))))
 #+end_src
 
 Which see, the order is also related the origin element order of the
-LIST-VAR.
+LIST.
 
-When USE-COMBINATION is non-nil, the USE-TREE spec is ignored and
-the return is the =permutation-collectionn= without duplicates
-i.e. as following arithnmetic permutation's combination term.
+When USE-COMBINATION is non-nil, the USE-TREE spec is ignored and the
+return is the =permutation-collectionn= without duplicates i.e. as
+following arithnmetic permutation's combination term.
 
 NOTE:
 
-Conventionally each elements of LIST-VAR must be unique since the
-sample space should not contained the duplicated elements under
-arithmetic terminology. But we remove the duplicated elements
-internally without modify LIST-VAR, so any case is safe. This
-realized that the real used LIST-VAR is always the dups-removed
-one so the result length maybe confused while thus.
+SAMPEL-SIZE should be a `natnump' number and should be larger than 1,
+any lower number is treated as meaningless since there's no way to
+choose a zero or negative element.
+
+LIST's `length' should always `>=' SAMPLE-SIZE and should not be
+empty, since otherwise is meaningless.
+
+Throw error when any meaningless occasions occurred unless NOERROR is
+set non-nil in which case throw nil when such case is matched. Thus
+=permutation-collectionn= is always non-nil.
+
+Conventionally each elements of LIST must be unique since the sample
+space should not contained the duplicated elements under arithmetic
+terminology, but we treat each element as unique via its index of
+LIST, so any case is safe.
 "
   (let (rtn)
     (when use-combination
       (setq use-tree nil))
     (catch :exit
-      (unless (listp list-var)
-        (signal 'wrong-type-argument (list 'listp list-var)))
-      (unless list-var
-        (throw :exit nil))
+      (unless (listp list)
+        (if noerror (throw :exit nil)
+          (signal 'wrong-type-argument (list 'listp list))))
+      (unless list
+        (if noerror (throw :exit nil)
+          (signal 'wrong-type-argument (list 'consp list))))
       (unless (integerp sample-size)
-        (signal 'wrong-type-argument (list 'integerp sample-size)))
+        (if noerror (throw :exit nil)
+          (signal 'wrong-type-argument (list 'integerp sample-size))))
       (unless (>= sample-size 1)
-        (setq sample-size 1))
+        (if noerror (throw :exit nil)
+          (signal 'wrong-type-argument (list 'non-zero-natnump sample-size))))
       (setq rtn
             (__entropy/emacs-gen-list-permutations
-             list-var (- sample-size 1) :use-tree use-tree))
-      (if use-combination
+             list (- sample-size 1) :use-tree use-tree))
+      (if (and use-combination (> sample-size 1))
           (cl-delete-duplicates
            rtn
            ;; guarantee preserved former occurrences
