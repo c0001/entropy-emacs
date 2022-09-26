@@ -4653,11 +4653,15 @@ redirection i.e. just modify it-self."
           (make-symbolic-link
            filesystem-node-name lnm ok-if-already-exists)))
     (when keep-time
-      (set-file-times
-       lnm
-       (file-attribute-modification-time
-        (file-attributes filesystem-node-name))
-       'nofollow))
+      (unless (set-file-times
+               lnm
+               (file-attribute-modification-time
+                (file-attributes filesystem-node-name))
+               'nofollow)
+        (signal 'file-error
+                (list (format "Set symbolic link \"%s\"\
+last-modified time with fatal"
+                              lnm)))))
     rtn))
 
 (declare-function org-shifttab "org")
