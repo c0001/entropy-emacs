@@ -4728,7 +4728,7 @@ using default FILE-MIRROR-FUNC whose subroutine is `add-name-to-file'
 for its subfiles and default DIRECORY-MIRROR-FUNC whose subroutine is
 `make-directory' for subdirs, recursively.
 
-If SRDIR is not existed, sign an error. If DESETDIR is existed sign an
+If SRCDIR is not existed, sign an error. If DESETDIR is existed sign an
 error since we treat DESTDIR as the same hierachy as SRCDIR.
 
 Sign an error when SRCDIR is empty (i.e neither files nor dirs are
