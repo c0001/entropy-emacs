@@ -1330,7 +1330,7 @@ in current `dired' buffer. Use symbolic link type defautly unless
                              dfiles)
                         (user-error "Operation cancled"))))
            (host-target (read-file-name "Choose target host: "
-                                   nil nil t nil 'file-directory-p))
+                                        nil nil t nil 'file-directory-p))
            (file-target nil)
            (log-success-files 0)
            (log-success-dirs 0)
@@ -1391,7 +1391,7 @@ in current `dired' buffer. Use symbolic link type defautly unless
                        (list x))))))
            (log-get-func
             (lambda (op-type src-abs-path src-abs-path-node-type
-                     dest-abs-path success error-msg)
+                             dest-abs-path success error-msg)
               (let ((op-name
                      (with-temp-buffer
                        (insert (format "%s" op-type))
@@ -1556,7 +1556,8 @@ in current `dired' buffer. Use symbolic link type defautly unless
                   (progn
                     (if use-hardlink
                         (add-name-to-file node file-target)
-                      (make-symbolic-link node file-target))
+                      (entropy/emacs-make-filesystem-node-symbolic-link
+                       node file-target nil 'keep-time))
                     (funcall log-append-func
                              (funcall log-get-func
                                       op-type

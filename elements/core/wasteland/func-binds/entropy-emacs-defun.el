@@ -4771,7 +4771,7 @@ arguments (and respect the order):
    this framework use it as the core mapping subroutine.
 
 4. FORCE-USE-SYMBOLIC-LINK-P: t or nil for indicate current
-   SRCSUBFILE can not used to hardlinked to the DEESTSUBFILE.
+   SRCSUBFILE can not used to hardlinked to the DESTSUBFILE.
 
 5. SRCSUBFILE-TYPE: the source sub-file's filesystem-node-name type
    =node-type= a list of =node-sub-type= (symbol) whose car is the
@@ -4810,11 +4810,12 @@ It should return a plist (the =sub-op-return=) as follow rules:
 
 
 If optional key USE-SYMBOLIC-LINK is non-nil then the default
-FILE-MIRROR-FUNC use `make-symbolic-link' instead for as. This
-variable will auto be set when SRCDFIR and DESTDIR is not in the same
-file-system since we can not use hardlink in two different
-file-system. FORCE-USE-SYMBOLIC-LINK-P will be set when
-USE-SYMBOLIC-LINK is non-nil.
+FILE-MIRROR-FUNC use
+`entropy/emacs-make-filesystem-node-symbolic-link' with last-modified
+time kept instead for as. This variable will auto be set when SRCDFIR
+and DESTDIR is not in the same file-system since we can not use
+hardlink in two different file-system. FORCE-USE-SYMBOLIC-LINK-P will
+be set when USE-SYMBOLIC-LINK is non-nil.
 
 ** =op-function= DIR-MIRROR-FUNC
 If DIR-MIRROR-FUNC is customized spec for, its should take follow
@@ -5090,7 +5091,8 @@ Sign an error when POP-LOG is not matched valied values.
           (lambda (srcf destf &rest _)
             (let (_)
               (if use-symbolic-link
-                  (make-symbolic-link srcf destf)
+                  (entropy/emacs-make-filesystem-node-symbolic-link
+                   srcf destf nil 'keep-time)
                 (add-name-to-file srcf destf))
               (list :op-target-abs-path destf
                     :without-ensure-target-existed-status nil
