@@ -4633,6 +4633,33 @@ BRANCH-STR '%s' is too long!" brs))
          :with-filter with-filter))
       t)))
 
+(defun entropy/emacs-make-filesystem-node-symbolic-link
+    (filesystem-node-name linkname &optional ok-if-already-exists keep-time)
+  "Same as `make-symbolic-link' but also accepts an optional KEEP-TIME
+argument which make the LINKNAME has same last-modified time as
+FILESYSTEM-NODE-NAME pointed FILESYSTEM-NODE only when set as non-nil
+and LINKNAME is maked successfully.
+
+If KEEP-TIME, LINKNAME last-modified time set without follow its
+redirection i.e. just modify it-self."
+  (let* ((lnm-dname-p (directory-name-p linkname))
+         (tgfbnm (and lnm-dname-p
+                      (file-name-nondirectory
+                       (entropy/emacs-directory-file-name
+                        filesystem-node-name))))
+         (lnm (or (and tgfbnm (expand-file-name tgfbnm linkname))
+                  linkname))
+         (rtn
+          (make-symbolic-link
+           filesystem-node-name lnm ok-if-already-exists)))
+    (when keep-time
+      (set-file-times
+       lnm
+       (file-attribute-modification-time
+        (file-attributes filesystem-node-name))
+       'nofollow))
+    rtn))
+
 (declare-function org-shifttab "org")
 (declare-function outline-on-heading-p "outline")
 (define-minor-mode entropy/emacs-do-directory-mirror/log-mode
