@@ -7050,31 +7050,42 @@ any operations did when such invalidation occurs."
 (cl-defmacro entropy/emacs-with-current-buffer
     (buffer-or-name &rest body
                     &key
+                    noerror
                     use-switch-directly
                     &allow-other-keys)
-  "Same as `with-current-buffer' but run BODY after
-`switch-to-buffer' and `set-buffer' to BUFFER-OR-NAME when
-USE-SWITCH-DIRECTLY is non-nil, therefore do no use
-USE-SWITCH-DIRECTLY when in a `noninteractive' session.
+  "Same as `with-current-buffer' but run BODY in that buffer after
+`switch-to-buffer' to BUFFER-OR-NAME when USE-SWITCH-DIRECTLY is
+non-nil, therefore do no use USE-SWITCH-DIRECTLY when in a
+`noninteractive' session.
 
-When USE-SWITCH-DIRECTLY is non-nil and other than 't', it should
+When USE-SWITCH-DIRECTLY is non-nil and is a non-nil list, it should
 be a list of rest args exclude the first argument i.e. the
-BUFFER-OR-NAME of `switch-to-buffer' used to apply to
-`switch-to-buffer'."
+BUFFER-OR-NAME of `switch-to-buffer', used to apply to
+`switch-to-buffer'.
+
+If NOERROR is set and return non-nil, do nothing and return nil while
+BUFFER-OR-NAME is invalid i.e. can not indicate any lived buffer.
+
+Also see `entropy/emacs-with-selected-buffer-window'."
   (declare (indent 1) (debug t))
   (let ((body (entropy/emacs-get-plist-body body))
         (bforbn-sym (make-symbol "buffer-or-name"))
-        (swtd-sym   (make-symbol "use-switch-directly")))
-    `(let ((,bforbn-sym ,buffer-or-name)
-           (,swtd-sym ,use-switch-directly))
-       (if ,swtd-sym
-           (progn
-             (if (eq ,swtd-sym t)
-                 (switch-to-buffer ,bforbn-sym)
-               (apply 'switch-to-buffer ,bforbn-sym ,swtd-sym))
-             (set-buffer ,buffer-or-name)
-             ,@body)
-         (with-current-buffer ,buffer-or-name
+        (buff-sym   (make-symbol "thebuffer"))
+        (swtd-sym   (make-symbol "use-switch-directly"))
+        (run-sym    (make-symbol "should-run-p")))
+    `(let* ((,run-sym t)
+            (,bforbn-sym ,buffer-or-name)
+            (,buff-sym
+             (or (get-buffer ,bforbn-sym)
+                 (if ,noerror (setq ,run-sym nil)
+                   (signal 'wrong-type-argument
+                           (list 'valid-buffer-or-name-p ,bforbn-sym)))))
+            (,swtd-sym (and ,run-sym ,use-switch-directly)))
+       (when ,run-sym
+         (when ,swtd-sym
+           (if (atom ,swtd-sym) (switch-to-buffer ,buff-sym)
+             (apply 'switch-to-buffer ,buff-sym ,swtd-sym)))
+         (with-current-buffer ,buff-sym
            ,@body)))))
 
 (cl-defmacro entropy/emacs-with-goto-char
@@ -7092,8 +7103,9 @@ When SAVE-EXCURSION is non-nil, try to restore the point of the BUFFER
 after run BODY when possible.
 
 When USE-SWITCH-DIRECTLY is non-nil, it has same meaning of the same
-key of `entropy/emacs-with-current-buffer', otherwise restore the
-former `current-buffer' which presented before whole procedure.
+key of `entropy/emacs-with-current-buffer' and that body include this
+point movement, otherwise restore the former `current-buffer' which
+presented before whole procedure.
 
 If DO-ERROR set non-nil, raise an error when NUMBER-OR-MARKER can not
 predicated by `entropy/emacs-buffer-position-p-plus' with visible
@@ -8669,7 +8681,9 @@ argument applied to `select-window' used its car, otherwise NORECORD
 is set as nil.
 
 If NOERROR is set and return non-nil then always return nil
-immediately without run BODY when such error occasion happened."
+immediately without run BODY when such error occasion happened.
+
+Also see `entropy/emacs-with-current-buffer'."
   (declare (indent 1))
   (setq body (entropy/emacs-defun--get-real-body body))
   (macroexp-let2* ignore
