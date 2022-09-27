@@ -8655,6 +8655,40 @@ for otherwise."
       'maximized))
 
 ;; *** Window manipulation
+;; **** Basic
+(cl-defmacro entropy/emacs-with-selected-buffer-window
+    (buffer-or-name &rest body &key noerror do-select &allow-other-keys)
+  "Like `with-selected-window' but use the window on where the buffer
+BUFFER-OR-NAME displayed. Return the BODY's evaluated value or signal
+an error when the buffer doesn't have any displayed window or it's a
+buffer name without related buffer alived.
+
+If DO-SELECT is set and return non-nil, use `select-window' directly
+before run BODY in that window. If DO-SELECT is a list, the NORECORD
+argument applied to `select-window' used its car, otherwise NORECORD
+is set as nil.
+
+If NOERROR is set and return non-nil then always return nil
+immediately without run BODY when such error occasion happened."
+  (declare (indent 1))
+  (setq body (entropy/emacs-defun--get-real-body body))
+  (macroexp-let2* ignore
+      ((bfonm buffer-or-name)
+       (dselct do-select)
+       (buff `(get-buffer ,bfonm))
+       (buff-win `(and ,buff (get-buffer-window ,buff)))
+       (nerr noerror) (run t))
+    `(progn
+       (unless ,buff-win
+         (if ,nerr (setq ,run nil)
+           (signal 'wrong-type-argument
+                   (list 'buffer-with-win-p ,bfonm))))
+       (when ,run
+         (when ,dselct
+           (setq ,buff-win (select-window ,buff-win (car-safe ,dselct))))
+         (with-selected-window ,buff-win
+           ,@body)))))
+
 ;; **** Window width
 (defun entropy/emacs-window-no-margin-column-width (&optional window)
   "Like `window-width''s no pixel set return but remove the
