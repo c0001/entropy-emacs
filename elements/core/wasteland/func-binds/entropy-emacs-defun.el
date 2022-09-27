@@ -7121,7 +7121,7 @@ anything when thus occasion occurred.
            :use-switch-directly ,swtd-sym
            (entropy/emacs-save-excursion-when
             :when ,sves-sym
-            (goto-char ,pt-sym)
+            (goto-char (if ,mkbuf-sym (marker-position ,pt-sym) ,pt-sym))
             ,@body))))))
 
 (cl-defun entropy/emacs-buffer-goto-line
