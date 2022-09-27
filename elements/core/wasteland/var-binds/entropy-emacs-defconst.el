@@ -233,7 +233,7 @@ marker checking, error when POSITION is not a `natnump' or a `zerop'
 object.
 
 When USE-ANY-MSG is not set and WITH-RANGE-CHECK is set, also error
-when position is not `<' the `point-min' or `>' the `point-max'. With
+when position is not `<=' the `point-max' or `>=' the `point-min'. With
 WITHOUT-RESTRICTION set, the buffer restriction is temporarily
 disabled using `save-restriction' to get the minimal `point-min' and
 max `point-max'.

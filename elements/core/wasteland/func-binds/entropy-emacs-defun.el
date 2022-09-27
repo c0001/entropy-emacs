@@ -6986,52 +6986,64 @@ meaning of `entropy/emacs-do-error-for-buffer-position-invalid'."
         (funcall thefunc)
       (ignore-errors (funcall thefunc)))))
 
-(cl-defun entropy/emacs-pos-within-buffer-portion-p
-    (position &optional without-restriction)
-  "Return non-nil when POSITION is within the BUFFER visible
-portion i.e. POSITION is `>=' BUFFER's `point-min' and `<='
-BUFFER's `point-max'.
+(cl-defun entropy/emacs-buffer-position-p-plus
+    (position &key do-error with-range-check without-restriction)
+  "Like `entropy/emacs-buffer-position-p' but use `marker-buffer'
+instead of `current-buffer' when POSITION is a marker.
 
-POSITION is same as the arg of `goto-char' and must be prediated
-by `entropy/emacs-buffer-position-p'.
-
-BUFFER is commonly the `current-buffer' but be the
-`marker-buffer' when position is a marker and the value got by
-`marker-buffer' is non-nil.
-
-When WITHOUT-PROPERTIES is set, then compare with the whole
-buffer portion without any restrictions i.e. `buffer-narrowed-p'.
-"
+If DO-ERROR is set non-nil, also raise error when POSITION is a
+marker and its `marker-buffer' is not valid i.e. not `bufferp' or
+not `buffer-live-p'."
   (let* ((posmk-p (markerp position))
          (mkbuff (and posmk-p
                       (marker-buffer position)))
-         (pt (if posmk-p (marker-position position) position))
-         ptmin ptmax)
-    (with-current-buffer (or mkbuff (current-buffer))
-      (save-restriction
-        (entropy/emacs-widen-when
-         :when without-restriction
-         (setq ptmin (point-min)
-               ptmax (point-max))
-         (entropy/emacs-buffer-position-p
-          pt :do-error t)
-         (and
-          (>= pt ptmin)
-          (<= pt ptmax)))))))
+         (do-body t)
+         (_
+          (when (and posmk-p
+                     (or (not (bufferp mkbuff))
+                         (not (buffer-live-p mkbuff))))
+            (if do-error
+                (signal 'wrong-type-argument (list 'valid-markerp position))
+              (setq do-body nil))))
+         (pt (and do-body (if posmk-p (marker-position position) position))))
+    (when do-body
+      (with-current-buffer (or mkbuff (current-buffer))
+        (entropy/emacs-buffer-position-p
+         pt
+         :do-error do-error
+         :without-restriction without-restriction
+         :with-range-check with-range-check)))))
 
-(defun entropy/emacs-goto-char (position)
+(defun entropy/emacs-goto-char (position &optional noerror)
   "Like `goto-char' but this function guaranteeing that goto the
 POSITION's point in `current-buffer' even if POSITION is a maker
 in another buffer.
 
 POSITION must be prediated by `entropy/emacs-buffer-position-p'
 with `current-buffer''s visible portion or an error will be
-throwed out."
+thrown out.
+
+If NOERROR is set non-nil in which case always return nil without
+any operations did when such invalidation occurs."
   (let* ((posmk-p (markerp position))
          (pt (if posmk-p (marker-position position) position))
-         (_ (entropy/emacs-buffer-position-p
-             pt :do-error t :with-range-check t)))
-    (goto-char pt)))
+         (validp
+          (entropy/emacs-buffer-position-p
+           pt :do-error (not noerror) :with-range-check t)))
+    (when validp (goto-char pt))))
+
+(defun entropy/emacs-goto-char-plus (position &optional noerror)
+  "Like `entropy/emacs-goto-char' but use
+`entropy/emacs-buffer-position-p-plus' to check position."
+  (let* ((validp
+          (entropy/emacs-buffer-position-p-plus
+           position :do-error (not noerror) :with-range-check t))
+         (posmk-p (and validp (markerp position)))
+         (pt (and validp (if posmk-p (marker-position position) position))))
+    (when validp
+      (with-current-buffer
+          (or (and posmk-p (marker-buffer position)) (current-buffer))
+        (goto-char pt)))))
 
 (cl-defmacro entropy/emacs-with-current-buffer
     (buffer-or-name &rest body
@@ -7170,7 +7182,7 @@ range check. When either START or END is a marker, only its
 END-OFFSET in buffer BUFFRE (omitted for using `current-buffer')
 respectively.
 
-POSITION must be predicated by `entropy/emacs-buffer-position-p' with
+POSITION must be predicated by `entropy/emacs-buffer-position-p-plus' with
 BUFFER's visible range check, or an error will be throwed out.
 
 If FROM-LINE-BEGIN is non-nil, the based position is the
@@ -7195,7 +7207,7 @@ The returned cons of start and end is reversed when start's point is
   (with-current-buffer (or buffer (current-buffer))
     (save-excursion
       (if position
-          (entropy/emacs-goto-char position)
+          (entropy/emacs-goto-char-plus position)
         (setq position (point)))
       (let* ((lnbeg-pt (line-beginning-position))
              (lnend-pt (line-end-position))
@@ -7213,7 +7225,8 @@ The returned cons of start and end is reversed when start's point is
                (setq begpt (max 1 (+ position start-offset))
                      endpt (max 1 (+ position end-offset)))))
         (dolist (pt (list begpt endpt))
-          (entropy/emacs-buffer-position-p pt :do-error t :with-range-check t))
+          (entropy/emacs-buffer-position-p-plus
+           pt :do-error t :with-range-check t))
         (entropy/emacs-swap-two-places-value begpt endpt
           (< endpt begpt))
         (if return-as-marker
@@ -7230,7 +7243,7 @@ When BUFFER is omitted, use `current-buffer' as default.
 
 When POSITION is omitted use `point' in BUFFER as
 default. POSITION must be predicated by
-`entropy/emacs-buffer-position-p' with BUFFER's visible portion
+`entropy/emacs-buffer-position-p-plus' with BUFFER's visible portion
 check or a error will be throwed out.
 
 When WITHOUT-PROPERTIES is non-nil, trim all text properties of the
@@ -7250,21 +7263,28 @@ line area. Also return nil when the calculated region is empty.
     (with-current-buffer buffer
       (save-excursion
         (and pos
-             (entropy/emacs-goto-char pos))
+             (entropy/emacs-goto-char-plus pos))
         (setq lnbegpt (line-beginning-position)
               lnendpt (line-end-position)
               start-offset (or start-offset 0)
               end-offset  (or end-offset  0)))
       (setq region (entropy/emacs-get-buffer-region-from-pos
                     start-offset end-offset
+                    :position pos
                     :from-line-begin t
                     :from-line-end t)
             regbeg (car region)
             regend (cdr region)
             begpt (or (and (>= regbeg lnbegpt) (<= regbeg lnendpt) regbeg)
-                      (error "begin point out of current line's line-begin point"))
+                      (error "Region begin point %s out of current line's %s point %s"
+                             regbeg
+                             (if (< regbeg lnbegpt) "line-begin" "line-end")
+                             (if (< regbeg lnbegpt) lnbegpt lnendpt)))
             endpt (or (and (>= regend lnbegpt) (<= regend lnendpt) regend)
-                      (error "end point out of current line's line-end point")))
+                      (error "Region end point %s out of current line's %s point %s"
+                             regend
+                             (if (< regend lnbegpt) "line-begin" "line-end")
+                             (if (< regend lnbegpt) lnbegpt lnendpt))))
       (funcall extfunc begpt endpt))))
 
 (cl-defun entropy/emacs-buffer-delete-line-at-pos
