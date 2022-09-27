@@ -6966,8 +6966,8 @@ not satisfied for what we are diretly expecting."
 
 (cl-defun entropy/emacs-buffer-position-p
     (position &key do-error with-range-check without-restriction)
-  "Return non-nil when POSITION is a vaid buffer position of
-`current-buffer'.
+  "Return POSITION when POSITION is a vaid buffer position of
+`current-buffer' or nil when POSITION is invalid.
 
 When DO-ERROR is set, do `error' like
 `entropy/emacs-do-error-for-buffer-position-invalid' when
@@ -7008,11 +7008,13 @@ not `buffer-live-p'."
          (pt (and do-body (if posmk-p (marker-position position) position))))
     (when do-body
       (with-current-buffer (or mkbuff (current-buffer))
-        (entropy/emacs-buffer-position-p
-         pt
-         :do-error do-error
-         :without-restriction without-restriction
-         :with-range-check with-range-check)))))
+        (and (entropy/emacs-buffer-position-p
+              pt
+              :do-error do-error
+              :without-restriction without-restriction
+              :with-range-check with-range-check)
+             ;; convention return
+             position)))))
 
 (defun entropy/emacs-goto-char (position &optional noerror)
   "Like `goto-char' but this function guaranteeing that goto the
@@ -7077,22 +7079,26 @@ BUFFER-OR-NAME of `switch-to-buffer' used to apply to
 
 (cl-defmacro entropy/emacs-with-goto-char
     (number-or-marker &rest body
-                      &key save-excursion use-switch-directly
+                      &key save-excursion use-switch-directly do-error
                       &allow-other-keys)
-  "Run BODY after `goto-char' to NUMBER-OR-MARKER of the
-BUFFER (use NUMBER-OR-MARKER's buffer when it's a marker and its
-`marker-buffer' is non-nil or use `current-buffer') and the whole
-procedure is with that BUFFER (i.e. run with the `current-buffer'
-set to BUFFER temporarily unless USE-SWITCH-DIRECTLY is non-nil
-see below). Return the result of last form of BODY.
+  "Run BODY after `goto-char' to NUMBER-OR-MARKER of the BUFFER (use
+NUMBER-OR-MARKER's buffer when it's a marker or use `current-buffer')
+and the whole procedure is with that BUFFER (i.e. run with the
+`current-buffer' set to BUFFER temporarily unless USE-SWITCH-DIRECTLY
+is non-nil see below). Return the result of last form of BODY when
+everthing is ok.
 
-When SAVE-EXCURSION is non-nil, try to restore the point of the
-BUFFER after run BODY when possible.
+When SAVE-EXCURSION is non-nil, try to restore the point of the BUFFER
+after run BODY when possible.
 
-When USE-SWITCH-DIRECTLY is non-nil, it has same meaning of the
-same key of `entropy/emacs-with-current-buffer', otherwise
-restore the former `current-buffer' which presented before whole
-procedure.
+When USE-SWITCH-DIRECTLY is non-nil, it has same meaning of the same
+key of `entropy/emacs-with-current-buffer', otherwise restore the
+former `current-buffer' which presented before whole procedure.
+
+If DO-ERROR set non-nil, raise an error when NUMBER-OR-MARKER can not
+predicated by `entropy/emacs-buffer-position-p-plus' with visible
+portion of BUFFER. If not set that, always return nil without did
+anything when thus occasion occurred.
 "
   (declare (indent defun))
   (let ((body (entropy/emacs-get-plist-body body))
@@ -7101,18 +7107,22 @@ procedure.
         (swtd-sym   (make-symbol "use-switch-directly"))
         (sves-sym   (make-symbol "use-save-excursion"))
         (buff-sym   (make-symbol "the-buffer")))
-    `(let* ((,pt-sym ,number-or-marker)
-            (,mkbuf-sym (and (markerp ,pt-sym)
+    `(let* ((,pt-sym (entropy/emacs-buffer-position-p-plus
+                      ,number-or-marker
+                      :with-range-check t
+                      :do-error ,do-error))
+            (,mkbuf-sym (and ,pt-sym (markerp ,pt-sym)
                              (marker-buffer ,pt-sym)))
-            (,swtd-sym ,use-switch-directly)
-            (,sves-sym ,save-excursion)
-            (,buff-sym (or ,mkbuf-sym (current-buffer))))
-       (entropy/emacs-with-current-buffer ,buff-sym
-         :use-switch-directly ,swtd-sym
-         (entropy/emacs-save-excursion-when
-          :when ,sves-sym
-          (goto-char ,pt-sym)
-          ,@body)))))
+            (,swtd-sym (and ,pt-sym ,use-switch-directly))
+            (,sves-sym (and ,pt-sym ,save-excursion))
+            (,buff-sym (and ,pt-sym (or ,mkbuf-sym (current-buffer)))))
+       (when ,pt-sym
+         (entropy/emacs-with-current-buffer ,buff-sym
+           :use-switch-directly ,swtd-sym
+           (entropy/emacs-save-excursion-when
+            :when ,sves-sym
+            (goto-char ,pt-sym)
+            ,@body))))))
 
 (cl-defun entropy/emacs-buffer-goto-line
     (line-number &key buffer relative)

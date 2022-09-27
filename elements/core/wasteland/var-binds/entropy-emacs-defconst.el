@@ -218,7 +218,7 @@ validation mechanism.")
 (define-error entropy/emacs-buffer-position-invalid-error-symbol
   "Eemacs wrong type of buffer position" entropy/emacs-top-error-symbol)
 (cl-defun entropy/emacs-do-error-for-buffer-position-invalid
-    (position &key use-any-msg with-range-check without-restriction)
+    (position &key use-any-msg with-range-check without-restriction noerror)
   "Do `entropy/emacs-buffer-position-invalid-error-symbol' type error
 when a POSITION is not a valid buffer position value of
 `current-buffer' or error with message USE-ANY-MSG directly without
@@ -238,7 +238,8 @@ WITHOUT-RESTRICTION set, the buffer restriction is temporarily
 disabled using `save-restriction' to get the minimal `point-min' and
 max `point-max'.
 
-Return non-nil when no error matched.
+Return POSITION when no error matched or nil when any error occurred
+when NOERROR is set non-nil.
 "
   (if use-any-msg
       (signal
@@ -249,39 +250,37 @@ Return non-nil when no error matched.
     (let* ((posmk-p  (markerp position))
            (pt       (if posmk-p (marker-position position) position))
            (ptwp     (and (natnump pt) (> pt 0)))
-           pt-p ptmin ptmax)
+           ptmin ptmax)
       (catch :exit
         (unless ptwp
-          (signal
-           entropy/emacs-buffer-position-invalid-error-symbol
-           (list
-            (format "the buffer-position var '%s' is not a valid natural \
+          (if noerror (throw :exit nil)
+            (signal
+             entropy/emacs-buffer-position-invalid-error-symbol
+             (list
+              (format "The buffer-position var '%s' is not a valid natural \
 integer or non-empty marker."
-                    position))))
-        (unless with-range-check (throw :exit t))
+                      position)))))
+        (unless with-range-check (throw :exit position))
         (let ((limit-set-func
                (lambda ()
                  (setq ptmin (point-min)
                        ptmax (point-max)))))
           (if (and without-restriction
                    (buffer-narrowed-p))
-              (save-restriction
-                (widen)
-                (funcall limit-set-func))
+              (save-restriction (widen) (funcall limit-set-func))
             (funcall limit-set-func))
-          (setq pt-p
-                (and (natnump pt) (>= pt ptmin) (<= pt ptmax)))
-          (unless pt-p
-            (signal
-             entropy/emacs-buffer-position-invalid-error-symbol
-             (list
-              (format "the buffer-position var '%s' is overflow for \
+          (unless (and (natnump pt) (>= pt ptmin) (<= pt ptmax))
+            (if noerror (throw :exit nil)
+              (signal
+               entropy/emacs-buffer-position-invalid-error-symbol
+               (list
+                (format "The buffer-position var '%s' is overflow for \
 current buffer %S's %s."
-                      position (current-buffer)
-                      (if without-restriction "whole portion"
-                        "visible portion"))))))
+                        position (current-buffer)
+                        (if without-restriction "whole portion"
+                          "visible portion")))))))
         ;; return true
-        t))))
+        position))))
 
 ;; **** eemacs major-mode incompatible error
 (defconst entropy/emacs-major-mode-incompatible-error-symbol
