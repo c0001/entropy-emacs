@@ -2716,6 +2716,20 @@ mechanism, so be carefully.
 (advice-add 'require
             :around #'entropy/emacs-top-improvements-for-require)
 
+(defun entropy/emacs-require-only-needed (&rest args)
+  "Batch `require' features which specified via ARGS only for those
+are not loaded yet.
+
+Each element of args should be a single feature symbol or a full
+argument list applied to `require'."
+  (let (fp falp)
+    (dolist (fa args)
+      (if (setq falp (listp fa)) (setq fp (car fa))
+        (setq fp fa))
+      (unless (memq fp features)
+        (if falp (apply 'require fa)
+          (require fa))))))
+
 ;; *** run-hooks with prompt
 (defvar entropy/emacs--run-hooks-cache nil)
 

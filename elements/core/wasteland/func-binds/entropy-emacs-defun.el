@@ -7938,10 +7938,57 @@ Return the defined function name symbol."
 
 ;; *** Color operations
 
-(defun entropy/emacs-color-string-hex-p (color-hex-str-maybe)
-  "Check a string COLOR-HEX-STR-MAYBE whether is an hex color string."
-  (string-match-p "^#[0-9a-f]\\{3\\}[0-9a-f]*$"
-                  color-hex-str-maybe))
+(defun entropy/emacs-color-string-hex-p
+    (color-hex-str-maybe)
+  "Check a string COLOR-HEX-STR-MAYBE whether is an hex color
+string. Return `color-values' of it if thus, or nil otherwise.
+
+(see also `entropy/emacs-color-string-p')"
+  (let ((base-match-p
+         (string-match-p
+          "^#[0-9a-fA-F]\\{3\\}[0-9a-fA-F]*$"
+          color-hex-str-maybe)))
+    (when base-match-p
+      (entropy/emacs-require-only-needed 'faces)
+      (color-values color-hex-str-maybe))))
+
+(defun entropy/emacs-color-string-p
+    (object &optional use-shr-color-also do-error)
+  "Return non-nil when OBJECT is a emacs valid color string
+i.e. either a hexadecimal triplet color string or a color name
+string. Return nil otherwise.
+
+If USE-SHR-COLOR-ALSO, also check OBJECT whether is a key for
+`shr-color-html-colors-alist', if thus, that's also true.
+
+The non-nil return is a cons of the car of the return color
+string type of the cdr, and the car is as one of:
+
+1. 'hex': the cdr is an hexadecimal color string
+2. 'name': the cdr is a name of color.
+
+If DO-ERROR is set non-nil, throw error while any invalidations
+happened either of OBJECT is to string or it's not a color
+string."
+  (catch :exit
+    (unless (stringp object)
+      (if (not do-error) (throw :exit nil)
+        (signal 'wrong-type-argument
+                (list 'stringp object))))
+    (let ((hex-str-p (entropy/emacs-color-string-hex-p object))
+          tmpvar)
+      (or (and hex-str-p (cons 'hex object))
+          (and (or (assoc object tty-defined-color-alist)
+                   (member object x-colors))
+               (cons 'name object))
+          (and use-shr-color-also
+               (progn (entropy/emacs-require-only-needed 'shr-color) t)
+               (and
+                (setq tmpvar (alist-get object shr-color-html-colors-alist))
+                (cons 'hex tmpvar)))
+          (if (not do-error) (throw :exit nil)
+            (signal 'wrong-type-argument
+                    (list 'color-string-p object)))))))
 
 (defun entropy/emacs-color-values-to-rgb (color-values)
   "Transfer COLOR-VALUES which is the result of `color-values' to a
@@ -7955,21 +8002,25 @@ RGB list which can be used to `color-rgb-to-hex'."
           b (/ b full))
     (list r g b)))
 
-(defun entropy/emacs-color-get-color-hex-string (color-str &optional frame)
-  "Transfer an color string COLOR-STR to hex color string,
-COLOR-STR can be an color name or a hex color string.
+(defun entropy/emacs-color-get-color-hex-string
+    (color-str &optional frame digits-per-component)
+  "Transfer an color string COLOR-STR to hex color string and
+return that, COLOR-STR is a string can be predicated by
+`entropy/emacs-color-string-p' without shr supported.
 
 Optional arg FRAME used for which frame specified as base to
 calculate the color values. If FRAME is omitted or nil, use the
-selected frame."
-  (cond
-   ((entropy/emacs-color-string-hex-p color-str)
+selected frame.
+
+Optional DIGITS-PER-COMPONENT has same meaning as it be for
+`color-rgb-to-hex'."
+  (when (entropy/emacs-color-string-p color-str nil t)
+    (entropy/emacs-require-only-needed 'faces 'color)
     (apply 'color-rgb-to-hex
-           (entropy/emacs-color-values-to-rgb
-            (color-values color-str frame))))
-   (t
-    (apply 'color-rgb-to-hex
-           (color-name-to-rgb color-str frame)))))
+           (nconc
+            (entropy/emacs-color-values-to-rgb
+             (color-values color-str frame))
+            (list digits-per-component)))))
 
 (defun entropy/emacs-color-same-p
     (color1 color2 &optional color1-frame color2-frame)
@@ -7981,26 +8032,32 @@ Two frame spec optional args individually spec which frame to to
 use when calculate the color values for each color. If FRAME is
 omitted or nil, use the selected frame.
 "
-  (require 'faces)
+  (entropy/emacs-require-only-needed 'faces)
   (let ((c1 (color-values color1 color1-frame))
         (c2 (color-values color2 color2-frame)))
     (equal c1 c2)))
 
-(defun entropy/emacs-color-scale-common (color factor &optional frame)
+(defun entropy/emacs-color-scale-common
+    (color factor &optional frame digits-per-component)
   "Make color values of COLOR scaled by FACTOR of frame
 FRAME. Return a hex color string.
 
 Optional arg frame when specified we calculate the color value
-based the frame, nil for use selected frame."
+based the frame, nil for use selected frame.
+
+Optional DIGITS-PER-COMPONENT has same meaning as it be for
+`color-rgb-to-hex'."
+  (entropy/emacs-require-only-needed 'faces 'color)
   (let* ((cv (color-values color frame))
          (cl (entropy/emacs-color-values-to-rgb cv))
          (r (car cl))
-         (g(cadr cl))
+         (g (cadr cl))
          (b (caddr cl)))
     (setq r (* r factor)
           g (* g factor)
           b (* b factor))
-    (apply 'color-rgb-to-hex (list r g b))))
+    (apply 'color-rgb-to-hex
+           (list r g b digits-per-component))))
 
 ;; *** Face manipulation
 
