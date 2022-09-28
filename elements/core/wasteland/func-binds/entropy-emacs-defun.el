@@ -2356,6 +2356,22 @@ be `eq' even has same structure but we consider that is same.
          (when (and apos bpos)
            (< apos bpos)))))))
 
+(defun entropy/emacs-mapcar-without-orphans
+    (func seq &optional use-rich-orphan &rest orphans)
+  "Same as `mapcar', but delete all elements of a list ORPHANS via
+`cl-delete' for the returned collection.
+
+If USE-RICH-ORPHAN is set non-nil, each element of ORPHANS should be a
+cons of car of the target to be deleted and cdr of a plist applied to
+the keywords part of the arguments requirement of `cl-delete'."
+  (let ((rtn (mapcar func seq)) elt cl-args)
+    (when orphans
+      (dolist (el orphans)
+        (if use-rich-orphan (setq elt (car el) cl-args (cdr el))
+          (setq elt el))
+        (setq rtn (apply 'cl-delete elt rtn cl-args))))
+    rtn))
+
 ;; *** Plist manipulation
 
 (defun entropy/emacs-strict-plistp (var)
