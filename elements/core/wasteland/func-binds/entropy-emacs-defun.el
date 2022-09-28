@@ -8006,6 +8006,23 @@ string."
             (signal 'wrong-type-argument
                     (list 'color-string-p object)))))))
 
+(defun entropy/emacs-display-supports-colors-p
+    (&optional display as-backgroud &rest color-strs)
+  "Return non-nil when any color string specified in COLOR-STRS can
+be displayed in DISPLAY (default to `selected-frame''s DISPLAY),
+return nil otherwise.
+
+If AS-BACKGROUND set as non-nil, then the test is via the face
+background attribute, omit or nil that defaults to foreground."
+  (catch :exit
+    (dolist (cs color-strs)
+      (entropy/emacs-color-string-p cs nil 'do-error)
+      (or (display-supports-face-attributes-p
+           `((,(if as-backgroud :background :foreground) cs))
+           display)
+          (throw :exit nil)))
+    (throw :exit t)))
+
 (defun entropy/emacs-color-values-to-rgb (color-values)
   "Transfer COLOR-VALUES which is the result of `color-values' to a
 RGB list which can be used to `color-rgb-to-hex'."
