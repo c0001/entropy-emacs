@@ -8095,19 +8095,26 @@ value of FACE is not a color string which can be predicated by
     (and (entropy/emacs-color-string-p val)
          val)))
 
-(defun entropy/emacs-get-face-attribute-alist (face &optional frame inherit)
+(defun entropy/emacs-get-face-attribute-alist
+    (face &optional frame inherit without-unspecified)
   "Map face FACE all attributes into a alist with element formed
 as '(cons attr-key attr-value)' which can be used for
 `set-face-attribute' to loop did as.
 
 If optional argument INHERIT and FRAME is non-nil, it has the
-same meaning used for `face-attribute'"
-  (delete nil
-          (mapcar
-           (lambda (attr)
-             (let ((value (face-attribute face attr frame inherit)))
-               (cons attr value)))
-           entropy/emacs-face-attributes-list)))
+same meaning used for `face-attribute'
+
+If optional argument WITHOUT-UNSPECIFIED is set non-nil, then any
+unspecified attribute is not collected into the return."
+  (entropy/emacs-mapcar-without-orphans
+   (lambda (attr)
+     (let ((value (face-attribute face attr frame inherit)))
+       (unless (and without-unspecified
+                    (or (eq value 'unspecified)
+                        (equal value "unspecified-fg")
+                        (equal value "unspecified-bg")))
+         (cons attr value))))
+   entropy/emacs-face-attributes-list nil nil))
 
 (defvar entropy/emacs-set-face-attribute--internal-log-for-setted-faces nil)
 (when (custom-theme-enabled-p 'eemacs-cover-theme-0)
