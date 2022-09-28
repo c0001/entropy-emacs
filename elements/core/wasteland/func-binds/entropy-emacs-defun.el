@@ -8017,14 +8017,15 @@ Color string should be predicated by
 
 If AS-BACKGROUND set as non-nil, then the test is via the face
 background attribute, omit or nil that defaults to foreground."
-  (catch :exit
-    (dolist (cs color-strs)
-      (entropy/emacs-color-string-p cs nil 'do-error)
-      (or (display-supports-face-attributes-p
-           `((,(if as-backgroud :background :foreground) cs))
-           display)
-          (throw :exit nil)))
-    (throw :exit t)))
+  (when color-strs
+    (catch :exit
+      (dolist (cs color-strs)
+        (entropy/emacs-color-string-p cs nil 'do-error)
+        (or (display-supports-face-attributes-p
+             `(,(if as-backgroud :background :foreground) ,cs)
+             display)
+            (throw :exit nil)))
+      (throw :exit t))))
 
 (defun entropy/emacs-color-values-to-rgb (color-values)
   "Transfer COLOR-VALUES which is the result of `color-values' to a
