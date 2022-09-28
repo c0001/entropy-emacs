@@ -8012,6 +8012,9 @@ string."
 be displayed in DISPLAY (default to `selected-frame''s DISPLAY),
 return nil otherwise.
 
+Color string should be predicated by
+`entropy/emacs-color-string-p', or error will be raised up.
+
 If AS-BACKGROUND set as non-nil, then the test is via the face
 background attribute, omit or nil that defaults to foreground."
   (catch :exit
