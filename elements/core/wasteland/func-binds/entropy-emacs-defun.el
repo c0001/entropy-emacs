@@ -8073,13 +8073,10 @@ always completely specified) when the ATTRIBUTE's value is
 (defun entropy/emacs-face-attribute-color-p
     (face attribute &optional frame inherit)
   "Same as `face-attribute' but return nil while the ATTRIBUTE's
-value of FACE is not a color string which can predicated by
-`entropy/emacs-color-string-hex-p' or a member of
-`defined-colors' on FRAME."
+value of FACE is not a color string which can be predicated by
+`entropy/emacs-color-string-p'."
   (let ((val (face-attribute face attribute frame inherit)))
-    (and (stringp val)
-         (or (entropy/emacs-color-string-hex-p val)
-             (member val (defined-colors frame)))
+    (and (entropy/emacs-color-string-p val)
          val)))
 
 (defun entropy/emacs-get-face-attribute-alist (face &optional frame inherit)
