@@ -5779,7 +5779,7 @@ This function will store the `rime' loading callback to
                  :toggle entropy/emacs-basic-emacs-rime-toggle
                  :punctuation (:toggle
                                ;; TODO:
-                               #'(lambda () (interactive) t)
+                               ignore
                                :indicator
                                ;; TODO:
                                nil)
