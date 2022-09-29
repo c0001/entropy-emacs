@@ -8092,6 +8092,7 @@ string. Return `color-values' of it if thus, or nil otherwise.
       (entropy/emacs-require-only-needed 'faces)
       (color-values color-hex-str-maybe))))
 
+(defvar shr-color-html-colors-alist)
 (defun entropy/emacs-color-string-p
     (object &optional use-shr-color-also do-error)
   "Return non-nil when OBJECT is a emacs valid color string
