@@ -239,7 +239,7 @@ i.e. predicated by `eq'."
                     (cl-incf entropy/emacs-make-dynamic-symbol-as-same-value/heap-head-number))))
           ))
     (while (boundp (funcall sym-make-func)))
-    (entropy/emacs-eval-with-lexical
+    (eval
      ;; use `defvar' to declare it as an dynamic special variable
      ;; without lexical-binding environment wrapped.
      `(defvar ,sym-rtn ',var
