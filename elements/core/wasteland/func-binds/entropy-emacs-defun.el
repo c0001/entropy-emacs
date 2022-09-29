@@ -71,6 +71,19 @@ To get the real-body in BODY use
             (setq it (cddr it))
           (throw 'break it))))))
 
+(defun entropy/emacs-defun--get-body-without-keys
+    (body &rest keys)
+  "Like `entropy/emacs-defun--get-real-body' but just trim the
+key-pair where key is `memq' in KEYS."
+  (if (not keys) body
+    (let ((args body) key rtn)
+      (while (and args (keywordp (setq key (car args))))
+        (setq args (cdr-safe args))
+        (unless (memq key keys)
+          (setq rtn (nconc rtn (list key (car args)))))
+        (setq args (cdr-safe args)))
+      (nconc rtn args))))
+
 (defsubst entropy/emacs-eval-with-lexical (form &optional actual-lexical-binding)
   "Like `eval' but forcely enable `lexical-binding' as t.
 
