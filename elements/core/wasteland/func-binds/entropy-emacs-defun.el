@@ -233,6 +233,68 @@ If WITH-LEXICAL-BINDINGS is not set, this is same as
            `(entropy/emacs-cl-lambda-with-lcb
               ,@args))))
 
+(defmacro entropy/emacs-with-lambda (&rest args)
+  "Binding SYMBOL with function defined by
+`entropy/emacs-cl-lambda-with-lcb' and return function name symbol.
+
+WITH-LEXICAL-BINDINGS has same meaning of
+`entropy/emacs-cl-lambda-with-lcb'.
+
+When WITH-AUX is set, it should be a form do extra auxiliary
+operations, which will be `let' binding a option related variable
+`options' (or any variable name explicit set by WITH-OPTION-VARNAME)
+whose car is the returned function name symbol and cdr is a plist
+consists of any other keys and their values that this macro doesn't
+declared as rest in `&key' arglist.
+
+If SYMBOL is a cons of car of `t', then the SYMBOL's cdr is absolutely
+the defined function's name symbol. Otherwises, the returned function
+name symbol is always prefixed an suffixed with some special
+information used to distinguish this as special from others.
+
+\(fn SYMBOL ARGLIST [DOCSTRING] [DECL] [INCT] \
+&key WITH-AUX WITH-OPTION-VARNAME WITH-LEXICAL-BINDINGS ... \
+&rest BODY)"
+  (declare (doc-string 3) (indent defun))
+  (let* ((fname-prefix-sym (make-symbol "func-prefix-name"))
+         (fname-sym        (make-symbol "func-name"))
+         (fname-prefix     (prog1 (car args) (setq args (cdr args))))
+         (body-parse (apply 'entropy/emacs-parse-lambda-args args))
+         (full-body  (plist-get body-parse :body))
+         (body-trim-parse
+          (entropy/emacs-defun--get-body-without-keys
+           full-body 'reverse :with-lexical-bindins))
+         (opt-plist (car body-trim-parse))
+         (opt-var-sym  (or (plist-get opt-plist :with-option-varname) 'option-plist))
+         (aux-form     (plist-get opt-plist :with-aux))
+         (real-body    (cdr body-trim-parse))
+         (real-args
+          (entropy/emacs-merge-lambda-args
+           (plist-put body-parse :body real-body)))
+         (_ (setq opt-plist
+                  (car (entropy/emacs-defun--get-body-without-keys
+                        opt-plist 'reverse
+                        :with-aux :with-option-varname)))))
+    `(let* ((,fname-prefix-sym ,fname-prefix)
+            ,fname-sym)
+       (if (eq (car-safe ,fname-prefix-sym) t)
+           (setq ,fname-sym (cdr ,fname-prefix-sym))
+         ;; Prevent re-define
+         (while (fboundp
+                 (entropy/emacs-intern-to-var ,fname-sym
+                   (format
+                    "eemacs-%s/%s"
+                    (or ,fname-prefix-sym "lambda-nil")
+                    (random most-positive-fixnum))))))
+       (defalias ,fname-sym
+         ,(macroexpand-1
+           `(entropy/emacs-cl-lambda-with-lcb ,@real-args)))
+       (when ,(if aux-form t)
+         (let ((,opt-var-sym
+                (cons ,fname-sym (list ,@opt-plist))))
+           ,aux-form))
+       ,fname-sym)))
+
 ;; ** Common manipulations
 ;; *** Emacs internal api replacement
 
