@@ -72,17 +72,21 @@ To get the real-body in BODY use
           (throw 'break it))))))
 
 (defun entropy/emacs-defun--get-body-without-keys
-    (body &rest keys)
-  "Like `entropy/emacs-defun--get-real-body' but just trim the
-key-pair where key is `memq' in KEYS and return a cons of car of
-a plist of those KEYS with their value and cdr of the trimmed
-BODY."
+    (body &optional reverse &rest keys)
+  "Like `entropy/emacs-defun--get-real-body' but just trim the key-pairs
+where each key is `memq' in KEYS and return a cons of car of a plist
+of those KEYS with their value and cdr of the trimmed BODY.
+
+If REVERSE set non-nil, then the return is reversed as what commonly
+does, less commonly that in this case the BODY returned just has
+key-pairs where key match KEYS and so as on."
+  (declare (side-effect-free t))
   (if (not keys) body
     (let ((args body) key pair rtn rtn-rv)
       (while (and args (keywordp (setq key (car args))))
         (setq args (cdr-safe args)
               pair (list key (car args)))
-        (if (memq key keys)
+        (if (funcall (if reverse 'not 'identity) (memq key keys))
             (setq rtn-rv (nconc rtn-rv pair))
           (setq rtn (nconc rtn pair)))
         (setq args (cdr-safe args)))
