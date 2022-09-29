@@ -89,6 +89,52 @@ Either SEQ1 or SEQ2 is wrapped into a sequence when it is not a
     (mapc (lambda (x) (and (cl-position x seq2) (throw :exit t))) seq1)
     nil))
 
+(defmacro entropy/emacs-cl-lambda (&rest args)
+  "Same as `lambda' but its argument list allows full Common Lisp
+conventions.
+
+The full form of a Common Lisp argument list is
+
+   (VAR...
+    [&optional (VAR [INITFORM [SVAR]])...]
+    [&rest|&body VAR]
+    [&key (([KEYWORD] VAR) [INITFORM [SVAR]])... [&allow-other-keys]]
+    [&aux (VAR [INITFORM])...])
+
+VAR may be replaced recursively with an argument list for
+destructuring, `&whole' is supported within these sublists.  If
+SVAR, INITFORM, and KEYWORD are all omitted, then `(VAR)' may be
+written simply `VAR'.  See the Info node `(cl)Argument Lists' for
+more details.
+
+\(fn ARGS [DOCSTRING] [INTERACTIVE] BODY)"
+  (declare (doc-string 2) (indent defun))
+  (macroexpand-1
+   `(cl-function (lambda ,@args))))
+
+(defmacro entropy/emacs-define-lambda-as-exp
+    (&rest args)
+  "Like `entropy/emacs-cl-lambda', define a function FUNC (with lexical
+bindigs when `lexical-binding' is non-nil). But the return is a
+expression formed as
+
+: `(function FUNC)'
+
+Where FUNC is generated in current context.
+
+This macro exists as for the sake for wrapping a evaluated `lambda'
+expression as an `function' quotes form so that we can use it with `,'
+in a `backquote' expanding context for those `mapc' like sub-form's
+internal, less commonly that both for generating `lambda' before
+expanding time and used it directly after expanded time, and also
+aimed for shortening coding place as snippet.
+
+\(fn ARGS [DOCSTRING] [INTERACTIVE] BODY)"
+  (declare (doc-string 2) (indent defun))
+  `(list 'function
+         ,(macroexpand-1
+           `(entropy/emacs-cl-lambda ,@args))))
+
 ;; ** Common manipulations
 ;; *** Emacs internal api replacement
 
