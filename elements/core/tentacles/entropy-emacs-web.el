@@ -258,8 +258,9 @@ set of `entropy/emacs-browse-url-function-get-for-web-preview'."
 ;; ***** config
   :config
   (when (display-graphic-p)
-    (entropy/emacs-add-hook-lambda-nil 'web-mode-hook
-      "web-mode-enable-development-env"
+    (entropy/emacs-add-hook-with-lambda
+      'web-mode-enable-development-env (&rest _)
+      :use-hook 'web-mode-hook
       :use-append t
       (setq-local entropy/emacs-web-development-environment
                   t))))
@@ -353,8 +354,9 @@ set of `entropy/emacs-browse-url-function-get-for-web-preview'."
   (entropy/emacs-lazy-load-simple 'js2-mode
     (require 'js2-old-indent)
     (require 'js2-imenu-extras)
-    (entropy/emacs-add-hook-lambda-nil 'js2-mode-hook
-      "js2-initialized-common"
+    (entropy/emacs-add-hook-with-lambda
+      'js2-initialized-common (&rest _)
+      :use-hook 'js2-mode-hook
       :use-append t
       (setq-local js2-basic-offset 4)
       (js2-imenu-extras-mode 1))))

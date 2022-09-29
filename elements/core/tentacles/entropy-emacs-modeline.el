@@ -551,12 +551,14 @@ return nil"
     (when (fboundp 'minions-mode)
       (add-hook 'doom-modeline-mode-hook
                 #'minions-mode))
-    (entropy/emacs-add-hook-lambda-nil 'entropy/emacs-font-set-end-hook
-      "dml-refresh-fc-after-eemacs-fontset"
+    (entropy/emacs-add-hook-with-lambda
+      'dml-refresh-fc-after-eemacs-fontset (&rest _)
+      :use-hook 'entropy/emacs-font-set-end-hook
       (when (bound-and-true-p doom-modeline-mode)
         (doom-modeline-refresh-font-width-cache)))
-    (entropy/emacs-add-hook-lambda-nil 'entropy/emacs-startup-end-hook
-      "dml-refresh-fc-after-eemacs-startend"
+    (entropy/emacs-add-hook-with-lambda
+      'dml-refresh-fc-after-eemacs-startend (&rest _)
+      :use-hook 'entropy/emacs-startup-end-hook
       (when (bound-and-true-p doom-modeline-mode)
         (doom-modeline-refresh-font-width-cache))))
 

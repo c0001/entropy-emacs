@@ -8128,35 +8128,45 @@ immediately, otherwise do the subroutines."
 
 ;; *** Hook manipulation
 
-(cl-defmacro entropy/emacs-add-hook-lambda-nil
-    (hook name &rest body &key use-append use-local &allow-other-keys)
-  "Biuld auto-named function prefixed by NAME a symbol or string
-with body of BODY and inject it into HOOK. Appended injection
-when USE-APPEND is non-nil.
+(cl-defmacro entropy/emacs-add-hook-with-lambda
+    (&rest args)
+  "Binding a function named with using SYMBOL as core, with body of BODY
+and inject it into hook(s) specified by USE-HOOK. Appended injection
+when USE-APPEND is non-nil. Return the defined function name symbol.
 
 When USE-LOCAL is set, then the function is inject into to HOOK's
 buffer-local variant where invoked from.
 
-Return the defined function name symbol."
-  (declare (indent defun))
-  (let ((name-sym (make-symbol "name"))
-        (fname-sym (make-symbol "func-name"))
-        (body (entropy/emacs-defun--get-real-body body)))
-    `(let* ((,name-sym ,name)
-            (,fname-sym nil))
-       ;; Prevent re-define
-       (while (fboundp
-               (setq ,fname-sym
-                     (intern (format
-                              "eemacs-fake-lambda-nil-for-%s/%s"
-                              (if (stringp ,name-sym) ,name-sym
-                                (symbol-name ,name-sym))
-                              (random most-positive-fixnum))))))
-       (defalias ,fname-sym
-         (lambda (&rest _)
-           ,@body))
-       (add-hook ,hook ,fname-sym ,use-append ,use-local)
-       ,fname-sym)))
+USE-HOOK can either be a hook symbol or a list of thus in which case
+injects function into all of them with specifications.
+
+This macro use `entropy/emacs-with-lambda' as subroutine so that
+WITH-LEXICAL-BINDINGS has same meaning of that, also with SYMBOL as.
+
+\(fn SYMBOL ARGLIST [DOCSTRING] [DECL] [INCT] \
+&key USE-APPEND USE-LOCAL USE-HOOK WITH-LEXICAL-BINDINGS &rest BODY)"
+  (declare (doc-string 3) (indent defun))
+  (let* ((optvarnm (make-symbol "options"))
+         (args-parse
+          (apply 'entropy/emacs-parse-lambda-args (cdr args)))
+         (new-body
+          `(:with-option-varname
+            ,optvarnm
+            :with-aux
+            (let* ((fname (car ,optvarnm))
+                   (pl (cdr ,optvarnm))
+                   (hooks (plist-get pl :use-hook))
+                   (_ (and hooks (atom hooks)
+                           (setq hooks (list hooks)))))
+              (dolist (hook hooks)
+                (add-hook hook fname
+                          (plist-get pl :use-append)
+                          (plist-get pl :use-local))))
+            ,@(plist-get args-parse :body))))
+    (macroexpand-1
+     `(entropy/emacs-with-lambda ,(car args)
+        ,@(entropy/emacs-merge-lambda-args
+           (plist-put args-parse :body new-body))))))
 
 ;; *** Color operations
 
@@ -11069,8 +11079,9 @@ stored the error log in
           (intern
            (format "%s-for-emacs-daemon"
                    (symbol-name name)))))
-    (entropy/emacs-add-hook-lambda-nil 'entropy/emacs-daemon-server-after-make-frame-hook
-      --name--
+    (entropy/emacs-add-hook-with-lambda
+      --name-- (&rest _)
+      :use-hook 'entropy/emacs-daemon-server-after-make-frame-hook
       :use-append t
       (condition-case error
           (progn

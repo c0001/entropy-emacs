@@ -743,8 +743,9 @@ shutdown since it is managed by the customize variable
      (yas-minor-mode 1)))
 
   ;; fully quit `lsp-mode' charge
-  (entropy/emacs-add-hook-lambda-nil 'lsp-mode-hook
-    "disable-lsp-remains-when-quit"
+  (entropy/emacs-add-hook-with-lambda
+    'disable-lsp-remains-when-quit (&rest _)
+    :use-hook 'lsp-mode-hook
     (when (not (bound-and-true-p lsp-mode))
       (if (bound-and-true-p lsp-diagnostics-mode)
           (lsp-diagnostics-mode 0))
