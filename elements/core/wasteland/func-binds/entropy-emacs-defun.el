@@ -107,7 +107,7 @@ SVAR, INITFORM, and KEYWORD are all omitted, then `(VAR)' may be
 written simply `VAR'.  See the Info node `(cl)Argument Lists' for
 more details.
 
-\(fn ARGS [DOCSTRING] [INTERACTIVE] BODY)"
+\(fn ARGLIST [DOCSTRING] [DECL] [INCT] BODY)"
   (declare (doc-string 2) (indent defun))
   (macroexpand-1
    `(cl-function (lambda ,@args))))
@@ -129,7 +129,7 @@ internal, less commonly that both for generating `lambda' before
 expanding time and used it directly after expanded time, and also
 aimed for shortening coding place as snippet.
 
-\(fn ARGS [DOCSTRING] [INTERACTIVE] BODY)"
+\(fn ARGLIST [DOCSTRING] [DECL] [INCT] BODY)"
   (declare (doc-string 2) (indent defun))
   `(list 'function
          ,(macroexpand-1
@@ -188,7 +188,7 @@ WITH-LEXICAL-BINDINGS.
 If WITH-LEXICAL-BINDINGS is not set, this is same as
 `entropy/emacs-define-lambda-as-exp'.
 
-\(fn ARGLIST &optional DOCSTRING DECL INCT \
+\(fn ARGLIST [DOCSTRING] [DECL] [INCT] \
 &key WITH-LEXICAL-BINDINGS &rest BODY)"
   (declare (doc-string 2) (indent defun))
   (let* ((args-parse (apply 'entropy/emacs-parse-lambda-args args))
@@ -207,7 +207,7 @@ If WITH-LEXICAL-BINDINGS is not set, this is same as
   "Like `entropy/emacs-define-lambda-as-exp' but use
 `entropy/emacs-cl-lambda-with-lcb' as its subroutine.
 
-\(fn ARGLIST &optional DOCSTRING DECL INCT \
+\(fn ARGLIST [DOCSTRING] [DECL] [INCT] \
 &key WITH-LEXICAL-BINDINGS &rest BODY)"
   (declare (doc-string 2) (indent defun))
   `(list 'function
