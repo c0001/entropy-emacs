@@ -6724,8 +6724,8 @@ bindings of the stack context who calling this macro but only
 when `lexical-binding' is enabled in that context, otherwise it
 is just a anonymous no arguments function."
   (declare (indent defun))
-  (let ((forms-sym        (make-symbol "forms"))
-        (feature-sym      (make-symbol "feature"))
+  (let ((forms-sym              (make-symbol "forms"))
+        (feature-sym            (make-symbol "feature"))
         (body-lambda-exp-sym    (make-symbol "body-func"))
         (extitem-func-sym (make-symbol "extract-item-func")))
     `(let (,forms-sym
