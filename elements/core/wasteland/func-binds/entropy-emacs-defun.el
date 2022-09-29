@@ -6722,17 +6722,16 @@ that.
 BODY is wrapped into a `lambda', it is defined with lexical
 bindings of the stack context who calling this macro but only
 when `lexical-binding' is enabled in that context, otherwise it
-is just a anonymous no arguments function.
-
-Return that BODY function"
+is just a anonymous no arguments function."
   (declare (indent defun))
   (let ((forms-sym        (make-symbol "forms"))
         (feature-sym      (make-symbol "feature"))
-        (body-func-sym    (make-symbol "body-func"))
+        (body-lambda-exp-sym    (make-symbol "body-func"))
         (extitem-func-sym (make-symbol "extract-item-func")))
     `(let (,forms-sym
            (,feature-sym ,feature)
-           (,body-func-sym (list 'function (lambda nil ,@body)))
+           (,body-lambda-exp-sym
+            (entropy/emacs-define-lambda-as-exp nil ,@body))
            (,extitem-func-sym
             (lambda (file)
               (if (stringp file)
@@ -6741,18 +6740,18 @@ Return that BODY function"
        (cond ((not (listp ,feature-sym))
               (setq ,forms-sym
                     (list 'eval-after-load (funcall ,extitem-func-sym ,feature-sym)
-                          ,body-func-sym)))
+                          ,body-lambda-exp-sym)))
              ((and (listp ,feature-sym)
                    (= 1 (length ,feature-sym)))
               (setq forms
                     (list 'eval-after-load (funcall ,extitem-func-sym (car ,feature-sym))
-                          ,body-func-sym)))
+                          ,body-lambda-exp-sym)))
              ((and (listp ,feature-sym)
                    (> (length ,feature-sym) 1))
               (setq ,feature-sym (reverse ,feature-sym)
                     ,forms-sym
                     (list 'eval-after-load (funcall ,extitem-func-sym (car ,feature-sym))
-                          ,body-func-sym))
+                          ,body-lambda-exp-sym))
               (dolist (el (cdr ,feature-sym))
                 (setq ,forms-sym
                       (list 'eval-after-load (funcall ,extitem-func-sym el)
@@ -6761,11 +6760,10 @@ Return that BODY function"
        (when entropy/emacs-startup-with-Debug-p
          (push (list ,feature
                      :lexical-bind-p lexical-binding
-                     :functype (car (cadr ,body-func-sym))
-                     :lexical (cadr (cadr ,body-func-sym))
+                     :functype (car (cadr ,body-lambda-exp-sym))
+                     :lexical (cadr (cadr ,body-lambda-exp-sym))
                      :load-fname load-file-name)
-               entropy/emacs--eval-after-load-log))
-       ,body-func-sym)))
+               entropy/emacs--eval-after-load-log)))))
 
 (defvar entropy/emacs-eval-after-load-only-once-register -1)
 (defmacro entropy/emacs-eval-after-load-only-once (feature &rest body)
