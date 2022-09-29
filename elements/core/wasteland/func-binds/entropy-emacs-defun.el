@@ -9776,11 +9776,13 @@ internal context or API adding to thus, because any not be will
 pollute eemacs internal lazy load optimization."
   (declare (indent 1) (debug t))
   (let ((body (entropy/emacs-get-plist-body body))
+        (no-msg-sym (make-symbol "no-message-p"))
         (this-load-fname-sym (make-symbol "this-load-fname"))
         (feature-sym (make-symbol "feature-or-list"))
-        (body-func-sym (make-symbol "body-func")))
+        (body-lambda-exp-sym (make-symbol "body-func")))
     ;; macro main
     `(let ((,feature-sym ,feature)
+           (,no-msg-sym ,non-message)
            (,this-load-fname-sym
             (or
              ;; NOTE: the `load-file-name' must be evaluated by
@@ -9790,7 +9792,7 @@ pollute eemacs internal lazy load optimization."
                ;; fixed the byte-compile as original
                byte-compile-current-file)
              "top-level"))
-           ,body-func-sym)
+           ,body-lambda-exp-sym)
        (when entropy/emacs-startup-with-Debug-p
          (push (list :feature ,feature-sym ;log the origin feature form
                      :load-in ,this-load-fname-sym
@@ -9806,32 +9808,32 @@ pollute eemacs internal lazy load optimization."
             ;; create a artificial closure scope to handle the FEATURE
             ;; and LOAD-FNAME var bindind in runtime.
             (t
-             (setq ,body-func-sym
-                   (list 'function
-                         (entropy/emacs-eval-with-lexical
-                          '(lambda nil
-                             (entropy/emacs-message-simple-progress-message
-                              (unless ,non-message
-                                (setq entropy/emacs--lazy-load-simple-feature-head
-                                      (append entropy/emacs--lazy-load-simple-feature-head
-                                              (list ,feature-sym)))
-                                (format
-                                 "[gened-by: %s] with lazy loading configs for feature '%s'"
-                                 ,this-load-fname-sym
-                                 ,feature-sym))
-                              (entropy/emacs-general-run-with-protect-and-gc-strict
-                               ,@body)))
-                          (append
-                           (list (cons ',feature-sym ,feature-sym)
-                                 (cons ',this-load-fname-sym ,this-load-fname-sym))
-                           ,lexical-bindings))))
+             (setq ,body-lambda-exp-sym
+                   (entropy/emacs-define-lambda-as-exp-with-lcb nil
+                     :with-lexical-bindins
+                     (append
+                      (list (cons ',feature-sym ,feature-sym)
+                            (cons ',this-load-fname-sym ,this-load-fname-sym)
+                            (cons ',no-msg-sym ,no-msg-sym))
+                      ,lexical-bindings)
+                     (entropy/emacs-message-simple-progress-message
+                      (unless ,no-msg-sym
+                        (setq entropy/emacs--lazy-load-simple-feature-head
+                              (append entropy/emacs--lazy-load-simple-feature-head
+                                      (list ,feature-sym)))
+                        (format
+                         "[gened-by: %s] with lazy loading configs for feature '%s'"
+                         ,this-load-fname-sym
+                         ,feature-sym))
+                      (entropy/emacs-general-run-with-protect-and-gc-strict
+                       ,@body))))
              (entropy/emacs-eval-with-lexical
               (list 'entropy/emacs-eval-after-load
                     (list 'quote ,feature-sym)
-                    (list 'funcall ,body-func-sym)))))))
+                    (list 'funcall ,body-lambda-exp-sym)))))))
         ((null entropy/emacs-custom-enable-lazy-load)
          (when (not (null ,feature-sym))
-           (unless ,non-message
+           (unless ,no-msg-sym
              (entropy/emacs-message-do-message
               "force load configs for feature '%s'" ,feature-sym)
              (setq entropy/emacs--lazy-load-simple-feature-head
