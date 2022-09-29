@@ -223,22 +223,30 @@ If WITH-LEXICAL-BINDINGS is not set, this is same as
   (let ((debug-on-error nil))
     (apply 'error string args)))
 
+(defmacro entropy/emacs-intern (&rest body)
+  "`intern' BODY's value as symbol and return the interned symbol.
+
+In which case BODY's value must be a string or error raised up."
+  `(intern (progn ,@body)))
+
+(defmacro entropy/emacs-intern-to-var (var &rest body)
+  "Like `entropy/emacs-intern' but also set VAR as its return.
+
+VAR should be a variable name or a `setf' compatible place."
+  (declare (indent 1))
+  `(setf ,var (intern (progn ,@body))))
+
 (defvar entropy/emacs-make-dynamic-symbol-as-same-value/heap-head-number 0)
 (defun entropy/emacs-make-dynamic-symbol-as-same-value (var)
   "Make a new dynamic symbol (predicated by `special-variable-p'
 and interned in `obarray') whose value is same as VAR's value
 i.e. predicated by `eq'."
-  (let* (sym-rtn
-         (sym-make-func
-          (lambda nil
-            (setq sym-rtn
-                  (prog1
-                      (intern
-                       (format "entropy/emacs-make-dynamic-symbol-as-same-value/%d"
-                               entropy/emacs-make-dynamic-symbol-as-same-value/heap-head-number))
-                    (cl-incf entropy/emacs-make-dynamic-symbol-as-same-value/heap-head-number))))
-          ))
-    (while (boundp (funcall sym-make-func)))
+  (let* (sym-rtn)
+    (entropy/emacs-intern-to-var sym-rtn
+      (prog1
+          (format "entropy/emacs-make-dynamic-symbol-as-same-value/%d"
+                  entropy/emacs-make-dynamic-symbol-as-same-value/heap-head-number)
+        (cl-incf entropy/emacs-make-dynamic-symbol-as-same-value/heap-head-number)))
     (eval
      ;; use `defvar' to declare it as an dynamic special variable
      ;; without lexical-binding environment wrapped.
@@ -248,25 +256,19 @@ i.e. predicated by `eq'."
      nil)
     sym-rtn))
 
-(defun entropy/emacs-make-new-function-name
-    (arglist &optional docstring decl &rest body)
-  "Define a function with unexisted name symbol and return the new
-defined function name.
+(defmacro entropy/emacs-make-new-function-name
+    (&rest args)
+  "Like `entropy/emacs-cl-lambda-with-lcb' but return the new allocated
+random dynamic function name symbol of the defination of BODY.
 
-ARGLIST is the arglist for that function, and BODY is the body of
-that function and decl is the declaration of that function.
-
-Since the defination process is same as `defun', so you also can
-inject `interactive' form in BODY."
-  (let ((sym (entropy/emacs-make-dynamic-symbol-as-same-value
-              (lambda (&rest _)
-                (error "Wrong usage of this function symbol")))))
-    (entropy/emacs-eval-with-lexical
-     `(defun ,sym ,arglist
-        ,docstring
-        ,decl
-        ,@body))
-    sym))
+\(fn ARGLIST [DOCSTRING] [DECL] [INCT] &key WITH-LEXICAL-BINDINGS &rest BODY)"
+  (declare (doc-string 2) (indent defun))
+  `(let ((sym (entropy/emacs-make-dynamic-symbol-as-same-value
+               (lambda (&rest _)
+                 (error "Wrong usage of this function symbol")))))
+     (defalias sym
+       ,(macroexpand-1 `(entropy/emacs-cl-lambda-with-lcb ,@args)))
+     sym))
 
 (defun entropy/emacs-unintern-symbol (symbol &optional use-obarray)
   "Like `unintern' but use SYMBOL as the main arg since although

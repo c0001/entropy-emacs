@@ -1042,16 +1042,13 @@ the entry contents since we should respect
         (elfeed-show-mode)
         (setq elfeed-show-entry entry)
         (let ((func-sym
-               (entropy/emacs-make-new-function-name
-                '(&rest _)
-                "The `elfeed-show-entry' hack hooker."
-                nil
-                `(let ((buff ,(current-buffer)))
-                   (when (buffer-live-p buff)
-                     (with-current-buffer buff
-                       (elfeed-show-refresh)
-                       (message "elfeed entry buffer did window center mode adjusting done!")
-                       ))))))
+               (entropy/emacs-make-new-function-name (&rest _)
+                 "The `elfeed-show-entry' hack hooker."
+                 (when (buffer-live-p buff)
+                   (with-current-buffer buff
+                     (elfeed-show-refresh)
+                     (message "elfeed entry buffer did window center mode adjusting done!")
+                     )))))
           (add-hook 'entropy/emacs-window-center-enable-after-hook
                     func-sym nil t)
           (add-hook 'entropy/emacs-window-center-disable-after-hook
