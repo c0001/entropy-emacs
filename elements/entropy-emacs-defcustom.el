@@ -2736,39 +2736,28 @@ argument list applied to `require'."
 (defun entropy/emacs-run-hooks-prompt (orig-func &rest orig-args)
   "Prompt for `run-hooks' for reduce lagging nervous. It's a
 advice wrapper, do not calling it in the normal way"
-  (let ((condis (lambda ()
-                  (or noninteractive
-                      (minibufferp))))
-        (indicator (car orig-args))
+  (let ((indicator (car orig-args))
         rtn)
     (push (cons (format-time-string "[%Y-%m-%d %a %H:%M:%S]") orig-args)
           entropy/emacs--run-hooks-cache)
-    (unless (funcall condis)
-      (if (symbolp indicator)
-          (message "Running hooks '%s' ..." indicator)
-        (message "Running hooks ..."))
-      (sleep-for 0.0001))
-    (setq rtn (apply orig-func orig-args))
-    (unless (funcall condis)
-      (message ""))
+    (entropy/emacs-message-simple-progress-message
+     (if (symbolp indicator)
+         (format "Run hooks '%s'" indicator)
+       (format "%s" "Run hooks"))
+     (setq rtn (apply orig-func orig-args)))
     rtn))
 
 (defmacro entropy/emacs-run-hooks-with-prompt (&rest body)
   "Do BODY with `run-hooks' with prompts feature based on
 `entropy/emacs-run-hooks-prompt'."
-  `(let (rtn)
-     (advice-add 'run-hooks :around
-                 #'entropy/emacs-run-hooks-prompt)
+  `(let ((inhibit-quit t) rtn)
+     (advice-add 'run-hooks :around #'entropy/emacs-run-hooks-prompt)
      (unwind-protect
          (progn
-           (setq rtn
-                 (progn
-                   ,@body))
-           (advice-remove 'run-hooks
-                          #'entropy/emacs-run-hooks-prompt)
+           (setq rtn (progn ,@body))
+           (advice-remove 'run-hooks #'entropy/emacs-run-hooks-prompt)
            rtn)
-       (advice-remove 'run-hooks
-                      #'entropy/emacs-run-hooks-prompt))))
+       (advice-remove 'run-hooks #'entropy/emacs-run-hooks-prompt))))
 
 ;; *** entropy-emacs init hooks
 (defvar entropy/emacs-init-mini-hook '()
