@@ -79,7 +79,12 @@ of those KEYS with their value and cdr of the trimmed BODY.
 
 If REVERSE set non-nil, then the return is reversed as what commonly
 does, less commonly that in this case the BODY returned just has
-key-pairs where key match KEYS and so as on."
+key-pairs where key match KEYS and so as on.
+
+Generally say, since body can be arbitrarily list, so that if BODY is
+a pure plist, in which case the return of car is a plist
+include(exclude when REVERSE) KEYS and cdr of a plist exclude(include
+when REVERSE)."
   (declare (side-effect-free t))
   (if (not keys) body
     (let ((args body) key pair rtn rtn-rv)
