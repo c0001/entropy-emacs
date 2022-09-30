@@ -473,7 +473,7 @@ of `eldoc-idle-delay' after excute the ORIG-FUNC."
 ;; ** hydra
 ;; *** hydra core
 (use-package hydra
-  :commands (defhydra)
+  :eemacs-macros (defhydra)
   :eemacs-functions (hydra-default-pre)
   :init
   ;; Fix '[]' as key stroke in hydra doc init refer to

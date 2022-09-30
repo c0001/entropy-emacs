@@ -180,28 +180,27 @@ files destroying."
 
 
 ;; **** Pop up last commit information of current line
-(use-package git-messenger
-  :preface
 
-  ;; FIXME: we must declare this macro firstly before use-package
-  ;; defer load the patch, otherwise, this macro will be recognized as
-  ;; an void function and why?
+(eval-when-compile
   (defmacro entropy/emacs-vcs--git-messenger:popup-message/unwind-protect
       (&rest body)
     "The input waiting protect for
 `entropy/emacs-vcs--git-messenger:popup-message' of BODY."
-    `(let ((|||hydra-need-quit___|$ t))
-       (unwind-protect
-           (progn
-             (push (read-event) unread-command-events)
-             ;; when hint C-g we must exit the hydra also.
-             (when (eq (car unread-command-events) 7)
-               (git-messenger-hydra/lambda-\,-and-exit))
-             (setq |||hydra-need-quit___|$ nil))
-         ,@body
-         (when |||hydra-need-quit___|$
-           (hydra-keyboard-quit)))))
+    (macroexp-let2* ignore
+        ((hydra-need-quit-p nil))
+      `(let ((,hydra-need-quit-p t))
+         (unwind-protect
+             (progn
+               (push (read-event) unread-command-events)
+               ;; when hint C-g we must exit the hydra also.
+               (when (eq (car unread-command-events) 7)
+                 (git-messenger-hydra/lambda-\,-and-exit))
+               (setq ,hydra-need-quit-p nil))
+           ,@body
+           (when ,hydra-need-quit-p
+             (hydra-keyboard-quit)))))))
 
+(use-package git-messenger
   :commands git-messenger:copy-message
   :eemacs-tpha
   (((:enable t :defer (:data (:adfors (find-file-hook) :adtype hook :pdumper-no-end t)
@@ -218,11 +217,15 @@ files destroying."
   :config
 
 ;; ***** patches
-  (entropy/emacs-lazy-load-simple 'hydra
-    (defhydra git-messenger-hydra (:color blue)
-      ("s" git-messenger:popup-show "show")
+
+  ;; FIXME: Find a method to let load-time doesn't expand `defhydra'
+  ;; while expand `use-package'. Since all macro are expanded
+  ;; recursively in load time.
+  (entropy/emacs-eval-with-lexical
+   '(defhydra git-messenger-hydra (:color blue)
+      ("s" git-messenger:popup-show     "show")
       ("c" git-messenger:copy-commit-id "copy hash")
-      ("m" git-messenger:copy-message "copy message")
+      ("m" git-messenger:copy-message   "copy message")
       ("," (progn (catch 'git-messenger-loop (__eemacs/git-messenger:show-parent))
                   (entropy/emacs-vcs--git-messenger:popup-message t))
        "go parent")
