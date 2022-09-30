@@ -3455,7 +3455,9 @@ that."
       (unless
           ;; avoid when user pre sets in `custom-file'
           (and (boundp var-sym)
-               ;; but for some pre loaded customized var
+               ;; but for some pre loaded customized var that it is
+               ;; handled in its package internally so that we do not
+               ;; need to build that directory for saving check time.
                (not (eq var-sym 'auto-save-list-file-prefix)))
         (setq path (directory-file-name (expand-file-name (cdr item) top)))
         (setq path-root (file-name-directory path))
@@ -3467,7 +3469,7 @@ that."
         (unless (file-directory-p path-root)
           (make-directory path-root t))
         ;; create the dir if item is an directory
-        (if (and (string-match-p "/$" (cdr item))
+        (if (and (directory-name-p (cdr item))
                  (null (file-exists-p path)))
             (make-directory path t)))
       ))
