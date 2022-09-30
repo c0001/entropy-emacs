@@ -4364,15 +4364,16 @@ Return the new scratch buffer.
 "
   (let* ((bfn "*scratch*")
          (main-func
-          (lambda (&rest _)
+          (lambda (&rest without-head-check)
             (with-current-buffer (current-buffer)
               ;; make scratch buffer as un-readonly defaultly
               (if buffer-read-only (setq buffer-read-only nil))
               ;; insert the `initial-scratch-message'
-              (save-excursion
-                (goto-char (point-min))
-                (unless (looking-at (regexp-quote initial-scratch-message))
-                  (insert initial-scratch-message)))
+              (unless without-head-check
+                (save-excursion
+                  (goto-char (point-min))
+                  (unless (looking-at (regexp-quote initial-scratch-message))
+                    (insert initial-scratch-message))))
               ;; disable `auto-save-mode' since we do not want to auto
               ;; backup the scratch contents
               (when (bound-and-true-p buffer-auto-save-file-name)
@@ -4390,13 +4391,17 @@ Return the new scratch buffer.
     (when (get-buffer bfn)
       (kill-buffer (get-buffer bfn)))
     ;; main
-    (let ((fname (expand-file-name ".scratch_entropy" entropy/emacs-stuffs-topdir))
-          ;; inhibit `find-file-hook' for speedup file create
-          (find-file-hook nil))
-      (unless (file-exists-p fname)
+    (let* ((fname (expand-file-name ".scratch_entropy" entropy/emacs-stuffs-topdir))
+           ;; FIXME: if its an broken symlink shall we care and remove it firstly?
+           (forig-exists-p (file-exists-p fname))
+           ;; inhibit `find-file-hook' for speedup file create
+           (find-file-hook nil))
+      (unless forig-exists-p
         (write-region "" nil fname))
       (with-current-buffer (find-file-noselect fname)
-        (funcall main-func)))
+        ;; we shouldn't re-insert the scratch buffer head string while
+        ;; it's originally existed.
+        (funcall main-func forig-exists-p)))
     ;; return the buffer
     (get-buffer bfn)))
 
