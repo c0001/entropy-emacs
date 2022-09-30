@@ -500,40 +500,55 @@ NOTE: Just use it in `noninteractive' session."
 (cl-defmacro entropy/emacs-message-simple-progress-message
     (message &rest body &key with-temp-message ignore-current-messages
              &allow-other-keys)
-  "Do BODY and return its result with progress prompt message
-MESSAGE using `make-progress-reporter'.
+  "Do BODY and return its result with progress prompt message MESSAGE
+using `make-progress-reporter'.
 
-Inhibit any prompts while message is nil in which case we just
-run BODY.
+Inhibit any prompts while message is nil in which case we just run
+BODY.
 
-The `current-message' is restored in echo area if exist when
-WITH-TEMP-MESSAGE is non-nil and `current-message' is not
-`member' in IGNORE-CURRENT-MESSAGES or call it as function with
-`current-message' and return non-nil.
+If WITH-TEMP-MESSAGE is set and return non-nil, then all the progress
+messages are not logged into `messages-buffer'.
+
+The `current-message' is restored in echo area after BODY ran out if
+it is non-nil only when WITH-TEMP-MESSAGE is set and return non-nil
+and `current-message' is non-nil and is not `member' in
+IGNORE-CURRENT-MESSAGES or call IGNORE-CURRENT-MESSAGES with
+`current-message' and return non-nil if it is a function.
+
+This function do not do any restriction for any messages produced by
+BODY.
 "
   (let ((body (entropy/emacs-message--get-plist-body body))
+        (with-tmpmsg-sym (make-symbol "with-temp-message-p"))
         (message-sym (make-symbol "message"))
         (progress-reporter-sym (make-symbol "progress-reporter"))
         (curmsg-sym (make-symbol "curmsg"))
-        (ignmsgs-sym (make-symbol "ignmsgs")))
-    `(let* ((,curmsg-sym (current-message))
+        (ignmsgs-sym (make-symbol "ignmsgs"))
+        (msg-max-ov-sym (make-symbol "origin-message-log-max-value")))
+    `(let* ((,with-tmpmsg-sym ,with-temp-message)
+            (,curmsg-sym (current-message))
             (,ignmsgs-sym ,ignore-current-messages)
             (,message-sym ,message)
+            ;; restrict messages
+            (,msg-max-ov-sym message-log-max)
+            (message-log-max
+             (if ,with-tmpmsg-sym nil ,msg-max-ov-sym))
             (,progress-reporter-sym
              (when ,message-sym
-               (make-progress-reporter
-                (format "%s ... " ,message-sym)))))
-       (prog1
-           (let (_)
-             ,@body)
+               (make-progress-reporter (format "%s ... " ,message-sym)))))
+       (prog1 (let ((message-log-max ,msg-max-ov-sym)) ,@body)
          (when ,progress-reporter-sym
-           (progress-reporter-done
-            ,progress-reporter-sym))
-         (when (and ,message-sym ,curmsg-sym ,with-temp-message
-                    (if (functionp ,ignmsgs-sym)
-                        (not (funcall ,ignmsgs-sym ,curmsg-sym))
-                      (not (member ,curmsg-sym ,ignmsgs-sym))))
-           (message "%s" ,curmsg-sym))))))
+           (progress-reporter-done ,progress-reporter-sym))
+         (when (and ,message-sym ,curmsg-sym)
+           (let (
+                 ;; we has no reason to log the old msg again since we
+                 ;; just need to let be shown in echo area.
+                 (message-log-max nil))
+             (when (and ,with-tmpmsg-sym
+                        (if (functionp ,ignmsgs-sym)
+                            (not (funcall ,ignmsgs-sym ,curmsg-sym))
+                          (not (member ,curmsg-sym ,ignmsgs-sym))))
+               (message "%s" ,curmsg-sym))))))))
 
 (defmacro entropy/emacs-message-make-func-with-simple-progress-prompts
     (func-name &optional message &rest args)
