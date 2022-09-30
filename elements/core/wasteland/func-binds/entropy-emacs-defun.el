@@ -203,7 +203,7 @@ If no head plist part found in BODY the return is same as
   (let* ((common-parse (apply 'entropy/emacs-parse-lambda-args
                               lambda-args))
          (common-body (plist-get common-parse :body))
-         (new-body common-body) key val body-plist)
+         (new-body common-body) key body-plist)
     (while (and new-body (keywordp (setq key (car new-body))))
       (push key body-plist)
       (push (car-safe (setq new-body (cdr-safe new-body)))
