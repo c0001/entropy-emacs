@@ -97,13 +97,6 @@ when REVERSE)."
         (setq args (cdr-safe args)))
       (cons rtn-rv (nconc rtn args)))))
 
-(defsubst entropy/emacs-eval-with-lexical (form &optional actual-lexical-binding)
-  "Like `eval' but forcely enable `lexical-binding' as t.
-
-ACTUAL-LEXICAL-BINDING when set then it is replaced the LEXICAL
-arg for `eval'."
-  (eval form (or actual-lexical-binding t)))
-
 (defun entropy/emacs-defun--group-memq-p (seq1 seq2)
   "Return non-nil immediately while any element in sequnece SEQ1 `memq' in SEQ2.
 
@@ -114,6 +107,14 @@ Either SEQ1 or SEQ2 is wrapped into a sequence when it is not a
   (catch :exit
     (mapc (lambda (x) (and (cl-position x seq2) (throw :exit t))) seq1)
     nil))
+
+;; ** Lambda
+(defsubst entropy/emacs-eval-with-lexical (form &optional actual-lexical-binding)
+  "Like `eval' but forcely enable `lexical-binding' as t.
+
+ACTUAL-LEXICAL-BINDING when set then it is replaced the LEXICAL
+arg for `eval'."
+  (eval form (or actual-lexical-binding t)))
 
 (defmacro entropy/emacs-cl-lambda (&rest args)
   "Same as `lambda' but its argument list allows full Common Lisp
