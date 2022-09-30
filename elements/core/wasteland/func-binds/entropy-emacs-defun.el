@@ -334,6 +334,25 @@ information used to distinguish this as special from others.
            ,aux-form))
        ,fname-sym)))
 
+(defun entropy/emacs-with-with-lambda
+    (name-exp extra-body lambda-args)
+  "Build a `entropy/emacs-with-lambda' with inject extra BODY forms
+EXTRA-BODY to the origin argument list LAMBDA-ARGS.
+
+This function exists because many times we need to build a
+framework using `entropy/emacs-with-lambda' but need to inject
+new slots."
+  (let* ((args-parse (apply 'entropy/emacs-parse-lambda-args
+                            lambda-args))
+         (orig-body (plist-get args-parse :body))
+         (new-body
+          ;; FIXME: does this copy really need?
+          (copy-sequence `(,@extra-body ,@orig-body))))
+    (macroexpand-1
+     `(entropy/emacs-with-lambda ,name-exp
+        ,@(entropy/emacs-merge-lambda-args
+           (plist-put args-parse :body new-body))))))
+
 ;; ** Common manipulations
 ;; *** Emacs internal api replacement
 
@@ -8185,27 +8204,22 @@ WITH-LEXICAL-BINDINGS has same meaning of that, also with SYMBOL as.
 \(fn SYMBOL ARGLIST [DOCSTRING] [DECL] [INCT] \
 &key USE-APPEND USE-LOCAL USE-HOOK WITH-LEXICAL-BINDINGS &rest BODY)"
   (declare (doc-string 3) (indent defun))
-  (let* ((optvarnm (make-symbol "options"))
-         (args-parse
-          (apply 'entropy/emacs-parse-lambda-args (cdr args)))
-         (new-body
-          `(:with-option-varname
-            ,optvarnm
-            :with-aux
-            (let* ((fname (car ,optvarnm))
-                   (pl (cdr ,optvarnm))
-                   (hooks (plist-get pl :use-hook))
-                   (_ (and hooks (atom hooks)
-                           (setq hooks (list hooks)))))
-              (dolist (hook hooks)
-                (add-hook hook fname
-                          (plist-get pl :use-append)
-                          (plist-get pl :use-local))))
-            ,@(plist-get args-parse :body))))
-    (macroexpand-1
-     `(entropy/emacs-with-lambda ,(car args)
-        ,@(entropy/emacs-merge-lambda-args
-           (plist-put args-parse :body new-body))))))
+  (let* ((optvarnm (make-symbol "options")))
+    (entropy/emacs-with-with-lambda
+     (car args)
+     `(:with-option-varname
+       ,optvarnm
+       :with-aux
+       (let* ((fname (car ,optvarnm))
+              (pl (cdr ,optvarnm))
+              (hooks (plist-get pl :use-hook))
+              (_ (and hooks (atom hooks)
+                      (setq hooks (list hooks)))))
+         (dolist (hook hooks)
+           (add-hook hook fname
+                     (plist-get pl :use-append)
+                     (plist-get pl :use-local)))))
+     (cdr args))))
 
 ;; *** Color operations
 
