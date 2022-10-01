@@ -250,7 +250,15 @@ interactive session."
              rtn))
      echo-string))
 
-(defmacro entropy/emacs-message--do-message-popup (message &rest args)
+(defun entropy/emacs-message--format-message-2 (message &optional args)
+  (eval
+   `(entropy/emacs-message--do-message-ansi-apply
+     ,message ,@args)))
+
+(cl-defmacro entropy/emacs-message--do-message-popup
+    (message &rest args &key without-log-message-before-eemacs-init-done
+             &allow-other-keys)
+  (setq args (entropy/emacs-message--get-plist-body args))
   `(let* ((message-str
            (entropy/emacs-message--do-message-ansi-apply
             ,message ,@args))
@@ -305,7 +313,8 @@ interactive session."
                    ;; also log startup procedures meta into message
                    ;; buffer so that we can see whole sequenced
                    ;; init context.
-                   (unless entropy/emacs-startup-done
+                   (unless (or entropy/emacs-startup-done
+                               ,without-log-message-before-eemacs-init-done)
                      (message "%s" fn-msgstr))
                    (insert fn-insertion)
                    (redisplay t)
@@ -498,7 +507,10 @@ NOTE: Just use it in `noninteractive' session."
 ;; *** common progress message wrapper APIs
 
 (cl-defmacro entropy/emacs-message-simple-progress-message
-    (message &rest body &key with-temp-message ignore-current-messages
+    (message &rest body
+             &key with-temp-message ignore-current-messages
+             with-either-popup
+             with-message-color-args
              &allow-other-keys)
   "Do BODY and return its result with progress prompt message MESSAGE
 using `make-progress-reporter'.
@@ -517,18 +529,33 @@ IGNORE-CURRENT-MESSAGES or call IGNORE-CURRENT-MESSAGES with
 
 This function do not do any restriction for any messages produced by
 BODY.
-"
+
+If WITH-MESSAGE-COLOR-ARGS is set, it should return a list of args
+used with MESSAGE together apply to
+`entropy/emacs-message-format-message' in which case MESSAGE should
+set as a format string. Used to build a colored MESSAGE.
+
+If WITH-EITHER-POPUP is set and return non-nil, then MESSAGE is also
+displayed via `entropy/emacs-message--do-message-popup'."
   (let ((body (entropy/emacs-message--get-plist-body body))
         (with-tmpmsg-sym (make-symbol "with-temp-message-p"))
         (message-sym (make-symbol "message"))
         (progress-reporter-sym (make-symbol "progress-reporter"))
         (curmsg-sym (make-symbol "curmsg"))
         (ignmsgs-sym (make-symbol "ignmsgs"))
-        (msg-max-ov-sym (make-symbol "origin-message-log-max-value")))
+        (msg-max-ov-sym (make-symbol "origin-message-log-max-value"))
+        (use-popup-p-sym (make-symbol "with-popup-p"))
+        (msg-color-args-sym (make-symbol "message-color-args")))
     `(let* ((,with-tmpmsg-sym ,with-temp-message)
             (,curmsg-sym (current-message))
             (,ignmsgs-sym ,ignore-current-messages)
             (,message-sym ,message)
+            (,use-popup-p-sym ,with-either-popup)
+            (,msg-color-args-sym ,with-message-color-args)
+            (_ (when (and ,message-sym ,msg-color-args-sym)
+                 (setq ,message-sym
+                       (entropy/emacs-message--format-message-2
+                        ,message-sym ,msg-color-args-sym))))
             ;; restrict messages
             (,msg-max-ov-sym message-log-max)
             (message-log-max
@@ -536,6 +563,12 @@ BODY.
             (,progress-reporter-sym
              (when ,message-sym
                (make-progress-reporter (format "%s ... " ,message-sym)))))
+       (when (and ,message-sym ,use-popup-p-sym
+                  entropy/emacs-startup-with-Debug-p
+                  (not entropy/emacs-startup-done))
+         (entropy/emacs-message--do-message-popup
+          (format "%s ..." ,message-sym)
+          :without-log-message-before-eemacs-init-done t))
        (prog1 (let ((message-log-max ,msg-max-ov-sym)) ,@body)
          (when ,progress-reporter-sym
            (progress-reporter-done ,progress-reporter-sym))

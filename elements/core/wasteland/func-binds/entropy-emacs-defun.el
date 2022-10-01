@@ -10034,24 +10034,19 @@ Optional keys:
             (,msg-str-sym ,name-sym)
             ,func-lambda-sym)
        (setq ,func-lambda-sym
-             (entropy/emacs-eval-with-lexical
-              '(lambda (&rest _)
-                 (entropy/emacs-message-do-message
-                  "%s '%s' %s"
-                  (blue "Start")
-                  (yellow ,msg-str-sym)
-                  (blue "..."))
-                 (entropy/emacs-general-run-with-protect-and-gc-strict
-                  (funcall ,body-lambda-sym))
-                 (entropy/emacs-message-do-message
-                  "%s '%s' %s"
-                  (blue "Start")
-                  (yellow ,msg-str-sym)
-                  (blue "done!"))
-                 (fmakunbound ,func-sym))
-              (list (cons ',body-lambda-sym ,body-lambda-sym)
-                    (cons ',msg-str-sym ,msg-str-sym)
-                    (cons ',func-sym ,func-sym))))
+             (entropy/emacs-cl-lambda-with-lcb (&rest _)
+               :with-lexical-bindins
+               (list (cons ',body-lambda-sym ,body-lambda-sym)
+                     (cons ',msg-str-sym ,msg-str-sym)
+                     (cons ',func-sym ,func-sym))
+               (entropy/emacs-message-simple-progress-message
+                "%s `%s'"
+                :with-either-popup t
+                :with-message-color-args
+                (list '(blue "Start") (list 'yellow ,msg-str-sym))
+                (entropy/emacs-general-run-with-protect-and-gc-strict
+                 (funcall ,body-lambda-sym)))
+               (fmakunbound ,func-sym)))
        (defalias ,func-sym ,func-lambda-sym
          (or ,doc-string
              (format "`entropy/emacs-lazy-with-load-trail' for feature '%s', \
