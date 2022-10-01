@@ -879,6 +879,15 @@ initialize the default non-lazy configs.
   (let* ((entropy/emacs-message-non-popup t)
          (this-time (current-time))
          ;; -----------------------
+         (_run-after-hook
+          ;; ========== ran `entropy/emacs-after-startup-hook'
+          (progn
+            (run-hooks 'entropy/emacs-after-startup-hook)
+            (with-temp-message
+                "==================== eemacs after end hooks ran out ====================")
+            ))
+         (this-time-1 (current-time))
+         ;; -----------------------
          (emacs-pre-time:before
           (entropy/emacs-get-before-init-time))
          (emacs-pre-time:after
@@ -899,8 +908,8 @@ initialize the default non-lazy configs.
                     (time-subtract pkg-init-time:after
                                    pkg-init-time:before)))))
          ;; -------------------------
-         (real-startup-time:before (entropy/emacs-get-after-init-time))
-         (real-startup-time:after this-time)
+         (real-startup-time:before emacs-pre-time:after)
+         (real-startup-time:after this-time-1)
          (real-startup-time
           (string-to-number
            (format "%.2f"
@@ -927,21 +936,29 @@ initialize the default non-lazy configs.
                                 config-load-time:after
                                 config-load-time:before)))))
          ;; ----------------------------
-         (lazy-hook-time:before entropy/emacs-run-startup-trail-hooks-init-timestamp)
-         (lazy-hook-time:after  entropy/emacs-run-startup-trail-hooks-init-done-timestamp)
-         (lazy-hook-time
+         (trail-hook-time:before entropy/emacs-run-startup-trail-hooks-init-timestamp)
+         (trail-hook-time:after  entropy/emacs-run-startup-trail-hooks-init-done-timestamp)
+         (trail-hook-time
           (string-to-number
            (format "%.2f"
                    (+
                     (float-time (time-subtract
-                                 lazy-hook-time:after
-                                 lazy-hook-time:before))
+                                 trail-hook-time:after
+                                 trail-hook-time:before))
                     (or (when entropy/emacs-run-startup-pdumper-hooks-init-timestamp
                           (float-time
                            (time-subtract
                             this-time
                             entropy/emacs-run-startup-pdumper-hooks-init-timestamp)))
                         0)))))
+         (start-end-hook-time
+          (string-to-number
+           (format "%.2f"
+                   (float-time (time-subtract this-time trail-hook-time:after)))))
+         (startup-after-hook-time
+          (string-to-number
+           (format "%.2f"
+                   (float-time (time-subtract this-time-1 this-time)))))
          (base-str "Inited")
          (msgstr
           (entropy/emacs-message--do-message-ansi-apply
@@ -949,13 +966,17 @@ initialize the default non-lazy configs.
 / %s for package initialization \
 / %s for do eemacs-tentacles-load \
 / %s for run eemacs-trail-hook \
+/ %s for run eemacs-end-hook \
+/ %s for run eemacs-startup-after-hook \
 / %s for eemacs-init \
 / %s for Emacs-init)"
            (green base-str)
            (yellow real-startup-time)
            (cyan pkg-init-time)
            (yellow config-load-time)
-           (yellow lazy-hook-time)
+           (yellow trail-hook-time)
+           (red start-end-hook-time)
+           (red startup-after-hook-time)
            (yellow eemacs-init-time)
            (red emacs-pre-time)
            )))
@@ -978,13 +999,21 @@ initialize the default non-lazy configs.
              :after ,config-load-time:after
              :duration ,config-load-time)
             (eemacs-trail-hook
-             :before ,lazy-hook-time:before
-             :after ,lazy-hook-time:after
+             :before ,trail-hook-time:before
+             :after ,trail-hook-time:after
              :extra ,(if entropy/emacs-run-startup-pdumper-hooks-init-timestamp
                          (list :before this-time
                                :after entropy/emacs-run-startup-pdumper-hooks-init-timestamp
                                ))
-             :duratioin ,lazy-hook-time)))
+             :duratioin ,trail-hook-time)
+            (eemacs-startup-end-hook
+             :before ,trail-hook-time:after
+             :after  ,this-time
+             :duration ,startup-after-hook-time)
+            (eemacs-after-startup-hook
+             :before ,this-time
+             :after  ,this-time-1
+             :duration ,startup-after-hook-time)))
     (unless (daemonp)
       (with-selected-window (selected-window)
         (with-current-buffer (window-buffer)
@@ -1002,10 +1031,7 @@ initialize the default non-lazy configs.
     (benchmark-init/show-durations-tree)
     (split-window-below)
     (benchmark-init/show-durations-tabulated)
-    (benchmark-init/deactivate))
-  ;; ========== ran `entropy/emacs-after-startup-hook'
-  (run-hooks 'entropy/emacs-after-startup-hook)
-  )
+    (benchmark-init/deactivate)))
 
 (defvar entropy/emacs-IME-specs-initialized nil
   "Variable indicate that eemacs IME specified features has started

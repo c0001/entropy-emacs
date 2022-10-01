@@ -55,11 +55,7 @@
    projectile-auto-discover t
    projectile-track-known-projects-automatically t)
 
-  (entropy/emacs-lazy-initial-for-hook
-   '(entropy/emacs-after-startup-hook)
-   "projectile-global-mode-init" "projectile-global-mode-init"
-   :prompt-type 'prompt-echo
-   :pdumper-no-end t
+  (entropy/emacs-lazy-load-simple 'projectile
    (advice-add 'projectile-mode
                :after
                ;; FIXME:

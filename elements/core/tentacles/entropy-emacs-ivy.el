@@ -104,16 +104,16 @@
 
   ;; prompt newline set
   (let* ((with-nl-func
-          '(lambda ()
-             ;; enable newline for initial prompt for preventing long line
-             ;; prompt messy up candi exhibits Use limit candi exhibits to
-             ;; prevent visual messy.
-             (setq ivy-add-newline-after-prompt t)
-             (setq ivy-height 7)))
+          #'(lambda ()
+              ;; enable newline for initial prompt for preventing long line
+              ;; prompt messy up candi exhibits Use limit candi exhibits to
+              ;; prevent visual messy.
+              (setq ivy-add-newline-after-prompt t)
+              (setq ivy-height 7)))
          (without-nl-func
-          '(lambda ()
-             (setq ivy-add-newline-after-prompt nil)
-             (setq ivy-height 6)))
+          #'(lambda ()
+              (setq ivy-add-newline-after-prompt nil)
+              (setq ivy-height 6)))
          (hack-func
           `(lambda ()
              (if (display-graphic-p)
@@ -839,16 +839,12 @@ This is for use in `ivy-re-builders-alist'."
   (advice-add 'counsel-git :around
               #'entropy/emacs-lang-use-utf-8-ces-around-advice)
 
-  (entropy/emacs-lazy-initial-for-hook
-   '(entropy/emacs-after-startup-hook)
-   "counsel-init" "counsel-init"
-   :prompt-type 'prompt-echo
-   :pdumper-no-end t
-   ;; enable `ivy-mode‘ firstly before enable `counsel-mode'
-   (unless (bound-and-true-p ivy-mode)
-     (ivy-mode +1))
-   (unless (bound-and-true-p counsel-mode)
-     (counsel-mode +1)))
+  (entropy/emacs-lazy-load-simple 'counsel
+    ;; enable `ivy-mode‘ firstly before enable `counsel-mode'
+    (unless (bound-and-true-p ivy-mode)
+      (ivy-mode +1))
+    (unless (bound-and-true-p counsel-mode)
+      (counsel-mode +1)))
 
 ;; *** config
   :config

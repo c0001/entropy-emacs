@@ -746,9 +746,12 @@ for 'git' type and fallback to it while other types."
 ;; **** Git major modes
 (use-package git-modes
   :init
-  (add-hook 'entropy/emacs-after-startup-hook
-            #'(lambda () (require 'git-modes))))
-
+  (entropy/emacs-lazy-initial-advice-before
+   '(find-file)
+   "enable-git-modes" "enable-git-modes"
+   :pdumper-no-end t
+   :prompt-type 'prompt-echo
+   (require 'git-modes)))
 
 ;; **** Open github/gitlab/bitbucket page
 (use-package browse-at-remote

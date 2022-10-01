@@ -355,7 +355,7 @@ interactive session."
 (cl-defmacro entropy/emacs-message-do-message
     (message &rest args
              &key (popup-while-eemacs-init-with-interactive nil)
-                  (force-message-while-eemacs-init nil)
+             (force-message-while-eemacs-init nil)
              &allow-other-keys)
   "An alternative to `message' that strips out ANSI codes, with
 popup window if in a interaction session when
@@ -395,8 +395,8 @@ without respect `entropy/emacs-message-non-popup'.
              (not entropy/emacs-startup-with-Debug-p)
              ;; -- not in daemon init type
              (not
-              (and (daemonp)
-                   (not entropy/emacs-daemon-server-init-done)))
+              (and (not entropy/emacs-daemon-server-init-done)
+                   (daemonp)))
              ;; -- not in make session
              (not
               (entropy/emacs-is-make-session))
@@ -441,8 +441,8 @@ without respect `entropy/emacs-message-non-popup'.
                        (not (bound-and-true-p entropy/emacs-startup-done)))
                   ;; allow popup when key :popup-while-eemacs-init-with-interactive is set
                   ;; while eemacs init time
-                  (and (not (null ,popup-while-eemacs-init-with-interactive))
-                       (not (bound-and-true-p entropy/emacs-startup-done)))))
+                  (and (not (bound-and-true-p entropy/emacs-startup-done))
+                       (not (null ,popup-while-eemacs-init-with-interactive)))))
             (entropy/emacs-message--do-message-popup
              ,message ,@args))
            (

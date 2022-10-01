@@ -99,14 +99,20 @@
   ;; the `yasnippet' source but we want it be customizable, thus we
   ;; invoke `entropy/emacs-yas-dir' instead.
   (setq yas-snippet-dirs
-        (remove yas--default-user-snippets-dir
-                yas-snippet-dirs))
-  (add-to-list 'yas-snippet-dirs 'entropy/emacs-yas-dir)
-  (let ((entropy/emacs-message-non-popup t))
-    (entropy/emacs-message-do-message
-     "%s"
-     (green "yas load customized snippets ...")))
-  (yas-load-directory entropy/emacs-yas-dir t)
+        (remove yas--default-user-snippets-dir yas-snippet-dirs))
+  (condition-case error
+      (unless (file-directory-p entropy/emacs-yas-dir)
+        (mkdir entropy/emacs-yas-dir t))
+    (error
+     (warn
+      "Can not creat non-exist `entropy/emacs-yas-dir' error of %s"
+      error))
+    (:success
+     (entropy/emacs-message-do-message
+      (green "yas load customized snippets ..."))
+     (add-to-list 'yas-snippet-dirs 'entropy/emacs-yas-dir)
+     (yas-load-directory entropy/emacs-yas-dir t)))
+
   ;; Then we initialize the thirdparty yas collections
   (use-package yasnippet-snippets
     ;; We must declaration it within `yasnippet' package use-package after
@@ -115,7 +121,6 @@
     :init
     (let ((entropy/emacs-message-non-popup t))
       (entropy/emacs-message-do-message
-       "%s"
        (green "yas load third-party snippets ...")))
     (yasnippet-snippets-initialize))
 

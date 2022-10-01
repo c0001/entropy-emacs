@@ -9692,17 +9692,32 @@ operation."
 ;; ** eemacs specifications
 ;; *** Individuals
 
-(defmacro entropy/emacs-general-run-with-gc-strict (&rest body)
-  "Run BODY with restricted `gc-cons-threshold'."
-  `(let* ((gc-cons-threshold entropy/emacs-gc-threshold-basic)
-          (gc-cons-percentage entropy/emacs-gc-percentage-basic))
+(cl-defmacro entropy/emacs-general-run-with-gc-strict
+    (&rest body &key (when-use-gc-restrict t) &allow-other-keys)
+  "Run BODY with restricted `gc-cons-threshold'.
+
+If WHEN-USE-GC-RESTRICT set and return nil, then run BODY
+directly. Defautlts to non-nil."
+  (setq body (entropy/emacs-defun--get-real-body body))
+  `(if-let* ((,when-use-gc-restrict))
+       (let ((gc-cons-threshold entropy/emacs-gc-threshold-basic)
+             (gc-cons-percentage entropy/emacs-gc-percentage-basic))
+         ,@body)
      ,@body))
 
-(defmacro entropy/emacs-general-run-with-protect-and-gc-strict (&rest body)
+(cl-defmacro entropy/emacs-general-run-with-protect-and-gc-strict
+    (&rest body &key (when-use-gc-restrict t) (when-use-inhibit-quit t)
+           &allow-other-keys)
   "Run BODY with `inhibit-quit' and restrict with basic
-`gc-cons-threshold'."
+`gc-cons-threshold'.
+
+If WHEN-USE-GC-RESTRICT set and return nil, then run BODY just
+with `inhibit-quit' enabled. Defautlts to non-nil. So as
+WHEN-USE-INHIBIT-QUIT."
+  (setq body (entropy/emacs-defun--get-real-body body))
   `(let* ((inhibit-quit t))
      (entropy/emacs-general-run-with-gc-strict
+      :when-use-gc-restrict ,when-use-gc-restrict
       ,@body)))
 
 (defun entropy/emacs-transfer-wvol (file)
@@ -9768,11 +9783,11 @@ tasks 'ing' refer prompts."
       (setq entropy/emacs-idle-cleanup-echo-area-timer-is-running-p t)
       (run-with-idle-timer
        0.2 nil
-       (lambda ()
-         (let ((inhibit-quit t))
-           (message nil)
-           (setq entropy/emacs-idle-cleanup-echo-area-timer-is-running-p
-                 nil)))))))
+       #'(lambda ()
+           (let ((inhibit-quit t))
+             (message nil)
+             (setq entropy/emacs-idle-cleanup-echo-area-timer-is-running-p
+                   nil)))))))
 
 ;; --------- make funciton inhibit readonly internal ---------
 (defun entropy/emacs--make-function-inhibit-readonly-common
@@ -9973,6 +9988,7 @@ pollute eemacs internal lazy load optimization."
                          ,this-load-fname-sym
                          ,feature-sym))
                       (entropy/emacs-general-run-with-protect-and-gc-strict
+                       :when-use-gc-restrict entropy/emacs-startup-done
                        ,@body))))
              (entropy/emacs-eval-with-lexical
               (list 'entropy/emacs-eval-after-load
@@ -9992,6 +10008,7 @@ pollute eemacs internal lazy load optimization."
                  ((symbolp ,feature-sym)
                   (require ,feature-sym)))
            (entropy/emacs-general-run-with-protect-and-gc-strict
+            :when-use-gc-restrict entropy/emacs-startup-done
             ,@body)))))))
 
 (cl-defmacro entropy/emacs-lazy-with-load-trail
@@ -10045,6 +10062,7 @@ Optional keys:
                 :with-message-color-args
                 (list '(blue "Start") (list 'yellow ,msg-str-sym))
                 (entropy/emacs-general-run-with-protect-and-gc-strict
+                 :when-use-gc-restrict entropy/emacs-startup-done
                  (funcall ,body-lambda-sym)))
                (fmakunbound ,func-sym)))
        (defalias ,func-sym ,func-lambda-sym
@@ -10169,71 +10187,78 @@ invoked after."
                nil)
          (setq
           ,func-lambda-sym
-          (entropy/emacs-eval-with-lexical
-           '(lambda (&rest ad-rest-args)
-              (when (and (not (symbol-value ,var-sym))
-                         ;; we just run intialform after eemacs startup
-                         ;; done to speedup eemacs startup.
-                         (or
-                          (bound-and-true-p entropy/emacs-startup-done)
-                          ;; but in pdumper dump session we want it to run
-                          entropy/emacs-fall-love-with-pdumper
-                          ;; but in daemon load session we want it run
-                          (daemonp)
-                          ;; but in non-lazy enable mode we want it run
-                          (not (bound-and-true-p entropy/emacs-custom-enable-lazy-load))
-                          ))
-                (let* ((inhibit-quit t)
-                       (head-time (time-to-seconds))
-                       (entropy/emacs-message-non-popup
-                        (if (eq ,prompt-type-sym 'prompt-popup) nil t))
-                       end-time
-                       func-body-rtn)
-                  ;; NOTE: set indicator before any body running to
-                  ;; preventing recursively invoking inside of body, this
-                  ;; is important for advice wrapper.
-                  (setq ,var-sym t)
-                  (entropy/emacs-message-do-message
-                   "%s '%s' %s"
-                   (blue "Loading and enable feature")
-                   (yellow ,initial-func-suffix-name)
-                   (blue "..."))
-                  (entropy/emacs-general-run-with-protect-and-gc-strict
-                   (setq func-body-rtn
-                         (unwind-protect
-                             (progn
-                               (apply ,func-body-lambda-sym ad-rest-args))
-                           ;; finally we remove the initial injection
-                           (cond ((eq ,adder-type-sym 'advice-add)
-                                  (dolist (adfor-it ,list-var-sym)
-                                    (advice-remove adfor-it ,func-sym)))
-                                 ((eq ,adder-type-sym 'add-hook)
-                                  (dolist (adhfor-it ,list-var-sym)
-                                    (remove-hook adhfor-it ,func-sym))))
-                           ;; fake the function after evaluated it.
-                           (fmakunbound ,func-sym)
-                           (defalias ,func-sym #'ignore)
-                           )))
-                  (setq end-time (time-to-seconds))
-                  (entropy/emacs-message-do-message
-                   "%s '%s' %s '%s' %s"
-                   (green "Load done for")
-                   (yellow ,initial-func-suffix-name-sym)
-                   (green "within")
-                   (cyan (format "%f" (- end-time head-time)))
-                   (green "seconds. (Maybe running rest tasks ...)"))
-                  (entropy/emacs-idle-cleanup-echo-area)
-                  func-body-rtn)))
-           (list
-            (cons ',func-sym ,func-sym)
-            (cons ',var-sym ,var-sym)
-            (cons ',list-var-sym ,list-var-sym)
-            (cons ',adder-type-sym ,adder-type-sym)
-            (cons ',adder-flag-sym ,adder-flag-sym)
-            (cons ',func-lambda-sym ,func-lambda-sym)
-            (cons ',func-body-lambda-sym ,func-body-lambda-sym)
-            (cons ',prompt-type-sym ,prompt-type)
-            (cons ',initial-func-suffix-name-sym ,initial-func-suffix-name-sym))))
+          (entropy/emacs-cl-lambda-with-lcb (&rest ad-rest-args)
+            :with-lexical-bindins
+            (list
+             (cons ',func-sym ,func-sym)
+             (cons ',var-sym ,var-sym)
+             (cons ',list-var-sym ,list-var-sym)
+             (cons ',adder-type-sym ,adder-type-sym)
+             (cons ',adder-flag-sym ,adder-flag-sym)
+             (cons ',func-lambda-sym ,func-lambda-sym)
+             (cons ',func-body-lambda-sym ,func-body-lambda-sym)
+             (cons ',prompt-type-sym ,prompt-type)
+             (cons ',initial-func-suffix-name-sym ,initial-func-suffix-name-sym))
+            (when (and (not (symbol-value ,var-sym))
+                       ;; we just run intialform after eemacs startup
+                       ;; done to speedup eemacs startup.
+                       (or
+                        (bound-and-true-p entropy/emacs-startup-done)
+                        ;; but in pdumper dump session we want it to run
+                        entropy/emacs-fall-love-with-pdumper
+                        ;; but in non-lazy enable mode we want it run
+                        (not (bound-and-true-p entropy/emacs-custom-enable-lazy-load))
+                        ;; but in daemon load session we want it run
+                        (daemonp)))
+              (let* ((inhibit-quit t)
+                     (head-time (time-to-seconds))
+                     (entropy/emacs-message-non-popup
+                      (if (eq ,prompt-type-sym 'prompt-popup) nil t))
+                     end-time
+                     func-body-rtn)
+                ;; NOTE: set indicator before any body running to
+                ;; preventing recursively invoking inside of body, this
+                ;; is important for advice wrapper.
+                (setq ,var-sym t)
+                (entropy/emacs-message-do-message
+                 "%s '%s' %s"
+                 (blue "Loading and enable feature")
+                 (yellow ,initial-func-suffix-name)
+                 (blue "..."))
+                (entropy/emacs-general-run-with-protect-and-gc-strict
+                 :when-use-gc-restrict entropy/emacs-startup-done
+                 (setq func-body-rtn
+                       (unwind-protect
+                           (progn
+                             (apply ,func-body-lambda-sym ad-rest-args))
+                         ;; finally we remove the initial injection
+                         (cond ((eq ,adder-type-sym 'advice-add)
+                                (dolist (adfor-it ,list-var-sym)
+                                  (advice-remove adfor-it ,func-sym)))
+                               ((eq ,adder-type-sym 'add-hook)
+                                (dolist (adhfor-it ,list-var-sym)
+                                  (unless (memq adhfor-it
+                                                ;; we should not
+                                                ;; remove hooks for
+                                                ;; eemacs spec startup
+                                                ;; hooks since we need
+                                                ;; logs.
+                                                '(entropy/emacs-startup-end-hook
+                                                  entropy/emacs-after-startup-hook))
+                                    (remove-hook adhfor-it ,func-sym)))))
+                         ;; fake the function after evaluated it.
+                         (fmakunbound ,func-sym)
+                         (defalias ,func-sym #'ignore))))
+                (setq end-time (time-to-seconds))
+                (entropy/emacs-message-do-message
+                 "%s '%s' %s '%s' %s"
+                 (green "Load done for")
+                 (yellow ,initial-func-suffix-name-sym)
+                 (green "within")
+                 (cyan (format "%f" (- end-time head-time)))
+                 (green "seconds. (Maybe running rest tasks ...)"))
+                (entropy/emacs-idle-cleanup-echo-area)
+                func-body-rtn))))
 
          (defalias ,func-sym ,func-lambda-sym
            (format "entropy emacs lazy initial wrapper for feature '%s', \

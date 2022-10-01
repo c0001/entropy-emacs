@@ -4334,8 +4334,8 @@ NOTE: e.g. `global-auto-revert-mode' and `magit-auto-revert-mode'."
 ;; *** Emacs-wide spec
 ;; **** emacs source dir
 ;; Set `source-directory' to eemacs specified location
-(entropy/emacs-lazy-initial-for-hook
- '(entropy/emacs-after-startup-hook)
+(entropy/emacs-lazy-initial-advice-before
+ '(read-library-name)
  "init-emacs-source-dir-set" "init-emacs-source-dir-set"
  :prompt-type 'prompt-echo
  :pdumper-no-end t
