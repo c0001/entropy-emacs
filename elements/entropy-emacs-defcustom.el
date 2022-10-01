@@ -1542,19 +1542,6 @@ emacs performance."
   :type 'directory
   :group 'entropy/emacs-customize-group-for-IDE-configuration)
 
-(add-hook 'entropy/emacs-startup-end-hook
-          ;; Pre checking the exists status of thus for preventing yas
-          ;; error prompt from yas loading case.
-          #'(lambda ()
-              (unless (file-directory-p entropy/emacs-yas-dir)
-                (condition-case error
-                    (mkdir entropy/emacs-yas-dir t)
-                  (error
-                   (warn
-                    (format
-                     "Can not creat non-exist `entropy/emacs-yas-dir' error of %s"
-                     error)))))))
-
 ;; **** completion framework
 
 (defgroup entropy/emacs-customize-group-for-auto-completion nil
