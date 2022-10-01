@@ -702,8 +702,14 @@ for adding to variable `window-size-change-functions' and hook
     )
 
   (let (_)
-    (entropy/emacs-lazy-with-load-trail 'rich-dashboard-init
-      :start-end t
+    (entropy/emacs-add-hook-with-lambda 'rich-dashboard-init
+      (&rest _)
+      "Initialize eemacs specified `dashboard' configs and its UI."
+      ;; we must inject it after startup since it may cause some
+      ;; features load at eemacs init time where all lazy config are
+      ;; not allowed to run in, so that some collisions may happened.
+      :use-hook 'entropy/emacs-after-startup-hook
+      :use-append t
       (entropy/emacs-rich-dashboard-init)
       (add-hook 'window-size-change-functions
                 'dashboard-resize-on-hook))))
