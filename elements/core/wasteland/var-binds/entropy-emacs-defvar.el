@@ -1009,7 +1009,7 @@ initialize the default non-lazy configs.
             (eemacs-startup-end-hook
              :before ,trail-hook-time:after
              :after  ,this-time
-             :duration ,startup-after-hook-time)
+             :duration ,start-end-hook-time)
             (eemacs-after-startup-hook
              :before ,this-time
              :after  ,this-time-1
