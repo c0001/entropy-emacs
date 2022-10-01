@@ -93,10 +93,6 @@
                          (el2-sec (car el2)))
                      (> el1-sec el2-sec))))))))
 
-(when (bound-and-true-p entropy/emacs-startup-with-Debug-p)
-  (add-hook 'entropy/emacs-after-startup-hook
-            #'entropy/emacs-start--sort-duration-log))
-
 ;; *** load wasteland
 ;; **** var binds
 (entropy/emacs-start--require-with-duration-log 'entropy-emacs-defconst)
@@ -731,9 +727,12 @@ Currently detected env variables:")
         (entropy/emacs-run-startup-end-hook)))))
 
 (entropy/emacs-start--run-with-duration-log
- form/start-tentacles
- ;; (redisplay t)
- (entropy/emacs-start-do-load))
+ form/start-tentacles-and-all-hooks
+ (entropy/emacs-start-do-load)
+ (when entropy/emacs-startup-with-Debug-p
+   (run-with-idle-timer
+    0.1 nil
+    #'entropy/emacs-start--sort-duration-log)))
 
 ;; * provide
 (provide 'entropy-emacs-start)
