@@ -9715,7 +9715,7 @@ If WHEN-USE-GC-RESTRICT set and return nil, then run BODY just
 with `inhibit-quit' enabled. Defautlts to non-nil. So as
 WHEN-USE-INHIBIT-QUIT."
   (setq body (entropy/emacs-defun--get-real-body body))
-  `(let* ((inhibit-quit t))
+  `(let* ((inhibit-quit ,when-use-inhibit-quit))
      (entropy/emacs-general-run-with-gc-strict
       :when-use-gc-restrict ,when-use-gc-restrict
       ,@body)))

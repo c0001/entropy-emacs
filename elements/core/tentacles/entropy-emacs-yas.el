@@ -108,8 +108,9 @@
       "Can not creat non-exist `entropy/emacs-yas-dir' error of %s"
       error))
     (:success
-     (entropy/emacs-message-do-message
-      (green "yas load customized snippets ..."))
+     (let ((entropy/emacs-message-non-popup t))
+       (entropy/emacs-message-do-message
+        (green "yas load customized snippets ...")))
      (add-to-list 'yas-snippet-dirs 'entropy/emacs-yas-dir)
      (yas-load-directory entropy/emacs-yas-dir t)))
 
