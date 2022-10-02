@@ -1102,6 +1102,43 @@ macro to use it instead of `it' as what bind for."
                     ,with-tail)
            ,@body)))))
 
+(cl-defun entropy/emacs-list-without-orphans
+    (&rest args &key
+           with-orphans with-filter
+           with-cl-args
+           &allow-other-keys)
+  "Like `list', but remove any element of ARGS who is `memq' in a list of
+samples WITH-ORPHANS. Return the LIST.
+
+If WITH-FILTER is set, it should be a function used to do riched
+fitler such element in WITH-ORPHANS instead use the default `memq'
+method, it should formes as:
+: (fn elt nth &rest orphans)
+Where `elt' is the current checked element of LIST in `nth' NTH
+position of LIST, and `orphans' is the result of WITH-ORPHANS.
+
+If WITH-CL-ARGS is set and WITH-FILTER is not-set, it should be a list
+of keywords supported by `cl-member' used to filter with WITH-ORPHANS
+instead of use the default `memq' method.
+
+This function does same as `list' when WITH-ORPHANS is not-set.
+"
+  (setq args (entropy/emacs-defun--get-real-body args))
+  (let* ((ops with-orphans) (ft with-filter)
+         (clargs (or with-cl-args (list :test 'eq))))
+    (when (if args t)
+      (let* ((l args) (rtn l) (i 0) itprev)
+        (if (not ops) l
+          (entropy/emacs-list-map-cdr l
+            (if (if ft (apply ft (car it) i ops)
+                  (apply 'cl-position (car it) ops clargs))
+                (if itprev (setcdr itprev (cdr it))
+                  (setq rtn (cdr rtn)))
+              (setq itprev it))
+            (cl-incf i))
+          ;; return modified
+          rtn)))))
+
 (cl-defun entropy/emacs-list-nthcdr-safe
     (n object &key with-error with-last-non-consp-cdr)
   "If all is ok, return the N times cdr of OBJECT.
