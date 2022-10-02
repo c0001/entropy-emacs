@@ -1118,8 +1118,8 @@ Where `elt' is the current checked element of LIST in `nth' NTH
 position of LIST, and `orphans' is the result of WITH-ORPHANS.
 
 If WITH-CL-ARGS is set and WITH-FILTER is not-set, it should be a list
-of keywords supported by `cl-member' used to filter with WITH-ORPHANS
-instead of use the default `memq' method.
+of keyword-pairs supported by `cl-member' used to filter with
+WITH-ORPHANS instead of use the default `memq' method.
 
 This function does same as `list' when WITH-ORPHANS is not-set.
 "
