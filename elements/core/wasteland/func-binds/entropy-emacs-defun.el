@@ -1037,27 +1037,27 @@ changed. Return the outer list or nil when OBJECTS is empty."
 
 (cl-defmacro entropy/emacs-list-map-cdr
     (list &rest body &key with-exit with-it-as &allow-other-keys)
-  "Run BODY in mapping through each `cdr' of `listp' list LIST with
-bind 'it' of the current cdr which is came from LIST to the cdr
-of the last `consp' cons-cell of LIST.
+  "Run BODY in mapping through each `cdr' of `consp' list LIST with bind
+`it' of the current cdr which is came from LIST to its last `consp'
+cons-cell.
 
-Interrupted when mapping done or the BODY's last form's
-evaluation return non-nil in any step of progress only when
-WITH-EXIT is set.
+Interrupted when mapping done or the BODY's last form's evaluation
+return non-nil in any step of progress only when WITH-EXIT is set and
+return non-nil. Nothing is did when LIST invalid.
 
 When WITH-IT-AS is set, it should be a explicit a symbol for this
-macro to use it instead of 'it' as what bind for."
-  (declare (indent defun))
+macro to use it instead of `it' as what bind for."
+  (declare (indent 1))
   (let ((rest-sym (make-symbol "rest"))
         (exit-sym (make-symbol "exit"))
         (body-rtn-sym (make-symbol "body-rtn"))
         (body (entropy/emacs-defun--get-real-body body)))
-    `(let ((,rest-sym ,list)
-           (,exit-sym ,with-exit)
-           (,body-rtn-sym nil)
-           ;; exposed internal let binding
-           ,(or with-it-as 'it))
-       (when ,rest-sym
+    `(when-let ((,rest-sym ,list)
+                ((consp ,rest-sym)))
+       (let ((,exit-sym ,with-exit)
+             (,body-rtn-sym nil)
+             ;; exposed internal let binding
+             (,(or with-it-as 'it) nil))
          (while (and (if ,exit-sym (not ,body-rtn-sym) t)
                      (consp ,rest-sym))
            (setq ,(or with-it-as 'it) ,rest-sym
@@ -1066,38 +1066,40 @@ macro to use it instead of 'it' as what bind for."
 
 (cl-defmacro entropy/emacs-list-map-car
     (list &rest body &key with-exit with-tail with-it-as &allow-other-keys)
-  "Run BODY in mapping through each `car' of `listp' list LIST with
-bind 'it' of the current car which is came from first car of LIST
-to the last car of the `consp' cons-cell' of LIST.
+  "Run BODY in mapping through each `car' of `consp' list LIST with bind
+`it' of the current car which is came from first car of LIST to the
+`car' of the last `consp' cons-cell' of LIST.
 
-When WITH-TAIL is set, then also run BODY for the last cdr of a
-`entropy/emacs-dotted-listp' list.
+When WITH-TAIL is set, then also run BODY for the last `cdr' of a LIST
+i.e where `it' is bind to an `atom'.
 
-Interrupted when mapping done or the BODY's last form's
-evaluation return non-nil in any step of progress only when
-WITH-EXIT is set.
+Interrupted when mapping done or the BODY's last form's evaluation
+return non-nil in any step of progress only when WITH-EXIT is set and
+return non-nil. Nothing is did when LIST invalid.
 
 When WITH-IT-AS is set, it should be a explicit a symbol for this
-macro to use it instead of 'it' as what bind for."
-  (declare (indent defun))
+macro to use it instead of `it' as what bind for."
+  (declare (indent 1))
   (let ((rest-sym (make-symbol "rest"))
         (exit-sym (make-symbol "exit"))
         (body-rtn-sym (make-symbol "body-rtn"))
         (body (entropy/emacs-defun--get-real-body body)))
-    `(let ((,rest-sym ,list)
-           (,exit-sym ,with-exit)
-           (,body-rtn-sym nil)
-           ;; exposed internal let binding
-           ,(or with-it-as 'it))
-       (when ,rest-sym
+    `(when-let ((,rest-sym ,list)
+                ((consp ,rest-sym)))
+       (let ((,exit-sym ,with-exit)
+             (,body-rtn-sym nil)
+             ;; exposed internal let binding
+             (,(or with-it-as 'it) nil))
          (while (and (if ,exit-sym (not ,body-rtn-sym) t)
                      (consp ,rest-sym))
            (setq ,(or with-it-as 'it) (car ,rest-sym)
                  ,rest-sym (cdr ,rest-sym))
            (setq ,body-rtn-sym (progn ,@body)))
-         (when (and ,with-tail
-                    (if ,exit-sym (not ,body-rtn-sym) t)
-                    (setq ,(or with-it-as 'it) ,rest-sym))
+         (when (and (if ,exit-sym (not ,body-rtn-sym) t)
+                    (setq ,(or with-it-as 'it) ,rest-sym)
+                    ;; last check user spec since it usually cost more
+                    ;; compute times
+                    ,with-tail)
            ,@body)))))
 
 (cl-defun entropy/emacs-list-nthcdr-safe
