@@ -143,7 +143,7 @@ some packages. Or nil without did anything."
                                 entropy/emacs-stuffs-topdir))))
         (with-current-buffer logbuff (entropy/emacs-write-file file))))
     ;; fake defun
-    (defalias entropy/emacs-start--check-init-with-install-p #'ignore
+    (defalias 'entropy/emacs-start--check-init-with-install-p #'ignore
       "This function has been unloaded.")
     (when entropy/emacs-start--is-init-with-install
       (run-with-timer 300 nil #'kill-emacs))
