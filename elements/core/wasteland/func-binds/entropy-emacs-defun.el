@@ -6078,12 +6078,11 @@ FILESYSTEM-NODE2 is not predicated by
 
 (defun entropy/emacs-write-file
     (filename &optional confirm)
-  "Like `write-file' but create its host place firstly when apply
-FILENAME to `file-name-directory' is non-nil"
-  (let ((f-host (file-name-directory filename)))
-    (when (and f-host
-               (not (file-exists-p f-host)))
-      (make-directory f-host t))
+  "Same as `write-file' but create its host place firstly when it's not
+existed."
+  (let ((f-host (file-name-directory
+                 (entropy/emacs-directory-file-name filename))))
+    (unless (file-directory-p f-host) (make-directory f-host t))
     (write-file filename confirm)))
 
 (defun entropy/emacs-file-secure-hash (file type hashstr &optional use-native return-curhash)
@@ -6937,8 +6936,7 @@ enabled when `entropy/emacs-startup-with-Debug-p' is set)")
 (defmacro entropy/emacs-eval-after-load (feature &rest body)
   "Wrap BODY into FEATURE using `eval-after-load'.
 
-Feature is can be a FILE arg of `eval-after-load' or a list of
-that.
+FEATURE is the FILE arg of `eval-after-load' or a list of that.
 
 BODY is wrapped into a `lambda', it is defined with lexical
 bindings of the stack context who calling this macro but only

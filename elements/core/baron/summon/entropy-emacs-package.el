@@ -32,9 +32,8 @@
 ;; * Code:
 
 ;; ** require
-
-(defvar entropy/emacs-package-src-load-file-name
-  (eval 'load-file-name))
+(defconst entropy/emacs-package-src-load-bytecode-p
+  (string-match-p "\\.elc$" load-file-name))
 
 (require 'package)
 (!eemacs-require 'entropy-emacs-defconst)
@@ -440,7 +439,7 @@ command and rest of the command's arguments"
         (entropy/emacs-package-prompt-install-fails)
           ;;; FIXME: package reinitialize after updates cause error
           ;;; for `yasnippet-snippets' that for autroload deleted old
-          ;;; version..
+          ;;; version.
         ;;(entropy/emacs-package--package-initialize t)
         ))))
 
@@ -500,7 +499,7 @@ command and rest of the command's arguments"
 ;; *** extra `use-package' keywords definition
 ;; **** :eemacs-functions
 
-(with-eval-after-load 'use-package
+(entropy/emacs-eval-after-load-only-once 'use-package
   (entropy/emacs-package--use-package-add-keyword
    :eemacs-functions))
 
@@ -530,7 +529,7 @@ are recognized as a normal function."
 
 ;; **** :eemacs-macros
 
-(with-eval-after-load 'use-package
+(entropy/emacs-eval-after-load-only-once 'use-package
   (entropy/emacs-package--use-package-add-keyword
    :eemacs-macros))
 
@@ -668,7 +667,7 @@ the :eemacs-adrequrie has been loaded and the related form is banned."
              (prog1
                  (require ',use-name)
                (setq ,judger-var t))))
-         (init-form '()))
+         init-form)
     (dolist (ptr patterns)
       (let* ((enable       (plist-get ptr :enable))
              (adfors       (plist-get ptr :adfors))
@@ -686,13 +685,12 @@ the :eemacs-adrequrie has been loaded and the related form is banned."
              (adprefix (use-package-eemacs-adrequire/gen-random-ad-func-prefix
                         use-name adtype)))
         (when enable
-          (setq init-form
-                (append init-form
-                        `((,ad-wrapper
-                           ',adfors ',adprefix ',adprefix
-                           :prompt-type 'prompt-echo
-                           :pdumper-no-end ',pdump-no-end
-                           ,form)))))))
+          (entropy/emacs-nconc-with-setvar-use-rest init-form
+            `((,ad-wrapper
+               ',adfors ',adprefix ',adprefix
+               :prompt-type 'prompt-echo
+               :pdumper-no-end ',pdump-no-end
+               ,form))))))
     (use-package-concat
      rest-body
      init-form)))
@@ -703,22 +701,24 @@ the :eemacs-adrequrie has been loaded and the related form is banned."
   (if
       ;; Do not check extensions when boot from bytecode to speedup
       ;; startup process.
-      (string-match-p
-       "\\.elc$"
-       entropy/emacs-package-src-load-file-name)
-      (progn
-        (entropy/emacs-package-prepare-foras))
+      entropy/emacs-package-src-load-bytecode-p
+      (entropy/emacs-package-prepare-foras)
     (entropy/emacs-package-install-all-packages))
   (when
       ;; just init `use-package' while no installing procedure sine
       ;; `use-package' may not be detected in dependencies deficiency.
-      (not entropy/emacs-package-install-success-list)
+      (and (not entropy/emacs-package-install-success-list)
+           ;; Also do not init `use-package' when eemacs is compiled
+           ;; since in which case all use-package forms are
+           ;; expanded. But FIXME that how we known all eemacs configs
+           ;; are compiled? Or use a function put in every eemacs
+           ;; configs head to initialize use-pacakge when it's not
+           ;; compiled.
+           (not entropy/emacs-package-src-load-bytecode-p))
     (condition-case error
         (entropy/emacs-package-init-use-package)
       (error
-       (if (string-match-p
-            "\\.elc$"
-            entropy/emacs-package-src-load-file-name)
+       (if entropy/emacs-package-src-load-bytecode-p
            (progn
              ;; but still install package when there's no `use-package' checked out
              ;; while unexpected `package-user-dir' broken while some
@@ -730,6 +730,7 @@ the :eemacs-adrequrie has been loaded and the related form is banned."
          (user-error "%s" error)))))
   (run-hooks 'entropy/emacs-package-common-start-after-hook))
 
+;; proxy support for install packages
 (dolist (func '(entropy/emacs-package-compile-dynamic-module
                 entropy/emacs-package-install-package
                 entropy/emacs-package-update-all-packages))

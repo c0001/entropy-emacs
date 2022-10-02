@@ -3092,6 +3092,15 @@ string and no ARGS can be formatted."
       (apply 'message format-string args)
     (message "%s" format-string)))
 
+(defun entropy/emacs-time-subtract (before &optional now use-float)
+  "`time-subtract' from BEFORE to NOW (defautls to `current-time').
+Return that result.
+
+If USE-FLOAT is non-nil, the result is a `floatp' number indiate that
+duration in seconds."
+  (let ((dr (time-subtract (or now (current-time)) before)))
+    (if use-float (float-time dr) dr)))
+
 ;; ** entropy-emacs initialize
 ;; *** basic setting
 ;; **** make sure gpg pinentry passphrase prompt using emacs minibuffer

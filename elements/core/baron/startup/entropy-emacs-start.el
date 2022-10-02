@@ -32,13 +32,8 @@
 ;; immediately.
 ;;
 ;; * Code:
-(defvar entropy/emacs-start-src-load-file-name
-  (eval 'load-file-name))
-
-(defun entropy/emacs-start-bytecode-boot-p ()
-  (string-match
-   "\\.elc$"
-   entropy/emacs-start-src-load-file-name))
+(defconst entropy/emacs-start-bytecode-boot-p
+  (string-match-p "\\.elc$" load-file-name))
 
 ;; ** Require
 (when entropy/emacs-startup-debug-on-error
@@ -48,50 +43,49 @@
   (jit-lock-debug-mode t))
 
 (defvar entropy/emacs-start--load-duration-log nil)
-(defmacro entropy/emacs-start--run-with-duration-log
-    (name &rest body)
-  `(if (bound-and-true-p entropy/emacs-startup-with-Debug-p)
-       (let* ((inhibit-quit t)
-              (before-time (current-time)))
-         (prog1
-             (progn
-               ,@body)
-           (push (cons (float-time
-                        (time-subtract
-                         (current-time)
-                         before-time))
-                       ;; strip quote of name pattern from require arg
-                       (if (and (listp ',name)
-                                (eq 2 (length ',name))
-                                (eq (car ',name) 'quote))
-                           (cadr ',name)
-                         ',name))
-                 entropy/emacs-start--load-duration-log)))
-     ,@body))
+(eval-when-compile
+  (defmacro entropy/emacs-start--run-with-duration-log
+      (name &rest body)
+    (macroexp-let2* ignore
+        ((do-name name))
+      `(if (bound-and-true-p entropy/emacs-startup-with-Debug-p)
+           (let* ((inhibit-quit t)
+                  (before-time (current-time)))
+             (prog1 (progn ,@body)
+               (push (cons (entropy/emacs-time-subtract before-time nil t)
+                           ;; strip quote of do-name pattern from require arg
+                           (if (and (listp ,do-name)
+                                    (eq 2 (length ,do-name))
+                                    (eq (car ,do-name) 'quote))
+                               (cadr ,do-name) ,do-name))
+                     entropy/emacs-start--load-duration-log)))
+         ,@body))))
 
-(defmacro entropy/emacs-start--require-with-duration-log
-    (&rest args)
-  `(entropy/emacs-start--run-with-duration-log
-    ,(car args)
-    (entropy/emacs-common-require-feature ,@args)))
+(eval-when-compile
+  (defmacro entropy/emacs-start--require-with-duration-log
+      (&rest args)
+    (macroexp-let2* ignore
+        ((car-args (car args))
+         (cdr-args (cdr args)))
+      (macroexpand-1
+       `(entropy/emacs-start--run-with-duration-log
+         ,car-args
+         (apply 'entropy/emacs-common-require-feature
+                ,car-args ,cdr-args))))))
 
 (defun entropy/emacs-start--sort-duration-log
     (&rest _)
   (let ((all-sec
-         (apply '+
-                (mapcar
-                 (lambda (x) (car x))
-                 entropy/emacs-start--load-duration-log
-                 ))))
+         (apply #'+ (mapcar #'car entropy/emacs-start--load-duration-log))))
     (setq entropy/emacs-start--load-duration-log
           (list
            :sum all-sec
            :details
            (sort entropy/emacs-start--load-duration-log
-                 (lambda (el1 el2)
-                   (let ((el1-sec (car el1))
-                         (el2-sec (car el2)))
-                     (> el1-sec el2-sec))))))))
+                 #'(lambda (el1 el2)
+                     (let ((el1-sec (car el1))
+                           (el2-sec (car el2)))
+                       (> el1-sec el2-sec))))))))
 
 ;; *** load wasteland
 ;; **** var binds
@@ -102,9 +96,9 @@
 ;; forbidden `entropy/emacs-custom-enable-lazy-load' at special
 ;; session.
 (progn
-  (when (and (or entropy/emacs-fall-love-with-pdumper
-                 (daemonp))
-             entropy/emacs-custom-enable-lazy-load)
+  (when (and entropy/emacs-custom-enable-lazy-load
+             (or entropy/emacs-fall-love-with-pdumper
+                 (daemonp)))
     (setq entropy/emacs-custom-enable-lazy-load nil)))
 
 ;; **** func binds
@@ -131,30 +125,32 @@
 (defun entropy/emacs-start--check-init-with-install-p ()
   "When start emacs with installing, prompt user to reboot emacs.
 and save the compiling log into `entropy/emacs-stuffs-topdir'
-named as 'compile_$date.log'."
-  (let ((buflist (mapcar #'buffer-name (buffer-list))))
-    (when (> (length entropy/emacs-package-install-success-list) 0)
-      (setq entropy/emacs-start--is-init-with-install t))
-    ;; persist save compile log for debugging
-    (when (member "*Compile-Log*" buflist)
-      ;; First recorde compiling log
-      (let ((inhibit-read-only t)
-            ($f (expand-file-name
-                 (concat "compile_" (format-time-string "%Y-%m-%d_%a_%H%M%S") ".log")
-                 (expand-file-name "eemacs-package-install-compile-logs"
-                                   entropy/emacs-stuffs-topdir))))
-        (with-current-buffer (get-buffer "*Compile-Log*")
-          (entropy/emacs-write-file $f)))))
-  ;; fake defun
-  (defun entropy/emacs-start--check-init-with-install-p ()
-    "This function has been unloaded."
-    nil)
-  (when entropy/emacs-start--is-init-with-install
-    (run-with-timer 300 nil #'kill-emacs)))
+named as 'compile_$date.log'.
+
+Return non-nil while there's indeed installed or failed installing
+some packages. Or nil without did anything."
+  (when (or entropy/emacs-package-install-success-list
+            entropy/emacs-package-install-failed-list)
+    (setq entropy/emacs-start--is-init-with-install t)
+    (when-let
+        ((logbuff (and (bound-and-true-p byte-compile-log-buffer)
+                       (get-buffer byte-compile-log-buffer))))
+      ;; persist save compile log for debugging
+      (let ((file
+             (expand-file-name
+              (concat "compile_" (format-time-string "%Y-%m-%d_%a_%H%M%S") ".log")
+              (expand-file-name "eemacs-package-install-compile-logs/"
+                                entropy/emacs-stuffs-topdir))))
+        (with-current-buffer logbuff (entropy/emacs-write-file file))))
+    ;; fake defun
+    (defalias entropy/emacs-start--check-init-with-install-p #'ignore
+      "This function has been unloaded.")
+    (when entropy/emacs-start--is-init-with-install
+      (run-with-timer 300 nil #'kill-emacs))
+    entropy/emacs-start--is-init-with-install))
 
 (defun entropy/emacs-start--warn-with-pkg-install ()
-  (entropy/emacs-start--check-init-with-install-p)
-  (when entropy/emacs-start--is-init-with-install
+  (when (entropy/emacs-start--check-init-with-install-p)
     (entropy/emacs-message-do-message
      "%s"
      :popup-while-eemacs-init-with-interactive t
@@ -172,23 +168,24 @@ session, please restart thus, and it will be well.")))
         "You init with installing new packages, please reopen emacs!
 Emacs will auto close after 5 minutes \
 or manually do 'C-x C-c' immediately.")))
-    (entropy/emacs-start--require-with-duration-log 'cl-macs)
+    (unless (memq 'cl-macs features)
+      (entropy/emacs-start--require-with-duration-log 'cl-macs))
     (cl-assert (entropy/emacs-message-focus-on-popup-window))))
 
 ;; breaking remaining procedure while new package intalled within this
 ;; session, because some messy.
-(unless (entropy/emacs-start-bytecode-boot-p)
+(unless entropy/emacs-start-bytecode-boot-p
   (add-hook 'entropy/emacs-package-common-start-after-hook
             #'entropy/emacs-start--warn-with-pkg-install))
 
 (entropy/emacs-start--require-with-duration-log 'entropy-emacs-ext)
 (defvar entropy/emacs-start-ext-available-p
   (entropy/emacs-start--run-with-duration-log
-   func/entropy/emacs-ext-main
+   'func/entropy/emacs-ext-main
    (entropy/emacs-ext-main)))
 (when entropy/emacs-start-ext-available-p
   (entropy/emacs-start--run-with-duration-log
-   func/entropy/emacs-package-common-start
+   'func/entropy/emacs-package-common-start
    (entropy/emacs-package-common-start)))
 
 ;; ***** Then require top facilities
@@ -214,7 +211,7 @@ or manually do 'C-x C-c' immediately.")))
 (defun entropy/emacs-start--require-prompt (feature)
   (when
       ;; reducing duplicated feature loading prompts
-      (not (featurep feature))
+      (not (memq feature features))
     (let ((f-str (symbol-name feature)))
       (when (if entropy/emacs-fall-love-with-pdumper
                 ;; reduce duplicated feature load prompts
@@ -306,7 +303,7 @@ Trying insert some words in below are:
 ;; release more keybinding possibilitie.(see
 ;; <https://unix.stackexchange.com/questions/34158/rebinding-disabling-ctrlaltf-virtual-terminal-console-switching>)
   ;; (entropy/emacs-start--run-with-duration-log
-  ;;  form/disable-virtual-terminal-tty-sh-command
+  ;;  'form/disable-virtual-terminal-tty-sh-command
   ;;  (when sys/linux-x-p
   ;;    (entropy/emacs-lazy-with-load-trail
   ;;     'setxkbmap
@@ -357,11 +354,11 @@ notation.
 
 (specific for emacs version uper than '26' or included '26'.)"
   (let ((timer-stop-func
-         (lambda ()
-           (when (timerp entropy/emacs-start--internalIME-startup-timer)
-             (cancel-timer entropy/emacs-start--internalIME-startup-timer))
-           (setq entropy/emacs-start--internalIME-startup-timer nil)
-           (cancel-function-timers #'entropy/emacs-start--internalIME-startup-init-status-guard))))
+         #'(lambda ()
+             (when (timerp entropy/emacs-start--internalIME-startup-timer)
+               (cancel-timer entropy/emacs-start--internalIME-startup-timer))
+             (setq entropy/emacs-start--internalIME-startup-timer nil)
+             (cancel-function-timers #'entropy/emacs-start--internalIME-startup-init-status-guard))))
     (cond ((bound-and-true-p entropy/emacs-IME-specs-initialized)
            (funcall timer-stop-func)
            (if (eq entropy/emacs-IME-specs-initialized t)
@@ -370,7 +367,8 @@ notation.
               "%s: =eemacs-intenal-IME= loading with status: %s, so that it's no been initialized!"
               (yellow "warning")
               (cyan (format "%s" entropy/emacs-IME-specs-initialized))))
-           (defun entropy/emacs-start--internalIME-startup-init-status-guard ()
+           (entropy/emacs-with-lambda 'entropy/emacs-start--internalIME-startup-init-status-guard
+             (&rest _)
              (entropy/emacs-message-do-message
               (yellow "This function has been unloaded."))))
           (t
@@ -383,12 +381,9 @@ notation.
 (defun entropy/emacs-start--internalIME-startup-initialize ()
   "Make prompt when loading and loded =eemacs-intenal-IME= for emacs init time."
   ;; preparation prompt loading eemacs intenal IME.
-  (let (_)
-    (entropy/emacs-message-do-message
-     "%s"
-     (green "Loading =eemacs-intenal-IME=, please waiting ......"))
-    ;; (redisplay t)
-    )
+  (entropy/emacs-message-do-message
+   "%s"
+   (green "Loading =eemacs-intenal-IME=, please waiting ......"))
   ;; initialize =eemacs-intenal-IME=
   (entropy/emacs-internal-ime-starter t)
   ;; prompt for loading =eemacs-intenal-IME= done.
@@ -397,7 +392,7 @@ notation.
          0.4 nil
          #'entropy/emacs-start--internalIME-startup-init-status-guard))
   ;; reset function
-  (defun entropy/emacs-start--internalIME-startup-initialize ()
+  (entropy/emacs-with-lambda 'entropy/emacs-start--internalIME-startup-initialize ()
     (message "This function has been unloaded.")))
 
 (when entropy/emacs-internal-ime-use-backend
@@ -607,8 +602,7 @@ Currently detected env variables:")
           (msg ""))
       (dolist (env envars)
         (let ((val (getenv env)))
-          (when (and val
-                     (not (string-empty-p val)))
+          (when (and val (not (string-empty-p val)))
             (setq msg (format "%s\n%s=%s" msg env val)))))
       (unless (string-empty-p msg)
         (when pop-warn
@@ -727,7 +721,7 @@ Currently detected env variables:")
         (entropy/emacs-run-startup-end-hook)))))
 
 (entropy/emacs-start--run-with-duration-log
- form/start-tentacles-and-all-hooks
+ 'form/start-tentacles-and-all-hooks
  (entropy/emacs-start-do-load)
  (when entropy/emacs-startup-with-Debug-p
    (run-with-idle-timer
