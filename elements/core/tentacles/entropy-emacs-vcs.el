@@ -187,18 +187,17 @@ files destroying."
     "The input waiting protect for
 `entropy/emacs-vcs--git-messenger:popup-message' of BODY."
     (macroexp-let2* ignore
-        ((hydra-need-quit-p nil))
-      `(let ((,hydra-need-quit-p t))
-         (unwind-protect
-             (progn
-               (push (read-event) unread-command-events)
-               ;; when hint C-g we must exit the hydra also.
-               (when (eq (car unread-command-events) 7)
-                 (git-messenger-hydra/lambda-\,-and-exit))
-               (setq ,hydra-need-quit-p nil))
-           ,@body
-           (when ,hydra-need-quit-p
-             (hydra-keyboard-quit)))))))
+        ((hydra-need-quit-p t))
+      `(unwind-protect
+           (progn
+             (push (read-event) unread-command-events)
+             ;; when hint C-g we must exit the hydra also.
+             (when (eq (car unread-command-events) 7)
+               (git-messenger-hydra/lambda-\,-and-exit))
+             (setq ,hydra-need-quit-p nil))
+         ,@body
+         (when ,hydra-need-quit-p
+           (hydra-keyboard-quit))))))
 
 (use-package git-messenger
   :commands git-messenger:copy-message
