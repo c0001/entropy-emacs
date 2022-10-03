@@ -389,30 +389,29 @@ without respect `entropy/emacs-message-non-popup'.
     `(cond (
             ;; ========== Simplifying the startup hints
             (and
+             ;; only used in eemacs startup time
              (not (bound-and-true-p entropy/emacs-startup-done))
+             ;; -- not when key :force-message-while-eemacs-init is set while eemacs init
+             (not ,force-message-while-eemacs-init)
              ;; BUT:
              ;; -- not in debug mode
              (not entropy/emacs-startup-with-Debug-p)
-             ;; -- not in daemon init type
-             (not
-              (and (not entropy/emacs-daemon-server-init-done)
-                   (daemonp)))
-             ;; -- not in make session
-             (not
-              (entropy/emacs-is-make-session))
              ;; -- not when non-lazy-mode enabled in interactive session
              ;;    since we should see the long terms of init.
              (not
               (and (null noninteractive)
                    (not (bound-and-true-p entropy/emacs-custom-enable-lazy-load))))
+             ;; -- not in daemon init type
+             (not
+              (and (not (bound-and-true-p entropy/emacs-daemon-server-init-done))
+                   (daemonp)))
+             ;; -- not in make session
+             (not (entropy/emacs-is-make-session))
              ;; -- not when key :popup-while-eemacs-init-with-interactive is set while eemacs init
-             (not (and (not entropy/emacs-startup-done)
+             (not (and (not (bound-and-true-p entropy/emacs-startup-done))
                        ,popup-while-eemacs-init-with-interactive))
-             ;; -- not when key :force-message-while-eemacs-init is set while eemacs init
-             (not (and (not entropy/emacs-startup-done)
-                       ,force-message-while-eemacs-init))
              )
-            (message "Loading ..."))
+            (message "%s" "Loading ..."))
            (
             ;; ========== Disable the popup feature when needed
             (or
