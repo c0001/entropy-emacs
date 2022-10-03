@@ -35,7 +35,6 @@
 (defconst entropy/emacs-package-src-load-bytecode-p
   (string-match-p "\\.elc$" load-file-name))
 
-(require 'package)
 (!eemacs-require 'entropy-emacs-defconst)
 (!eemacs-require 'entropy-emacs-defcustom)
 (!eemacs-require 'entropy-emacs-defun)
