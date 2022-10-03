@@ -883,8 +883,9 @@ initialize the default non-lazy configs.
           ;; ========== ran `entropy/emacs-after-startup-hook'
           (progn
             (run-hooks 'entropy/emacs-after-startup-hook)
-            (with-temp-message
-                "==================== eemacs after end hooks ran out ====================")
+            (message
+             "%s"
+             "==================== eemacs after end hooks ran out ====================")
             ))
          (this-time-1 (current-time))
          ;; -----------------------
