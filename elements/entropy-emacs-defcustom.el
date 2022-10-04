@@ -2722,7 +2722,16 @@ See also `entropy/emacs-require-once'."
 (defvar entropy/emacs-require--place-top-id -1)
 (defmacro entropy/emacs-require-once (&rest args)
   "Require features of ARGS using
-`entropy/emacs-require-only-needed' only once in context."
+`entropy/emacs-require-only-needed' only once in context.
+
+NOTE&EEMACS_MAINTENANCE:
+
+This macro just can be used in an `lambda' or `defun' and the
+`byte-compile' context, since this macro must be expanded before
+execution. Thus any context not matched any of those occasions will
+invoke the `entropy/emacs-require-only-needed' every time for that
+context evaluated. It's always highly recommend to `byte-compile' the
+file invoked this macro."
   (let* ((id (cl-incf entropy/emacs-require--place-top-id))
          (stvar (intern (format "__eemacs-require-status-%s" id))))
     `(unless (bound-and-true-p ,stvar)
