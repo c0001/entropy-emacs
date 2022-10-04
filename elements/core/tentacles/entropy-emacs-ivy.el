@@ -1293,10 +1293,11 @@ display icon or empty string while
   :init
 
   (defun entropy/emacs-ivy--enable-ivy-rich-common ()
-    (require 'ivy)
-    ;; ensure load the :config part
-    (require 'ivy-rich)
-    (require 'all-the-icons)
+    (entropy/emacs-require-once
+     'ivy
+     ;; ensure load the :config part
+     'ivy-rich
+     'all-the-icons)
     ;; we must ensure that initial `ivy-rich-display-transformers-list'
     ;; after all specification are injected into
     ;; `entropy/emacs-ivy-rich-extra-display-transformers-list'.

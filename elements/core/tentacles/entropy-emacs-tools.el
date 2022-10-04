@@ -32,7 +32,7 @@
 ;;
 ;; * Code:
 ;; ** require
-(require 'subr-x)
+(eval-when-compile (require 'subr-x))
 
 ;; ** gatherd for minor tools
 ;; *** openwith external apps
@@ -672,7 +672,7 @@ when we update the version of `ialign').
   :preface
   (defun entropy/emacs-tools-toggle-atomic-chrome ()
     (interactive)
-    (require 'atomic-chrome)
+    (entropy/emacs-require-once 'atomic-chrome)
     (if atomic-chrome-server-atomic-chrome
         (atomic-chrome-stop-server)
       (atomic-chrome-start-server)))
@@ -1210,7 +1210,7 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
   (setq command-log-mode-auto-show t)
   (defun entropy/emacs-tools-command-log-mode ()
     (interactive)
-    (require 'command-log-mode)
+    (entropy/emacs-require-once 'command-log-mode)
     (if (not (bound-and-true-p command-log-mode))
         (progn
           (command-log-mode 1)
@@ -1545,7 +1545,7 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
 web page buffer. It's typically using with the statement that you
 can't visit one page suddenly."
       (interactive)
-      (require 'entropy-proxy-url)
+      (entropy/emacs-require-once 'entropy-proxy-url)
       (let ((url entropy/emacs-tools--w3m-retrieve-url))
         (entropy/proxy-url-switch-proxy-for-w3m-group)
         (call-interactively 'w3m-process-stop)

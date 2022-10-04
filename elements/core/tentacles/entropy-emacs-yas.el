@@ -88,8 +88,7 @@
 `yas-expand'."
     (interactive)
     (when (not (bound-and-true-p yas-minor-mode))
-      (unless (featurep 'yasnippet)
-        (require 'yasnippet))
+      (entropy/emacs-require-once 'yasnippet)
       (yas-minor-mode 1))
     (yas-expand))
 

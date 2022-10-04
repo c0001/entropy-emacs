@@ -103,8 +103,7 @@ NOTE: update with `company' upstream.")
 
 (defun entropy/emacs-company-start-with-yas (&rest _)
   (unless (bound-and-true-p yas-minor-mode)
-    (unless (fboundp 'yas-minor-mode)
-      (require 'yasnippet))
+    (entropy/emacs-require-once 'yasnippet)
     (yas-minor-mode 1)))
 
 ;; *** company for docs modes

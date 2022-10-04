@@ -1152,8 +1152,7 @@ EEMACS_BUG: h-c02794e4-bdb8-4510-84cb-d668873b02fc
 `mwheel-scroll' down to the eobp of lsp-doc-buffer"
     (let ((rtn (apply orig-func orig-args)))
       (unless (bound-and-true-p disable-mouse-mode)
-        (unless (fboundp 'disable-mouse-mode)
-          (require 'disable-mouse))
+        (entropy/emacs-require-once 'disable-mouse)
         (disable-mouse-mode 1))
       rtn))
   ;; since the advice we do not any mouse support by `lsp-ui'
@@ -1685,7 +1684,7 @@ let eglot do completion with interface argument injection."
            (background-color (face-attribute 'tooltip :background)))
       (cond
        ((and (fboundp 'posframe-show) (display-graphic-p))
-        (require 'posframe)
+        (entropy/emacs-require-once 'posframe)
         (posframe-show
          entropy/emacs-eglot-doc-buffer-name
          :string string
@@ -1699,7 +1698,7 @@ let eglot do completion with interface argument injection."
         (sit-for most-positive-fixnum t)
         (posframe-hide entropy/emacs-eglot-doc-buffer-name))
        ((fboundp 'popup-tip)
-        (require 'popup)
+        (entropy/emacs-require-once 'popup)
         (let ((pop (popup-tip string :nowait t :margin 1)))
           (sit-for most-positive-fixnum t)
           (popup-delete pop)))

@@ -575,7 +575,7 @@ window configs."
     "Used in repeated selected eyebrowse config with `ivy-call'.
 
 This was the one action in `ivy-read'."
-    (require 'ivy)
+    (entropy/emacs-require-once 'ivy)
     (if (not (member x entropy/emacs-basic--eyebrowse-config-selected))
         (push x entropy/emacs-basic--eyebrowse-config-selected))
     (let ((prompt (entropy/emacs-basic--eyebrowse-read-prompt)))
@@ -594,7 +594,7 @@ This was the one action in `ivy-read'."
     "Delete eyebrowse workspace with prompt."
     (declare (interactive-only t))
     (interactive)
-    (require 'ivy)
+    (entropy/emacs-require-once 'ivy)
     (setq entropy/emacs-basic--eyebrowse-config-selected nil)
     (let* ((wcon (eyebrowse--get 'window-configs))
            candi

@@ -80,7 +80,7 @@ set of `entropy/emacs-browse-url-function-get-for-web-preview'."
   (setq indent-tabs-mode nil)
   (setq tab-width 2)
   (progn
-    (require 'yasnippet)
+    (entropy/emacs-require-once 'yasnippet)
     (unless yas-minor-mode
       (yas-minor-mode 1))
     (yas-activate-extra-mode 'php-mode)
@@ -400,7 +400,7 @@ server not actived and open the impatient url
 \"http://localhost:8080/imp/\" with file-name of current buffer
 if current file was html file."
     (interactive)
-    (require 'impatient-mode)
+    (entropy/emacs-require-once 'impatient-mode)
     (let* ((buffer_n (buffer-name (current-buffer))))
       (cond
        ((and (boundp 'impatient-mode)
