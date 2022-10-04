@@ -41,7 +41,6 @@
 (entropy/emacs-common-require-feature 'entropy-emacs-defconst)
 (entropy/emacs-common-require-feature 'entropy-emacs-defface)
 (entropy/emacs-common-require-feature 'entropy-emacs-message)
-(require 'cl-lib)
 (eval-when-compile (require 'rx))
 
 ;; ** internal libs

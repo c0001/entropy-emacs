@@ -42,10 +42,7 @@
 (!eemacs-require 'entropy-emacs-defcustom)
 (!eemacs-require 'entropy-emacs-defun)
 (!eemacs-require 'entropy-emacs-defconst)
-(if (version< emacs-version "27")
-    (require 'cl)
-  (require 'cl-macs))
-(require 'rx)
+(eval-when-compile (require 'rx))
 
 ;; ** defvar
 (defvar entropy/emacs-pdumper--upstream-els nil)

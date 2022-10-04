@@ -35,7 +35,6 @@
 ;; usages.
 ;;
 ;; * Code:
-(require 'cl-lib)
 (!eemacs-require 'entropy-emacs-defconst)
 (!eemacs-require 'entropy-emacs-defun)
 
@@ -665,7 +664,7 @@ easily modified by others."
     ;; EEMACS_MAINTENANCE: follow `hydra' updates
     "Unset `entropy/emacs-pretty-hydra-posframe-visible-p' after
 close hydra posframe."
-    (require 'posframe)
+    (entropy/emacs-require-once 'posframe)
     (unless hydra--posframe-timer
       (setq hydra--posframe-timer
             (run-with-idle-timer
@@ -814,7 +813,7 @@ posframe when available."
 
 (cl-defun entropy/emacs-pretty-hydra-make-title-for-major-mode-common
     (mode title-str &key face height v-adjust)
-  (require 'faces)
+  (entropy/emacs-require-once 'faces)
   (let* ((icon-display-p (entropy/emacs-icons-displayable-p))
          (face (or face 'entropy/emacs-defface-face-for-hydra-orange-face))
          (icon (if (fboundp 'all-the-icons-icon-for-mode)

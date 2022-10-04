@@ -382,8 +382,7 @@ the current package version of package PACKAGE-NAME obtained by
 `pkg-info-package-version' used for reducing duplicated internal
 pacakge version retrieval while calling this function in the context
 many times with same PACKAGE-NAME."
-  (unless (featurep 'pkg-info)
-    (require 'pkg-info))
+  (entropy/emacs-require-once 'pkg-info)
   (let* ((pkg-cur-ver (or current-package-version
                           (pkg-info-package-version package-name)))
          (cmp-rtn (entropy/emacs-version-compare
@@ -555,7 +554,7 @@ see `entropy/emacs-api-restriction-detection-log' for details."
   (image-type-available-p 'imagemagick)
   "Whether support imagemagick on this emacs session.")
 
-(require 'faces)
+(entropy/emacs-require-only-needed 'faces)
 (defconst entropy/emacs-face-attributes-list
   (mapcar (lambda (x) (car x)) face-attribute-name-alist)
   "Emacs internally face attribte symbols list")
@@ -635,7 +634,7 @@ see `entropy/emacs-api-restriction-detection-log' for details."
 
 (defconst entropy/emacs-url-allowed-chars
   (progn
-    (require 'url-util)
+    (entropy/emacs-require-once 'url-util)
     (url--allowed-chars
      (let ((hl url-unreserved-chars))
        (dolist (el '(37 38 47 58 61 63))
