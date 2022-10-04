@@ -353,6 +353,40 @@ new slots."
         ,@(entropy/emacs-merge-lambda-args
            (plist-put args-parse :body new-body))))))
 
+(defmacro entropy/emacs-funcall-with-lambda (&rest args)
+  "Like `funcall' but invoking for a `lambda' which defined with ARGS
+using `entropy/emacs-cl-lambda-with-lcb'. Return the value return by
+invoking that lambda.
+
+ARGS are as is as `entropy/emacs-cl-lambda-with-lcb' except an extra
+key WITH-FUNCALL-ARGS is applied to `funcall' with that lambda.
+
+If WITHOUT-ANONYMOUS is specified, it may be a symbol to set that
+lambda's name so that it's not anonymous anymore, and in this case
+that ARGS are extended to be used with `entropy/emacs-with-lambda'
+arguments exclude the SYMBOL which is defined by WITHOUT-ANONYMOUS.
+
+\(fn ARGLIST [DOCSTRING] [DECL] [INCT] \
+&key WITH-FUNCALL-ARGS WITHOUT-ANONYMOUS ... &rest BODY)"
+  (declare (doc-string 2) (indent defun))
+  (let* ((args-parse    (apply 'entropy/emacs-parse-lambda-args-plus args))
+         (orig-plist    (plist-get args-parse :body-plist))
+         (pparse        (entropy/emacs-defun--get-body-without-keys
+                         orig-plist nil :with-funcall-args :without-anonymous))
+         (this-args     (car pparse))
+         (with-defalias (plist-get this-args :without-anonymous))
+         (fargs         (plist-get this-args :with-funcall-args))
+         (new-args      (entropy/emacs-merge-lambda-args
+                         (plist-put args-parse :body-plist (cdr pparse)))))
+    (macroexp-let2* ignore
+        ((with-def with-defalias))
+      `(funcall
+        (if ,with-def
+            ,(macroexpand-1
+              `(entropy/emacs-with-lambda (or ,with-def '__fake__) ,@new-args))
+          ,(macroexpand-1 `(entropy/emacs-cl-lambda-with-lcb ,@new-args)))
+        ,@fargs))))
+
 ;; ** Common manipulations
 ;; *** Emacs internal api replacement
 
