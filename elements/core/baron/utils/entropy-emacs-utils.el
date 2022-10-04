@@ -664,7 +664,7 @@ easily modified by others."
     ;; EEMACS_MAINTENANCE: follow `hydra' updates
     "Unset `entropy/emacs-pretty-hydra-posframe-visible-p' after
 close hydra posframe."
-    (entropy/emacs-require-once 'posframe)
+    (entropy/emacs-require-only-once 'posframe)
     (unless hydra--posframe-timer
       (setq hydra--posframe-timer
             (run-with-idle-timer
@@ -813,7 +813,7 @@ posframe when available."
 
 (cl-defun entropy/emacs-pretty-hydra-make-title-for-major-mode-common
     (mode title-str &key face height v-adjust)
-  (entropy/emacs-require-once 'faces)
+  (entropy/emacs-require-only-once 'faces)
   (let* ((icon-display-p (entropy/emacs-icons-displayable-p))
          (face (or face 'entropy/emacs-defface-face-for-hydra-orange-face))
          (icon (if (fboundp 'all-the-icons-icon-for-mode)

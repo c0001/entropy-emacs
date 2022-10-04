@@ -195,7 +195,7 @@ This customization mainly adding the eyebrowse slot and tagging name show functi
 
   (defun entropy/emacs-modeline-do-powerline-set ()
     (interactive)
-    (entropy/emacs-require-once 'powerline)
+    (entropy/emacs-require-only-once 'powerline)
     (powerline-default-theme)
     (let* ((cur-mdl-fmt (default-value 'mode-line-format))
            (powerline-spec (cadr cur-mdl-fmt)))
@@ -222,7 +222,7 @@ This customization mainly adding the eyebrowse slot and tagging name show functi
 (defvar spaceline-workspace-numbers-unicode)
 (defun entropy/emacs-modeline--spaceline-specification ()
   ;; powerline specification
-  (entropy/emacs-require-once 'powerline)
+  (entropy/emacs-require-only-once 'powerline)
   (setq entropy/emacs-modeline--spaceline-spec-list nil)
 
   ;; backup the origin powerline configs where spaceline will modify

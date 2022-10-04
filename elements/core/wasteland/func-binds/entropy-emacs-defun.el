@@ -4764,7 +4764,7 @@ The USE-ORG-STYLE defaultly output each node with its propeties as of
 ,:NODE-SIZE: 138
 #+end_src
 "
-  (let* ((dir-face (or dir-face (progn (entropy/emacs-require-once 'dired) 'dired-directory)))
+  (let* ((dir-face (or dir-face (progn (entropy/emacs-require-only-once 'dired) 'dired-directory)))
          (file-face (or file-face 'default))
          (brs (or branch-str "│"))
          (brslen (length brs))
@@ -5817,7 +5817,7 @@ as the origin one <%s> at the first mirror turn."
     ;; ---------- log-buffer-func instance
     (setq log-buffer-func
           (lambda (log-buff)
-            (entropy/emacs-require-once 'org)
+            (entropy/emacs-require-only-once 'org)
             (with-current-buffer log-buff
               (unless use-log-string
                 (entropy/emacs-do-directory-mirror/log-mode))
@@ -8267,7 +8267,7 @@ string. Return `color-values' of it if thus, or nil otherwise.
           "^#[0-9a-fA-F]\\{3\\}[0-9a-fA-F]*$"
           color-hex-str-maybe)))
     (when base-match-p
-      (entropy/emacs-require-once 'faces)
+      (entropy/emacs-require-only-once 'faces)
       (color-values color-hex-str-maybe))))
 
 (defvar shr-color-html-colors-alist)
@@ -8301,7 +8301,7 @@ string."
                    (member object x-colors))
                (cons 'name object))
           (and use-shr-color-also
-               (progn (entropy/emacs-require-once 'shr-color) t)
+               (progn (entropy/emacs-require-only-once 'shr-color) t)
                (and
                 (setq tmpvar (alist-get object shr-color-html-colors-alist))
                 (cons 'hex tmpvar)))
@@ -8355,7 +8355,7 @@ selected frame.
 Optional DIGITS-PER-COMPONENT has same meaning as it be for
 `color-rgb-to-hex'."
   (when (entropy/emacs-color-string-p color-str nil t)
-    (entropy/emacs-require-once 'faces 'color)
+    (entropy/emacs-require-only-once 'faces 'color)
     (apply 'color-rgb-to-hex
            (nconc
             (entropy/emacs-color-values-to-rgb
@@ -8372,7 +8372,7 @@ Two frame spec optional args individually spec which frame to to
 use when calculate the color values for each color. If FRAME is
 omitted or nil, use the selected frame.
 "
-  (entropy/emacs-require-once 'faces)
+  (entropy/emacs-require-only-once 'faces)
   (let ((c1 (color-values color1 color1-frame))
         (c2 (color-values color2 color2-frame)))
     (equal c1 c2)))
@@ -8387,7 +8387,7 @@ based the frame, nil for use selected frame.
 
 Optional DIGITS-PER-COMPONENT has same meaning as it be for
 `color-rgb-to-hex'."
-  (entropy/emacs-require-once 'faces 'color)
+  (entropy/emacs-require-only-once 'faces 'color)
   (let* ((cv (color-values color frame))
          (cl (entropy/emacs-color-values-to-rgb cv))
          (r (car cl))
@@ -8600,7 +8600,7 @@ your system. Unless its `eq' to an symbol 'force-not'."
          (native-func
           '(lambda (x tout)
              "Like `url-http-head' but be silent and no cookie used."
-             (entropy/emacs-require-once 'url-http)
+             (entropy/emacs-require-only-once 'url-http)
              (let ((url-request-method "HEAD")
                    (url-request-data nil))
                (url-retrieve-synchronously x t t tout))))
@@ -9436,7 +9436,7 @@ START-FORM via the internal binding variable =$ASYNC-RESULT=.
 The process running `default-directory' is bind to
 WITH-DEFAULT-DIRECTORY-AS if set or will fallback to
 `temporary-file-directory'."
-  (entropy/emacs-require-once 'async)
+  (entropy/emacs-require-only-once 'async)
   (entropy/emacs-env-with-pure-eemacs-env
    (or (and with-default-directory-as
             (entropy/emacs-return-as-default-directory
@@ -10650,7 +10650,7 @@ backuped in faces of list of face
   "Stop the org-level headers from increasing in height
 relative to the other text when
 `entropy/emacs-disable-org-heading-scale' was non-nil."
-  (entropy/emacs-require-once 'outline 'org-faces)
+  (entropy/emacs-require-only-once 'outline 'org-faces)
   (when (display-graphic-p)
     (cond
      (entropy/emacs-disable-org-heading-scale
@@ -10896,7 +10896,7 @@ situation."
 stuffs on `entropy/emacs-solaire-mode' when
 `entropy/emacs-theme-adapted-to-solaire-p' was judged."
   (when (entropy/emacs-theme-adapted-to-solaire-p)
-    (entropy/emacs-require-once 'hl-line)
+    (entropy/emacs-require-only-once 'hl-line)
     ;; common spec
     (cond
      ((or (eq entropy/emacs-theme-sticker 'spacemacs-dark)
@@ -11022,7 +11022,7 @@ clipboard with native operation system."
                           (when (eq judger 'powershell)
                             (executable-find "powershell.exe"))))
              (if (bound-and-true-p xclip-mode) t
-               (progn (entropy/emacs-require-once 'xclip)
+               (progn (entropy/emacs-require-only-once 'xclip)
                       (setq xclip-method judger
                             xclip-program (if (eq judger 'powershell)
                                               ;; NOTE: WSLg can not

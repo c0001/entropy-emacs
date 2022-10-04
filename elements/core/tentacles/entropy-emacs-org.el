@@ -45,7 +45,7 @@
 ;; ** Pre advice
 (defun entropy/emacs-org--export-panel-around-advice (old-func &rest args)
   (unless (fboundp 'org-reveal-export-to-html)
-    (entropy/emacs-require-once 'ox-reveal))
+    (entropy/emacs-require-only-once 'ox-reveal))
   (let ((entropy/emacs-web-development-environment t))
     (apply old-func args)))
 
@@ -301,7 +301,7 @@ find-file-other-window"
     "Open link in org-mode using `entropy/open-with-port'."
     (declare (interactive-only t))
     (interactive nil org-mode)
-    (entropy/emacs-require-once 'entropy-open-with)
+    (entropy/emacs-require-only-once 'entropy-open-with)
     (let* ((link (nth 1 (org-element-lineage
                          (org-element-context)
                          '(link) t)))
@@ -1774,7 +1774,7 @@ source images file existed status checking.
 NOTE:
 
 Now just supply localization image file analyzing."
-  (entropy/emacs-require-once 'entropy-org-widget)
+  (entropy/emacs-require-only-once 'entropy-org-widget)
   (let ((link-objs (entropy/ow-get-buffer-links (find-file-noselect org-file)))
         links_temp links
         (base-dir (file-name-directory org-file)))

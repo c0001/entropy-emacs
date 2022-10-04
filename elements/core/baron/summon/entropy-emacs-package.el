@@ -446,7 +446,7 @@ command and rest of the command's arguments"
 ;; Required by `use-package'
 
 (defun entropy/emacs-package-init-use-package  ()
-  (entropy/emacs-require-once 'use-package)
+  (entropy/emacs-require-only-once 'use-package)
   (if entropy/emacs-fall-love-with-pdumper
       (setq use-package-always-ensure nil)
     (setq use-package-always-ensure t))

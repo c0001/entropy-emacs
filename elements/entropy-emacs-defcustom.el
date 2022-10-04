@@ -2710,7 +2710,7 @@ are not loaded yet.
 Each element of args should be a single feature symbol or a full
 argument list applied to `require'.
 
-See also `entropy/emacs-require-once'."
+See also `entropy/emacs-require-only-once'."
   (let (fp falp)
     (dolist (fa args)
       (if (setq falp (listp fa)) (setq fp (car fa))
@@ -2720,7 +2720,7 @@ See also `entropy/emacs-require-once'."
           (require fa))))))
 
 (defvar entropy/emacs-require--place-top-id -1)
-(defmacro entropy/emacs-require-once (&rest args)
+(defmacro entropy/emacs-require-only-once (&rest args)
   "Require features of ARGS using
 `entropy/emacs-require-only-needed' only once in context.
 

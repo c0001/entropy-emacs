@@ -2222,7 +2222,7 @@ window point not shown in nice place e.g. at window bottom."
 
 The IMAGE-FILE must match regexp of `image-file-name-regexp' or
 an error thrown out."
-  (entropy/emacs-require-once 'entropy-open-with)
+  (entropy/emacs-require-only-once 'entropy-open-with)
   (unless (string-match-p (image-file-name-regexp) image-file)
     (user-error "'%s' is not an image file!"))
   (entropy/open-with-port nil image-file))
@@ -2416,7 +2416,7 @@ can be found in this dired buffer, cancel the operation and throw
 an error."
     (declare (interactive-only t))
     (interactive "P" dired-mode)
-    (entropy/emacs-require-once 'image-dired)
+    (entropy/emacs-require-only-once 'image-dired)
     (unless (eq major-mode 'dired-mode)
       (user-error "Not in an dired buffer"))
     (let ((cur-buffer (current-buffer))
@@ -3270,7 +3270,7 @@ displayed image as same operated mechanism as
           (modified (buffer-modified-p)))
       (unless (and file (file-exists-p file))
         (user-error "No image displayed in this buffer"))
-      (entropy/emacs-require-once 'image-mode)
+      (entropy/emacs-require-only-once 'image-mode)
       (erase-buffer)
       (insert-file-contents-literally file)
       (image-mode)
@@ -4191,7 +4191,7 @@ coding style."
               ;; as a shell or do non-ui related operations.
               noninteractive)
           (ignore)
-        (entropy/emacs-require-once 'whitespace)
+        (entropy/emacs-require-only-once 'whitespace)
         (let ((whitespace-style (entropy/emacs-get-symbol-defcustom-value
                                  'whitespace-style)))
           (let ((inhibit-read-only t))
@@ -4929,7 +4929,7 @@ successfully both of situation of read persisit of create an new."
              #'xterm-paste)))
         (term-enable-func
          (lambda ()
-           (entropy/emacs-require-once 'term)
+           (entropy/emacs-require-only-once 'term)
            (define-key term-raw-map
              [S-insert]
              #'entropy/emacs-xterm-term-S-insert)
@@ -4938,7 +4938,7 @@ successfully both of situation of read persisit of create an new."
              #'entropy/emacs-xterm-term-S-insert)))
         (term-disable-func
          (lambda ()
-           (entropy/emacs-require-once 'term)
+           (entropy/emacs-require-only-once 'term)
            (define-key term-raw-map
              [S-insert]
              #'term-paste)
@@ -5446,7 +5446,7 @@ In =:chinese= slot, is an plist only specifed for chinese input methodg:
   (defun entropy/emacs-basic--pyim-set-rime-schema ()
     "Start and set rime input schema to
 `entropy/emacs-internal-ime-use-rime-default-schema'"
-    (entropy/emacs-require-once 'liberime)
+    (entropy/emacs-require-only-once 'liberime)
     ;; load liberim just needed to require it. Set
     ;; `liberime-auto-build' to t so that we do not get the build
     ;; prompt messeges and auto-build the liberime-core so that we do
@@ -5509,7 +5509,7 @@ by run command \"make liberime\" in eemacs root place")
 
 This function will store the loading callback to
 `entropy/emacs-IME-specs-initialized'(see it for details.)"
-    (entropy/emacs-require-once 'pyim)
+    (entropy/emacs-require-only-once 'pyim)
     (cond ((eq entropy/emacs-pyim-use-backend 'internal)
            (if entropy/emacs-pyim-dicts
                (setq pyim-dicts entropy/emacs-pyim-dicts)
@@ -5517,7 +5517,7 @@ This function will store the loading callback to
            (setq entropy/emacs-IME-specs-initialized t))
           ((and (eq entropy/emacs-pyim-use-backend 'liberime)
                 (not sys/win32p))
-           (entropy/emacs-require-once 'pyim-liberime)          ;needed for load liberime for pyim
+           (entropy/emacs-require-only-once 'pyim-liberime)          ;needed for load liberime for pyim
            (entropy/emacs-basic-pyim-load-rime))
           (t
            (error "Invalid `entropy/emacs-pyim-use-backend' value '%s'"
@@ -5684,7 +5684,7 @@ current displayed buffer area wile
 This function will store the `rime' loading callback to
 `entropy/emacs-IME-specs-initialized'(see it for details.)"
     (unless entropy/emacs-IME-specs-initialized
-      (entropy/emacs-require-once 'rime)
+      (entropy/emacs-require-only-once 'rime)
       (let ((build-func (lambda ()
                           (let ((env (rime--build-compile-env))
                                 (process-environment (copy-sequence process-environment))

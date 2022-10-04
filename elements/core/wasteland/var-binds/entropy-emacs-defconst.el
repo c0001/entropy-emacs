@@ -382,7 +382,7 @@ the current package version of package PACKAGE-NAME obtained by
 `pkg-info-package-version' used for reducing duplicated internal
 pacakge version retrieval while calling this function in the context
 many times with same PACKAGE-NAME."
-  (entropy/emacs-require-once 'pkg-info)
+  (entropy/emacs-require-only-once 'pkg-info)
   (let* ((pkg-cur-ver (or current-package-version
                           (pkg-info-package-version package-name)))
          (cmp-rtn (entropy/emacs-version-compare
@@ -634,7 +634,7 @@ see `entropy/emacs-api-restriction-detection-log' for details."
 
 (defconst entropy/emacs-url-allowed-chars
   (progn
-    (entropy/emacs-require-once 'url-util)
+    (entropy/emacs-require-only-once 'url-util)
     (url--allowed-chars
      (let ((hl url-unreserved-chars))
        (dolist (el '(37 38 47 58 61 63))

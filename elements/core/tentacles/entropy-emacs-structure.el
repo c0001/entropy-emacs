@@ -147,7 +147,7 @@
    )
   :preface
   (defun entropy/emacs-structure--vimish-folded-p (beg end)
-    (entropy/emacs-require-once 'vimish-fold)
+    (entropy/emacs-require-only-once 'vimish-fold)
     (let (rtn)
       (catch :exit
         (cl-destructuring-bind (beg . end) (vimish-fold--correct-region beg end)
@@ -160,7 +160,7 @@
 
   (defun entropy/emacs-structure-vimish-toggle (&optional beg end)
     (interactive)
-    (entropy/emacs-require-once 'vimish-fold)
+    (entropy/emacs-require-only-once 'vimish-fold)
     (if (entropy/emacs-structure--vimish-folded-p
          (line-beginning-position)
          (line-end-position))
@@ -177,7 +177,7 @@
   (defun entropy/emacs-structure-vimish-fold-double-quote-string ()
     "Fold lisp type doc string block using `vimish'."
     (interactive)
-    (entropy/emacs-require-once 'vimish-fold)
+    (entropy/emacs-require-only-once 'vimish-fold)
     (let ((head-dquote-pt
            (save-excursion (re-search-backward "[^\\\\]\"")))
           (end-dquote-pt
@@ -1216,7 +1216,7 @@ amounts."
                           (outline-back-to-heading))
                         (outline-level)))
                   (progn
-                    (entropy/emacs-require-once 'outshine)
+                    (entropy/emacs-require-only-once 'outshine)
                     (unless (bound-and-true-p outshine-mode)
                       (outshine-mode 1))
                     (or (outshine-calc-outline-level)

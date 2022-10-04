@@ -1293,7 +1293,7 @@ display icon or empty string while
   :init
 
   (defun entropy/emacs-ivy--enable-ivy-rich-common ()
-    (entropy/emacs-require-once
+    (entropy/emacs-require-only-once
      'ivy
      ;; ensure load the :config part
      'ivy-rich

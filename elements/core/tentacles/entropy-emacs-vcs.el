@@ -716,14 +716,14 @@ for 'git' type and fallback to it while other types."
       :enable t :global-bind t :exit t))))
   :preface
   (defun entropy/emacs-vcs--smerge-auto-open-for-buffer ()
-    (entropy/emacs-require-once 'smerge-mode)
+    (entropy/emacs-require-only-once 'smerge-mode)
     (save-excursion
       (goto-char (point-min))
       (when (re-search-forward "^<<<<<<< " nil t)
         (smerge-mode 1))))
 
   (defun entropy/emacs-vcs--smerge-hydra-popup ()
-    (entropy/emacs-require-once 'smerge-mode)
+    (entropy/emacs-require-only-once 'smerge-mode)
     (when smerge-mode
       (funcall
        (entropy/emacs-hydra-hollow-category-common-individual-get-caller
