@@ -123,13 +123,10 @@ NOTE: not support load dynamic module"
           (entropy/emacs-env-init-with-pure-eemacs-env-p)
           (and noninteractive
                (not (bound-and-true-p entropy/emacs-fall-love-with-pdumper))
-               (not (daemonp)))
-          )
-      (require feature (or filename
-                           (format "%s.el" feature))
+               (not (daemonp))))
+      (require feature (or filename (format "%s.el" feature))
                noerror))
-     (t
-      (require feature filename noerror)))))
+     (t (require feature filename noerror)))))
 
 (defalias '!eemacs-require
   #'entropy/emacs-common-require-feature
@@ -197,8 +194,7 @@ in baron part to simplify context distinction search")
   (setenv "EEMACS_ENV" "TRUE"))
 (__set_eemacs_top_env_indicator)
 ;; we should also guaranteed the pdumper reload session has this too.
-(add-hook 'entropy/emacs-pdumper-load-hook
-          #'__set_eemacs_top_env_indicator)
+(add-hook 'entropy/emacs-pdumper-load-hook #'__set_eemacs_top_env_indicator)
 
 ;; start eemacs
 (cond
@@ -206,7 +202,6 @@ in baron part to simplify context distinction search")
   (!eemacs-require 'entropy-emacs-batch))
  ((entropy/emacs-env-init-with-pure-eemacs-env-p)
   (!eemacs-require 'entropy-emacs-pure-env))
- (t
-  (!eemacs-require 'entropy-emacs-start)))
+ (t (!eemacs-require 'entropy-emacs-start)))
 
 (provide 'entropy-emacs)
