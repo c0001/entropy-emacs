@@ -2708,7 +2708,9 @@ mechanism, so be carefully.
 are not loaded yet.
 
 Each element of args should be a single feature symbol or a full
-argument list applied to `require'."
+argument list applied to `require'.
+
+See also `entropy/emacs-require-once'."
   (let (fp falp)
     (dolist (fa args)
       (if (setq falp (listp fa)) (setq fp (car fa))
@@ -2716,6 +2718,16 @@ argument list applied to `require'."
       (unless (memq fp features)
         (if falp (apply 'require fa)
           (require fa))))))
+
+(defvar entropy/emacs-require--place-top-id -1)
+(defmacro entropy/emacs-require-once (&rest args)
+  "Require features of ARGS using
+`entropy/emacs-require-only-needed' only once in context."
+  (let* ((id (cl-incf entropy/emacs-require--place-top-id))
+         (stvar (intern (format "__eemacs-require-status-%s" id))))
+    `(unless (bound-and-true-p ,stvar)
+       (entropy/emacs-require-only-needed ,@args)
+       (eval '(defconst ,stvar t)))))
 
 ;; *** run-hooks with prompt
 (defvar entropy/emacs--run-hooks-cache nil)

@@ -42,7 +42,7 @@
 (entropy/emacs-common-require-feature 'entropy-emacs-defface)
 (entropy/emacs-common-require-feature 'entropy-emacs-message)
 (require 'cl-lib)
-(require 'rx)
+(eval-when-compile (require 'rx))
 
 ;; ** internal libs
 (cl-defun entropy/emacs-defun--get-real-body (list-var)
@@ -4583,8 +4583,6 @@ wrong type of :with-filter '%s'" with-filter)))
     (type _ node-name)
   "The hidden files or dirs node filter function used for
 `entropy/emacs-list-dir-subdirs-recursively'."
-  (unless (fboundp 'rx)
-    (require 'rx))
   (let ((dir-ignore-regexps
          "^\\.")
         (file-ignore-regexps
@@ -4767,7 +4765,7 @@ The USE-ORG-STYLE defaultly output each node with its propeties as of
 ,:NODE-SIZE: 138
 #+end_src
 "
-  (let* ((dir-face (or dir-face (progn (unless (featurep 'dired) (require 'dired)) 'dired-directory)))
+  (let* ((dir-face (or dir-face (progn (entropy/emacs-require-once 'dired) 'dired-directory)))
          (file-face (or file-face 'default))
          (brs (or branch-str "│"))
          (brslen (length brs))
@@ -5820,8 +5818,7 @@ as the origin one <%s> at the first mirror turn."
     ;; ---------- log-buffer-func instance
     (setq log-buffer-func
           (lambda (log-buff)
-            (unless (featurep 'org)
-              (require 'org))
+            (entropy/emacs-require-once 'org)
             (with-current-buffer log-buff
               (unless use-log-string
                 (entropy/emacs-do-directory-mirror/log-mode))
@@ -6443,7 +6440,6 @@ non-nil if thus.
 
 Optional arguments SENTINEL-EVENT-STRING is the event-status
 string for normally getted from the PROCESS's sentinel."
-  (require 'rx)
   (and
    ;; always return nil when process is running
    (not (entropy/emacs-process-is-running-p process))
@@ -8272,7 +8268,7 @@ string. Return `color-values' of it if thus, or nil otherwise.
           "^#[0-9a-fA-F]\\{3\\}[0-9a-fA-F]*$"
           color-hex-str-maybe)))
     (when base-match-p
-      (entropy/emacs-require-only-needed 'faces)
+      (entropy/emacs-require-once 'faces)
       (color-values color-hex-str-maybe))))
 
 (defvar shr-color-html-colors-alist)
@@ -8306,7 +8302,7 @@ string."
                    (member object x-colors))
                (cons 'name object))
           (and use-shr-color-also
-               (progn (entropy/emacs-require-only-needed 'shr-color) t)
+               (progn (entropy/emacs-require-once 'shr-color) t)
                (and
                 (setq tmpvar (alist-get object shr-color-html-colors-alist))
                 (cons 'hex tmpvar)))
@@ -8360,7 +8356,7 @@ selected frame.
 Optional DIGITS-PER-COMPONENT has same meaning as it be for
 `color-rgb-to-hex'."
   (when (entropy/emacs-color-string-p color-str nil t)
-    (entropy/emacs-require-only-needed 'faces 'color)
+    (entropy/emacs-require-once 'faces 'color)
     (apply 'color-rgb-to-hex
            (nconc
             (entropy/emacs-color-values-to-rgb
@@ -8377,7 +8373,7 @@ Two frame spec optional args individually spec which frame to to
 use when calculate the color values for each color. If FRAME is
 omitted or nil, use the selected frame.
 "
-  (entropy/emacs-require-only-needed 'faces)
+  (entropy/emacs-require-once 'faces)
   (let ((c1 (color-values color1 color1-frame))
         (c2 (color-values color2 color2-frame)))
     (equal c1 c2)))
@@ -8392,7 +8388,7 @@ based the frame, nil for use selected frame.
 
 Optional DIGITS-PER-COMPONENT has same meaning as it be for
 `color-rgb-to-hex'."
-  (entropy/emacs-require-only-needed 'faces 'color)
+  (entropy/emacs-require-once 'faces 'color)
   (let* ((cv (color-values color frame))
          (cl (entropy/emacs-color-values-to-rgb cv))
          (r (car cl))
@@ -8605,8 +8601,7 @@ your system. Unless its `eq' to an symbol 'force-not'."
          (native-func
           '(lambda (x tout)
              "Like `url-http-head' but be silent and no cookie used."
-             (unless (featurep 'url-http)
-               (require 'url-http))
+             (entropy/emacs-require-once 'url-http)
              (let ((url-request-method "HEAD")
                    (url-request-data nil))
                (url-retrieve-synchronously x t t tout))))
@@ -9442,8 +9437,7 @@ START-FORM via the internal binding variable =$ASYNC-RESULT=.
 The process running `default-directory' is bind to
 WITH-DEFAULT-DIRECTORY-AS if set or will fallback to
 `temporary-file-directory'."
-  (unless (featurep 'async)
-    (require 'async))
+  (entropy/emacs-require-once 'async)
   (entropy/emacs-env-with-pure-eemacs-env
    (or (and with-default-directory-as
             (entropy/emacs-return-as-default-directory
@@ -9771,7 +9765,6 @@ format on windows platform."
 true, nil for otherwise."
   (let ((lisp-file-regexp
          (progn
-           (require 'rx)
            (rx (or (seq ".el" line-end)
                    (seq ".lisp" line-end)
                    )))))
@@ -10658,8 +10651,7 @@ backuped in faces of list of face
   "Stop the org-level headers from increasing in height
 relative to the other text when
 `entropy/emacs-disable-org-heading-scale' was non-nil."
-  (require 'outline)
-  (require 'org-faces)
+  (entropy/emacs-require-once 'outline 'org-faces)
   (when (display-graphic-p)
     (cond
      (entropy/emacs-disable-org-heading-scale
@@ -10740,15 +10732,14 @@ corresponding stuffs."
          'ivy-current-match frame
          :background "#1a4b77" :foreground "white"))))
    ((string= "doom-solarized-light" theme-name-str)
-    (when (not (featurep 'hl-line))
-      (require 'hl-line))
-    (entropy/emacs-set-face-attribute
-     'hl-line frame
-     :background
-     "LightGoldenrod2")
-    (entropy/emacs-set-face-attribute
-     'solaire-hl-line-face frame
-     :background "#ffffe4e4b5b5"))
+    (entropy/emacs-eval-after-load-only-once 'hl-line
+      (entropy/emacs-set-face-attribute
+       'hl-line frame
+       :background
+       "LightGoldenrod2")
+      (entropy/emacs-set-face-attribute
+       'solaire-hl-line-face frame
+       :background "#ffffe4e4b5b5")))
    ((string= "doom-Iosvkem" theme-name-str)
     (entropy/emacs-eval-after-load-only-once 'ivy
       (entropy/emacs-set-face-attribute
@@ -10906,7 +10897,7 @@ situation."
 stuffs on `entropy/emacs-solaire-mode' when
 `entropy/emacs-theme-adapted-to-solaire-p' was judged."
   (when (entropy/emacs-theme-adapted-to-solaire-p)
-    (require 'hl-line)
+    (entropy/emacs-require-once 'hl-line)
     ;; common spec
     (cond
      ((or (eq entropy/emacs-theme-sticker 'spacemacs-dark)
@@ -11032,7 +11023,7 @@ clipboard with native operation system."
                           (when (eq judger 'powershell)
                             (executable-find "powershell.exe"))))
              (if (bound-and-true-p xclip-mode) t
-               (progn (require 'xclip)
+               (progn (entropy/emacs-require-once 'xclip)
                       (setq xclip-method judger
                             xclip-program (if (eq judger 'powershell)
                                               ;; NOTE: WSLg can not
