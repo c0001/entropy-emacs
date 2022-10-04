@@ -288,7 +288,7 @@ declared as rest in `&key' arglist.
 
 If SYMBOL is a cons of car of `t', then the SYMBOL's cdr is absolutely
 the defined function's name symbol. Otherwises, the returned function
-name symbol is always prefixed an suffixed with some special
+name symbol is always prefixed and suffixed with some special
 information used to distinguish this as special from others.
 
 \(fn SYMBOL ARGLIST [DOCSTRING] [DECL] [INCT] \
@@ -304,7 +304,7 @@ information used to distinguish this as special from others.
           (entropy/emacs-defun--get-body-without-keys
            full-body 'reverse :with-lexical-bindins))
          (opt-plist (car body-trim-parse))
-         (opt-var-sym  (or (plist-get opt-plist :with-option-varname) 'option-plist))
+         (opt-var-sym  (or (plist-get opt-plist :with-option-varname) 'options))
          (aux-form     (plist-get opt-plist :with-aux))
          (real-body    (cdr body-trim-parse))
          (real-args
