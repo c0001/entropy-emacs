@@ -6595,47 +6595,49 @@ It's an arglist whose partition as the `make-process' arglist, but
 combined with `call-process' key-pair factored arglist and further
 more flexible process chained key slots.
 
-Used all `make-process' key-slots and must set the slot value
-formed like _what to do for directly calling `make-process'_.
+*Used all `make-process' key-slots, and all of those slots' value
+specified should be a expression which will be evaluated while
+create that process.=*
 
 Factored `call-process' args as:
-- INFILE to :infile
-- DESTINATION to :destination
-- DISPLAY to :display
-- COMMAND to :command
-- PROGRAM to use the :command slot's car of what `make-process' requests
-- ARGS to use the :command slot's cdr of what `make-process'
+- INFILE to `:infile'
+- DESTINATION to `:destination'
+- DISPLAY to `:display'
+- COMMAND to `:command'
+- PROGRAM to used as the `:command' slot's car of what `make-process'
+  requests
+- ARGS to used as the `:command' slot's cdr of what `make-process'
   requests
 
 And the slots value injecting form for `call-process' factored key
 slots dealing as what mentioned in value form injection for
 make-process part.
 
-For chaining the processes in one space, there has a :after key
-does for that, thus you can inject any lisp _forms_ into that
-place when the head process has ran finished successfully, even
-for injecting a new process, otherwise calling the error procedure
-by the forms of the key :error. Finally a :prepare key can be set
-to indicate whether running the process as a preparation.
+For run procedure after the process, there has a `:after' key does for
+that, thus you can inject any lisp _forms_ into that place when the
+head process has ran finished successfully, even for injecting a new
+process, otherwise calling the error procedure by the forms of the key
+`:error'. Before run any procedure, a `:prepare' key can be set as
+forms which return non-nil to indicate whether create and running the
+process.
 
-If you want to specify the process working directory, set the
-value of key slot of :default-directory, the place hold a atom or
-a form.
+If you want to specify the process working directory, set the value of
+key slot of `:default-directory', the place hold a
+expression. Defaults to `default-directory'.
 
-Further more key :synchronously indicate whether call with
+Further more key `:synchronously' indicate whether call with
 synchronously, the place hold a symbol or a single form to be
-evaled and use its result to indicate turn/off as that a non-nil
-result to turn on. If its result is 't' and current emacs-session
-is `noninteractive', then the synchronously method using
-`make-process' with spawn watchdog mechanism to emulate
-synchronization , otherwise using `call-process' to did the
-synchronization, this be presented since the `call-process' have
-the termination without kill its spawns problem in emacs
-`noninteractive' session like '--batch' mode (see its doc for
-details refer the SIGINT and SIGKILL).
+evaluated and use its result to indicate turn/off as that a non-nil
+result to turn on. If its result is 't' and current emacs-session is
+`noninteractive', then the synchronously method using `make-process'
+with spawn watchdog mechanism to emulate synchronization , otherwise
+using `call-process' to did the synchronization, this be presented
+since the `call-process' have the bug of termination without kill its
+spawns problem in emacs `noninteractive' session like '--batch' mode
+(see its doc for details refer the SIGINT and SIGKILL).
 
 If you wish to do sth both for finished or errored status with
-`unwind-protect', inject forms to :cleanup slot.
+`unwind-protect', inject forms to `:cleanup' slot.
 
 *Interally variable:*
 
@@ -6646,19 +6648,19 @@ can be used into your form:
 1) =$sentinel/proc=
    * description: the process current running
    * limitation: just used for async process
-   * Slots support: =:after=, =:cleanup=, =:sentinel=, =:error=
+   * Slots support: `:after', `:cleanup', `:sentinel', `:error'
 
 2) =$sentinel/event=
    * description: the process returned event string
    * limitation: just used for async process
-   * Slots support: =:after=, =:cleanup=, =:sentinel=, =:error=
+   * Slots support: `:after', `:cleanup', `:sentinel', `:error'
 
 3) =$sentinel/destination=
    * description: its a process buffer or for the meaning for the
-     of `call-process' =destination= arg when calling process
-     synchronously.
+     `call-process''s =destination= arg when calling process
+     synchronously with it.
    * limitation: both async and sync process calling type
-   * Slots support: =:after=, =:cleanup=, =:sentinel=, =:error=
+   * Slots support: `:after', `:cleanup', `:sentinel', `:error'
 "
   (let ((prepare-form
          (or (entropy/emacs-get-plist-form
@@ -6725,7 +6727,8 @@ can be used into your form:
         ($call_proc_command nil)
         ($call_proc_args nil)
 
-        (thiscur_sync_sym nil)
+        ;; internal vars
+        thiscur_sync_sym
         thiscur_proc
         thiscur_proc_buffer)
 
@@ -6736,15 +6739,14 @@ can be used into your form:
                      ;; interaction session may freeze emacs why? and thus
                      ;; we just used this in noninteraction session.
                      noninteractive)
-            (entropy/emacs-make-dynamic-symbol-as-same-value
-             nil)))
+            (entropy/emacs-make-dynamic-symbol-as-same-value nil)))
 
     ;; set var-binding here to prevent duplicate eval
     (let ((cprss-args (entropy/emacs-eval-with-lexical
                        (entropy/emacs-get-plist-form eemacs-make-proc-args :command t t))))
       (setq $make_proc_command cprss-args
             $call_proc_command (car cprss-args)
-            $call_proc_args (cdr cprss-args)))
+            $call_proc_args    (cdr cprss-args)))
     (setq $call_proc_destination
           (or (entropy/emacs-eval-with-lexical
                (entropy/emacs-get-plist-form eemacs-make-proc-args :destination t t))
@@ -6752,84 +6754,84 @@ can be used into your form:
 
     (when (entropy/emacs-eval-with-lexical prepare-form)
       (cond
-       ((or (null synchronously)
-            thiscur_sync_sym)
+       ((or (null synchronously) thiscur_sync_sym)
         (setq thiscur_proc
               (make-process
-               :name $make_proc_name
-               :buffer $make_proc_buffer
-               :command $make_proc_command
-               :coding $make_proc_coding
-               :noquery $make_proc_noquery
-               :stop $make_proc_stop
+               :name            $make_proc_name
+               :buffer          $make_proc_buffer
+               :command         $make_proc_command
+               :coding          $make_proc_coding
+               :noquery         $make_proc_noquery
+               :stop            $make_proc_stop
                :connection-type $make_proc_connection-type
-               :filter $make_proc_filter
+               :filter          $make_proc_filter
                :sentinel
-               `(lambda ($sentinel/proc $sentinel/event)
-                  (let ((orig-sentinel ,$make_proc_sentinel)
-                        ($sentinel/destination (process-buffer $sentinel/proc))
+               (lambda ($sentinel/proc $sentinel/event)
+                 (let* ((orig-sentinel $make_proc_sentinel)
+                        (lcb-env
+                         `(($sentinel/proc        . ,$sentinel/proc)
+                           ($sentinel/event       . ,$sentinel/event)
+                           ($sentinel/destination . ,(process-buffer $sentinel/proc))))
                         (ran-out-p nil))
-                    (unwind-protect
-                        (unwind-protect
-                            ;; run user spec sentinel when pure async run
-                            (when (and (functionp orig-sentinel)
-                                       (not ',synchronously))
-                              (apply orig-sentinel
-                                     $sentinel/proc $sentinel/event))
-                          ;; run after/error when pure async run
-                          (cond ((entropy/emacs-process-exit-successfully-p
-                                  $sentinel/proc $sentinel/event)
-                                 (setq ran-out-p t)
-                                 (unless ',synchronously
-                                   ,after-form))
-                                ((entropy/emacs-process-exit-with-fatal-p
-                                  $sentinel/proc $sentinel/event)
-                                 (setq ran-out-p
-                                       (list
-                                        :exit-code (process-exit-status $sentinel/proc)))
-                                 ,error-form)))
-                      ;; do ran out procedures
-                      (when (and (eq ',synchronously t)
-                                 ran-out-p)
-                        (setq ,thiscur_sync_sym ran-out-p))
-                      (when (and (not ',synchronously)
-                                 ran-out-p)
-                        ,clean-form)))))
+                   (unwind-protect
+                       (unwind-protect
+                           ;; run user spec sentinel when pure async run
+                           (when (and (functionp orig-sentinel)
+                                      (not synchronously))
+                             (funcall orig-sentinel $sentinel/proc $sentinel/event))
+                         ;; run after/error when pure async run
+                         (cond ((entropy/emacs-process-exit-successfully-p
+                                 $sentinel/proc $sentinel/event)
+                                (setq ran-out-p t)
+                                (unless synchronously
+                                  (entropy/emacs-eval-with-lexical after-form lcb-env)))
+                               ((entropy/emacs-process-exit-with-fatal-p
+                                 $sentinel/proc $sentinel/event)
+                                (setq ran-out-p
+                                      (list :exit-code (process-exit-status $sentinel/proc)))
+                                (entropy/emacs-eval-with-lexical error-form lcb-env))))
+                     ;; do ran out procedures
+                     (when ran-out-p
+                       (cond
+                        ((eq synchronously t)
+                         (set thiscur_sync_sym ran-out-p))
+                        ((not synchronously)
+                         (entropy/emacs-eval-with-lexical clean-form lcb-env)))))))))
 
-              thiscur_proc_buffer (process-buffer thiscur_proc))
+        (setq thiscur_proc_buffer (process-buffer thiscur_proc))
 
         (when (eq synchronously t)
-          (while (null (symbol-value thiscur_sync_sym)) (sleep-for 0.1))
-          (entropy/emacs-eval-with-lexical
-           `(let (($sentinel/destination ',thiscur_proc_buffer))
+          (while (null (symbol-value thiscur_sync_sym))
+            ;; NOTE: do not set to 0 since its same as ran without waiting.
+            (sleep-for 0.00000000000000000001))
+          (entropy/emacs-funcall-with-lambda nil
+            (let ((lcb-env `(($sentinel/destination . ,thiscur_proc_buffer)))
+                  (inhibit-quit t))
               (unwind-protect
-                  (when (eq ,thiscur_sync_sym t)
+                  (when (eq (symbol-value thiscur_sync_sym) t)
                     ;; just ran after form when this process ran out successfully
-                    ,after-form)
+                    (entropy/emacs-eval-with-lexical after-form lcb-env))
                 ;; run clean form
                 (unwind-protect
-                    ,clean-form
+                    (entropy/emacs-eval-with-lexical clean-form lcb-env)
                   ;; unintern the temp sync indicator symbol
-                  (entropy/emacs-unintern-symbol ',thiscur_sync_sym))))))
+                  (entropy/emacs-unintern-symbol thiscur_sync_sym))))))
         ;; return the processor
         thiscur_proc)
        (t
-        (entropy/emacs-eval-with-lexical
-         `(let (($sentinel/destination
-                 ,$call_proc_destination))
+        (entropy/emacs-funcall-with-lambda nil
+          (let ((lcb-env `(($sentinel/destination . ,$call_proc_destination)))
+                (inhibit-quit t))
             (unwind-protect
                 (if (=
-                     (apply 'call-process
-                            ,$call_proc_command
-                            ,$call_proc_infile
-                            ,$call_proc_destination
-                            ',$call_proc_display
-                            ',$call_proc_args)
+                     (apply 'call-process $call_proc_command $call_proc_infile
+                            $call_proc_destination $call_proc_display
+                            $call_proc_args)
                      0)
                     ;; just ran after form when this process ran out successfully
-                    ,after-form
-                  ,error-form)
-              ,clean-form))))))))
+                    (entropy/emacs-eval-with-lexical after-form lcb-env)
+                  (entropy/emacs-eval-with-lexical error-form lcb-env))
+              (entropy/emacs-eval-with-lexical clean-form lcb-env)))))))))
 
 (defun entropy/emacs-make-chained-processes (eemacs-make-proc-args-list)
   "Chained batch of processes one by one powered by
