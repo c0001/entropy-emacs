@@ -1619,7 +1619,6 @@ backend instead of `pretty-hydra-define+'."
     (entropy/emacs-hydra-hollow-category-get-hydra-branch-name
      name-prefix t)))
 
-
 (defun entropy/emacs-hydra-hollow-category-common-individual-define
     (individual-hydra-name pretty-hydra-body pretty-hydra-cabinet
                            &optional pretty-hydra-category-width-indicator)
