@@ -6727,6 +6727,10 @@ can be used into your form:
         ($call_proc_command nil)
         ($call_proc_args nil)
 
+        (call-proc-exit-status-zerop
+         (lambda (x)
+           (and (numberp x) (= x 0))))
+
         ;; internal vars
         thiscur_sync_sym
         thiscur_proc
@@ -6823,11 +6827,11 @@ can be used into your form:
           (let ((lcb-env `(($sentinel/destination . ,$call_proc_destination)))
                 (inhibit-quit t))
             (unwind-protect
-                (if (=
+                (if (funcall
+                     call-proc-exit-status-zerop
                      (apply 'call-process $call_proc_command $call_proc_infile
                             $call_proc_destination $call_proc_display
-                            $call_proc_args)
-                     0)
+                            $call_proc_args))
                     ;; just ran after form when this process ran out successfully
                     (entropy/emacs-eval-with-lexical after-form lcb-env)
                   (entropy/emacs-eval-with-lexical error-form lcb-env))
