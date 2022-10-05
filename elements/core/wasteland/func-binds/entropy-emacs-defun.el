@@ -111,8 +111,8 @@ Either SEQ1 or SEQ2 is wrapped into a sequence when it is not a
 (defsubst entropy/emacs-eval-with-lexical (form &optional actual-lexical-binding)
   "Like `eval' but forcely enable `lexical-binding' as t.
 
-ACTUAL-LEXICAL-BINDING when set then it is replaced the LEXICAL
-arg for `eval'."
+ACTUAL-LEXICAL-BINDING when set non-nil then it is replaced the
+LEXICAL arg for `eval'."
   (eval form (or actual-lexical-binding t)))
 
 (defmacro entropy/emacs-cl-lambda (&rest args)
