@@ -1192,7 +1192,9 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
   :commands entropy/cndt-query)
 
 ;; *** Log keyboard commands to buffer
-;;     Show event history and command history of some or all buffers.
+
+;; Show event history and command history of some or all buffers. or
+;; TODO we can use `view-lossage' instead?
 (use-package command-log-mode
   :diminish (command-log-mode . "¢")
   :commands (command-log-mode)
