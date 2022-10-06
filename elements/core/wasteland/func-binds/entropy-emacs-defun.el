@@ -1069,7 +1069,7 @@ changed. Return the outer list or nil when OBJECTS is empty."
   (if objects (cons objects nil)))
 
 (cl-defmacro entropy/emacs-list-map-cdr
-    (list &rest body &key with-exit with-it-as &allow-other-keys)
+    (list &rest body &key with-exit with-it-as with-modify-it &allow-other-keys)
   "Run BODY in mapping through each `cdr' of `consp' list LIST with bind
 `it' of the current cdr which is came from LIST to its last `consp'
 cons-cell.
@@ -1079,23 +1079,31 @@ return non-nil in any step of progress only when WITH-EXIT is set and
 return non-nil. Nothing is did when LIST invalid.
 
 When WITH-IT-AS is set, it should be a explicit a symbol for this
-macro to use it instead of `it' as what bind for."
+macro to use it instead of `it' as what bind for.
+
+When WITH-MODIFY-IT is set and return non-nil, when `it''s cdr is
+modified by BODY then that new cdr is used for next mapping step.
+Otherwise any modification to `it''s cdr has no effects to the
+mapping."
   (declare (indent 1))
   (let ((rest-sym (make-symbol "rest"))
         (exit-sym (make-symbol "exit"))
+        (modi-sym (make-symbol "use-modify"))
         (body-rtn-sym (make-symbol "body-rtn"))
         (body (entropy/emacs-defun--get-real-body body)))
     `(when-let ((,rest-sym ,list)
                 ((consp ,rest-sym)))
        (let ((,exit-sym ,with-exit)
              (,body-rtn-sym nil)
+             (,modi-sym ,with-modify-it)
              ;; exposed internal let binding
              (,(or with-it-as 'it) nil))
          (while (and (if ,exit-sym (not ,body-rtn-sym) t)
                      (consp ,rest-sym))
-           (setq ,(or with-it-as 'it) ,rest-sym
-                 ,rest-sym (cdr ,rest-sym))
-           (setq ,body-rtn-sym (progn ,@body)))))))
+           (setq ,(or with-it-as 'it) ,rest-sym)
+           (unless ,modi-sym (setq ,rest-sym (cdr ,rest-sym)))
+           (setq ,body-rtn-sym (progn ,@body))
+           (when ,modi-sym (setq ,rest-sym (cdr ,rest-sym))))))))
 
 (cl-defmacro entropy/emacs-list-map-car
     (list &rest body &key with-exit with-tail with-it-as &allow-other-keys)
