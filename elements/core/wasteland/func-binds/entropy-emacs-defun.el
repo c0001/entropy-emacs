@@ -44,10 +44,13 @@
 (eval-when-compile (require 'rx))
 
 ;; ** internal libs
-(cl-defun entropy/emacs-defun--get-real-body (list-var)
+(cl-defun entropy/emacs-defun--get-real-body (list-var &optional with-safe)
   "Get BODY inside of plist like list LIST-VAR, commonly is the
 last `keywordp' keypair's cdr or return LIST-VAR when the car of
 LIST-VAR is not a `keywordp' keyword.
+
+When WITH-SAFE is non-nil, when the real body is nil, then return
+`(nil)'. Otherwise of thus case, always return nil.
 
 This function is useful for `cl-defmacro' BODY parsing like:
 
@@ -66,9 +69,10 @@ To get the real-body in BODY use
   (let ((it list-var))
     (catch 'break
       (while t
-        (if (keywordp (car it))
-            (setq it (cddr it))
-          (throw 'break it))))))
+        (if (keywordp (car it)) (setq it (cddr it))
+          (throw 'break
+                 (if (not with-safe) it
+                   (or it (list nil)))))))))
 
 (defun entropy/emacs-defun--get-body-without-keys
     (body &optional reverse &rest keys)
@@ -108,6 +112,25 @@ Either SEQ1 or SEQ2 is wrapped into a sequence when it is not a
     nil))
 
 ;; ** Lambda
+
+(defun entropy/emacs-macroexp-progn (exps)
+  "Return EXPS (a list of expressions) with `progn' prepended.
+If EXPS is a list with a single expression, `progn' is not
+prepended, but that expression is returned instead. Return nil if
+EXPS is nil.
+
+See also `entropy/emacs-macroexp-rest'."
+  (if (cdr exps) `(progn ,@exps) (car exps)))
+
+(defsubst entropy/emacs-macroexp-rest (args)
+  "Return ARGS when it's not `null' or `(nil)' otherwise.
+
+This function exists for preventing omitting ARGS expanded in `&rest',
+BODY or FORMS requested context by `,@' in `backquote' forms.
+
+See also `entropy/emacs-macroexp-progn'."
+  (or args (list nil)))
+
 (defsubst entropy/emacs-eval-with-lexical (form &optional actual-lexical-binding)
   "Like `eval' but forcely enable `lexical-binding' as t.
 
@@ -398,13 +421,17 @@ arguments exclude the SYMBOL which is defined by WITHOUT-ANONYMOUS.
 (defmacro entropy/emacs-intern (&rest body)
   "`intern' BODY's value as symbol and return the interned symbol.
 
-In which case BODY's value must be a string or error raised up."
+In which case BODY's value must be a string or error raised up.
+
+\(fn BODY...)"
   `(intern (progn ,@body)))
 
 (defmacro entropy/emacs-intern-to-var (var &rest body)
   "Like `entropy/emacs-intern' but also set VAR as its return.
 
-VAR should be a variable name or a `setf' compatible place."
+VAR should be a variable name or a `setf' compatible place.
+
+\(fn VAR BODY...)"
   (declare (indent 1))
   `(setf ,var (intern (progn ,@body))))
 
@@ -454,13 +481,8 @@ forcely get that name in USE-OBARRAY."
   (declare (indent 1))
   (let ((sym (make-symbol "sym")))
     `(let ((,sym t))
-       (unwind-protect
-           (prog1
-               ,body
-             (setq ,sym nil))
-         (if ,sym
-             (progn
-               ,@unwindforms))))))
+       (unwind-protect (prog1 ,body (setq ,sym nil))
+         (if ,sym ,(entropy/emacs-macroexp-progn unwindforms))))))
 
 (defmacro entropy/emacs-add-to-list
     (list-var element &optional append compare-fn)
@@ -531,7 +553,7 @@ on.
 The main exist reason for this macro is used to clear out the
 lisp coding type."
   (declare (indent defun))
-  `(apply ,func ,@(or args (list nil))))
+  `(apply ,func ,@(entropy/emacs-macroexp-rest args)))
 
 (defmacro entropy/emacs-setf-by-body (var &rest body)
   "Run BODY and using its last form's evaluated value set to a
@@ -541,7 +563,7 @@ value.
 The main exist reason for this macro is used to clear out the
 lisp coding type."
   (declare (indent defun))
-  `(setf ,var (progn ,@body)))
+  (when body `(setf ,var (progn ,@body))))
 
 (defmacro entropy/emacs-setf-by-func (var func &rest args)
   "Call FUNCTION with its ARGS and set its value to variable VAR by
@@ -550,7 +572,7 @@ lisp coding type."
 The main exist reason for this macro is used to clear out the
 lisp coding type."
   (declare (indent defun))
-  `(setf ,var (apply ,func ,@(or args (list nil)))))
+  `(setf ,var (apply ,func ,@(entropy/emacs-macroexp-rest args))))
 
 (defsubst entropy/emacs-bound-and-true-p (var-name)
   "Like `bound-and-true-p' but as an function, so the VAR is using
@@ -564,7 +586,7 @@ nil and handled that.
 See also `entropy/emacs-when-let*-firstn'."
   (declare (indent 1) (debug if-let))
   (when body
-    (if (not spec) (macroexp-progn body)
+    (if (not spec) (entropy/emacs-macroexp-progn body)
       (let ((fspec (car spec)) (rspec (cdr spec)))
         `(when-let* (,fspec)
            ,@(if rspec `((let* (,@rspec) ,@body)) body))))))
@@ -576,7 +598,7 @@ patterns of SPEC whether is nil and handled them.
 Where N is a explicitly specified `natnump' number."
   (declare (indent 2) (debug if-let))
   (when body
-    (if (not spec) (macroexp-progn body)
+    (if (not spec) (entropy/emacs-macroexp-progn body)
       (let ((spec-len (length spec)) wspec rspec (i 0) elt)
         (catch :exit
           (dotimes (_ n)
@@ -606,8 +628,7 @@ non-nil, or run BODY like `progn'."
         (use-when-p (not (null when))))
     `(if (and ,use-when-p ,when)
          (save-excursion ,@body)
-       (progn
-         ,@body))))
+       ,(entropy/emacs-macroexp-progn body))))
 
 (cl-defmacro entropy/emacs-widen-when
     (&rest body &key when &allow-other-keys)
@@ -616,7 +637,7 @@ evaluated return non-nil, or run BODY like `progn'."
   (let ((body (entropy/emacs-defun--get-real-body body))
         (use-when-p (not (null when))))
     `(progn
-       (if (and ,use-when-p ,when) (widen))
+       (if (and ,use-when-p ,when) (and (widen) nil))
        ,@body)))
 
 ;; **** defmacro with ignorable lexical vars
@@ -1004,7 +1025,7 @@ test %s rehash-size %s rehash-threshold %s data"
 when the last form of CONNDITIONS evaluated return non-nil."
   (declare (indent defun))
   (let ((tmpvar-sym (make-symbol "--tmpvar--")))
-    `(when (progn ,@conditions)
+    `(when ,(entropy/emacs-macroexp-progn conditions)
        (let ((,tmpvar-sym ,place-b))
          (setf ,place-b ,place-a)
          (setf ,place-a ,tmpvar-sym)))))
@@ -1088,7 +1109,7 @@ BODY will not run also when EXTRA-UNLESS is set and return non-nil."
        (when (and ,type-p-sym (not ,extra-unless))
          (when ,set-len-p-sym
            (setf ,set-list-len-for (safe-length ,obsym)))
-         ,@body))))
+         ,(entropy/emacs-macroexp-progn body)))))
 
 (defsubst entropy/emacs-double-list (&rest objects)
   "Package sets of object OBJECTS into a list of a list without order
@@ -1120,7 +1141,8 @@ mapping."
         (modi-sym (make-symbol "use-modify"))
         (body-rtn-sym (make-symbol "body-rtn"))
         (body (entropy/emacs-defun--get-real-body body)))
-    `(when-let ((,rest-sym ,list)
+    `(when-let ((,(if body t))
+                (,rest-sym ,list)
                 ((consp ,rest-sym)))
        (let ((,exit-sym ,with-exit)
              (,body-rtn-sym nil)
@@ -1154,7 +1176,8 @@ macro to use it instead of `it' as what bind for."
         (exit-sym (make-symbol "exit"))
         (body-rtn-sym (make-symbol "body-rtn"))
         (body (entropy/emacs-defun--get-real-body body)))
-    `(when-let ((,rest-sym ,list)
+    `(when-let ((,(if body t))
+                (,rest-sym ,list)
                 ((consp ,rest-sym)))
        (let ((,exit-sym ,with-exit)
              (,body-rtn-sym nil)
@@ -1350,7 +1373,8 @@ while thus the SET-LIST-LEN-FOR is set.
                  (list 'entropy/emacs-common-listp ,obsym)))
        (when (and ,llen-sym (not ,extra-unless))
          ,@(if set-list-len-for (list `(setf ,set-list-len-for ,llen-sym)))
-         ,@(entropy/emacs-defun--get-real-body body)))))
+         ,@(entropy/emacs-macroexp-rest
+            (entropy/emacs-defun--get-real-body body))))))
 
 (defsubst entropy/emacs-base-listp (object)
   "Return non-nil when OBJECT is a *base* `listp' LIST i.e same
@@ -1417,7 +1441,8 @@ BODY.
             (signal 'wrong-type-argument
                     (list 'entropy/emacs-base-listp ,obsym)))
        (when (and ,typep-sym (not ,extra-unless))
-         ,@(entropy/emacs-defun--get-real-body body)))))
+         ,@(entropy/emacs-macroexp-rest
+            (entropy/emacs-defun--get-real-body body))))))
 
 (cl-defun entropy/emacs-list-setf-nth (n replace list &key with-end-cdr with-error)
   "Replace `nth' N of `listp' LIST with replacement REPLACE by altered it
@@ -2438,7 +2463,7 @@ This macro's WITH-ERROR key obey the SEQ error types of
          (body-value-sym            (make-symbol "body-value"))
          (body (entropy/emacs-defun--get-real-body body)))
     `(if ,directly-run-when
-         (progn ,@body)
+         ,(entropy/emacs-macroexp-progn body)
        (let* ((,pos-sym                   ,pos)
               (,with-errs-for-sym         ,with-error)
               (,seq-sym                   ,seq)
@@ -2455,7 +2480,7 @@ This macro's WITH-ERROR key obey the SEQ error types of
                                   (__eemacs-seq/safe-pos-error-judger
                                    ,seq-sym ,pos-sym ,with-invalid-p-sym
                                    ,pos-invalid-p-sym ,seq-invalid-p-sym))
-                          (run (setq ,body-value-sym (progn ,@body)))
+                          (run (setq ,body-value-sym ,(entropy/emacs-macroexp-progn body)))
                           (cancel nil)
                           (t (error "[safe-seq-pos internal error]: invalid op type '%s'"
                                     ,with-invalid-p-sym))))
@@ -2521,7 +2546,7 @@ This macro's WITH-ERROR key obey the SEQ error types of
                          ;; auto type for both overflow or negative
                          ;; POS detected.
                          (t (setf ,pos ,pos-sym))))
-                 (setq ,body-value-sym (progn ,@body))))))
+                 (setq ,body-value-sym ,(entropy/emacs-macroexp-progn body))))))
          ;; return
          ,body-value-sym))))
 
@@ -2648,7 +2673,7 @@ This macro's WITH-ERROR key obey the SEQ error types of
                     (> ,start-sym ,end-sym)))
              (if ,set-start-p-sym (setf ,start ,start-sym))
              (if ,set-end-p-sym (setf ,end ,end-sym))
-             ,@body))))))
+             ,(entropy/emacs-macroexp-progn body)))))))
 
 (cl-defun entropy/emacs-seq-repeat-find
     (item seq count &key find-func find-func-args)
@@ -2830,7 +2855,7 @@ error."
               (cond
                (is-progn
                 (if (and (null (car rtn)) (= (length rtn) 1)) nil
-                  `(progn ,@rtn)))
+                  `(progn ,@(entropy/emacs-macroexp-rest rtn))))
                (is-car   (car rtn))
                (is-list `(,@rtn)))))
       rtn)))
@@ -3719,7 +3744,7 @@ appended."
      `(let* (,@base-letbinds
              ,@(when use-vh vh-letbinds)
              ,@(when use-calc calc-letbinds))
-        ,@body))))
+        ,(entropy/emacs-macroexp-progn body)))))
 
 ;; *** File and directory manipulation
 
@@ -3732,7 +3757,7 @@ both of our neglects and misusing.
 
 See `default-directory' for its convention details."
   (let ((dfd-sym (make-symbol "dfd-rtn-val")))
-    `(let ((,dfd-sym (progn ,@body)))
+    `(let ((,dfd-sym ,(entropy/emacs-macroexp-progn body)))
        (unless (stringp ,dfd-sym)
          (signal 'wrong-type-argument
                  (list 'stringp
@@ -6407,8 +6432,7 @@ body.
             ,modi-var-name))
          (this-body-wrapper
           `(entropy/emacs-unwind-protect-unless-success
-               (progn
-                 ,@this-body)
+               ,(entropy/emacs-macroexp-progn this-body)
              (entropy/emacs-remove-filesystem-node-watcher-core
               ',rtn))))
     (cl-incf entropy/emacs-add-filesystem-node-watcher--id-pool)
@@ -7118,7 +7142,7 @@ this macro expanded while feature is loaded."
        (unless (boundp ',indicate-varname)
          (defvar ,indicate-varname nil))
        (if ,has-ran-p
-           (progn ,@body)
+           ,(entropy/emacs-macroexp-progn body)
          (unless ,eval-after-loaded-p
            (defalias ',func-name
              (lambda (&rest _)
@@ -7309,7 +7333,7 @@ Example to generate a IPv4 address mask range defined as 192.x.x.x
     (dolist (place places)
       (push (macroexpand-1 `(entropy/emacs-use-marker-position ,place))
             form))
-    `(progn ,@(nreverse form))))
+    (entropy/emacs-macroexp-progn (nreverse form))))
 
 (cl-defun entropy/emacs-point-min (&optional without-restriction)
   "Like `point-min' but return the `point-min' without buffer
@@ -9442,8 +9466,7 @@ object which can be used for `eval'."
                       (progn
                         (package-initialize)
                         ,@forms))
-                 `(progn
-                    ,@forms)))
+                 (entropy/emacs-macroexp-progn forms)))
             (prog1
                 (read (current-buffer))
               (let ((kill-buffer-hook nil))
@@ -9806,11 +9829,12 @@ operation."
 If WHEN-USE-GC-RESTRICT set and return nil, then run BODY
 directly. Defautlts to non-nil."
   (setq body (entropy/emacs-defun--get-real-body body))
-  `(if-let* ((,when-use-gc-restrict))
-       (let ((gc-cons-threshold entropy/emacs-gc-threshold-basic)
-             (gc-cons-percentage entropy/emacs-gc-percentage-basic))
-         ,@body)
-     ,@body))
+  (when body
+    `(if-let* ((,when-use-gc-restrict))
+         (let ((gc-cons-threshold entropy/emacs-gc-threshold-basic)
+               (gc-cons-percentage entropy/emacs-gc-percentage-basic))
+           (progn ,@body))
+       ,@body)))
 
 (cl-defmacro entropy/emacs-general-run-with-protect-and-gc-strict
     (&rest body &key (when-use-gc-restrict t) (when-use-inhibit-quit t)
@@ -9822,10 +9846,11 @@ If WHEN-USE-GC-RESTRICT set and return nil, then run BODY just
 with `inhibit-quit' enabled. Defautlts to non-nil. So as
 WHEN-USE-INHIBIT-QUIT."
   (setq body (entropy/emacs-defun--get-real-body body))
-  `(let* ((inhibit-quit ,when-use-inhibit-quit))
-     (entropy/emacs-general-run-with-gc-strict
-      :when-use-gc-restrict ,when-use-gc-restrict
-      ,@body)))
+  (when body
+    `(let* ((inhibit-quit ,when-use-inhibit-quit))
+       (entropy/emacs-general-run-with-gc-strict
+        :when-use-gc-restrict ,when-use-gc-restrict
+        ,@body))))
 
 (defun entropy/emacs-transfer-wvol (file)
   "Transfer linux type root path header into windows volumn
@@ -9987,11 +10012,8 @@ The compatible version comparation is rased on the two ways:
 When TURN-OFF evaled non-nil, then run BODY directly."
   (declare (indent defun))
   (let ((body (entropy/emacs-get-plist-body body)))
-    `(if ,turn-off
-         (progn ,@body)
-       (save-mark-and-excursion
-         (save-match-data
-           ,@body)))))
+    `(if ,turn-off ,(entropy/emacs-macroexp-progn body)
+       (save-mark-and-excursion (save-match-data ,@body)))))
 
 ;; *** Lazy load specification
 (defvar entropy/emacs--lazy-load-simple-feature-head nil)
@@ -10146,7 +10168,7 @@ Optional keys:
         (msg-str-sym (make-symbol "msg-str"))
         (body-lambda-sym (make-symbol "body-lambda"))
         (body (entropy/emacs-defun--get-real-body body)))
-    `(let* ((,body-lambda-sym (lambda nil ,@body))
+    `(let* ((,body-lambda-sym (lambda nil ,@(entropy/emacs-macroexp-rest body)))
             (,name-sym ,name)
             (_ (setq ,name-sym
                      (or (and (stringp ,name-sym) ,name-sym)
@@ -10257,7 +10279,7 @@ so the whole lazy load case will be replaced by the latter one who
 invoked after."
 
   (let ((list-var-sym (make-symbol "list-var"))
-        (func-body (entropy/emacs-defun--get-real-body body))
+        (func-body (entropy/emacs-defun--get-real-body body 'with-safe))
         (func-lambda-sym (make-symbol "func-lambda-var"))
         (func-body-lambda-sym (make-symbol "func-body-lamba-var"))
         (func-sym (make-symbol "func"))
@@ -10612,14 +10634,14 @@ environment, determined by `entropy/emacs-locale-coding-system'."
   "Do BODY within a utf-8 coding system environment."
   `(let* ((coding-system-for-read 'utf-8)
           (coding-system-for-write 'utf-8))
-     ,@body))
+     ,(entropy/emacs-macroexp-progn body)))
 
 (defmacro entropy/emacs-lang-with-locale-ces (&rest body)
   "Do BODY within a locale coding system environment determined
 by `entropy/emacs-locale-coding-system'."
   `(let* ((coding-system-for-read entropy/emacs-locale-coding-system)
           (coding-system-for-write entropy/emacs-locale-coding-system))
-     ,@body))
+     ,(entropy/emacs-macroexp-progn body)))
 
 ;; *** Org face specification
 ;; **** Cancel head face height rescale
@@ -11184,7 +11206,7 @@ are triggered."
                          (funcall filter event))
                 (throw :exit t))))))
      (entropy/emacs-xterm-paste-core ,event)
-     ,@body))
+     ,(entropy/emacs-macroexp-progn body)))
 
 (defun entropy/emacs-xterm-paste (event)
   "eemacs wrapper for `xterm-paste' based on the subroutine of
@@ -11398,18 +11420,19 @@ the tail of the bindings.
 NOTE: this bindings just used for `let', in which case do not use
 inheritance bindings as in `let*' or will make any undefined
 mistakes."
-  `((entropy/emacs-union-http-prroxy-internal-enable-p t)
-    (url-proxy-services
+  (apply
+   'entropy/emacs-list-without-orphans
+   :with-orphans '(nil)
+   '(entropy/emacs-union-http-prroxy-internal-enable-p t)
+   `(url-proxy-services
      ',(entropy/emacs-gen-eemacs-union-http-internet-proxy-url-proxy-services))
-    (process-environment ',(append (entropy/emacs-gen-eemacs-union-http-internet-proxy-envs)
+   `(process-environment ',(append (entropy/emacs-gen-eemacs-union-http-internet-proxy-envs)
                                    process-environment))
-    ;; disable `entropy-proxy-url' patch
-    (entropy/proxy-url-user-proxy-match-func (lambda (&rest _) nil))
-    (entropy/proxy-url-inhbit-all-proxy t)
-
-    ;; user specs
-    ,@entropy/emacs-union-http-internet-proxy-extra-let-bindings
-    ))
+   ;; disable `entropy-proxy-url' patch
+   `(entropy/proxy-url-user-proxy-match-func ,#'(lambda (&rest _) nil))
+   '(entropy/proxy-url-inhbit-all-proxy t)
+   ;; user specs
+   entropy/emacs-union-http-internet-proxy-extra-let-bindings))
 
 (defvar __ya/timer-set-function/with-url-poroxy/register nil)
 (defun __ya/timer-set-function/with-url-proxy (orig-func &rest orig-args)
