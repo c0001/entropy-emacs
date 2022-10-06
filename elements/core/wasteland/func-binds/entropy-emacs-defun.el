@@ -557,6 +557,36 @@ lisp coding type."
 VAR-NAME i.e. a symbol."
   (and (boundp var-name) (symbol-value var-name)))
 
+(defmacro entropy/emacs-when-let*-first (spec &rest body)
+  "Like `when-let*' but just check the `car' of SPEC whether is
+nil and handled that.
+
+See also `entropy/emacs-when-let*-firstn'."
+  (declare (indent 1) (debug if-let))
+  (when body
+    (if (not spec) (macroexp-progn body)
+      (let ((fspec (car spec)) (rspec (cdr spec)))
+        `(when-let* (,fspec)
+           ,@(if rspec `((let* (,@rspec) ,@body)) body))))))
+
+(defmacro entropy/emacs-when-let*-firstn (n spec &rest body)
+  "Like `entropy/emacs-when-let*-first' but check the first N
+patterns of SPEC whether is nil and handled them.
+
+Where N is a explicitly specified `natnump' number."
+  (declare (indent 2) (debug if-let))
+  (when body
+    (if (not spec) (macroexp-progn body)
+      (let ((spec-len (length spec)) wspec rspec (i 0) elt)
+        (catch :exit
+          (dotimes (_ n)
+            (unless (< i spec-len) (throw :exit nil))
+            (push (nth i spec) wspec) (cl-incf i)))
+        (setq wspec (and wspec (nreverse wspec)) rspec (nthcdr i spec))
+        (if (not wspec) `(let* (,@spec) ,@body)
+          `(when-let* (,@wspec)
+             ,@(if rspec `((let* (,@rspec) ,@body)) body)))))))
+
 ;; **** Apis with when wrapper
 (defmacro entropy/emacs-when-defun
     (name arglist condition-form &optional docstring &rest body)
