@@ -1373,8 +1373,7 @@ while thus the SET-LIST-LEN-FOR is set.
                  (list 'entropy/emacs-common-listp ,obsym)))
        (when (and ,llen-sym (not ,extra-unless))
          ,@(if set-list-len-for (list `(setf ,set-list-len-for ,llen-sym)))
-         ,@(entropy/emacs-macroexp-rest
-            (entropy/emacs-defun--get-real-body body))))))
+         ,@(entropy/emacs-defun--get-real-body body 'with-safe)))))
 
 (defsubst entropy/emacs-base-listp (object)
   "Return non-nil when OBJECT is a *base* `listp' LIST i.e same
@@ -1441,8 +1440,7 @@ BODY.
             (signal 'wrong-type-argument
                     (list 'entropy/emacs-base-listp ,obsym)))
        (when (and ,typep-sym (not ,extra-unless))
-         ,@(entropy/emacs-macroexp-rest
-            (entropy/emacs-defun--get-real-body body))))))
+         ,@(entropy/emacs-defun--get-real-body body 'with-safe)))))
 
 (cl-defun entropy/emacs-list-setf-nth (n replace list &key with-end-cdr with-error)
   "Replace `nth' N of `listp' LIST with replacement REPLACE by altered it
