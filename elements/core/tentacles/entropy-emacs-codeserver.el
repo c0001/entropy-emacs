@@ -1853,7 +1853,7 @@ let eglot do completion with interface argument injection."
   `(when (and (member (entropy/emacs-get-use-ide-type ',hook-mode)
                       '(lsp eglot))
               entropy/emacs-install-coworker-immediately)
-     ,@body))
+     ,(entropy/emacs-macroexp-progn body)))
 
 ;; **** lsp html&css
 (entropy/emacs-codeserver--ide-with-lsp-p?-and-immediately web-mode

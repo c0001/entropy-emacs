@@ -2523,7 +2523,7 @@ an error."
          (while (not (eobp))
            (with-silent-modifications
              (when (image-dired-image-at-point-p)
-               ,@body))
+               ,(entropy/emacs-macroexp-progn body)))
            (forward-char))))))
 
 (entropy/emacs-basic-image-dired-use-package image-dired
