@@ -140,7 +140,7 @@ more details.
 \(fn ARGLIST [DOCSTRING] [DECL] [INCT] BODY)"
   (declare (doc-string 2) (indent defun))
   ;; check args validation
-  (apply 'entropy/emacs-parse-lambda-args args)
+  (entropy/emacs-parse-lambda-args args)
   (macroexpand-1
    `(cl-function (lambda ,@args))))
 
@@ -167,7 +167,7 @@ aimed for shortening coding place as snippet.
          ,(macroexpand-1
            `(entropy/emacs-cl-lambda ,@args))))
 
-(defun entropy/emacs-parse-lambda-args (&rest lambda-args)
+(defun entropy/emacs-parse-lambda-args (lambda-args)
   "Return a plist describe a `lambda' defination's fully arguments list
 LAMBDA-ARGS.
 
@@ -203,7 +203,7 @@ form which should be explicitly set."
          (signal 'wrong-number-of-arguments
                  (list 'non-omitted-p "lambda arg `body'"))))))
 
-(defun entropy/emacs-parse-lambda-args-plus (&rest lambda-args)
+(defun entropy/emacs-parse-lambda-args-plus (lambda-args)
   "Same as `entropy/emacs-parse-lambda-args' but split the head
 plist part of BODY into a new key `:body-plist'.
 
@@ -212,8 +212,7 @@ BODY part of LAMBDA-ARGS and must be explicitly pairs matched.
 
 If no head plist part found in BODY the return is same as
 `entropy/emacs-parse-lambda-args'."
-  (let* ((common-parse (apply 'entropy/emacs-parse-lambda-args
-                              lambda-args))
+  (let* ((common-parse (entropy/emacs-parse-lambda-args lambda-args))
          (common-body (plist-get common-parse :body))
          (new-body common-body) key body-plist)
     (while (and new-body (keywordp (setq key (car new-body))))
@@ -263,7 +262,7 @@ If WITH-LEXICAL-BINDINGS is not set, this is same as
 
 \(fn ARGLIST [DOCSTRING] [DECL] [INCT] &key WITH-LEXICAL-BINDINGS &rest BODY)"
   (declare (doc-string 2) (indent defun))
-  (let* ((args-parse (apply 'entropy/emacs-parse-lambda-args args))
+  (let* ((args-parse (entropy/emacs-parse-lambda-args args))
          (body (plist-get args-parse :body))
          (lcb (plist-get body :with-lexical-bindins))
          (real-body (if lcb (entropy/emacs-defun--get-real-body body)
@@ -312,7 +311,7 @@ information used to distinguish this as special from others.
   (let* ((fname-prefix-sym (make-symbol "func-prefix-name"))
          (fname-sym        (make-symbol "func-name"))
          (fname-prefix     (prog1 (car args) (setq args (cdr args))))
-         (body-parse (apply 'entropy/emacs-parse-lambda-args args))
+         (body-parse (entropy/emacs-parse-lambda-args args))
          (full-body  (plist-get body-parse :body))
          (body-trim-parse
           (entropy/emacs-defun--get-body-without-keys
@@ -356,8 +355,7 @@ EXTRA-BODY to the origin argument list LAMBDA-ARGS.
 This function exists because many times we need to build a
 framework using `entropy/emacs-with-lambda' but need to inject
 new slots."
-  (let* ((args-parse (apply 'entropy/emacs-parse-lambda-args
-                            lambda-args))
+  (let* ((args-parse (entropy/emacs-parse-lambda-args lambda-args))
          (orig-body (plist-get args-parse :body))
          (new-body
           ;; FIXME: does this copy really need?
@@ -383,7 +381,7 @@ arguments exclude the SYMBOL which is defined by WITHOUT-ANONYMOUS.
 \(fn ARGLIST [DOCSTRING] [DECL] [INCT] \
 &key WITH-FUNCALL-ARGS WITHOUT-ANONYMOUS ... &rest BODY)"
   (declare (doc-string 2) (indent defun))
-  (let* ((args-parse    (apply 'entropy/emacs-parse-lambda-args-plus args))
+  (let* ((args-parse    (entropy/emacs-parse-lambda-args-plus args))
          (orig-plist    (plist-get args-parse :body-plist))
          (pparse        (entropy/emacs-defun--get-body-without-keys
                          orig-plist nil :with-funcall-args :without-anonymous))
@@ -611,7 +609,7 @@ Arbitrarily, any optional keys supported by
 \(fn NAME ARGLIST [DOCSTRING] [DECL] [INCT] &key WHEN ... &rest BODY)"
   (declare (indent defun) (doc-string 3))
   (let* ((name (car args)) (args (cdr args))
-         (args-parse (apply 'entropy/emacs-parse-lambda-args-plus args))
+         (args-parse (entropy/emacs-parse-lambda-args-plus args))
          (arg-plist  (plist-get args-parse :body-plist))
          (bp-parse   (entropy/emacs-defun--get-body-without-keys
                       arg-plist nil :when))
