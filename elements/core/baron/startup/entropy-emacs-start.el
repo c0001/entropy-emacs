@@ -446,7 +446,7 @@ notation.
    "%s %s"
    :force-message-while-eemacs-init t
    (white "⮞")
-   (blue "Loading minimal ...... "))
+   (blue "Loading minimal ......"))
   (advice-add 'require :around #'entropy/emacs-start--advice-for-require-prompt)
 
   ;; external depedencies scan and loading
@@ -709,7 +709,7 @@ Currently detected env variables:")
     (when (and entropy/emacs-start-ext-available-p
                (not entropy/emacs-start--is-init-with-install))
       (entropy/emacs-message-do-message
-       "==================== %s ===================="
+       "%s ..."
        :force-message-while-eemacs-init t
        (yellow "Cat's eye opening"))
       (setq entropy/emacs-run-startup-config-load-init-timestamp
