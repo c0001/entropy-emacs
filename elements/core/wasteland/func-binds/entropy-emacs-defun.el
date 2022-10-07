@@ -11516,7 +11516,7 @@ mistakes."
    `(process-environment ',(append (entropy/emacs-gen-eemacs-union-http-internet-proxy-envs)
                                    process-environment))
    ;; disable `entropy-proxy-url' patch
-   `(entropy/proxy-url-user-proxy-match-func ,#'(lambda (&rest _) nil))
+   `(entropy/proxy-url-user-proxy-match-func #'(lambda (&rest _) nil))
    '(entropy/proxy-url-inhbit-all-proxy t)
    ;; user specs
    entropy/emacs-union-http-internet-proxy-extra-let-bindings))
