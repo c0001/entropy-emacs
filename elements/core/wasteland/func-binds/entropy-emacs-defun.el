@@ -599,7 +599,7 @@ Where N is a explicitly specified `natnump' number."
   (declare (indent 2) (debug if-let))
   (when body
     (if (not spec) (entropy/emacs-macroexp-progn body)
-      (let ((spec-len (length spec)) wspec rspec (i 0) elt)
+      (let ((spec-len (length spec)) wspec rspec (i 0))
         (catch :exit
           (dotimes (_ n)
             (unless (< i spec-len) (throw :exit nil))
