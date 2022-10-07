@@ -2940,6 +2940,73 @@ place only when VALUE is a `proper-list-p' list.
               (throw :exit plist)))))
       (error "internal error"))))
 
+(cl-defmacro entropy/emacs-map-plist
+    (plist &rest body
+           &key with-exit
+           with-it-as-for-key
+           with-it-as-for-val &allow-other-keys)
+  "Do BODY for each key-pair slot of a plist PLIST with bind two
+temporarily variable `it-key' and `it-val' for the current key and
+key's value respectively.
+
+PLIST must be a list with at least a `keywordp' car. If not of thus,
+do nothing and return nil. Otherwise, Return the re-collected PLIST
+which is maybe with modification by BODY's side-effects for both of
+each key `it-key' and the key's value `it-val'. If BODY doesn't did
+any modification for either `it-key' or `it-val' or both of them, use
+their origin value for collecting.
+
+Each value bind to `it-val' is a `listp' list of all elements followed
+the `it-key' and before the next one or to the tail of PLIST if no
+rest keys found. Any omitted value slot of a key in PLIST, the bind
+for `it-val' is `nil'.
+
+If WITH-IT-AS-FOR-KEY is set, it should be a explicit specified symbol
+used instead of `it-key' as what it used for, and so as the value
+symbol for WITH-IT-AS-FOR-VAL.
+
+If WITH-EXIT is set, it should be a expression did as auxiliary for
+BODY used to judge whether do BODY where is true of thus when it
+return non-nil, and it also can use the `it-key' and `it-val' in
+it-selfs' body. If it return `escape-rest' then the mapping is stopped
+by dropping the result of this key-pair and rests."
+  (declare (indent 1) (side-effect-free t))
+  (unless with-it-as-for-key (setq with-it-as-for-key 'it-key))
+  (unless with-it-as-for-val (setq with-it-as-for-val 'it-val))
+  (macroexp-let2* ignore
+      ((the-plist nil) (uexit-p nil)
+       (itkey nil) (itval nil)
+       (exit0 nil) (exit1 nil) (subrtn nil) (rtn nil)
+       (val-keyword-p nil)
+       (val-last-p    nil))
+    `(entropy/emacs-when-let*-firstn 2
+         ((,the-plist ,plist) ((keywordp (car ,the-plist)))
+          ,with-it-as-for-key ,with-it-as-for-val)
+       (entropy/emacs-list-map-cdr (copy-sequence ,the-plist)
+         :with-exit t :with-it-as ,itkey :with-modify-it t
+         (setq ,with-it-as-for-key (car ,itkey))
+         (if (not (keywordp ,with-it-as-for-key)) (setq ,exit0 t)
+           (push ,with-it-as-for-key ,rtn) (setq ,exit1 nil)
+           (entropy/emacs-list-map-cdr (cdr ,itkey)
+             :with-exit t :with-it-as ,itval
+             (setq ,with-it-as-for-val (car ,itval))
+             (if (setq ,val-keyword-p (keywordp ,with-it-as-for-val))
+                 (setq ,exit1 t) (push ,with-it-as-for-val ,subrtn))
+             (setq ,val-last-p (atom (cdr ,itval)))
+             (if ,val-keyword-p (setcdr ,itkey ,itval)
+               (if ,val-last-p (setcdr ,itkey nil)))
+             (when (and ,subrtn (not (entropy/emacs-lonely-listp ,subrtn))
+                        (or ,exit1 ,val-last-p))
+               (setq ,subrtn (nreverse ,subrtn))) ,exit1)
+           (when (or ,subrtn (keywordp (car ,rtn)))
+             (setq ,with-it-as-for-val ,subrtn ,subrtn nil)
+             (unless (setq ,uexit-p ,with-exit)
+               ,@body (setcar ,rtn ,with-it-as-for-key)
+               (push ,with-it-as-for-val ,rtn))))
+         (or ,exit0 (eq ,uexit-p 'escape-rest)))
+       ;; return
+       (nreverse ,rtn))))
+
 ;; *** String manipulation
 
 (cl-defun entropy/emacs-string-match-p
