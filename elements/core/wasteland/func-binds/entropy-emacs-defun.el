@@ -139,6 +139,8 @@ more details.
 
 \(fn ARGLIST [DOCSTRING] [DECL] [INCT] BODY)"
   (declare (doc-string 2) (indent defun))
+  ;; check args validation
+  (apply 'entropy/emacs-parse-lambda-args args)
   (macroexpand-1
    `(cl-function (lambda ,@args))))
 
@@ -177,7 +179,10 @@ The returned plist has below keys:
 5) `:body'        the body of `lambda'
 
 Any key's value of nil means associated part of the `lambda'
-defination is empty."
+defination is empty except for `:arglist' since it can be nil as its
+value. Except for `:body', it's always a non-nil list of forms or an
+error is raised up since it's not an optional argument for a `lambda'
+form which should be explicitly set."
   (let* ((args lambda-args)
          (arglist (car args))
          (doc (and (stringp (cadr args)) (cadr args)))
@@ -193,7 +198,10 @@ defination is empty."
      :docstring doc
      :declare dec
      :interactive inct
-     :body (nthcdr body-pos args))))
+     :body
+     (or (nthcdr body-pos args)
+         (signal 'wrong-number-of-arguments
+                 (list 'non-omitted-p "lambda arg `body'"))))))
 
 (defun entropy/emacs-parse-lambda-args-plus (&rest lambda-args)
   "Same as `entropy/emacs-parse-lambda-args' but split the head
@@ -234,7 +242,9 @@ WITHOUT-BODY-PLIST is non-nil the `:body-plist' is not merged into
          (doc     (plist-get obj :docstring))
          (dec     (plist-get obj :declare))
          (inct    (plist-get obj :interactive))
-         (body    (plist-get obj :body))
+         (body    (or (plist-get obj :body)
+                      (signal 'wrong-number-of-arguments
+                              (list 'non-omitted-p "lambda arg `body'"))))
          (body-plist (plist-get obj :body-plist)))
     (if (and body-plist (not without-body-plist))
         (setq body (nconc body-plist body)))
