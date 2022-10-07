@@ -544,8 +544,7 @@ So that the lexical var FOO is used and no such error will occurred
 on.
 "
   (declare (indent defun))
-  (macroexp-let2* ignore ((the-val val))
-    `(progn (setq ,var ,the-val) ,the-val)))
+  `(progn (setq ,var ,val) ,var))
 
 (defmacro entropy/emacs-call-function (func &rest args)
   "Call FUNCTION with ARGS and return its value.
