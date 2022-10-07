@@ -50,7 +50,7 @@
       `(if (bound-and-true-p entropy/emacs-startup-with-Debug-p)
            (let* ((inhibit-quit t)
                   (before-time (current-time)))
-             (prog1 (progn ,@body)
+             (prog1 ,(entropy/emacs-macroexp-progn body)
                (push (cons (entropy/emacs-time-subtract before-time nil t)
                            ;; strip quote of do-name pattern from require arg
                            (if (and (listp ,do-name)
@@ -58,7 +58,7 @@
                                     (eq (car ,do-name) 'quote))
                                (cadr ,do-name) ,do-name))
                      entropy/emacs-start--load-duration-log)))
-         ,@body))))
+         ,(entropy/emacs-macroexp-progn body)))))
 
 (eval-when-compile
   (defmacro entropy/emacs-start--require-with-duration-log

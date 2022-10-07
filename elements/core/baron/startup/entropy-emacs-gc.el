@@ -56,8 +56,7 @@
        (setq entropy/emacs-gc-records nil))
 
      (prog1
-         (progn
-           ,@body)
+         ,(entropy/emacs-macroexp-progn body)
        (setq --duration--
              (float-time
               (time-subtract

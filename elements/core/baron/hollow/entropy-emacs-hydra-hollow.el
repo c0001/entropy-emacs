@@ -276,7 +276,8 @@ type listed as:
          (cdr pattern))
         ((and (listp pattern)
               (eq (car pattern) :eval))
-         (entropy/emacs-eval-with-lexical `(progn ,@(cdr pattern))))
+         (entropy/emacs-eval-with-lexical
+          `(progn ,@(entropy/emacs-macroexp-rest (cdr pattern)))))
         ((and (listp pattern)
               (not (null pattern)))
          (entropy/emacs-eval-with-lexical pattern))
@@ -1072,8 +1073,7 @@ the internally subroutines of this macro, they are:
             (t
              (entropy/emacs-hydra-hollow-func-version-pthydra-define+
               name body heads-plist)))))
-       (progn
-         ,@body))
+       ,(entropy/emacs-macroexp-progn body))
 
      ;; redefine category pretty-hydra-body for patching with baron
      (when (not (null $internally/pretty-hydra-category-baron-name->new))
@@ -1767,7 +1767,7 @@ The normalizing procedure provided by
   `(let (($internally/normalized-pretty-hydra-caskets-list
           (entropy/emacs-hydra-hollow-normalize-pretty-hydra-cabinet
            ,pretty-hydra-cabinet t)))
-     ,@body))
+     ,(entropy/emacs-macroexp-progn body)))
 
 ;; ***** heads predicate
 

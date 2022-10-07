@@ -561,9 +561,8 @@ function."
                   body-on-exit-nil)
                  (t
                   `((if ,(hydra--head-property head :exit)
-                        (progn
-                          ,@body-on-exit-t)
-                      ,@body-on-exit-nil)))))))
+                        ,(entropy/emacs-macroexp-progn body-on-exit-t)
+                      ,(entropy/emacs-macroexp-progn body-on-exit-nil))))))))
 
   )
 

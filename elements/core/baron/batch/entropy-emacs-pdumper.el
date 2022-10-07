@@ -83,7 +83,7 @@ configuration.")
                rtn))
             (t
              entropy/emacs-origin-load-path))))
-     ,@body))
+     ,(entropy/emacs-macroexp-progn body)))
 
 ;; *** extract files
 

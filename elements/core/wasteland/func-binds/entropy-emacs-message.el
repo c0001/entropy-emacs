@@ -568,7 +568,8 @@ displayed via `entropy/emacs-message--do-message-popup'."
          (entropy/emacs-message--do-message-popup
           (format "%s ..." ,message-sym)
           :without-log-message-before-eemacs-init-done t))
-       (prog1 (let ((message-log-max ,msg-max-ov-sym)) ,@body)
+       (prog1 (let ((message-log-max ,msg-max-ov-sym))
+                ,(entropy/emacs-macroexp-progn body))
          (when ,progress-reporter-sym
            (progress-reporter-done ,progress-reporter-sym))
          (when (and ,message-sym ,curmsg-sym)
