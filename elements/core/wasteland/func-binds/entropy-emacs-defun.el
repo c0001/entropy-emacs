@@ -89,7 +89,7 @@ a pure plist, in which case the return of car is a plist
 include(exclude when REVERSE) KEYS and cdr of a plist exclude(include
 when REVERSE)."
   (declare (side-effect-free t))
-  (if (not keys) body
+  (if (or (not keys) (not body)) body
     (let ((args body) key pair rtn rtn-rv)
       (while (and args (keywordp (setq key (car args))))
         (setq args (cdr-safe args)
@@ -610,15 +610,27 @@ Where N is a explicitly specified `natnump' number."
              ,@(if rspec `((let* (,@rspec) ,@body)) body)))))))
 
 ;; **** Apis with when wrapper
-(defmacro entropy/emacs-when-defun
-    (name arglist condition-form &optional docstring &rest body)
-  "Like `defun' but only define NAME as an function when
-CONDITION-FORM is evaled return non-nil."
-  (declare (indent defun))
-  `(when (progn ,condition-form)
-     (defun ,name ,arglist
-       ,docstring
-       ,@body)))
+(cl-defmacro entropy/emacs-when-defun (&rest args)
+  "Like `defun' but only define NAME as an function when WHEN is
+evaluated return non-nil. Return NAME's symbol or nil while WHEN
+is rejecting the defination.
+
+Arbitrarily, any optional keys supported by
+`entropy/emacs-with-lambda' is permitted.
+
+\(fn NAME ARGLIST [DOCSTRING] [DECL] [INCT] &key WHEN ... &rest BODY)"
+  (declare (indent defun) (doc-string 3))
+  (let* ((name (car args)) (args (cdr args))
+         (args-parse (apply 'entropy/emacs-parse-lambda-args-plus args))
+         (arg-plist  (plist-get args-parse :body-plist))
+         (bp-parse   (entropy/emacs-defun--get-body-without-keys
+                      arg-plist nil :when))
+         (bp-when    (plist-get (car bp-parse) :when))
+         (new-args   (entropy/emacs-merge-lambda-args
+                      (plist-put args-parse :body-plist (cdr bp-parse)))))
+    `(when ,bp-when
+       ,(macroexpand-1
+         `(entropy/emacs-with-lambda '(t . ,name) ,@new-args)))))
 
 (cl-defmacro entropy/emacs-save-excursion-when
     (&rest body &key when &allow-other-keys)

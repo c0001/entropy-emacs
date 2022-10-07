@@ -2790,7 +2790,6 @@ point."
 
   ;; EEMACS_MAINTENANCE follow upstream updates
   (entropy/emacs-when-defun __ya/image-dired-display-image (file &optional original-size)
-    (version< emacs-version "29")
     "Like `image-dired-display-image' but expand the ORIGINAL-SIZE
 means as DWIM that:
 
@@ -2803,6 +2802,7 @@ The dwim is memoized via history variable
 
 Any other prefix type is treat as clear/reset the stick history
 dwim memory and use both height and width fit display type."
+    :when (version< emacs-version "29")
     (image-dired--check-executable-exists
      'image-dired-cmd-create-temp-image-program)
     (let* ((new-file (expand-file-name image-dired-temp-image-file))
@@ -2867,7 +2867,6 @@ dwim memory and use both height and width fit display type."
             (image-set-window-hscroll 0))))))
 
   (entropy/emacs-when-defun __ya/image-dired-display-image (file &optional original-size)
-    (version< "29" emacs-version)
     "Like `image-dired-display-image' but expand the ORIGINAL-SIZE
 means as DWIM that:
 
@@ -2881,6 +2880,7 @@ The dwim is memoized via history variable
 Any other prefix type is treat as clear/reset the stick history
 dwim memory and use both height and width fit display type."
     (declare (advertised-calling-convention (file) "29.1"))
+    :when (version< "29" emacs-version)
     (setq file (expand-file-name file))
     (when (not (file-exists-p file))
       (error "No such file: %s" file))
