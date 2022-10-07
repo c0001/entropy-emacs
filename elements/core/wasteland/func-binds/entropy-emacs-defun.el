@@ -668,34 +668,6 @@ ignorable][How do I declare a variable ignorable?]]'.
     (cons (car let-form)
           (cons specs (cons ignore-exp (nthcdr 2 let-form))))))
 
-;; *** Cl-function compatible manipulation
-(defun entropy/emacs-cl-findnew-p (func)
-  (let (new-func)
-    (catch :exit
-      (dolist (ref entropy/emacs-cl-compatible-reflects)
-        (if (consp ref)
-            (when (eq func (car ref))
-              (setq new-func (cdr ref)))
-          (when (eq ref func)
-            (setq new-func
-                  (intern (format "cl-%s" (symbol-name func))))))
-        (when (not (null new-func))
-          (throw :exit nil))))
-    new-func))
-
-(defmacro entropy/emacs-cl-compatible-apply (cl-func &rest args)
-  "Macro for be forward compatibility of `cl.el' with `cl-lib.el'
-in new emacs-version."
-  `(let (cl-func-use)
-     (cond ((and (require 'cl-lib)
-                 (not (null (entropy/emacs-cl-findnew-p ',cl-func))))
-            (setq cl-func-use (entropy/emacs-cl-findnew-p ',cl-func))
-            (unless (fboundp cl-func-use)
-              (user-error "Can not find cl function `%s'" cl-func-use)))
-           ((fboundp ',cl-func)
-            (setq cl-func-use ',cl-func)))
-     (funcall cl-func-use ,@args)))
-
 ;; *** Sexp read and print
 
 (defun entropy/emacs-read-base64-encoded-sexp-from-buffer

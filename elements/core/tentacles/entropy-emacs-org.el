@@ -289,11 +289,7 @@ Change the find-file method of org-open-at-point instead of
 find-file-other-window"
     (declare (interactive-only t))
     (interactive nil org-mode)
-    (let ((org-link-frame-setup
-           (entropy/emacs-cl-compatible-apply
-            acons
-            'file
-            'find-file org-link-frame-setup)))
+    (let ((org-link-frame-setup `((file . find-file) ,@org-link-frame-setup)))
       (org-open-at-point)))
 
   ;; using entropy-open-with to open org link
