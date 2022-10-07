@@ -341,9 +341,9 @@ return nil when any error occurred in BODY and push the error msg
 into ERROR-VAR."
   (declare (indent defun))
   `(if entropy/emacs-session-idle-trigger-debug
-       (progn ,@body)
+       ,(entropy/emacs-macroexp-progn body)
      (condition-case err
-         (progn ,@body)
+         ,(entropy/emacs-macroexp-progn body)
        (error
         ;; escape byte-compile warning
         (eval-when-compile
@@ -740,7 +740,7 @@ context."
              ,name
              ,hook-error-list
              (when ,should-run
-               ,@body)))
+               ,(entropy/emacs-macroexp-progn body))))
          (with-buff-stick-form-p-sym (make-symbol "buffer-stick-p-2"))
          (cur-buff-sym (make-symbol "current-used-buffer")))
 
@@ -1079,8 +1079,8 @@ also."
                    (expand-file-name "lib"     entropy/emacs-coworker-host-root))
                   (entropy/emacs-coworker-archive-host-root
                    (expand-file-name "archive" entropy/emacs-coworker-host-root)))
-             ,@body)
-         ,@body))))
+             ,(entropy/emacs-macroexp-progn body))
+         ,(entropy/emacs-macroexp-progn body)))))
 
 ;; ** codeserver refer
 (defvar entropy/emacs-codeserver-lsp-mode-extra-clients nil

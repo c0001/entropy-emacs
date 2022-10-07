@@ -539,7 +539,7 @@ see `entropy/emacs-api-restriction-detection-log' for details."
              (t
               (setq ,do-body-p-sym t)))
        (when ,do-body-p-sym
-         ,@body))))
+         ,(entropy/emacs-macroexp-progn body)))))
 
 ;; ** others
 (defconst entropy/emacs-origin-load-path (copy-sequence load-path))
