@@ -112,25 +112,6 @@ Either SEQ1 or SEQ2 is wrapped into a sequence when it is not a
     nil))
 
 ;; ** Lambda
-
-(defun entropy/emacs-macroexp-progn (exps)
-  "Return EXPS (a list of expressions) with `progn' prepended.
-If EXPS is a list with a single expression, `progn' is not
-prepended, but that expression is returned instead. Return nil if
-EXPS is nil.
-
-See also `entropy/emacs-macroexp-rest'."
-  (if (cdr exps) `(progn ,@exps) (car exps)))
-
-(defsubst entropy/emacs-macroexp-rest (args)
-  "Return ARGS when it's not `null' or `(nil)' otherwise.
-
-This function exists for preventing omitting ARGS expanded in `&rest',
-BODY or FORMS requested context by `,@' in `backquote' forms.
-
-See also `entropy/emacs-macroexp-progn'."
-  (or args (list nil)))
-
 (defsubst entropy/emacs-eval-with-lexical (form &optional actual-lexical-binding)
   "Like `eval' but forcely enable `lexical-binding' as t.
 

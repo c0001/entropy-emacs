@@ -106,8 +106,25 @@
   "Time-stamp eemacs top init prepare")
 
 ;; ** eemacs top functions
-
 ;; Top declared functions used for eemacs.
+
+(defun entropy/emacs-macroexp-progn (exps)
+  "Return EXPS (a list of expressions) with `progn' prepended.
+If EXPS is a list with a single expression, `progn' is not
+prepended, but that expression is returned instead. Return nil if
+EXPS is nil.
+
+See also `entropy/emacs-macroexp-rest'."
+  (if (cdr exps) `(progn ,@exps) (car exps)))
+
+(defsubst entropy/emacs-macroexp-rest (args)
+  "Return ARGS when it's not `null' or `(nil)' otherwise.
+
+This function exists for preventing omitting ARGS expanded in `&rest',
+BODY or FORMS requested context by `,@' in `backquote' forms.
+
+See also `entropy/emacs-macroexp-progn'."
+  (or args (list nil)))
 
 ;; *** eemacs-require-func
 
