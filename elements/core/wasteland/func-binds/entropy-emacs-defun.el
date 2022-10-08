@@ -3017,6 +3017,63 @@ If ARGS is omitted or its car is not `keywordp', return nil."
                  'entropy/emacs-cl-lambda)
               ,@(if with-arguments-p it-val (cons nil it-val))))))))
 
+(defmacro entropy/emacs-make-lambda-plist-plus (&rest args)
+  "Like `entropy/emacs-make-lambda-plist' but with be rich.
+
+Each KEY's value's car should be a expression which should be
+evaluated return a plist who has below valid keys:
+1. `:type': if its value `eq' to `exp' then KEY's value is maked as
+   what WITH-USE-EXP-P does for `entropy/emacs-make-lambda-plist'.
+2. `:name': a symbol to named the generated slot's function, thus the
+   KEY's value consists by the function name instead of the anonymous
+   function instance.
+
+And the cdr of each KEY's value should be full `lambda' arguments list
+i.e begin with arglist and rest of declare form and body etc.
+
+Any expression of KEY's value formed as `(quote keyword)' will be
+replaced with `keyword' instead. This feature used to let KEY's value
+also can store any `keywordp' expression in same level as KEY be as.
+
+If `:name' feature enabled, then KEY can accpet the args of
+`entropy/emacs-with-lambda', otherwise accept args of
+`entropy/emacs-cl-lambda-with-lcb'."
+  (when args
+    (let ((feat-sym     (make-symbol "feature-plist"))
+          (type-sym     (make-symbol "condition"))
+          (funcname-sym (make-symbol "funcname"))
+          (rtn-sym      (make-symbol "the-return")))
+      `(list
+        ,@(entropy/emacs-map-plist args
+            (let ((lmargs (entropy/emacs-macroexp-rest (cdr it-val))))
+              ;; expand key
+              (entropy/emacs-list-map-cdr lmargs
+                (if (and (eq (car-safe (car it)) 'quote) (= 2 (length (car it)))
+                         (keywordp (cadar it))) (setcar it (cadar it))))
+              ;; main
+              (entropy/emacs-setf-by-body it-val
+                `(let* ((,feat-sym     ,(car it-val))
+                        (,type-sym     (plist-get ,feat-sym :type))
+                        (,funcname-sym (plist-get ,feat-sym :name))
+                        ,rtn-sym)
+                   (cond
+                    ((eq ,type-sym 'exp)
+                     (if ,funcname-sym
+                         (entropy/emacs-setf-by-body ,rtn-sym
+                           (list 'function
+                                 (entropy/emacs-with-lambda ,funcname-sym
+                                   ,@lmargs)))
+                       (entropy/emacs-setf-by-body ,rtn-sym
+                         (entropy/emacs-define-lambda-as-exp-with-lcb
+                           ,@lmargs))))
+                    (t
+                     (if ,funcname-sym
+                         (entropy/emacs-setf-by-body ,rtn-sym
+                           (entropy/emacs-with-lambda ,funcname-sym ,@lmargs))
+                       (entropy/emacs-setf-by-body ,rtn-sym
+                         (entropy/emacs-cl-lambda-with-lcb ,@lmargs)))))
+                   ,rtn-sym))))))))
+
 ;; *** String manipulation
 
 (cl-defun entropy/emacs-string-match-p
