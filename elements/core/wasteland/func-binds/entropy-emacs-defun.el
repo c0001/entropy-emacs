@@ -262,17 +262,16 @@ If WITH-LEXICAL-BINDINGS is not set, this is same as
 
 \(fn ARGLIST [DOCSTRING] [DECL] [INCT] &key WITH-LEXICAL-BINDINGS &rest BODY)"
   (declare (doc-string 2) (indent defun))
-  (let* ((args-parse (entropy/emacs-parse-lambda-args args))
-         (body (plist-get args-parse :body))
-         (lcb (plist-get body :with-lexical-bindins))
-         (real-body (if lcb (entropy/emacs-defun--get-real-body body)
-                      body))
-         (args (entropy/emacs-merge-lambda-args
-                (plist-put args-parse :body real-body)))
-         (func-exp (macroexpand-1 `(entropy/emacs-cl-lambda ,@args))))
+  (let* ((args-parse (entropy/emacs-parse-lambda-args-plus args))
+         (bdpl-obj   (entropy/emacs-defun--get-body-without-keys
+                      (plist-get args-parse :body-plist)
+                      nil :with-lexical-bindins))
+         (lcb        (plist-get (car bdpl-obj) :with-lexical-bindins))
+         (args       (entropy/emacs-merge-lambda-args
+                      (plist-put args-parse :body-plist (cdr bdpl-obj))))
+         (func-exp   (macroexpand-1 `(entropy/emacs-cl-lambda ,@args))))
     (if (not lcb) func-exp
-      `(entropy/emacs-eval-with-lexical
-        ',func-exp ,lcb))))
+      `(entropy/emacs-eval-with-lexical #',func-exp ,lcb))))
 
 (cl-defmacro entropy/emacs-define-lambda-as-exp-with-lcb (&rest args)
   "Like `entropy/emacs-define-lambda-as-exp' but use

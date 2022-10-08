@@ -118,7 +118,7 @@ See also `entropy/emacs-macroexp-rest'."
   (if (cdr exps) `(progn ,@exps) (car exps)))
 
 (defsubst entropy/emacs-macroexp-rest (args)
-  "Return ARGS when it's not `null' or `(nil)' otherwise.
+  "Return ARGS when it's not `null' or a new list as `(nil)' otherwise.
 
 This function exists for preventing omitting ARGS expanded in `&rest',
 BODY or FORMS requested context by `,@' in `backquote' forms.
