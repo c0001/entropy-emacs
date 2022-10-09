@@ -144,29 +144,6 @@ more details.
   (macroexpand-1
    `(cl-function (lambda ,@args))))
 
-(defmacro entropy/emacs-define-lambda-as-exp
-    (&rest args)
-  "Like `entropy/emacs-cl-lambda', define a function FUNC (with lexical
-bindigs when `lexical-binding' is non-nil). But the return is a
-expression formed as
-
-: `(function FUNC)'
-
-Where FUNC is generated in current context.
-
-This macro exists as for the sake for wrapping a evaluated `lambda'
-expression as an `function' quotes form so that we can use it with `,'
-in a `backquote' expanding context for those `mapc' like sub-form's
-internal, less commonly that both for generating `lambda' before
-expanding time and used it directly after expanded time, and also
-aimed for shortening coding place as snippet.
-
-\(fn ARGLIST [DOCSTRING] [DECL] [INCT] BODY)"
-  (declare (doc-string 2) (indent defun))
-  `(list 'function
-         ,(macroexpand-1
-           `(entropy/emacs-cl-lambda ,@args))))
-
 (defun entropy/emacs-parse-lambda-args (lambda-args)
   "Return a plist describe a `lambda' defination's fully arguments list
 LAMBDA-ARGS.
@@ -253,6 +230,55 @@ WITHOUT-BODY-PLIST is non-nil the `:body-plist' is not merged into
     (if doc  (setq body (cons doc body)))
     (cons arglist body)))
 
+(defmacro entropy/emacs-define-lambda-as-exp
+    (&rest args)
+  "Like `entropy/emacs-cl-lambda', define a function FUNC (with lexical
+bindigs when `lexical-binding' is non-nil). But the return is a
+expression formed as
+
+: `(function FUNC)'
+
+Where FUNC is generated in current context.
+
+This macro exists as for the sake for wrapping a evaluated `lambda'
+expression as an `function' quotes form so that we can use it with `,'
+in a `backquote' expanding context for those `mapc' like sub-form's
+internal, less commonly that both for generating `lambda' before
+expanding time and used it directly after expanded time, and also
+aimed for shortening coding place as snippet.
+
+If WITH-AS-FUNCALL is set, when it returns non-nil, then the generated
+expression is nested in a `funcall' expression so as:
+
+: `(funcall (function FUNC))'
+
+If WITH-FUNCALL-ARGS is set and WITH-AS-FUNCALL is enabled, it should
+return a list of arguments `apply' to FUNC, in which case the
+generated expression as:
+
+: `(apply (function FUNC) args)'
+
+\(fn ARGLIST [DOCSTRING] [DECL] [INCT] \
+&key WITH-AS-FUNCALL WITH-FUNCALL-ARGS &rest BODY)"
+  (declare (doc-string 2) (indent defun))
+  (let* ((args-parse (entropy/emacs-parse-lambda-args-plus args))
+         (bdpl (entropy/emacs-defun--get-body-without-keys
+                (plist-get args-parse :body-plist) nil
+                :with-as-funcall :with-funcall-args))
+         (as-funcall (plist-get (car bdpl) :with-as-funcall))
+         (as-funcall-args (plist-get (car bdpl) :with-funcall-args))
+         (new-args (entropy/emacs-merge-lambda-args
+                    (plist-put args-parse :body-plist (cdr bdpl)))))
+    (macroexp-let2* ignore
+        ((core
+          `(list 'function
+                 ,(macroexpand-1
+                   `(entropy/emacs-cl-lambda ,@new-args))))
+         (func-args as-funcall-args))
+      `(if (not ,as-funcall) ,core
+         (if ,func-args (list 'apply ,core ,func-args)
+           (list 'funcall ,core))))))
+
 (cl-defmacro entropy/emacs-cl-lambda-with-lcb (&rest args)
   "Like `entropy/emacs-cl-lambda' but the defination of BODY is wrapped
 with a user specified `lexical-binding' context WITH-LEXICAL-BINDINGS.
@@ -275,14 +301,29 @@ If WITH-LEXICAL-BINDINGS is not set, this is same as
 
 (cl-defmacro entropy/emacs-define-lambda-as-exp-with-lcb (&rest args)
   "Like `entropy/emacs-define-lambda-as-exp' but use
-`entropy/emacs-cl-lambda-with-lcb' as its subroutine.
+`entropy/emacs-cl-lambda-with-lcb' as its subroutine in where the
+WITH-LEXICAL-BINDINGS meaning as.
 
-\(fn ARGLIST [DOCSTRING] [DECL] [INCT] &key WITH-LEXICAL-BINDINGS &rest BODY)"
+\(fn ARGLIST [DOCSTRING] [DECL] [INCT] \
+&key WITH-LEXICAL-BINDINGS WITH-AS-FUNCALL WITH-FUNCALL-ARGS &rest BODY)"
   (declare (doc-string 2) (indent defun))
-  `(list 'function
-         ,(macroexpand-1
-           `(entropy/emacs-cl-lambda-with-lcb
-              ,@args))))
+  (let* ((args-parse (entropy/emacs-parse-lambda-args-plus args))
+         (bdpl (entropy/emacs-defun--get-body-without-keys
+                (plist-get args-parse :body-plist) nil
+                :with-as-funcall :with-funcall-args))
+         (as-funcall (plist-get (car bdpl) :with-as-funcall))
+         (as-funcall-args (plist-get (car bdpl) :with-funcall-args))
+         (new-args (entropy/emacs-merge-lambda-args
+                    (plist-put args-parse :body-plist (cdr bdpl)))))
+    (macroexp-let2* ignore
+        ((core
+          `(list 'function
+                 ,(macroexpand-1
+                   `(entropy/emacs-cl-lambda-with-lcb ,@new-args))))
+         (func-args as-funcall-args))
+      `(if (not ,as-funcall) ,core
+         (if ,func-args (list 'apply ,core ,func-args)
+           (list 'funcall ,core))))))
 
 (defmacro entropy/emacs-with-lambda (&rest args)
   "Binding SYMBOL with function defined by
@@ -2985,93 +3026,6 @@ by dropping the result of this key-pair and rests."
          (or ,exit0 (eq ,uexit-p 'escape-rest)))
        ;; return
        (nreverse ,rtn))))
-
-(defmacro entropy/emacs-make-lambda-plist
-    (&optional with-arguments-p with-use-exp-p &rest args)
-  "Make and return a plist generated by ARGS's key-pairs with each key's
-value(s) gathered into a `lambda' function with current context where
-it located in. Each generated funtion allows full Common Lisp
-conventions.
-
-When WITH-ARGUMENTS-P is set, it should be set explicitly as an
-`booleanp' atom. If true, then each car of the key's value is used as
-the `lambda''s arglist, otherwise the generated function is no
-arguments required.
-
-When WITH-USE-EXP-P is set, it should be set explicitly as an
-`booleanp' atom. If true, the generated function is `function' quoted
-but explicitly generated with current context.
-
-A null or omitted key slot is always generated as identical to `ignore'.
-
-If ARGS is omitted or its car is not `keywordp', return nil."
-  (declare (indent 2))
-  `(list
-    ,@(entropy/emacs-map-plist args
-        (entropy/emacs-setf-by-body it-val
-          (if (not it-val)
-              (if (not with-use-exp-p) (list 'function 'ignore)
-                (list 'quote (list 'function 'ignore)))
-            `(,(if with-use-exp-p 'entropy/emacs-define-lambda-as-exp
-                 'entropy/emacs-cl-lambda)
-              ,@(if with-arguments-p it-val (cons nil it-val))))))))
-
-(defmacro entropy/emacs-make-lambda-plist-plus (&rest args)
-  "Like `entropy/emacs-make-lambda-plist' but with be rich.
-
-Each KEY's value's car should be a expression which should be
-evaluated return a plist who has below valid keys:
-1. `:type': if its value `eq' to `exp' then KEY's value is maked as
-   what WITH-USE-EXP-P does for `entropy/emacs-make-lambda-plist'.
-2. `:name': a symbol to named the generated slot's function, thus the
-   KEY's value consists by the function name instead of the anonymous
-   function instance.
-
-And the cdr of each KEY's value should be full `lambda' arguments list
-i.e begin with arglist and rest of declare form and body etc.
-
-Any expression of KEY's value formed as `(quote keyword)' will be
-replaced with `keyword' instead. This feature used to let KEY's value
-also can store any `keywordp' expression in same level as KEY be as.
-
-If `:name' feature enabled, then KEY can accpet the args of
-`entropy/emacs-with-lambda', otherwise accept args of
-`entropy/emacs-cl-lambda-with-lcb'."
-  (when args
-    (let ((feat-sym     (make-symbol "feature-plist"))
-          (type-sym     (make-symbol "condition"))
-          (funcname-sym (make-symbol "funcname"))
-          (rtn-sym      (make-symbol "the-return")))
-      `(list
-        ,@(entropy/emacs-map-plist args
-            (let ((lmargs (entropy/emacs-macroexp-rest (cdr it-val))))
-              ;; expand key
-              (entropy/emacs-list-map-cdr lmargs
-                (if (and (eq (car-safe (car it)) 'quote) (= 2 (length (car it)))
-                         (keywordp (cadar it))) (setcar it (cadar it))))
-              ;; main
-              (entropy/emacs-setf-by-body it-val
-                `(let* ((,feat-sym     ,(car it-val))
-                        (,type-sym     (plist-get ,feat-sym :type))
-                        (,funcname-sym (plist-get ,feat-sym :name))
-                        ,rtn-sym)
-                   (cond
-                    ((eq ,type-sym 'exp)
-                     (if ,funcname-sym
-                         (entropy/emacs-setf-by-body ,rtn-sym
-                           (list 'function
-                                 (entropy/emacs-with-lambda ,funcname-sym
-                                   ,@lmargs)))
-                       (entropy/emacs-setf-by-body ,rtn-sym
-                         (entropy/emacs-define-lambda-as-exp-with-lcb
-                           ,@lmargs))))
-                    (t
-                     (if ,funcname-sym
-                         (entropy/emacs-setf-by-body ,rtn-sym
-                           (entropy/emacs-with-lambda ,funcname-sym ,@lmargs))
-                       (entropy/emacs-setf-by-body ,rtn-sym
-                         (entropy/emacs-cl-lambda-with-lcb ,@lmargs)))))
-                   ,rtn-sym))))))))
 
 ;; *** String manipulation
 
