@@ -442,11 +442,6 @@ arguments exclude the SYMBOL which is defined by WITHOUT-ANONYMOUS.
 ;; ** Common manipulations
 ;; *** Emacs internal api replacement
 
-(defun entropy/emacs-error-without-debug (string &rest args)
-  "Like `error' but always press `debug-on-error'"
-  (let ((debug-on-error nil))
-    (apply 'error string args)))
-
 (defmacro entropy/emacs-intern (&rest body)
   "`intern' BODY's value as symbol and return the interned symbol.
 

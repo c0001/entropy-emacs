@@ -357,11 +357,7 @@ command and rest of the command's arguments"
          (yellow (symbol-name (car pkg-err)))
          (cdr pkg-err))
         (cl-incf count)))
-    (let (
-          ;; ensure we do not need debug for this statement
-          (debug-on-error nil)
-          (inhibit-debugger t))
-      (error ""))))
+    (entropy/emacs-silent-abort)))
 
 ;; *** install
 (defun entropy/emacs-package-install-all-packages ()

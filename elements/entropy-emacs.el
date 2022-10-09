@@ -126,6 +126,27 @@ BODY or FORMS requested context by `,@' in `backquote' forms.
 See also `entropy/emacs-macroexp-progn'."
   (or args (list nil)))
 
+(defmacro entropy/emacs-without-debugger (&rest body)
+  "Run BODY without emacs debugger trigger out."
+  `(let ((debug-on-error nil) (debug-on-quit nil)
+         (inhibit-debugger t))
+     ,(entropy/emacs-macroexp-progn body)))
+
+(defun entropy/emacs-error-without-debugger (&rest args)
+  "Like `error' but never trigger the emacs debugger."
+  (declare (advertised-calling-convention (string &rest args) "23.1"))
+  (entropy/emacs-without-debugger
+   (signal 'error (list (apply #'format-message args)))))
+
+(defun entropy/emacs-noninteractive-exit-with-fatal ()
+  "Exit current `noninteractive' emacs session with fatal exit code."
+  (entropy/emacs-error-without-debugger ""))
+
+(defun entropy/emacs-silent-abort ()
+  "Abort current procedure without any debugger or prompts"
+  (if noninteractive (entropy/emacs-noninteractive-exit-with-fatal)
+    (entropy/emacs-error-without-debugger "")))
+
 ;; *** eemacs-require-func
 
 (defun entropy/emacs-common-require-feature

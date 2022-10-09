@@ -390,7 +390,8 @@ In used emacs version is: %s
                (setq cur-hash
                      (secure-hash 'sha256 buff))
                (unless (string= cur-hash stick-hash)
-                 (error "Sha256 hash verify for file <%s> \
+                 (entropy/emacs-error-without-debugger
+                  "Sha256 hash verify for file <%s> \
 faild with hash '%s' which must match '%s'"
                         file cur-hash stick-hash))
                t))))
@@ -483,7 +484,8 @@ faild with hash '%s' which must match '%s'"
                      entropy/emacs-ext-eemacs-fonts-archive-sha256sum)
                     (cur-hash (entropy/emacs-file-secure-hash file 'sha256 stick-hash nil t)))
                (unless (string= cur-hash stick-hash)
-                 (error "Sha256 hash verify for file <%s> \
+                 (entropy/emacs-error-without-debugger
+                  "Sha256 hash verify for file <%s> \
 faild with hash '%s' which must match '%s'"
                         file cur-hash stick-hash))
                t))))
@@ -516,8 +518,9 @@ faild with hash '%s' which must match '%s'"
            "%s"
            (green (format "--> default-directory: %s"
                           repo-path)))
-        (error "Internal fatal: <%s> not exists!"
-               repo-path))
+        (entropy/emacs-error-without-debugger
+         "Internal fatal: <%s> not exists!"
+         repo-path))
       (entropy/emacs-make-process
        `(:name
          " *install eemacs-fonts* "
@@ -564,7 +567,8 @@ faild with hash '%s' which must match '%s'"
 (defun entropy/emacs-batch--byte-compile-dir (dir)
   (let* ((dir-cur (expand-file-name dir))
          (dir-cur-P (unless (file-exists-p dir-cur)
-                      (error "Directory '%s' not exists!" dir-cur)))
+                      (entropy/emacs-error-without-debugger
+                       "Directory '%s' not exists!" dir-cur)))
          (dir-list (directory-files (expand-file-name dir-cur)))
          source-dirP)
     (catch :exit
@@ -577,8 +581,9 @@ faild with hash '%s' which must match '%s'"
           (unless (string-match-p "^.*-pkg\\.el$" f)
             (when (string-match-p "^.*\\.el$" f)
               (byte-recompile-file f t 0))))
-      (error "Dir %s is not an elisp source dir"
-             dir))))
+      (entropy/emacs-error-without-debugger
+       "Dir %s is not an elisp source dir"
+       dir))))
 
 (defvar entropy/emacs-batch--bytecompile-eemacs-core-utils-frameworks/pkg-init-p
   nil)

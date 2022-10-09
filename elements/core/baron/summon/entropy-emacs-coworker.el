@@ -110,9 +110,9 @@
        (point-min)
        (point-max)))))
   (if noninteractive
-      (error "")
+      (entropy/emacs-noninteractive-exit-with-fatal)
     (switch-to-buffer "*Messages*")
-    (top-level)))
+    (entropy/emacs-silent-abort)))
 
 ;; **** Lsp callers refactory
 ;; ***** pypi
@@ -208,7 +208,7 @@ EXIT /b
                   (expand-file-name
                    "npm.cmd"
                    entropy/emacs-win-portable-nodejs-installation-host-path)))
-      (error "You must using 'npm' of \
+      (entropy/emacs-error-without-debugger "You must using 'npm' of \
 `entropy/emacs-win-portable-nodejs-enable' to install coworker <%s>"
              server-name-string)))
   (let* (
@@ -263,8 +263,9 @@ EXIT /b
                  ;; (funcall ',pkg-json-del)
                  t)
              (error
-              (error "eemacs coworker init task for '%s' did with fatal!"
-                     ,server-name-string)))
+              (entropy/emacs-error-without-debugger
+               "eemacs coworker init task for '%s' did with fatal: %s"
+               ,server-name-string error)))
            :after
            (dolist (el ',server-bins)
              (when sys/win32p
@@ -316,7 +317,7 @@ EXIT /b
                   (expand-file-name
                    "pip.exe"
                    entropy/emacs-win-portable-pip-host-path)))
-      (error "You must using 'pip' of \
+      (entropy/emacs-error-without-debugger "You must using 'pip' of \
 `entropy/emacs-win-portable-python-enable' to install coworker <%s>"
              server-name-string)))
   (let* (
@@ -366,8 +367,9 @@ EXIT /b
                    (mkdir ,this-pip-prefix t)
                    t)
                (error
-                (error "eemacs coworker init task for '%s' did with fatal for mkdir!"
-                       ,server-name-string))))
+                (entropy/emacs-error-without-debugger
+                 "eemacs coworker init task for '%s' did with fatal for mkdir: %s"
+                 ,server-name-string error))))
            :after
            (let ((site-packages-path
                   (if (not sys/win32p)
@@ -383,12 +385,14 @@ EXIT /b
                  (w32-pyexecs-dir
                   (expand-file-name "Scripts" ,this-pip-prefix)))
              (unless (file-exists-p site-packages-path)
-               (error "[%s] pypi site-pakcages dir %s not exited, this may an eemacs insternal bug!"
-                      ,server-name-string site-packages-path))
+               (entropy/emacs-error-without-debugger
+                "[%s] pypi site-pakcages dir %s not exited, this may an eemacs insternal bug!"
+                ,server-name-string site-packages-path))
              (when sys/win32p
                (unless (file-exists-p site-packages-path)
-                 (error "[%s] win32 pypi bin dir %s not exited, this may an eemacs insternal bug!"
-                        ,server-name-string w32-pyexecs-dir)))
+                 (entropy/emacs-error-without-debugger
+                  "[%s] win32 pypi bin dir %s not exited, this may an eemacs insternal bug!"
+                  ,server-name-string w32-pyexecs-dir)))
              (dolist (el ',server-bins)
                (let ((bin-path
                       (expand-file-name
@@ -463,9 +467,10 @@ EXIT /b
              server-host-url
              tmp-download-file (executable-find "curl")))
       (unless (eq (symbol-value download-cbk) 'success)
-        (user-error "'%s' lsp server download with fatal with error type '%s'"
-                    server-name-string
-                    (get download-cbk 'error-type)))
+        (entropy/emacs-error-without-debugger
+         "'%s' lsp server download with fatal with error type '%s'"
+         server-name-string
+         (get download-cbk 'error-type)))
       (cond ((eq server-archive-type 'identity)
              (rename-file
               tmp-download-file
@@ -539,7 +544,8 @@ EXIT /b
        (green "Installed lsp server")
        (yellow "'<clangd>'")
        (green "."))
-    (error "Please using system package management install '<clangd>'.")))
+    (entropy/emacs-error-without-debugger
+     "Please using system package management install '<clangd>'.")))
 
 ;; **** cmake
 
@@ -616,7 +622,8 @@ EXIT /b
           (cond (sys/macp  "osx")
                 (sys/linuxp "linux")
                 (sys/is-win-group "win")
-                (t (user-error "Unsupported system: %s" system-type)))))
+                (t (entropy/emacs-error-without-debugger
+                    "Unsupported system: %s" system-type)))))
 
 (defvar entropy/emacs-coworker--pyls-ms-exec-path
   (expand-file-name
