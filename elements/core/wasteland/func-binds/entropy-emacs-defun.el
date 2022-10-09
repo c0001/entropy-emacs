@@ -9044,7 +9044,8 @@ so that following keys are supported:
                     (entropy/emacs-sleep-while (process-live-p proc))
                     ;; wait for sentinel done
                     (entropy/emacs-sleep-while
-                     (null (symbol-value success-or-fatal-func-call-done-p-sym))))
+                     (null (symbol-value success-or-fatal-func-call-done-p-sym)))
+                    (entropy/emacs-unintern-symbol success-or-fatal-func-call-done-p-sym))
                 (if (process-live-p proc) (kill-process proc))
                 (funcall fatal-func)))
           (condition-case error
