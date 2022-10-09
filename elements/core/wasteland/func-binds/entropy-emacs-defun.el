@@ -8848,17 +8848,24 @@ non-nil for thus, or nil otherwise."
 ;; **** download file
 (defun entropy/emacs-network-download-file
     (url destination &optional use-curl async verify)
-  "Download file from URL to DESTINATION via alternative
+  "Download SOURCE from URL to DESTINATION via alternative
 synchronous or async method using emacs native `url-retrieve' or the
 \"curl\" subprocess when USE-CURL non-nil, then verify the donwload
 file via the VERIFY function with a single argument the
 DESTINATION file-name which return t or nil for valid or invalid
 verification status.
 
+If DESTINATION is a directory name, then the DESTINATION is
+re-calculated as a file under that directory.
+
 NOTE:
    The verification process will be pressed under `condition-case'
    since we do not allow any error corrupts whole download
    procedure.
+
+This function downloads SOURCE located in `temporary-file-directory'
+firstly as cache, and then `rename-file' that to the DESTINATION. And
+delete the cache immediately while any error happens.
 
 This function return a callback status of a random symbol whose
 valid value are 'success' and 'failed' or nil while download
@@ -8875,6 +8882,10 @@ renaming to destination and they are:
 - 'temp-file'  : the downloaded temp-file path, this value just
   valid while the 'error-type' is 'move'.
 
+- `temp-file-delete-failed': non-nil as the temp-file path which
+  indicate the temp file is deleted with fatal as the cleanup procdure
+  for any `error-type'.
+
 - 'curl-args'  : the curl subprocess spawn arguments list only
   non-nil when 'error-type' eq to 'download', used to debug.
 
@@ -8884,74 +8895,68 @@ so that following keys are supported:
 - ':timeout' : an integer string to specified the curl timeout
   option '--connect-timeout' so that we can handle the long await
   url downloading. If not set, defaultly set with 10sec."
-  (let* ((tmp-file (expand-file-name
-                    (format "eemacs-download-tmpfile_[%s]_random_%s"
-                            (format-time-string "%Y%m%d%H%M%S")
-                            (random))
-                    temporary-file-directory))
+  (let* ((tmp-file (make-temp-name
+                    (expand-file-name
+                     (format "eemacs-download-tmpfile_[%s]_"
+                             (format-time-string "%Y%m%d%H%M%S"))
+                     temporary-file-directory)))
+         (destination (if (not (directory-name-p destination)) destination
+                        (expand-file-name (file-name-nondirectory tmp-file) destination)))
          (default-directory (entropy/emacs-return-as-default-directory
                              temporary-file-directory))
-         (cbk-symbol (let ((make-sym-func
-                            (lambda ()
-                              (intern (format "eemacs-network-download-random-cbk_%s"
-                                              (random)))))
-                           sym)
-                       (setq sym (funcall make-sym-func))
-                       (when (boundp sym)
-                         (while (boundp sym)
-                           (setq sym (funcall make-sym-func))))
-                       (set sym nil)
-                       sym))
+         (cbk-symbol (entropy/emacs-make-dynamic-symbol-as-same-value nil))
+         (tmp-file-del-func
+          (lambda (&optional do-error)
+            (condition-case err
+                (when (file-exists-p tmp-file)
+                  (delete-file tmp-file)
+                  (message "Deleted temp download file `%s' done!" tmp-file))
+              (error
+               (when do-error
+                 (entropy/emacs-error-without-debugger
+                  "Delete downloaded temp file `%s' failed: %s" tmp-file err))
+               (put cbk-symbol 'temp-file-delete-failed tmp-file)
+               (entropy/emacs-message-do-message
+                "%s%s"
+                (red (format "Delete downloaded temp file `%s' failed: " tmp-file))
+                (format "%s" err))))))
          (move-to-des-func
-          `(lambda ()
-             (condition-case error
-                 (progn
-                   (message "Moving to '%s' ..." ,destination)
-                   (rename-file ,tmp-file (expand-file-name ,destination))
-                   (message "Moving to '%s' done!" ,destination)
-                   (when (file-exists-p ,tmp-file)
-                     (delete-file ,tmp-file)
-                     (message "Deleted temp download file!"))
-                   (if (and (functionp ',verify)
-                            (prog1
-                                t
-                              (message ">> verify the downloaded file <%s> ..."
-                                       ,destination)))
-                       (if (eq t
-                               ;; we must ignore errors for the
-                               ;; verifiction function run since it
-                               ;; will corrupt whole internal download
-                               ;; procedure then destroys the API
-                               ;; restriction.
-                               (condition-case error
-                                   (funcall ',verify ,destination)
-                                 (error
-                                  (entropy/emacs-message-do-message
-                                   "%s%s"
-                                   (red "archive verify function error: ")
-                                   (format "%s" error)))))
-                           (setq ,cbk-symbol 'success)
-                         (setq ,cbk-symbol 'failed)
-                         (put ',cbk-symbol 'error-type 'verify))
-                     (setq ,cbk-symbol 'success)))
-               (error
-                (entropy/emacs-message-do-message
-                 "%s"
-                 (red (format "%s" error)))
-                (setq ,cbk-symbol 'failed)
-                (put ',cbk-symbol 'error-type
-                     'move)
-                (put ',cbk-symbol 'temp-file ,tmp-file)
-                (when (file-exists-p ,tmp-file)
-                  (delete-file ,tmp-file)))))))
-    (while (file-exists-p tmp-file)
-      (setq tmp-file
-            (expand-file-name
-             (format "eemacs-download-tmpfile_[%s]_random_%s"
-                     (format-time-string "%Y%m%d%H%M%S")
-                     (random))
-             temporary-file-directory)))
-    (let* ((proc-buffer (get-buffer-create "*---eemacs-url-donwload---*"))
+          (lambda ()
+            (condition-case error
+                (progn
+                  (message "Moving to '%s' ..." destination)
+                  (rename-file tmp-file (expand-file-name destination))
+                  (message "Moving to '%s' done!" destination)
+                  (funcall tmp-file-del-func 'do-error)
+                  (if (and (functionp verify)
+                           (prog1 t
+                             (message ">> verify the downloaded file <%s> ..." destination)))
+                      (if (eq t
+                              ;; we must ignore errors for the
+                              ;; verifiction function run since it
+                              ;; will corrupt whole internal download
+                              ;; procedure then destroys the API
+                              ;; restriction.
+                              (condition-case error
+                                  (funcall verify destination)
+                                (error
+                                 (entropy/emacs-message-do-message
+                                  "%s%s"
+                                  (red "archive verify function error: ")
+                                  (format "%s" error)))))
+                          (set cbk-symbol 'success)
+                        (set cbk-symbol 'failed)
+                        (put cbk-symbol 'error-type 'verify))
+                    (set cbk-symbol 'success)))
+              (error
+               (entropy/emacs-message-do-message
+                "%s"
+                (red (format "%s" error)))
+               (set cbk-symbol 'failed)
+               (put cbk-symbol 'error-type 'move)
+               (put cbk-symbol 'temp-file tmp-file)
+               (funcall tmp-file-del-func))))))
+    (let* ((proc-buffer (generate-new-buffer "*---eemacs-url-donwload---*" t))
            ;; '-L' option is required so that we can follow url
            ;; redirection for such as download from sourceforge.net
            (curl-args `("-L" "--connect-timeout"
@@ -8960,45 +8965,36 @@ so that following keys are supported:
                              (plist-get use-curl :timeout)
                            "10")
                         ,url "-o" ,tmp-file))
-           (inhibit-read-only t)
+           (inhibit-quit t)
            (success-message (format "Download from '%s' finished" url))
            (success-or-fatal-func-call-done-p-sym
-            (let ((make-sym-func
-                   (lambda ()
-                     (intern (format "eemacs-network-download-random-internal-sync-indicator_%s"
-                                     (random)))))
-                  sym)
-              (setq sym (funcall make-sym-func))
-              (when (boundp sym)
-                (while (boundp sym)
-                  (setq sym (funcall make-sym-func))))
-              (set sym nil)
-              sym))
-           (success-func `(lambda ()
-                            (message ,success-message)
-                            (setq ,cbk-symbol 'success)
-                            (funcall ,move-to-des-func)
-                            ))
+            (entropy/emacs-make-dynamic-symbol-as-same-value nil))
+           (success-func (lambda ()
+                           (message success-message)
+                           (set cbk-symbol 'success)
+                           (when (buffer-live-p proc-buffer)
+                             (kill-buffer proc-buffer))
+                           (funcall move-to-des-func)))
            (fatal-message (format "Download file form '%s' failed!" url))
-           (fatal-func `(lambda ()
-                          (setq ,cbk-symbol 'failed)
-                          (put ',cbk-symbol 'error-type 'download)
-                          (when',use-curl
-                           (put ',cbk-symbol 'curl-args ',curl-args))
-                          (message ,fatal-message)
-                          (when (file-exists-p ,tmp-file)
-                            (delete-file ,tmp-file))
-                          ))
+           (fatal-func (lambda ()
+                         (set cbk-symbol 'failed)
+                         (put cbk-symbol 'error-type 'download)
+                         (when use-curl
+                           (put cbk-symbol 'curl-args curl-args))
+                         (message fatal-message)
+                         (when (buffer-live-p proc-buffer)
+                           (kill-buffer proc-buffer))
+                         (funcall tmp-file-del-func)))
            (common-sentinel
-            `(lambda (proc status)
-               (if (string= status "finished\n")
-                   (funcall ,success-func)
-                 (when (string-match-p "\\(exit\\|failed\\|exited\\|broken\\)" status)
-                   (funcall ,fatal-func)))
-               (setq ,success-or-fatal-func-call-done-p-sym t)))
+            (lambda (proc status)
+              (let (succ fail)
+                (if (setq succ (entropy/emacs-process-exit-successfully-p proc status))
+                    (funcall success-func)
+                  (when (setq fail (entropy/emacs-process-exit-with-fatal-p proc status))
+                    (funcall fatal-func)))
+                (when (or succ fail (not (entropy/emacs-process-is-running-p proc)))
+                  (set success-or-fatal-func-call-done-p-sym t)))))
            proc)
-      (with-current-buffer proc-buffer
-        (erase-buffer))
       (cond
        (async
         (if use-curl
@@ -9012,17 +9008,15 @@ so that following keys are supported:
               (set-process-sentinel
                proc
                common-sentinel))
-          (setq proc-buffer
+          (entropy/emacs-setf-by-body proc-buffer
             (url-retrieve
              url
-             `(lambda (status &rest _)
-                (let ((error-p (alist-get :error status)))
-                  (if error-p
-                      (funcall ,fatal-func)
-                    (re-search-forward "\r?\n\r?\n")
-                    (write-region (point) (point-max) ,tmp-file)
-                    (funcall ,success-func)
-                    )))))))
+             (lambda (status &rest _)
+               (let ((error-p (alist-get :error status)))
+                 (if error-p (funcall fatal-func)
+                   (re-search-forward "\r?\n\r?\n")
+                   (write-region (point) (point-max) tmp-file)
+                   (funcall success-func))))))))
        (t
         (if use-curl
             ;; FIXME: doi not use `call-process' here since in this
@@ -9044,20 +9038,23 @@ so that following keys are supported:
               (set-process-sentinel
                proc
                common-sentinel)
-              ;; wait for process done
-              (while (process-live-p proc) (sleep-for 1))
-              ;; wait for sentinel done
-              (while (null (symbol-value success-or-fatal-func-call-done-p-sym)) (sleep-for 1))
-              (sleep-for 2))
+              (entropy/emacs-unwind-protect-unless-success
+                  (progn
+                    ;; wait for process done
+                    (entropy/emacs-sleep-while (process-live-p proc))
+                    ;; wait for sentinel done
+                    (entropy/emacs-sleep-while
+                     (null (symbol-value success-or-fatal-func-call-done-p-sym))))
+                (if (process-live-p proc) (kill-process proc))
+                (funcall fatal-func)))
           (condition-case error
-              (progn
-                (url-copy-file url tmp-file)
-                (funcall success-func))
+              (entropy/emacs-unwind-protect-unless-success
+                  (progn (url-copy-file url tmp-file) (funcall success-func))
+                (funcall fatal-func))
             (error
-             (entropy/emacs-message-do-message
-              "%s"
-              (red (format "%s" error)))
+             (entropy/emacs-message-do-message "%s" (red (format "%s" error)))
              (funcall fatal-func)))))))
+    ;; return
     cbk-symbol))
 
 ;; *** Key map manipulation

@@ -147,6 +147,14 @@ See also `entropy/emacs-macroexp-progn'."
   (if noninteractive (entropy/emacs-noninteractive-exit-with-fatal)
     (entropy/emacs-error-without-debugger "")))
 
+(defmacro entropy/emacs-sleep-while (&rest body)
+  "Sleep for waiting while evaluate BODY return non-nil repeatedly
+until it returns nil."
+  `(while ,(entropy/emacs-macroexp-progn body)
+     ;; 0.001 is the perfect val for sleep both of responsive speed
+     ;; and cpu usage.
+     (sleep-for 0.001)))
+
 ;; *** eemacs-require-func
 
 (defun entropy/emacs-common-require-feature
