@@ -119,7 +119,7 @@
         ("*Youdao Dictionary*"         :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
 
         ;; Google translate
-        ("*Google Translate*"          :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
+        ("*Google Translate*"          :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
 
         ;; Moedict
         ("*[萌典] 查詢結果*"           :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
