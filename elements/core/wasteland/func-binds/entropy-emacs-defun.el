@@ -10815,7 +10815,7 @@ backuped in faces of list of face
         'outline-8-backup-eemacs))
 
 (defconst entropy/emacs-defun--ohrsc-org-header-face-spec
-  '((:background . nil)
+  '((:background . unspecified)
     (:weight . semi-bold)
     (:height . 1.0)))
 

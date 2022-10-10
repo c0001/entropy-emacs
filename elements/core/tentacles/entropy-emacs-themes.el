@@ -104,7 +104,10 @@
 
 (add-hook 'entropy/emacs-theme-load-after-hook #'entropy/emacs-theme-load-face-specifix)
 (add-hook 'entropy/emacs-theme-load-after-hook #'entropy/emacs-theme-load-modeline-specifix)
-(add-hook 'entropy/emacs-theme-load-after-hook #'entropy/emacs-adjust-org-heading-scale)
+(entropy/emacs-eval-after-load-only-once 'org
+  (entropy/emacs-adjust-org-heading-scale)
+  (add-hook 'entropy/emacs-theme-load-after-hook
+            #'entropy/emacs-adjust-org-heading-scale))
 
 ;; TODO: accomplete this hook
 (defun entropy/emacs-themes-set-margin/fringe-width/style
