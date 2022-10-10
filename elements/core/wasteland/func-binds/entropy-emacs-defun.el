@@ -3022,6 +3022,64 @@ by dropping the result of this key-pair and rests."
        ;; return
        (nreverse ,rtn))))
 
+(defmacro entropy/emacs-make-rich-plist (&rest args)
+  "Using ARGS, make and return a plist PLIST whose each key KEY of ARGS
+has slot SLOT stores a context related, generated and anonymous
+without arguments requested lambda function FUNC which consisted by
+KEY's values of ARGS, a collection of expressions VAL-EXPS, and
+defined by `entropy/emacs-cl-lambda-with-lcb'. Or SLOT stores further
+more value types which see below:
+
+If ARGS is omitted or the first expression EXP who is the car of ARGS
+is not `keywordp', always return nil.
+
+Any EXP of ARGS who has same list level as KEY and formed as is:
+: `(quote keyword)'
+where `keyword' is `keywordp', then this EXP is replaced by `keyword'
+thru defination DEF.
+
+If VAL-EXPS's car is `eq' to any one of below symbols then DEF is
+using one of other specified types as see:
+
+1) `car' : evaluted `cadr' of VAL-EXPS with current context and inject
+   that result to SLOT.
+2) `progn*': evaluated each EXP of VAL-EXPS with current context and
+   wrapped the results as `progn' expression PROGN-EXP i.e the car of
+   PROGN-EXP is `eq' to `progn' and its body is consisted by those
+   EXPs' results one by one, finally inject it to SLOT in which case
+   SLOT is a expression.
+3) `list*' : like the `progn*' type, but use `list' in which case SLOT
+   is a list.
+4) `progn' or `list' : like `progn*' or `list*' but not evaluated each
+   EXP of VAL-EXPS.
+5) `_' : used as fake flag to use as common DEF for cdr of VAL-EXPS."
+  (declare (indent 0))
+  (when (and args (keywordp (car-safe args)))
+    `(list
+      ,@(entropy/emacs-map-plist args
+          (entropy/emacs-list-map-cdr it-val
+            (let (it-car it-cadar)
+              (if (and (eq (car-safe (setq it-car (car it))) 'quote)
+                       (= 2 (length it-car))
+                       (keywordp (setq it-cadar (cadr it-car))))
+                  (setcar it it-cadar))))
+          (entropy/emacs-setf-by-body it-val
+            (cond ((eq '_ (car it-val))
+                   `(entropy/emacs-cl-lambda-with-lcb nil
+                      ,@(entropy/emacs-macroexp-rest (cdr it-val))))
+                  ((eq (car it-val) 'car) (cadr it-val))
+                  ((memq (car it-val) '(progn list))
+                   (let* ((exp (mapcar (lambda (x) `(quote ,x)) (cdr it-val)))
+                          (_ (if (eq (car it-val) 'progn)
+                                 (setq exp (entropy/emacs-macroexp-rest exp)))))
+                     (if (eq (car it-val) 'list) `(list ,@exp)
+                       `(list 'progn ,@exp))))
+                  ((memq (car it-val) '(progn* list*))
+                   (if (eq (car it-val) 'list*) `(list ,@(cdr it-val))
+                     `(list 'progn ,@(entropy/emacs-macroexp-rest (cdr it-val)))))
+                  (t `(entropy/emacs-cl-lambda-with-lcb nil
+                        ,@(entropy/emacs-macroexp-rest it-val)))))))))
+
 ;; *** String manipulation
 
 (cl-defun entropy/emacs-string-match-p
