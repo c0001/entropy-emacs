@@ -1017,27 +1017,28 @@ which determined by the scale count 0.3 "
   :commands (google-translate-translate
              entropy/emacs-tools-google-translate-at-point-direct-en-CN
              entropy/emacs-tools-google-translate-prompt-direct-en-CN)
-  :defines (google-translate-translation-direction-query
-            google-translate-current-translation-direction
-            google-translate-translation-direction-query)
+  :defines (google-translate-translation-direction-query)
   :init
-  (when entropy/emacs-google-translate-toggle-patched-in-china
-    ;;    Because google-translate has been block in china, so can use below variable for preventing
-    ;;    this problem. And this solution was from `https://emacs-china.org/t/topic/2808/17'
-    (eval-after-load 'google-translate-core
-      '(setq google-translate-base-url "http://translate.google.cn/translate_a/single"
-             google-translate-listen-url "http://translate.google.cn/translate_tts"))
-    (eval-after-load 'google-translate-tk
-      '(setq google-translate--tkk-url "http://translate.google.cn/"))
 
-    ;; Since we use google china ip, we can directly use curl to
-    ;; retrieve the result to speedup qury search which do not need to
-    ;; use interal proxy any way.
-    (when (executable-find "curl")
-      (setq google-translate-backend-method
-            'curl)))
+  ;; Use curl to speedup query
+  (when (executable-find "curl")
+    (setq google-translate-backend-method 'curl))
 
   :config
+
+  ;; proxy enabled
+  (defun entropy/emacs-tools--advice-for-google-translate-with-http-proxy
+      (orig-func &rest orig-args)
+    "Enalble http proxy for `google-translate-translate' dynamically
+based on `entropy/emacs-google-translate-using-proxy-p'."
+    (apply 'entropy/emacs-funcall-with-eemacs-union-http-internet-proxy
+           #'(lambda nil entropy/emacs-google-translate-using-proxy-p)
+           orig-func orig-args))
+  (dolist (func '(google-translate-backend-retrieve
+                  google-translate-listen-translation))
+    (advice-add
+     func :around
+     #'entropy/emacs-tools--advice-for-google-translate-with-http-proxy))
 
   ;; HACK
   ;; EEMACS_MAINTENANCE: follow upstream updates
@@ -1086,15 +1087,13 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
               (google-translate--strip-string
                (buffer-substring-no-properties (region-beginning) (region-end)))
             (current-word t t)))
-
-    (setq google-translate-current-translation-direction 0)
-
     (let* ((text (let ((rtn
                         (read-string
                          (if google-translate-translation-direction-query
-                             (format "Input text (default-> %s): " google-translate-translation-direction-query)
+                             (format "Input text (default-> %s): "
+                                     google-translate-translation-direction-query)
                            "Input text: "))))
-                   (if (string= "" rtn)
+                   (if (string-empty-p rtn)
                        google-translate-translation-direction-query
                      rtn)))
            (source-language "auto")

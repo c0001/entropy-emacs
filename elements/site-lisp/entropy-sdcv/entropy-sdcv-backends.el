@@ -168,13 +168,13 @@
     (error (bing-dict--message bing-dict--no-result-text))))
 
 ;;;;; google
-(defun entropy/sdcv-backends--query-with-google (query &rest _)
+(defun entropy/sdcv-backends--query-with-google (query show-method)
   (setq entropy/sdcv-core-response-log
         (entropy/sdcv-backends--google-translate-callback
-         "auto" entropy/sdcv-core-source-language query 'popup)))
+         "auto" entropy/sdcv-core-source-language query show-method)))
 
 (defun entropy/sdcv-backends--google-translate-callback
-    (source-language target-language text &optional output-destination)
+    (source-language target-language text &optional show-method)
   (let* ((json (google-translate-request source-language
                                          target-language
                                          text)))
@@ -196,14 +196,16 @@
                :detailed-translation detailed-translation
                :detailed-definition detailed-definition
                :suggestion (when (null detailed-translation)
-                             (google-translate-json-suggestion json))))
-             (_output-destination (if (null output-destination)
-                                      google-translate-output-destination
-                                    output-destination)))
+                             (google-translate-json-suggestion json)))))
         (with-temp-buffer
-          (google-translate-insert-translation gtos)
-          (google-translate--trim-string
-           (buffer-substring (point-min) (point-max))))))))
+          (cond
+           ((not (eq show-method 'adjacent-common))
+            (google-translate-insert-translation gtos)
+            (google-translate--trim-string
+             (buffer-substring (point-min) (point-max))))
+           (t
+            (google-translate-buffer-insert-translation gtos)
+            (buffer-substring (point-min) (point-max)))))))))
 
 ;;;;; sdcv
 ;;;;;; defcustom

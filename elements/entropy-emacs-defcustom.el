@@ -1954,8 +1954,9 @@ When set to an empty string, this attribute is omitted.  Defaults to
           (const :tag "Google online dictionary" google))
   :group 'entropy/emacs-customize-group-for-translate)
 
-(defcustom entropy/emacs-google-translate-toggle-patched-in-china t
-  "Enable google-translate in china. (GFW banned restriction break)"
+(defcustom entropy/emacs-google-translate-using-proxy-p t
+  "Enable proxy for google related translator using
+`entropy/emacs-union-http-proxy-plist'."
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-translate)
 
