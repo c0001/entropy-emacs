@@ -543,8 +543,9 @@ downcase the query string."
             (setq rtn (plist-put rtn :fg "goldenrod")))
       (light (setq rtn (plist-put rtn :bg Bbg_color))
              (setq rtn (plist-put rtn :fg "firebrick")))
-      (nil (setq rtn (plist-put rtn :bg "black"))
-           (setq rtn (plist-put rtn :fg "brightyellow"))))
+      ((nil)
+       (setq rtn (plist-put rtn :bg "black"))
+       (setq rtn (plist-put rtn :fg "brightyellow"))))
     rtn))
 
 (defun entropy/sdcv-core-gen-common-face ()

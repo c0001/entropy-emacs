@@ -5599,9 +5599,9 @@ current displayed buffer area wile
 
 ;; ******** toggle input method
   (defun entropy/emacs-basic-pyim-toggle (&optional type)
-    (interactive)
     "The eemacs pyim ime toggler which obey the
 `entropy/emacs-internal-IME-toggle-function' api."
+    (interactive)
     (condition-case error
         (let (disable-p)
           (cond ((and (or (string= current-input-method "pyim")
@@ -5714,9 +5714,9 @@ This function will store the `rime' loading callback to
             (setq default-input-method "rime"))))))
 
   (defun entropy/emacs-basic-emacs-rime-toggle (&optional type)
-    (interactive)
     "The eemacs emacs-rime ime toggler which obey the
 `entropy/emacs-internal-IME-toggle-function' api."
+    (interactive)
     (condition-case error
         (let (disable-p)
           (cond ((and (or (string= current-input-method "rime")

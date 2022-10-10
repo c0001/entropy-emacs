@@ -760,7 +760,7 @@ fixing it as thus.
            (render-get (caddr pattern))
            (render
             (cl-case render-get
-              (nil search-web-default-browser)
+              ((nil) search-web-default-browser)
               (In-Emacs search-web-in-emacs-browser)
               (External search-web-external-browser)
               (t 'browse-url-default-browser)))
