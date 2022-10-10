@@ -9430,7 +9430,7 @@ unless this hints."
 
 (defun entropy/emacs-no-same-buffer-split-window-horizontally
     (&optional size)
-  "Like `split-window-horizontally' but uhkse
+  "Like `split-window-horizontally' but use
 `entropy/emacs-no-same-buffer-split-window' as subroutine."
   (interactive "P")
   (let ((old-window (selected-window))
