@@ -9702,7 +9702,7 @@ The main subroutine of this function is
 `entropy/emacs-test-emacs-with-vanilla-setup' thus for what
 EMACS-INVOCATION-NAME is as is.
 "
-  (when (display-graphic-p)
+  (when (or sys/is-graphic-support (display-graphic-p))
     (let* ((body (entropy/emacs-defun--get-real-body body)))
       (entropy/emacs-env-with-pure-eemacs-env
        (or (and with-default-directory-as
