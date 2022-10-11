@@ -464,7 +464,7 @@ window if available, return non-nil for success, nil otherwise."
       t)))
 
 (defmacro entropy/emacs-message-do-warn (message &rest args)
-  "An alternative `warn'that strips out ANSI codes. "
+  "An alternative `warn' that strips out ANSI codes. "
   `(let (_)
      (entropy/emacs-message-do-warn-1 ,message ,@args)))
 
