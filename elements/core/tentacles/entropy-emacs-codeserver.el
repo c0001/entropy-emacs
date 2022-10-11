@@ -841,15 +841,13 @@ shutdown since it is managed by the customize variable
 
 ;; ********* eemacs lsp start hack
 ;; ********** lsp start prompts
-  (entropy/emacs-message-make-func-with-simple-progress-prompts
-   lsp-deferred
-   "%s <%s>"
-   (green "Lsp check for buffer")
-   (yellow (buffer-name)))
-  (entropy/emacs-message-make-func-with-simple-progress-prompts
-   lsp
-   "%s"
-   (green "Lsp starting"))
+  (entropy/emacs-message-make-func-with-simple-progress-prompts 'lsp-deferred
+    "%s <%s>"
+    (green "Lsp check for buffer")
+    (yellow (buffer-name)))
+  (entropy/emacs-message-make-func-with-simple-progress-prompts 'lsp
+    "%s"
+    (green "Lsp starting"))
 
 ;; ********** start conditions filter
 

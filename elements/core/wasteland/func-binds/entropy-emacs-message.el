@@ -588,26 +588,28 @@ displayed via `entropy/emacs-message--do-message-popup'."
   "Make function named by FUNC-NAME executing return result with
 progress prompt using
 `entropy/emacs-message-simple-progress-message'."
-  (let ((func-adv-name
-         (intern (format "__adv/around/%s/for-progress-promtps__"
-                         func-name))))
-    `(let (_)
-       (defun ,func-adv-name (orig-func &rest orig-args)
-         (let (_)
-           (entropy/emacs-message-simple-progress-message
-            (if (not (null ',message))
-                ;; append user specified message with function name
-                (format "[`%s']: %s"
-                        ',func-name
-                        (entropy/emacs-message--do-message-ansi-apply
-                         ,message ,@args))
-              ;; use plain simplify message type
-              (format "Do `%s' executing" ',func-name))
-            (apply orig-func orig-args))))
-       (advice-add ',func-name
-                   :around
-                   #',func-adv-name)
-       )))
+  (declare (indent 1))
+  (let ((func-name-sym     (make-symbol "func-name"))
+        (func-adv-name-sym (make-symbol "func-acv-name"))
+        (message-sym       (make-symbol "message")))
+    `(let* ((,func-name-sym ,func-name)
+            (,func-adv-name-sym
+             (intern (format "__adv/around/%s/for-progress-promtps__" ,func-name-sym)))
+            (,message-sym ,message))
+       (defalias ,func-adv-name-sym
+         (lambda (orig-func &rest orig-args)
+           (let (_)
+             (entropy/emacs-message-simple-progress-message
+              (if (not (null ,message-sym))
+                  ;; append user specified message with function name
+                  (format "[`%s']: %s"
+                          ,func-name-sym
+                          (entropy/emacs-message--do-message-ansi-apply
+                           ,message-sym ,@args))
+                ;; use plain simplify message type
+                (format "Do `%s' executing" ,func-name-sym))
+              (apply orig-func orig-args)))))
+       (advice-add ,func-name-sym :around ,func-adv-name-sym))))
 
 ;; * provide
 (provide 'entropy-emacs-message)

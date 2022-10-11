@@ -1018,12 +1018,15 @@ which determined by the scale count 0.3 "
              entropy/emacs-tools-google-translate-at-point-direct-en-CN
              entropy/emacs-tools-google-translate-prompt-direct-en-CN)
   :defines (google-translate-translation-direction-query)
+
+;; ***** init
   :init
 
   ;; Use curl to speedup query
   (when (executable-find "curl")
     (setq google-translate-backend-method 'curl))
 
+;; ***** config
   :config
 
   ;; proxy enabled
@@ -1102,8 +1105,15 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
         (setq source-language (google-translate-read-source-language)))
       (when (null target-language)
         (setq target-language (google-translate-read-target-language)))
-      (google-translate-translate source-language target-language text))))
+      (google-translate-translate source-language target-language text)))
 
+  (dolist (func '(entropy/emacs-tools-google-translate-prompt-direct-en-CN
+                  entropy/emacs-tools-google-translate-at-point-direct-en-CN))
+    (entropy/emacs-message-make-func-with-simple-progress-prompts func
+      "google translate"))
+
+;; ***** end
+  )
 
 ;; **** bing-dict
 (use-package bing-dict

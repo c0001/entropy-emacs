@@ -411,24 +411,22 @@ specification."
       (dolist (el entropy/emacs-popwin--shackle-popup-display-history)
         (let* ((buff (car el))
                (buff-regist-win (cdr el))
-               (buff-cur-win (ignore-errors (get-buffer-window buff))))
+               (buff-cur-win (and (bufferp buff) (get-buffer-window buff))))
           (when
               ;; we just preserved the alive buffer record
               (buffer-live-p buff)
             (if
                 ;; in which case the record is efficient already
                 (eq buff-regist-win buff-cur-win)
-                (setq new-hist
-                      (append new-hist (list el)))
+                (entropy/emacs-nconc-with-setvar-use-rest new-hist (list el))
               ;; the otherwise, the record is broken
               (if
                   ;; if the recorded buffer is still displayed as
                   ;; also, we fix its record with its new window
                   buff-cur-win
                   (progn
-                    (setq new-hist
-                          (append new-hist
-                                  (list (cons buff buff-cur-win))))
+                    (entropy/emacs-nconc-with-setvar-use-rest new-hist
+                      (list (cons buff buff-cur-win)))
                     (entropy/emacs-popwin--shackle-set-parameters-for-popup-buffer
                      buff (window-parameter
                            buff-cur-win
@@ -440,11 +438,9 @@ specification."
                 (progn
                   (if (window-live-p buff-regist-win)
                       (progn
-                        (setq new-hist
-                              (append
-                               new-hist
-                               (list (cons (window-buffer buff-regist-win)
-                                           buff-regist-win))))
+                        (entropy/emacs-nconc-with-setvar-use-rest new-hist
+                          (list (cons (window-buffer buff-regist-win)
+                                      buff-regist-win)))
                         (entropy/emacs-popwin--shackle-set-parameters-for-popup-buffer
                          (window-buffer buff-regist-win)
                          (window-parameter
@@ -457,8 +453,7 @@ specification."
                        buff t)
                       ;; unhack the deletd window since its may reactivated later.
                       (entropy/emacs-popwin--shackle-unhack-for-buffer-or-window
-                       buff-regist-win t)))))
-              ))))
+                       buff-regist-win t)))))))))
       (setq entropy/emacs-popwin--shackle-popup-display-history
             new-hist)))
 
