@@ -1272,6 +1272,7 @@ updating."
 
   (add-to-list 'entropy/emacs-codeserver-lsp-mode-extra-clients
                'lsp-python-ms)
+  :config
   (when (executable-find "python3")
     (setq lsp-python-ms-python-executable-cmd "python3")))
 

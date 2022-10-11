@@ -5579,7 +5579,7 @@ This function will store the loading callback to
   ;; EEMACS_BUG
   ;; EEMACS_TEMPORALLY_HACK
   ;; EEMACS_MAINTENANCE: follow upstream
-  (defun __ya/pyim-indicator-daemon-function ()
+  (defun __ya/pyim-indicator--daemon-function ()
     "Like `pyim-indicator-daemon' but remove the `redisplay'
 procedure since it may cause emacs `font-lock-mode' pause for the
 current displayed buffer area wile
@@ -5588,14 +5588,14 @@ current displayed buffer area wile
       ;;(redisplay) <---- disable this
       (ignore-errors
         (let ((chinese-input-p
-               (and (functionp pyim-indicator-daemon-function-argument)
-                    (funcall pyim-indicator-daemon-function-argument))))
+               (and (functionp pyim-indicator--daemon-function-argument)
+                    (funcall pyim-indicator--daemon-function-argument))))
           (dolist (indicator pyim-indicator-list)
             (when (functionp indicator)
               (funcall indicator current-input-method chinese-input-p)))))))
 
-  (advice-add 'pyim-indicator-daemon-function :override
-              #'__ya/pyim-indicator-daemon-function)
+  (advice-add 'pyim-indicator--daemon-function :override
+              #'__ya/pyim-indicator--daemon-function)
 
 ;; ******** toggle input method
   (defun entropy/emacs-basic-pyim-toggle (&optional type)

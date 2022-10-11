@@ -251,32 +251,33 @@ This customization mainly adding the eyebrowse slot and tagging name show functi
   (setq entropy/emacs-modeline--spaceline-enable-done nil
         entropy/emacs-modeline--spaceline-spec-done nil))
 
-(defun entropy/emacs-modeline--spaceline-defsegment-for-workspace ()
-  (spaceline-define-segment workspace-number
-    "The current workspace name or number. Requires `eyebrowse-mode' to be
-enabled."
-    (when (and (bound-and-true-p eyebrowse-mode)
-               (<= 1 (length (eyebrowse--get 'window-configs))))
-      (let* ((num (eyebrowse--get 'current-slot))
-             (tag (when num (nth 2 (assoc num (eyebrowse--get 'window-configs)))))
-             (str (if (and tag (< 0 (length tag)))
-                      (if num
-                          (concat (int-to-string num) ":" tag)
-                        tag)
-                    (when num (int-to-string num)))))
-        (or (when spaceline-workspace-numbers-unicode
-              (spaceline--unicode-number str))
-            (propertize str 'face 'bold))))))
-
 (entropy/emacs-usepackage-with-permanently-defer spaceline-config
   :ensure nil
   :commands (spaceline-spacemacs-theme))
 
 (entropy/emacs-usepackage-with-permanently-defer spaceline
+  :eemacs-functions (entropy/emacs-modeline--spaceline-defsegment-for-workspace)
   :init
   (entropy/emacs-lazy-load-simple 'spaceline-segments
     :always-lazy-load t
-    (entropy/emacs-modeline--spaceline-defsegment-for-workspace)))
+    (entropy/emacs-modeline--spaceline-defsegment-for-workspace))
+  :config
+  (defun entropy/emacs-modeline--spaceline-defsegment-for-workspace ()
+    (spaceline-define-segment workspace-number
+      "The current workspace name or number. Requires `eyebrowse-mode' to be
+enabled."
+      (when (and (bound-and-true-p eyebrowse-mode)
+                 (<= 1 (length (eyebrowse--get 'window-configs))))
+        (let* ((num (eyebrowse--get 'current-slot))
+               (tag (when num (nth 2 (assoc num (eyebrowse--get 'window-configs)))))
+               (str (if (and tag (< 0 (length tag)))
+                        (if num
+                            (concat (int-to-string num) ":" tag)
+                          tag)
+                      (when num (int-to-string num)))))
+          (or (when spaceline-workspace-numbers-unicode
+                (spaceline--unicode-number str))
+              (propertize str 'face 'bold)))))))
 
 ;; **** origin type
 
@@ -710,7 +711,7 @@ entropy-emacs."
       ""))
 
 
-;; ******* idle activated =buffer position= indicator
+;; ******* idle actived =buffer position= indicator
 
   ;; EEMACS_MAINTENANCE: update folllow upstream internal defination
   (doom-modeline-def-segment buffer-position
@@ -728,8 +729,8 @@ entropy-emacs."
                   (mouse-face 'mode-line-highlight)
                   (local-map mode-line-column-line-number-mode-map))
              (concat
-              (doom-modeline-spc)
-              (doom-modeline-spc)
+              doom-modeline-wspc
+              doom-modeline-wspc
 
               (propertize (format-mode-line lc)
                           'face face
@@ -742,20 +743,20 @@ mouse-1: Display Line and Column Mode Menu"
                           (bound-and-true-p nyan-mode)
                           (>= (window-width) nyan-minimum-window-width))
                      (concat
-                      (doom-modeline-spc)
-                      (doom-modeline-spc)
+                      doom-modeline-wspc
+                      doom-modeline-wspc
                       (propertize (nyan-create) 'mouse-face mouse-face)))
                     ((and active
                           (bound-and-true-p poke-line-mode)
                           (>= (window-width) poke-line-minimum-window-width))
                      (concat
-                      (doom-modeline-spc)
-                      (doom-modeline-spc)
+                      doom-modeline-wspc
+                      doom-modeline-wspc
                       (propertize (poke-line-create) 'mouse-face mouse-face)))
                     (t
                      (when doom-modeline-percent-position
                        (concat
-                        (doom-modeline-spc)
+                        doom-modeline-wspc
                         (propertize (format-mode-line '("" doom-modeline-percent-position "%%"))
                                     'face face
                                     'help-echo "Buffer percentage\n\
@@ -763,7 +764,7 @@ mouse-1: Display Line and Column Mode Menu"
                                     'mouse-face mouse-face
                                     'local-map local-map)))))
               (when (or line-number-mode column-number-mode doom-modeline-percent-position)
-                (doom-modeline-spc)))))
+                doom-modeline-wspc))))
           (t
            " ......... ")))
 
@@ -800,7 +801,7 @@ while `entropy/emacs-current-session-is-idle-p' is non-nil."
        (and entropy/emacs-current-session-is-idle-p
             (doom-modeline--active)))
       (concat
-       (doom-modeline-spc)
+       doom-modeline-wspc
        (doom-modeline--buffer-mode-icon)
        (doom-modeline--buffer-state-icon)
        (doom-modeline--buffer-name)))
