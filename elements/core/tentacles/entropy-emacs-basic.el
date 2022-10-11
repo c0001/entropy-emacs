@@ -5967,8 +5967,8 @@ we do not want to init as duplicated which will cause messy."
          '(entropy/emacs-internal-ime-popup-type-autoset))
 
         ;; union function set
-        (setq entropy/emacs-internal-IME-toggle-function
-              (plist-get ime-plist :toggle))
+        (entropy/emacs-set-internal-IME-toggle-function
+         (plist-get ime-plist :toggle))
 
         ;; union hydra hollow set
         (setq hydra-heads

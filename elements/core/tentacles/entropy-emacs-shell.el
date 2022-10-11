@@ -342,7 +342,7 @@ segmentation fault."
   ;; features to disable auto kill-ring save feature while thus.
   (define-key vterm-copy-mode-map
     [remap vterm-copy-mode-done]
-    (lambda (&rest _) (interactive) (vterm-copy-mode 0)))
+    #'(lambda (&rest _) (interactive) (vterm-copy-mode 0)))
 
   ;; Remove conflicting f12 keybind via `vterm-mode-map' and function
   ;; `entropy/emacs-tools-time-show'
@@ -356,31 +356,15 @@ segmentation fault."
   ;; enable native ime toggle for `vterm-mode'. Based on vterm updates
   ;; of
   ;; https://github.com/akermu/emacs-libvterm/commit/2b1392cb2b14ec5bd0b7355197d5f353aa5d3983
-  (defun entropy/emacs-vterm--internal-ime-toggle-wrapper
-      (orig-func &rest orig-args)
-    "Around advice for enable
-`entropy/emacs-internal-IME-toggle-function' in `vterm-mode-map'
-before invoke the main process."
-    (let (_)
-      (funcall entropy/emacs-internal-IME-toggle-function)
-      (apply orig-func orig-args)))
-
-  (let ((orig-func
-         (lookup-key
-          vterm-mode-map
-          (kbd
-           entropy/emacs-internal-ime-toggling-kbd-key))))
-    (setq orig-func
-          (and orig-func
-               (functionp orig-func)
-               orig-func))
-    (if orig-func
-        (advice-add orig-func
-                    :around
-                    #'entropy/emacs-vterm--internal-ime-toggle-wrapper)
-      (define-key vterm-mode-map
-        (kbd entropy/emacs-internal-ime-toggling-kbd-key)
-        entropy/emacs-internal-IME-toggle-function)))
+  (defun entropy/emacs-shell--vterm-set-ime-key (&optional func)
+    (define-key vterm-mode-map
+      (kbd entropy/emacs-internal-ime-toggling-kbd-key)
+      (or func entropy/emacs-internal-IME-toggle-function)))
+  ;; set at vterm first load time
+  (entropy/emacs-shell--vterm-set-ime-key)
+  ;; inject for future changes
+  (add-hook 'entropy/emacs-internal-IME-toggle-function-set-hook
+            #'entropy/emacs-shell--vterm-set-ime-key)
 
   )
 

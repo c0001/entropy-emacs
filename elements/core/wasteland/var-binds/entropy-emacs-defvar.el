@@ -1771,29 +1771,42 @@ gui session has huge sets of differents in entropy-emacs.
   (lambda (&optional type)
     (interactive)
     (let ((error-msg
-           "Non defination found for current union internal ime toggle function."
-           ))
+           "Non defination found for current union internal ime toggle function."))
       (message "%s" error-msg)
-      (if type
-          nil
-        error-msg)))
-  "Eemacs union emacs internal IME toggle function , is a
-`interactive' function.
+      (if type nil error-msg)))
+  "Eemacs union emacs internal IME toggle function , is a `interactive'
+function.
 
-This function must be `ignore-errors' like wrapped i.e. never
-throw error, and return t for indicate internal IME toggle enable
-and nil for disable, and any other return is indicate toggle with
-fatal.
+This function must be `ignore-errors' like wrapped i.e. never throw
+error, and return t for indicate internal IME toggle enable and nil
+for disable, and any other return is indicate toggle with fatal.
 
-And this function must can optionally accept one argument
-i.e. the toggle type, 'enable' or 'disable'. Which when type is
-enable, then theh function should enable the corresponding
-internal input method and 'disable' to disable thus, and the
-return means has changed to use t for succeed and any other
-return for fatal.
+And this function must can optionally accept one argument i.e. the
+toggle type, 'enable' or 'disable'. Which when type is enable, then
+the function should enable the corresponding internal input method and
+'disable' to disable thus, and the return meaning has changed in this
+case that return t for succeed and any other return for fatal.
 
 If use a string as the fatal return, it should be the error message
-string for conventionally did.")
+string for conventionally did.
+
+NOTE: use `entropy/emacs-set-internal-IME-toggle-function' to
+permanently change the value of this variable to follow eemacs
+internal ime management mechanism.")
+
+(defvar entropy/emacs-internal-IME-toggle-function-set-hook nil
+  "Normal hook ran after
+`entropy/emacs-internal-IME-toggle-function' changed by
+`entropy/emacs-set-internal-IME-toggle-function'.
+
+Any function in this hook has no arguments acceptability
+requirements.")
+
+(defun entropy/emacs-set-internal-IME-toggle-function (func)
+  "Set `entropy/emacs-internal-IME-toggle-function' and run
+`entropy/emacs-internal-IME-toggle-function-set-hook'."
+  (setq entropy/emacs-internal-IME-toggle-function func)
+  (run-hooks 'entropy/emacs-internal-IME-toggle-function-set-hook))
 
 ;; ** package patches refer
 
