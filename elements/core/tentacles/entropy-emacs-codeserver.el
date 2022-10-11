@@ -1122,24 +1122,21 @@ https://emacs.stackexchange.com/questions/3821/a-faster-method-to-obtain-line-nu
 ;; ******* config
   :config
 ;; ******** advices
-  ;; EEMACS_MAINTENANCE: this patch need to follow update with `lsp-ui' upstream.
-  (defun lsp-ui-doc--hide-frame ()
-    "Hide the frame.
 
-NOTE: this function has been patched by eemacs to optimize performance."
-    (setq lsp-ui-doc--bounds nil)
-    (when (overlayp lsp-ui-doc--inline-ov)
-      (delete-overlay lsp-ui-doc--inline-ov))
-    (let ((doc-frame (lsp-ui-doc--get-frame)))
-      (when (and (framep doc-frame)
-                 ;; Judge whether the doc frame is visible instead of
-                 ;; use `make-frame-invisible' directly for
-                 ;; performance issue.
-                 (frame-visible-p doc-frame))
-        (unless lsp-ui-doc-use-webkit
-          (lsp-ui-doc--with-buffer
-           (erase-buffer)))
-        (make-frame-invisible doc-frame))))
+  ;; EEMACS_MAINTENANCE: these variants need to follow update with `lsp-ui' upstream.
+  (defun eemacs/lsp-ui-doc--hide-frame (&optional _win)
+    "Like `lsp-ui-doc--hide-frame' but for eemacs only."
+    (setq lsp-ui-doc--from-mouse nil)
+    (lsp-ui-util-safe-delete-overlay lsp-ui-doc--inline-ov)
+    (lsp-ui-util-safe-delete-overlay lsp-ui-doc--highlight-ov)
+    (when-let ((frame (lsp-ui-doc--get-frame)))
+      (when (frame-visible-p frame)
+        (make-frame-invisible frame))))
+  (defun eemacs/lsp-ui-doc-hide ()
+    "Like `lsp-ui-doc-hide' but for eemacs only."
+    (interactive)
+    (lsp-ui-doc-unfocus-frame) ;; In case focus is in doc frame
+    (eemacs/lsp-ui-doc--hide-frame))
 
   (defun entropy/emacs-codeserver--lsp-ui-doc-frame-mode-disable-mouse
       (orig-func &rest orig-args)
@@ -1164,12 +1161,13 @@ EEMACS_BUG: h-c02794e4-bdb8-4510-84cb-d668873b02fc
 
   (defun entropy/emacs-codeserver--lsp-ui-doc-make-request nil
     "Request the documentation to the LS."
-    (let ((buf (current-buffer)))
+    (let ((buf (current-buffer))
+          (hide lsp-ui-doc--hide-on-next-command))
       (when (and (bound-and-true-p lsp-ui-doc-mode)
                  (not (eq this-command 'lsp-ui-doc-hide))
                  (not (eq this-command 'keyboard-quit))
                  (not (bound-and-true-p lsp-ui-peek-mode))
-                 (lsp--capability "hoverProvider"))
+                 (lsp-feature? "textDocument/hover"))
         (-if-let (bounds (or (and (symbol-at-point)
                                   (bounds-of-thing-at-point 'symbol))
                              (and (looking-at "[[:graph:]]")
@@ -1178,23 +1176,30 @@ EEMACS_BUG: h-c02794e4-bdb8-4510-84cb-d668873b02fc
                      bounds
                      entropy/emacs-codeserver--lsp-ui-doc--bounds)
               (setq entropy/emacs-codeserver--lsp-ui-doc--bounds bounds)
-              (lsp-ui-doc--hide-frame)
+              (eemacs/lsp-ui-doc--hide-frame)
               (lsp-request-async
-                   "textDocument/hover"
-                   (lsp--text-document-position-params)
-                   `(lambda (hover)
-                      (when (equal ,buf (current-buffer))
-                        (lsp-ui-doc--callback hover ',bounds (current-buffer))))
-                   :mode 'tick
-                   :cancel-token :lsp-ui-doc-hover))
-          (lsp-ui-doc-hide)
+               "textDocument/hover"
+               (lsp--text-document-position-params)
+               (lambda (hover)
+                 (when (equal buf (current-buffer))
+                   (prog1
+                       (lsp-ui-doc--callback hover bounds (current-buffer) hide)
+                     ;; FIXME: `lsp-ui-doc--hide-frame' is hard coded in
+                     ;; `lsp-ui-doc--callback' with `post-command-hook',
+                     ;; it's good to hack thus.
+                     (when hide
+                       (remove-hook 'post-command-hook 'lsp-ui-doc--hide-frame)))))
+               :mode 'tick
+               :cancel-token :lsp-ui-doc-hover))
+          (eemacs/lsp-ui-doc-hide)
           (setq entropy/emacs-codeserver--lsp-ui-doc--bounds nil)))))
 
   (defun entropy/emacs-codeserver--lsp-ui-doc-hide ()
     (let ((event last-input-event))
-      (unless (or (ignore-errors (string-match-p "mouse" (symbol-name (car event))))
+      (unless (or (and (car-safe event) (symbolp (car event))
+                       (string-match-p "mouse" (symbol-name (car event))))
                   (eq (car-safe event) 'switch-frame))
-        (unless (member this-command
+        (unless (memq   this-command
                         ;; preserve the bounds log when these commands
                         ;; trigger since each of these commands may
                         ;; not change the bounds via
@@ -1207,9 +1212,8 @@ EEMACS_BUG: h-c02794e4-bdb8-4510-84cb-d668873b02fc
                           ,(lookup-key (current-local-map) (kbd "DEL"))
                           keyboard-quit
                           ))
-          (setq entropy/emacs-codeserver--lsp-ui-doc--bounds
-                nil))
-          (lsp-ui-doc-hide))))
+          (setq entropy/emacs-codeserver--lsp-ui-doc--bounds nil))
+        (eemacs/lsp-ui-doc-hide))))
 
   (defun entropy/emacs-codeserver--lsp-ui-doc-mode-around-advice
       (orig-func &rest orig-args)
