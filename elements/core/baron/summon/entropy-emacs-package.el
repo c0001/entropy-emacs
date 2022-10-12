@@ -441,6 +441,7 @@ command and rest of the command's arguments"
 ;; ** Use-package inititialize
 ;; Required by `use-package'
 
+(defvar entropy/emacs-package-init-use-packge-after-hook nil)
 (defun entropy/emacs-package-init-use-package  ()
   (entropy/emacs-require-only-once 'use-package)
   (if entropy/emacs-fall-love-with-pdumper
@@ -454,7 +455,7 @@ command and rest of the command's arguments"
               (not entropy/emacs-custom-enable-lazy-load))
     (setq use-package-expand-minimally t))
   (setq use-package-enable-imenu-support t)
-
+  (run-hooks 'entropy/emacs-package-init-use-packge-after-hook)
   (use-package diminish
     :commands (diminish))
   (use-package bind-key
@@ -494,7 +495,8 @@ command and rest of the command's arguments"
 ;; *** extra `use-package' keywords definition
 ;; **** :eemacs-functions
 
-(entropy/emacs-eval-after-load-only-once 'use-package
+(entropy/emacs-add-hook-with-lambda 'use-pakcage:eemacs-functions nil
+  :use-hook 'entropy/emacs-package-init-use-packge-after-hook
   (entropy/emacs-package--use-package-add-keyword
    :eemacs-functions))
 
@@ -524,7 +526,8 @@ are recognized as a normal function."
 
 ;; **** :eemacs-macros
 
-(entropy/emacs-eval-after-load-only-once 'use-package
+(entropy/emacs-add-hook-with-lambda 'use-pakcage:eemacs-macros nil
+  :use-hook 'entropy/emacs-package-init-use-packge-after-hook
   (entropy/emacs-package--use-package-add-keyword
    :eemacs-macros))
 
@@ -551,7 +554,8 @@ recognized as a normal macro."
 
 ;; **** :eemacs-adrequire
 
-(with-eval-after-load 'use-package
+(entropy/emacs-add-hook-with-lambda 'use-pakcage:eemacs-adrequire nil
+  :use-hook 'entropy/emacs-package-init-use-packge-after-hook
   (entropy/emacs-package--use-package-add-keyword
    :eemacs-adrequire
    :if))
