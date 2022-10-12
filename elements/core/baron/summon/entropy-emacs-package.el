@@ -188,32 +188,24 @@ and the return is the rechecking result like above."
 
 (defun entropy/emacs-package-pkg-installed-p (pkg)
   "Like `package-installed-p' but when PKG is `package-desc' and
-`package-installed-p' return nil, we check the `package-desc'
-with the version comparison in where `package-alist' and
-`package-archive-contents' to judger whether it is installed yet
-since the `package-desc' get from `package-archive-contents'
-didn't have an installing host meta but `package-installed-p' so
-as judge in this way for check the installing host whether
-exists simply."
+`package-installed-p' return nil, we check PKG's `package-desc-name'
+in `package-alist' if existed (i.e. the installed package with same
+name as PKG has), and compre PKG's version with that version, return
+non-nil when that version was equal or larger than PKG's
+`package-desc-version'. Otherwise return nil."
   (or (package-installed-p pkg)
-      (let ((pkg-cur-desc
-             (or
-              (and (package-desc-p pkg)
-                   (car (alist-get
-                         (package-desc-name pkg)
-                         package-alist)))
-              (car (alist-get pkg package-alist))))
-            pkg-archive-desc-list)
-        (when (package-desc-p pkg-cur-desc)
-          (setq pkg-archive-desc-list
-                (alist-get (package-desc-name pkg-cur-desc)
-                           package-archive-contents))
-          (catch :exit
-            (dolist (new-pkg-desc pkg-archive-desc-list)
-              (when (version-list-=
-                     (package-desc-version pkg-cur-desc)
-                     (package-desc-version new-pkg-desc))
-                (throw :exit t))))))))
+      (and (package-desc-p pkg)
+           (when-let
+               ((pkg-cur-desc
+                 (and (package-desc-p pkg)
+                      (car (alist-get
+                            (package-desc-name pkg)
+                            package-alist)))))
+             (when (entropy/emacs-version-compare
+                    '<=
+                    (package-desc-version pkg)
+                    (package-desc-version pkg-cur-desc))
+               t)))))
 
 (defun entropy/emacs-package-install-package (update print-prefix &rest args)
   "Install/update package by apply ARGS to `package-install'.
