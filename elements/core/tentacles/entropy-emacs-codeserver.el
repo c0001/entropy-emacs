@@ -1264,6 +1264,7 @@ updating."
 ;; Microsoft python-language-server support
 (use-package lsp-python-ms
   :if (eq entropy/emacs-codeserver-prefer-pyls-type 'mspyls)
+  :defines (lsp-python-ms-python-executable-cmd)
   :init
 
   ;; NOTE: like the lsp-pyright config we must disable the :multi-root

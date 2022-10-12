@@ -1622,6 +1622,8 @@ currnt fontset."
 (use-package helm-ag
   :if (string= entropy/emacs-search-program "ag")
   :commands (helm-do-ag helm-do-ag-project-root)
+  :defines (helm-ag-base-command
+            helm-ag-use-grep-ignore-list)
   :config
   ;; case-sensitive for ag search command.
   (setq helm-ag-base-command
