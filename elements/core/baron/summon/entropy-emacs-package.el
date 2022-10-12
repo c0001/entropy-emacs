@@ -440,14 +440,12 @@ command and rest of the command's arguments"
 
 ;; ** Use-package inititialize
 ;; Required by `use-package'
-
 (defvar entropy/emacs-package-init-use-packge-after-hook nil)
-(defun entropy/emacs-package-init-use-package  ()
-  (entropy/emacs-require-only-once 'use-package)
+(defun entropy/emacs-package-init-use-package ()
+  (require 'use-package)
   (if entropy/emacs-fall-love-with-pdumper
       (setq use-package-always-ensure nil)
     (setq use-package-always-ensure t))
-
   (setq use-package-always-defer entropy/emacs-custom-enable-lazy-load
         use-package-always-demand
         (not entropy/emacs-custom-enable-lazy-load))
