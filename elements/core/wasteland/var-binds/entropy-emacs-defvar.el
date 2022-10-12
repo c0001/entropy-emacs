@@ -1027,7 +1027,7 @@ equalized with
 `entropy/emacs-window-no-margin-column-width'."
   (let ((window (or window (selected-window))))
     (- (entropy/emacs-window-no-margin-column-width window)
-       (* 2 (entropy/emacs-window-center-calc-margin-width)))))
+       (* 2 (entropy/emacs-window-center-calc-margin-width window)))))
 
 (defun entropy/emacs-window-auto-center-mode-base-condition-satisfied-judge
     ()
