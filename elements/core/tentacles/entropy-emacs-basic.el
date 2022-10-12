@@ -3308,7 +3308,6 @@ displayed image as same operated mechanism as
       (goto-char (point-min)))
     (display-buffer buffer)))
 
-
 ;; *** Man-mode
 (use-package man
   :ensure nil
@@ -3426,9 +3425,9 @@ displayed image as same operated mechanism as
   ;; Disable the internal warning
   (with-eval-after-load 'warnings       ;FIXME: why? is it not preloading?
     (add-to-list 'warning-suppress-types
-                 '((defvaralias losing-value woman-topic-history)))
+                 '(defvaralias losing-value woman-topic-history))
     (add-to-list 'warning-suppress-log-types
-                 '((defvaralias losing-value woman-topic-history))))
+                 '(defvaralias losing-value woman-topic-history)))
   :config
 
   (defun __ya/woman-really-find-file (filename compressed bufname)
