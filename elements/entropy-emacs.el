@@ -126,6 +126,16 @@ BODY or FORMS requested context by `,@' in `backquote' forms.
 See also `entropy/emacs-macroexp-progn'."
   (or args (list nil)))
 
+(defmacro entropy/emacs-defalias (&rest args)
+  "Same as `defalias' but indeed return the SYMBOL.
+
+\(fn SYMBOL DEFINITION &optional DOCSTRING)"
+  (declare (indent 1))
+  (macroexp-let2* ignore ((sym-name nil))
+    `(let ((,sym-name ,(car args)))
+       (defalias ,sym-name ,@(cdr args))
+       ,sym-name)))
+
 (defmacro entropy/emacs-without-debugger (&rest body)
   "Run BODY without emacs debugger trigger out."
   `(let ((debug-on-error nil) (debug-on-quit nil)
