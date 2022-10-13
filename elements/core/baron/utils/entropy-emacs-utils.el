@@ -255,18 +255,15 @@
   (setq eldoc-idle-delay entropy/emacs-ide-doc-delay)
 
   ;; ---------- Temporally eldoc-mode patch
-  (defvar-local entropy/emacs-eldoc-inhibit-in-current-buffer nil)
+  (entropy/emacs-defvar-local-with-pml entropy/emacs-eldoc-inhibit-in-current-buffer nil)
   (defun entropy/emacs-eldoc-inhibit-around-advice
       (orig-func &rest orig-args)
     "Around advice for disable `eldoc-mode' with the idlle time
 of `eldoc-idle-delay' after excute the ORIG-FUNC."
     (unwind-protect
         (apply orig-func orig-args)
-      (prog1
-          nil
-        (setq
-         entropy/emacs-eldoc-inhibit-in-current-buffer
-         t))))
+      (and (setq entropy/emacs-eldoc-inhibit-in-current-buffer t)
+           nil)))
 
   :config
   ;; ---------- Truncate lines for eldoc message when in some occasions

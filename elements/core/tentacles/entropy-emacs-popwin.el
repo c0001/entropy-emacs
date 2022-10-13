@@ -263,8 +263,8 @@
   (defvar entropy/emacs-popwin--shackle-popup-display-history nil)
   ;; the local variable which indicate that `current-buffer' is a
   ;; displayed by shackle when non-nil
-  (defvar-local entropy/emacs-popwin--shackle-buffer-is-popup-buffer-p nil)
-  (put 'entropy/emacs-popwin--shackle-buffer-is-popup-buffer-p 'permanent-local t)
+  (entropy/emacs-defvar-local-with-pml
+   entropy/emacs-popwin--shackle-buffer-is-popup-buffer-p nil)
 
   (defun entropy/emacs-popwin--shackle-set-parameters-for-popup-buffer
       (buff &optional orig-window)

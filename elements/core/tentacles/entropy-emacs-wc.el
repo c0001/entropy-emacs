@@ -1283,7 +1283,7 @@ issue."
              (functionp entropy/emacs-wc--shrink-center-window-function))
     (funcall entropy/emacs-wc--shrink-center-window-function)))
 
-(defvar-local entropy/emacs-window-center-mode--is-set-p nil
+(entropy/emacs-defvar-local-with-pml entropy/emacs-window-center-mode--is-set-p nil
   "The `entropy/emacs-window-center-mode' enable internal indicator
 used for `entropy/emacs-window-center-mode' internally only.")
 (define-minor-mode entropy/emacs-window-center-mode
@@ -1324,8 +1324,8 @@ used for `entropy/emacs-window-center-mode' internally only.")
 ;; *** Manully method
 (when (eq entropy/emacs-window-center-mode-use-backend 'basic)
 
-  (defvar-local entropy/emacs-wc-centerwindow-basic--currentbuffer-centerred-p nil)
-  (defvar-local entropy/emacs-wc-centerwindow-basic--currentbuffer-window-margin nil)
+  (entropy/emacs-defvar-local-with-pml entropy/emacs-wc-centerwindow-basic--currentbuffer-centerred-p nil)
+  (entropy/emacs-defvar-local-with-pml entropy/emacs-wc-centerwindow-basic--currentbuffer-window-margin nil)
   (defvar       entropy/emacs-wc-centerwindow-basic--currentbuffer-center-step 1)
 
   (defun entropy/emacs-wc-centerwindow-basic--do-center ()

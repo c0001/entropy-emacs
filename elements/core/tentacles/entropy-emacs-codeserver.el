@@ -909,7 +909,7 @@ predicate when run it, see
 
 ;; ********* speed up `lsp--cur-line'
 
-  (defvar-local __eemacs-lsp-narrow-p nil)
+  (entropy/emacs-defvar-local-with-pml __eemacs-lsp-narrow-p nil)
   (defun __adv/around/narrow-to-region/lsp-restriction-deal
       (orig-func &rest orig-args)
     (let ((rtn (apply orig-func orig-args)))

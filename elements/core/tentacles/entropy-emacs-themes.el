@@ -195,7 +195,7 @@ Used to camoflauge the leading asterixes in `org-mode' when
   :type '(repeat (cons (face :tag "Source face")
                        (face :tag "Destination face"))))
 
-(defvar-local entropy/emacs-solaire-mode--local-faces-remap-cookie nil
+(entropy/emacs-defvar-local-with-pml entropy/emacs-solaire-mode--local-faces-remap-cookie nil
   "The local `face-remapping-alist' generated sibling cookie for
 `entropy/emacs-solaire-mode', used for
 `face-remap-remove-relative'.")

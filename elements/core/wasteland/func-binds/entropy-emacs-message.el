@@ -96,7 +96,7 @@ most of cases.")
 setting will suppress `entropy/emacs-message-non-popup'
 functional whenever what it is.")
 
-(defvar-local entropy/emacs-message--cur-buf-is-popup-p nil)
+(entropy/emacs-defvar-local-with-pml entropy/emacs-message--cur-buf-is-popup-p nil)
 (defvar entropy/emacs-message--idle-timer-for-hide-popup nil)
 
 ;; ** library
@@ -318,7 +318,7 @@ interactive session."
                      (message "%s" fn-msgstr))
                    (insert fn-insertion)
                    (redisplay t)
-                   (setq-local entropy/emacs-message--cur-buf-is-popup-p t)))))
+                   (setq entropy/emacs-message--cur-buf-is-popup-p t)))))
          (error "Can not create an `entropy/emacs-message-message-buffname' window."))
        ;; run an timer guard to force hide popuped message window
        (unless (timerp entropy/emacs-message--idle-timer-for-hide-popup)
@@ -496,7 +496,7 @@ NOTE: Just use it in `noninteractive' session."
         (delete-window win))
       (when (buffer-live-p (get-buffer buf-name))
         (with-current-buffer (get-buffer buf-name)
-          (setq-local entropy/emacs-message--cur-buf-is-popup-p nil)))
+          (setq entropy/emacs-message--cur-buf-is-popup-p nil)))
       (when (timerp entropy/emacs-message--idle-timer-for-hide-popup)
         (cancel-timer entropy/emacs-message--idle-timer-for-hide-popup)
         (setq entropy/emacs-message--idle-timer-for-hide-popup

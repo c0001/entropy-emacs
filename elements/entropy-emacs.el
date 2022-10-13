@@ -136,6 +136,16 @@ See also `entropy/emacs-macroexp-progn'."
        (defalias ,sym-name ,@(cdr args))
        ,sym-name)))
 
+(defmacro entropy/emacs-defvar-local-with-pml (&rest args)
+  "Same as `defvar-local' but also make VAR as permanent-local
+variable i.e. not cleared when buffer's `major-mode' changed (see
+`make-variable-buffer-local').
+
+\(fn var val &optional docstring)"
+  (declare (debug defvar) (doc-string 3) (indent defun))
+  `(prog1 (defvar-local ,@args)
+     (put ',(car args) 'permanent-local t)))
+
 (defmacro entropy/emacs-without-debugger (&rest body)
   "Run BODY without emacs debugger trigger out."
   `(let ((debug-on-error nil) (debug-on-quit nil)

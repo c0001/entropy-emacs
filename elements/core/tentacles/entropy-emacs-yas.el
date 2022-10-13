@@ -205,7 +205,7 @@
   :config
   (defvar entropy/emacs-yas--aya-snippets nil
     "Global variable to stored the aya-snippets")
-  (defvar-local entropy/emacs-yas--aya-snippets-local nil
+  (entropy/emacs-defvar-local-with-pml entropy/emacs-yas--aya-snippets-local nil
     "Local variable to stored the aya-snippets for
 `current-buffer'.")
 
