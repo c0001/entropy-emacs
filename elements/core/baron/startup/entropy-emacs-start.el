@@ -484,9 +484,7 @@ notation.
   ;; ends for minimal start
   (advice-remove 'require #'entropy/emacs-start--advice-for-require-prompt)
 
-  (defun entropy/emacs-start-M-enable ()
-    (interactive)
-    (message "This function has been unloaded."))
+  (fmakunbound 'entropy/emacs-start-M-enable)
   (entropy/emacs-message-do-message
    "%s %s"
    :force-message-while-eemacs-init t
@@ -547,9 +545,7 @@ notation.
   ;; end
   (advice-remove 'require #'entropy/emacs-start--advice-for-require-prompt)
 
-  (defun entropy/emacs-start-X-enable ()
-    (interactive)
-    (message "This function has been unloaded."))
+  (fmakunbound 'entropy/emacs-start-X-enable)
   (entropy/emacs-message-do-message
    "%s %s"
    :force-message-while-eemacs-init t
