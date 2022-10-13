@@ -3954,7 +3954,9 @@ CASE-TYPE can be one of 'capitalize' 'downcase' 'upcase'."
      ("l" forward-char "→"
       :enable t))
     "Action"
-    (("C-x r w" copy-rectangle-as-kill "copy"
+    (("C-x SPC" rectangle-mark-mode "rectangle begin"
+      :enable t :global-bind t :exit t)
+     ("C-x r w" copy-rectangle-as-kill "copy"
       :enable t :global-bind t :exit t)
      ("C-x r y" yank-rectangle "yank"
       :enable t :global-bind t :exit t)
