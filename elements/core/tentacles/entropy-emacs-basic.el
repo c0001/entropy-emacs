@@ -3368,25 +3368,21 @@ displayed image as same operated mechanism as
   (defvar entropy/emacs-Man-mode-fit-to-window-timer nil)
   (defun entropy/emacs-Man-mode-fit-to-window-with-idle (window)
     (unwind-protect
-        (when (window-live-p window)
-          (Man-fit-to-window window))
-      (setq entropy/emacs-Man-mode-fit-to-window-timer
-            nil)))
+        (when (window-live-p window) (Man-fit-to-window window))
+      (setq entropy/emacs-Man-mode-fit-to-window-timer nil)))
   (defun entropy/emacs-Man-mode-fit-to-window
       (&optional buffer inct)
     "Like `Man-fit-to-window' but with eemacs spec."
     (interactive
      (list (current-buffer) t)
      Man-mode)
-    (when-let* ((buffer (or buffer (current-buffer)))
+    (when-let* ((buffer    (or buffer (current-buffer)))
                 (buffobj-p (and buffer (buffer-live-p buffer)))
-                (window (get-buffer-window
-                         (current-buffer)))
-                (winobj-p (and window (window-live-p window))))
+                (window    (get-buffer-window buffer))
+                (winobj-p  (and window (window-live-p window))))
       (with-current-buffer buffer
         (let (_)
-          (when (and (eq major-mode 'Man-mode)
-                     (window-live-p window))
+          (when (and winobj-p (eq major-mode 'Man-mode))
             (if
                 ;; Use direct progn did in these conditions
                 (or inct
