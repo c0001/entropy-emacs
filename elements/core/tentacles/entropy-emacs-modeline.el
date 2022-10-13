@@ -91,17 +91,16 @@
 
 (defun entropy/emacs-modeline--subr-func->get-current-window ()
   ;; Get the current window but should exclude on the child frame.
-  (if (and (fboundp 'frame-parent) (frame-parent))
-      (frame-selected-window (frame-parent))
-    (frame-selected-window)))
+  (let (frmp)
+    (if (and (fboundp 'frame-parent) (setq frmp (frame-parent)))
+        (frame-selected-window frmp)
+      (frame-selected-window))))
 
 (defun entropy/emacs-modeline--subr-func->set-selected-window
     (&optional orig-func &rest orig-args)
-  (let ((rtn (when (and orig-func
-                        (functionp orig-func))
+  (let ((rtn (when (and orig-func (functionp orig-func))
                (apply orig-func orig-args)))
-        (win
-         (entropy/emacs-modeline--subr-func->get-current-window)))
+        (win (entropy/emacs-modeline--subr-func->get-current-window)))
     (unless (minibuffer-window-active-p win)
       (setq entropy/emacs-modeline--subr-var->current-selected-window win))
     rtn))
@@ -173,11 +172,10 @@ This customization mainly adding the eyebrowse slot and tagging name show functi
                        (number-to-string cs)))
              rtn)
         (setq rtn (concat
-                   (propertize (concat " " (number-to-string cs) ":") 'face mdlface)
+                   (propertize (concat (make-string 1 ?\x03BB) " " (number-to-string cs) " ") 'face mdlface)
                    (propertize (concat current-tag " ") 'face mdlface)
                    " "))
-        (setq entropy/emacs-modeline--mdl-common-eyebrowse-segment
-              rtn))
+        (setq entropy/emacs-modeline--mdl-common-eyebrowse-segment rtn))
     entropy/emacs-modeline--mdl-common-eyebrowse-segment))
 
 
@@ -312,73 +310,95 @@ return nil"
     (icon plain)
   "Use icon or plain text for modeline spec."
   (if (entropy/emacs-icons-displayable-p)
-      icon
-    plain))
+      (if (stringp icon) icon (format "%s" icon)) plain))
 
 (defvar entropy/emacs-modeline--simple-mode-line-format)
-(setq
- entropy/emacs-modeline--simple-mode-line-format
- '("%e"
-   ;; mode-line-front-space
-   (:eval (if (and
-               (bound-and-true-p eyebrowse-mode)
-               ;; more conditions
-               )
-              (entropy/emacs-modeline--mdl-common-eyebrowse-segment)))
-   mode-line-mule-info
-   mode-line-client
-   mode-line-modified " "
-   (:eval
-    (if (buffer-narrowed-p)
-        (entropy/emacs-modeline--origin-mdl-propertize-face "><" 'warning)
-      "↕"))
-   ;;"remote:" mode-line-remote " "
-   ;; mode-line-frame-identification
-   ;; mode-line-modes
-   " "
-   (:eval
-    (entropy/emacs-modeline--origin-mdl-use-icon-or-plain
-     (cond ((string-match-p "magit" (symbol-name major-mode))
-            (all-the-icons-icon-for-mode major-mode :v-adjust 0.001))
-           ((and (derived-mode-p 'prog-mode)
-                 (not (eq major-mode 'emacs-lisp-mode)))
-            (cond
-             ((and (eq major-mode 'python-mode)
-                   (eq entropy/emacs-theme-sticker 'doom-1337))
-              (all-the-icons-icon-for-mode
-               major-mode
-               :v-adjust 0.001
-               :face 'all-the-icons-maroon))
-             (t
-              (all-the-icons-icon-for-mode major-mode :v-adjust 0.001))))
-           (t
-            (all-the-icons-icon-for-mode major-mode)))
-     (entropy/emacs-modeline--origin-mdl-propertize-face
-      (format "%s" major-mode)
-      (if (member entropy/emacs-theme-sticker '(doom-1337))
-          'highlight
-        'success))))
-   " "
-   "" entropy/emac-modeline--origin-mdl-buffer-identification " "
-   (:eval
-    (entropy/emacs-modeline--origin-mdl-use-icon-or-plain
-     (concat (all-the-icons-faicon "pencil-square-o" :face 'all-the-icons-yellow :v-adjust -0.1) " ")
-     (concat (entropy/emacs-modeline--origin-mdl-propertize-face
-              "POS:"
-              'link)
-             " ")))
-   mode-line-position
-   (:eval
-    (when vc-mode
-      (entropy/emacs-modeline--origin-mdl-use-icon-or-plain
-       (format " %s%s " (all-the-icons-octicon "git-branch" :v-adjust 0.01 :face 'all-the-icons-red)
-               vc-mode)
-       (format "%s "
-               (entropy/emacs-modeline--origin-mdl-propertize-face
-                vc-mode
-                'warning)))))
-   mode-line-misc-info
-   mode-line-end-spaces))
+(defvar entropy/emacs-modeline--simple-mode-line-rhs-fmt
+  (list
+   '(:eval
+     ;; > VCS
+     (when vc-mode
+       (entropy/emacs-modeline--origin-mdl-use-icon-or-plain
+        (format " %s%s " (all-the-icons-octicon "git-branch" :v-adjust 0.01 :face 'all-the-icons-red)
+                vc-mode)
+        (format "%s " (entropy/emacs-modeline--origin-mdl-propertize-face vc-mode 'warning)))))
+   ;; > Union informations
+   'mode-line-misc-info
+   ;; > Buffer position
+   '(:eval
+     (entropy/emacs-modeline--origin-mdl-use-icon-or-plain
+      (concat (all-the-icons-faicon "pencil-square-o" :face 'all-the-icons-yellow :v-adjust -0.1) " ")
+      " "))
+   'mode-line-position))
+
+(entropy/emacs-setf-by-body entropy/emacs-modeline--simple-mode-line-format
+  `("%e"
+    ;; ---------- lhs ----------
+    ;; > Eyebrowse
+    (:eval (if (and
+                (bound-and-true-p eyebrowse-mode)
+                ;; TODO: more conditions
+                )
+               (entropy/emacs-modeline--mdl-common-eyebrowse-segment)))
+    ;; > IME
+    mode-line-mule-info
+    ;; > Daemon Client
+    mode-line-client
+    ;; > Buffer Modification
+    mode-line-modified " "
+    ;; > Buffer Narrow Status
+    (:eval
+     (if (buffer-narrowed-p)
+         (entropy/emacs-modeline--origin-mdl-propertize-face "><" 'warning)
+       (entropy/emacs-modeline--origin-mdl-propertize-face "<>" 'success)))
+    ;;"remote:" mode-line-remote " "
+    ;; mode-line-frame-identification
+    ;; mode-line-modes
+    " "
+    ;; > Major Mode
+    (:eval
+     (entropy/emacs-modeline--origin-mdl-use-icon-or-plain
+      (cond ((string-match-p "magit" (symbol-name major-mode))
+             (all-the-icons-icon-for-mode major-mode :v-adjust 0.001))
+            ((and (derived-mode-p 'prog-mode)
+                  (not (eq major-mode 'emacs-lisp-mode)))
+             (cond
+              ((and (eq major-mode 'python-mode)
+                    (eq entropy/emacs-theme-sticker 'doom-1337))
+               (all-the-icons-icon-for-mode
+                major-mode
+                :v-adjust 0.001
+                :face 'all-the-icons-maroon))
+              (t
+               (all-the-icons-icon-for-mode major-mode :v-adjust 0.001))))
+            (t
+             (all-the-icons-icon-for-mode major-mode)))
+      (entropy/emacs-modeline--origin-mdl-propertize-face
+       (format "%s" major-mode)
+       (if (member entropy/emacs-theme-sticker '(doom-1337))
+           'entropy/emacs-defface-simple-color-face-yellow-bold
+         'success))))
+    " "
+    ;; > Buffer Name
+    entropy/emac-modeline--origin-mdl-buffer-identification " "
+    ;; ---------- alignment spaces ----------
+    (:eval
+     (propertize
+      " "
+      'display
+      (entropy/emacs-double-list
+       'space
+       :align-to
+       (list '- '(+ right right-fringe right-margin scroll-bar)
+             (+
+              (string-width
+               (format-mode-line
+                ;; FIXME: why must be a cons or the calculation will
+                ;; not be precisely? (copied from `doom-modeline')
+                (cons "" entropy/emacs-modeline--simple-mode-line-rhs-fmt)))
+              (if (display-graphic-p) 2 0))))))
+    ;; ---------- lhs ----------
+    ,@entropy/emacs-modeline--simple-mode-line-rhs-fmt))
 
 (defun entropy/emacs-mode-line-origin-theme ()
   (setq-default
@@ -386,11 +406,7 @@ return nil"
    '(:eval
      (if (entropy/emacs-modeline--subr-func->judge-current-window-focus-on-p)
          entropy/emacs-modeline--simple-mode-line-format
-       (propertize
-        (make-string
-         (+ (window-width) 3) ?─ t)
-        'face
-        'error)))))
+       (propertize (make-string (+ (window-width) 3) ?─ t) 'face 'error)))))
 
 ;; **** doom modeline
 (entropy/emacs-usepackage-with-permanently-defer doom-modeline
