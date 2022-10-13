@@ -1114,48 +1114,51 @@ indicate the false meaning."
    (error "window center window judgements return error")))
 
 (defvar entropy/emacs-window-auto-center-mode-turn-on-filter-list
-  '(
-    ;; ---------- default filter
-    (lambda (buffer-or-name)
-      (catch :exit
-        (let* ((win (get-buffer-window buffer-or-name))
-               (win-live-p (and (windowp win)
-                                (window-live-p win)))
-               (buff-buff (get-buffer buffer-or-name))
-               (buff-name (when-let ((buff (get-buffer buffer-or-name)))
-                            (buffer-name buff))))
-          (unless (entropy/emacs-window-auto-center-mode-base-condition-satisfied-judge)
-            (throw :exit 'auto-center-base-condition-not-satisfied))
-          (unless (not (minibufferp buff-buff))
-            (throw :exit 'minibufferp))
-          (unless win-live-p
-            (throw :exit 'no-live-win))
-          (unless (or (entropy/emacs-frame-is-fullscreen-p)
-                      (entropy/emacs-frame-is-maximized-p))
-            (when (and (not noninteractive) (not (display-graphic-p)))
-              ;; forcely disable auto window center mode in cli
-              ;; session since we can not judge the maximized status
-              ;; of the term.
-              (setq entropy/emacs-window-center-auto-mode-enable-p nil)
-              (throw :exit 'in-cli-session))
-            (throw :exit 'frame-not-fullscreen))
-          (with-current-buffer buffer-or-name
-            ;; should not auto center window for elfeed search buffer
-            ;; since it has long title line.
-            (when (eq major-mode 'elfeed-search-mode)
-              (throw :exit 'elfeed-search-mode)))
-          (unless (entropy/emacs-window-horizontally-fill-frame-p win)
-            (throw :exit 'window-not-horizontally-fill-frame))
-          (when (string-match-p "^\\*\\(Proced\\|Process List\\).*$"
-                                buff-name)
-            (throw :exit 'process-buffer-detected))
-          (when (string= "*eemacs-minor-tools/print-var*" buff-name)
-            (throw :exit 'eemacs-var-print-buffer))
-          t)))
+  (list
+   ;; ---------- default filter
+   (entropy/emacs-defalias 'entropy/emacs-window-auto-center-mode-turn-on-default-filter
+     #'(lambda (buffer-or-name)
+         (catch :exit
+           (let* ((win (get-buffer-window buffer-or-name))
+                  (win-live-p (and (windowp win)
+                                   (window-live-p win)))
+                  (buff-buff (get-buffer buffer-or-name))
+                  (buff-name (when-let ((buff (get-buffer buffer-or-name)))
+                               (buffer-name buff))))
+             (unless (entropy/emacs-window-auto-center-mode-base-condition-satisfied-judge)
+               (throw :exit 'auto-center-base-condition-not-satisfied))
+             (unless (not (minibufferp buff-buff))
+               (throw :exit 'minibufferp))
+             (unless win-live-p
+               (throw :exit 'no-live-win))
+             (unless (or (entropy/emacs-frame-is-fullscreen-p)
+                         (entropy/emacs-frame-is-maximized-p))
+               (when (and (not noninteractive) (not (display-graphic-p)))
+                 ;; forcely disable auto window center mode in cli
+                 ;; session since we can not judge the maximized status
+                 ;; of the term.
+                 (setq entropy/emacs-window-center-auto-mode-enable-p nil)
+                 (throw :exit 'in-cli-session))
+               (throw :exit 'frame-not-fullscreen))
+             (with-current-buffer buffer-or-name
+               ;; should not auto center window for elfeed search buffer
+               ;; since it has long title line.
+               (when (eq major-mode 'elfeed-search-mode)
+                 (throw :exit 'elfeed-search-mode)))
+             (unless (entropy/emacs-window-horizontally-fill-frame-p win)
+               (throw :exit 'window-not-horizontally-fill-frame))
+             (when (string-match-p "^\\*\\(Proced\\|Process List\\).*$"
+                                   buff-name)
+               (throw :exit 'process-buffer-detected))
+             (when (string= "*eemacs-minor-tools/print-var*" buff-name)
+               (throw :exit 'eemacs-var-print-buffer))
+             t)))
+     "The default filter function for
+`entropy/emacs-window-auto-center-mode-turn-on-filter-list'.")
 
-    ;; ---------- Others ...
+   ;; ---------- Others ...
 
-    )
+   )
   "Like `entropy/emacs-window-center-mode-turn-on-filter-list', a list of
 filter function with one argument BUFFER-OR-NAME, and always
 return non-nil, t for should enable
