@@ -923,7 +923,7 @@ function name has been changed, please update internal hack of \
 will messy emacs performance, really enable it?"
         modeline-name-str))
       t
-    (error "Cancled enable doom-modeline!")))
+    (error "Cancled enable `%s'!" modeline-name-str)))
 
 (defun entropy/emacs-modeline--mdl-tidy-spec ()
   (pcase entropy/emacs-mode-line-sticker
@@ -1042,16 +1042,14 @@ format enabling process.
       :enable t :toggle (string= entropy/emacs-mode-line-sticker "doom"))
      ("m m d d"
       (:eval
-       (prog1
-           '__doom-modeline--ensure-warn/hydra-func
-         (defalias '__doom-modeline--ensure-warn/hydra-func
-           (lambda nil
-             (interactive)
-             (if (bound-and-true-p doom-modeline-mode)
-                 (funcall
-                  (entropy/emacs-hydra-hollow-category-common-individual-get-caller
-                   'doom-modeline-dispatch))
-               (message "doom-modeline is no actived yet!"))))))
+       (entropy/emacs-defalias '__doom-modeline--ensure-warn/hydra-func
+         (lambda nil
+           (interactive)
+           (if (bound-and-true-p doom-modeline-mode)
+               (funcall
+                (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+                 'doom-modeline-dispatch))
+             (message "doom-modeline is no actived yet!")))))
       "Call the dispatch for [doom-mode-line]."
       :enable t :exit t)
      ("m m s t" entropy/emacs-modeline-mdl-spaceline-toggle
@@ -1120,7 +1118,7 @@ style which defined in `entropy/emacs-modeline-style'."
         (entropy/emacs-modeline--mdl-init)))
     (setq entropy/emacs-mode-line-sticker entropy/emacs-modeline-style)
     (unless cancel-branch
-      (funcall `(lambda () ,entropy/emacs-modeline--mdl-init-caller)))))
+      (entropy/emacs-eval-with-lexical entropy/emacs-modeline--mdl-init-caller))))
 
 ;; ** modeline-hide feature
 (use-package hide-mode-line
