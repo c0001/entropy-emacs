@@ -495,6 +495,21 @@ will combined with =entropy-emacs= internal specification."
   :type 'integer
   :group 'entropy/emacs-customize-group-for-editor-tab-width)
 
+;; **** whitespace
+(defgroup entropy/emacs-customize-group-for-editor-whitespace nil
+  "Eemacs editor `whitespace-mode' configuration customizable group."
+  :group 'entropy-emacs-customize-top-group)
+
+(defcustom entropy/emacs-inhibit-simple-whitespace-clean nil
+  "Non-nil inhibit `entropy/emacs-basic-simple-whitespace-clean' did
+before `current-buffer' saving procedure. Defaultly disabled.
+
+You can use `add-dir-local-variable' to enable this to a individual
+directory tree. Or use `setq-local' to make it temporarily locally for
+`current-buffer'."
+  :type 'boolean
+  :group 'entropy/emacs-customize-group-for-editor-whitespace)
+
 ;; **** line hints
 (defgroup entropy/emacs-customize-group-for-editor-line-hints nil
   "Eemacs ivy-mode configuration customizable group."

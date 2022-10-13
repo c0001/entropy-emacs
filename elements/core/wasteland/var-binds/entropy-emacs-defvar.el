@@ -1836,9 +1836,5 @@ conditions and consider that should be inhibited.")
 
 ;; ** coding sytle
 
-(defvar-local entropy/emacs-inhibit-simple-whitespace-clean nil
-  "Non-nil inhibit `entropy/emacs-basic-simple-whitespace-clean'
-did before current buffer saving procedure.")
-
 ;; * provide
 (provide 'entropy-emacs-defvar)
