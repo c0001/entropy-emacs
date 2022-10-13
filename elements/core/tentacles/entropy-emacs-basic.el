@@ -3982,32 +3982,38 @@ CASE-TYPE can be one of 'capitalize' 'downcase' 'upcase'."
 
 ;; ****** Major mode reload
 (defun entropy/emacs-basic-major-mode-reload ()
-  "Reload current `major-mode'.
+  "Reload current `major-mode' with interactively only.
 
-This function was usable for some occurrence that current mode
-functional part was missed or be without working on the proper
-way. "
+This command was usable for some occurrence that current `major-mode'
+functional part was missed or be without working on the proper way."
   (declare (interactive-only t))
   (interactive)
-  (if (not (string-match-p "^CAPTURE-" (buffer-name)))
-      (let ((point (point))
-            (mode major-mode))
-        (progn
-          (cond
-           ((derived-mode-p 'prog-mode)
-            ;; switch to `fundamental-mode' firstly for preventing
-            ;; some unexpected messy while prog modes is major-mode
-            ;; FIXME: why?
-            (fundamental-mode))
-           (t
-            t))
-          (funcall mode))
-        (when (eq major-mode 'org-mode)
-          (outline-show-all))
+  (let (abrt-reason (reason-head-str "Reload major-mode in current"))
+    (if (or (and (eq major-mode 'org-mode)
+                 (string-match-p "^CAPTURE-" (buffer-name))
+                 (setq abrt-reason
+                       "org capture buffer will cause capture progress interrupted")
+                 (not (yes-or-no-p
+                       (format "%s %s, really do?" reason-head-str abrt-reason))))
+            ;; TODO: more filters ...
+            )
+        (error "You can not refresh `%s' in this buffer, \
+if did may cause some troubles since: [%s %s]."
+               (symbol-name major-mode) reason-head-str abrt-reason)
+      (let ((point (point)) (mode major-mode))
+        (cond
+         ((derived-mode-p 'prog-mode)
+          ;; switch to `fundamental-mode' firstly for preventing
+          ;; some unexpected messy while prog modes is major-mode
+          ;; FIXME: why?
+          (fundamental-mode))
+         ;; TODO: more preparations ...
+         (t t))
+        (funcall mode)
+        (when (eq major-mode 'org-mode) (outline-show-all))
         (goto-char point)
-        (message "Reloaded current major mode '%s'!" (symbol-name major-mode)))
-    (error "You can not refresh %s in this buffer, if did may cause some bug."
-           (symbol-name major-mode))))
+        (message "Reloaded current major mode '%s'!"
+                 (symbol-name major-mode))))))
 
 ;; ****** Kill-buffer-and-window spec
 
