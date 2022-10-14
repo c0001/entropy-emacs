@@ -371,10 +371,9 @@ information used to distinguish this as special from others.
             ,fname-sym)
        (if (eq (car-safe ,fname-prefix-sym) t)
            (setq ,fname-sym (cdr ,fname-prefix-sym))
-         ;; Prevent re-define
          (entropy/emacs-setf-by-body ,fname-sym
            (entropy/emacs-make-new-interned-symbol
-            "__eemacs-with-lambda-")))
+            (format "__eemacs-with-lambda-%s/" ,fname-prefix-sym))))
        (defalias ,fname-sym
          ,(macroexpand-1
            `(entropy/emacs-cl-lambda-with-lcb ,@real-args)))
@@ -515,8 +514,9 @@ returned symbol."
     sym-rtn))
 
 (defmacro entropy/emacs-define-new-function (&rest args)
-  "Like `entropy/emacs-cl-lambda-with-lcb' but return the new allocated
-random dynamic function name symbol of the defination of BODY.
+  "Like `entropy/emacs-cl-lambda-with-lcb' but return the new function
+name symbol (who is indeed new to and belong to `obarray' and without
+any properties set) of the defination of BODY.
 
 \(fn ARGLIST [DOCSTRING] [DECL] [INCT] &key WITH-LEXICAL-BINDINGS &rest BODY)"
   (declare (doc-string 2) (indent defun))
