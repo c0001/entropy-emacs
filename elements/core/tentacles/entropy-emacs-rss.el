@@ -1042,7 +1042,7 @@ the entry contents since we should respect
         (elfeed-show-mode)
         (setq elfeed-show-entry entry)
         (let ((func-sym
-               (entropy/emacs-make-new-function-name (&rest _)
+               (entropy/emacs-define-new-function (&rest _)
                  "The `elfeed-show-entry' hack hooker."
                  (when (buffer-live-p buff)
                    (with-current-buffer buff

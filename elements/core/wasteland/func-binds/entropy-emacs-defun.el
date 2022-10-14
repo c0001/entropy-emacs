@@ -372,12 +372,9 @@ information used to distinguish this as special from others.
        (if (eq (car-safe ,fname-prefix-sym) t)
            (setq ,fname-sym (cdr ,fname-prefix-sym))
          ;; Prevent re-define
-         (while (fboundp
-                 (entropy/emacs-intern-to-var ,fname-sym
-                   (format
-                    "eemacs-%s/%s"
-                    (or ,fname-prefix-sym "lambda-nil")
-                    (random most-positive-fixnum))))))
+         (entropy/emacs-setf-by-body ,fname-sym
+           (entropy/emacs-make-new-interned-symbol
+            "__eemacs-with-lambda-")))
        (defalias ,fname-sym
          ,(macroexpand-1
            `(entropy/emacs-cl-lambda-with-lcb ,@real-args)))
@@ -442,45 +439,82 @@ arguments exclude the SYMBOL which is defined by WITHOUT-ANONYMOUS.
 ;; ** Common manipulations
 ;; *** Emacs internal api replacement
 
-(defmacro entropy/emacs-intern (&rest body)
-  "`intern' BODY's value as symbol and return the interned symbol.
+(cl-defmacro entropy/emacs-intern (&rest body &key with-obarray &allow-other-keys)
+  "`intern' BODY's VALUE to obarray WITH-OBRRAY (defaults to `obarray')
+and return the interned symbol.
 
-In which case BODY's value must be a string or error raised up.
+BODY's VALUE must be a `stringp' STRING or error raised up. Or as
+further more that if VALUE is a symbol then use that symbol's
+`symbol-name' as that STRING.
 
-\(fn BODY...)"
-  `(intern (progn ,@body)))
+\(fn &key WITH-OBARRAY &rest BODY...)"
+  (setq body (entropy/emacs-macroexp-progn (entropy/emacs-defun--get-real-body body)))
+  (macroexp-let2* ignore ((sym-name nil))
+    `(progn
+       (setq ,sym-name ,body)
+       (if (symbolp ,sym-name) (setq ,sym-name (symbol-name ,sym-name))
+         (unless (stringp ,sym-name)
+           (signal 'wrong-type-argument
+                   (list 'stringp ,sym-name))))
+       (intern ,sym-name ,with-obarray))))
 
 (defmacro entropy/emacs-intern-to-var (var &rest body)
   "Like `entropy/emacs-intern' but also set VAR as its return.
 
 VAR should be a variable name or a `setf' compatible place.
 
-\(fn VAR BODY...)"
+\(fn VAR &key WITH-OBARRAY &rest BODY...)"
   (declare (indent 1))
-  `(setf ,var (intern (progn ,@body))))
+  `(setf ,var ,(macroexpand-1 `(entropy/emacs-intern ,@body))))
 
-(defvar entropy/emacs-make-dynamic-symbol-as-same-value/heap-head-number 0)
-(defun entropy/emacs-make-dynamic-symbol-as-same-value (var)
-  "Make a new dynamic symbol (predicated by `special-variable-p'
-and interned in `obarray') whose value is same as VAR's value
-i.e. predicated by `eq'."
-  (let* (sym-rtn)
-    (entropy/emacs-intern-to-var sym-rtn
-      (prog1
-          (format "entropy/emacs-make-dynamic-symbol-as-same-value/%d"
-                  entropy/emacs-make-dynamic-symbol-as-same-value/heap-head-number)
-        (cl-incf entropy/emacs-make-dynamic-symbol-as-same-value/heap-head-number)))
+(defun entropy/emacs-make-new-interned-symbol (&optional prefix identity for-obarray)
+  "Return a new allocated symbol where its value is void, and its
+function definition and property list are also nil. And it's
+`intern'ed to FOR-OBARRAY (defaults to `obarray').
+
+If PREFIX is set, it should be a string as a prefix for the return. Or
+PREFIX also can be a symbol, then its `symbol-name' is used for that
+procedure. If IDENTITY is non-nil at mean while, return a interned
+symbol consisted by PREFIX or its `symbol-name' immediately."
+  (if (and prefix identity) (entropy/emacs-intern :with-obarray for-obarray prefix)
+    (let (sym
+          (prefix
+           (and
+            prefix
+            (if (symbolp prefix) (symbol-name prefix)
+              (if (stringp prefix) prefix
+                (signal 'wrong-type-argument
+                        (list 'stringp prefix)))))))
+      (while
+          (intern-soft
+           (entropy/emacs-setf-by-body sym
+             (symbol-name (gensym (or prefix "entropy/emacs-make-new-interned-symbol/"))))
+           for-obarray))
+      (setq sym (intern sym for-obarray))
+      ;; return
+      sym)))
+
+(defun entropy/emacs-make-dynamic-symbol-as-same-value (value &optional prefix)
+  "Make a new dynamic symbol (predicated by `special-variable-p' and it's
+function definition and property list are nil) whose value is same as
+VALUE i.e. predicated by `eq'.
+
+If PREFIX is set, it should be a string or a symbol where its
+`symbol-name' is used as that string, used as a prefix for the
+returned symbol."
+  (let ((sym-rtn
+         (entropy/emacs-make-new-interned-symbol
+          (or prefix "entropy/emacs-make-dynamic-symbol-as-same-value/"))))
     (eval
      ;; use `defvar' to declare it as an dynamic special variable
      ;; without lexical-binding environment wrapped.
-     `(defvar ,sym-rtn ',var
+     `(defvar ,sym-rtn ',value
         "Dynamic variable defined by `entropy/emacs-make-dynamic-symbol-as-same-value'")
      ;; do not use lexical env
      nil)
     sym-rtn))
 
-(defmacro entropy/emacs-make-new-function-name
-    (&rest args)
+(defmacro entropy/emacs-define-new-function (&rest args)
   "Like `entropy/emacs-cl-lambda-with-lcb' but return the new allocated
 random dynamic function name symbol of the defination of BODY.
 
