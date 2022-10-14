@@ -494,7 +494,7 @@ symbol consisted by PREFIX or its `symbol-name' immediately."
       ;; return
       sym)))
 
-(defun entropy/emacs-make-dynamic-symbol-as-same-value (value &optional prefix)
+(defun entropy/emacs-make-new-special-variable (value &optional prefix)
   "Make a new dynamic symbol (predicated by `special-variable-p' and it's
 function definition and property list are nil) whose value is same as
 VALUE i.e. predicated by `eq'.
@@ -504,12 +504,12 @@ If PREFIX is set, it should be a string or a symbol where its
 returned symbol."
   (let ((sym-rtn
          (entropy/emacs-make-new-interned-symbol
-          (or prefix "entropy/emacs-make-dynamic-symbol-as-same-value/"))))
+          (or prefix "entropy/emacs-make-new-special-variable/"))))
     (eval
      ;; use `defvar' to declare it as an dynamic special variable
      ;; without lexical-binding environment wrapped.
      `(defvar ,sym-rtn ',value
-        "Dynamic variable defined by `entropy/emacs-make-dynamic-symbol-as-same-value'")
+        "Dynamic variable defined by `entropy/emacs-make-new-special-variable'")
      ;; do not use lexical env
      nil)
     sym-rtn))
@@ -521,7 +521,7 @@ random dynamic function name symbol of the defination of BODY.
 \(fn ARGLIST [DOCSTRING] [DECL] [INCT] &key WITH-LEXICAL-BINDINGS &rest BODY)"
   (declare (doc-string 2) (indent defun))
   (let ((sym (make-symbol "sym")))
-    `(let ((,sym (entropy/emacs-make-dynamic-symbol-as-same-value
+    `(let ((,sym (entropy/emacs-make-new-special-variable
                   (lambda (&rest _)
                     (error "Wrong usage of this function symbol")))))
        (defalias ,sym
@@ -6969,7 +6969,7 @@ can be used into your form:
                      ;; interaction session may freeze emacs why? and thus
                      ;; we just used this in noninteraction session.
                      noninteractive)
-            (entropy/emacs-make-dynamic-symbol-as-same-value nil)))
+            (entropy/emacs-make-new-special-variable nil)))
 
     ;; set var-binding here to prevent duplicate eval
     (let ((cprss-args (entropy/emacs-eval-with-lexical
@@ -8855,7 +8855,7 @@ Thus, defaulty this function will forcely using the system 'curl'
 command to be the main subroutine when the 'curl' command existed in
 your system. Unless its `eq' to an symbol 'force-not'."
   (let* ((timeout (or (and (integerp timeout) timeout) 1))
-         (cbksym (entropy/emacs-make-dynamic-symbol-as-same-value nil))
+         (cbksym (entropy/emacs-make-new-special-variable nil))
          (use-curl (or (and (and use-curl (not (eq use-curl 'force-not)))
                             (if (executable-find "curl")
                                 t
@@ -8997,7 +8997,7 @@ so that following keys are supported:
                         (expand-file-name (file-name-nondirectory tmp-file) destination)))
          (default-directory (entropy/emacs-return-as-default-directory
                              temporary-file-directory))
-         (cbk-symbol (entropy/emacs-make-dynamic-symbol-as-same-value nil))
+         (cbk-symbol (entropy/emacs-make-new-special-variable nil))
          (tmp-file-del-func
           (lambda (&optional do-error)
             (condition-case err
@@ -9061,7 +9061,7 @@ so that following keys are supported:
            (inhibit-quit t)
            (success-message (format "Download from '%s' finished" url))
            (success-or-fatal-func-call-done-p-sym
-            (entropy/emacs-make-dynamic-symbol-as-same-value nil))
+            (entropy/emacs-make-new-special-variable nil))
            (success-func (lambda ()
                            (message success-message)
                            (set cbk-symbol 'success)
