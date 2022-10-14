@@ -486,12 +486,13 @@ random dynamic function name symbol of the defination of BODY.
 
 \(fn ARGLIST [DOCSTRING] [DECL] [INCT] &key WITH-LEXICAL-BINDINGS &rest BODY)"
   (declare (doc-string 2) (indent defun))
-  `(let ((sym (entropy/emacs-make-dynamic-symbol-as-same-value
-               (lambda (&rest _)
-                 (error "Wrong usage of this function symbol")))))
-     (defalias sym
-       ,(macroexpand-1 `(entropy/emacs-cl-lambda-with-lcb ,@args)))
-     sym))
+  (let ((sym (make-symbol "sym")))
+    `(let ((,sym (entropy/emacs-make-dynamic-symbol-as-same-value
+                  (lambda (&rest _)
+                    (error "Wrong usage of this function symbol")))))
+       (defalias ,sym
+         ,(macroexpand-1 `(entropy/emacs-cl-lambda-with-lcb ,@args)))
+       ,sym)))
 
 (defun entropy/emacs-unintern-symbol (symbol &optional use-obarray)
   "Like `unintern' but use SYMBOL as the main arg since although
