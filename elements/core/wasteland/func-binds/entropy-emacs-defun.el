@@ -11446,7 +11446,8 @@ stored the error log in
           new-args-parse (progn (plist-put args-parse :body-plist inc-pl)
                                 (plist-put args-parse :body new-body))
           new-args (entropy/emacs-merge-lambda-args new-args-parse))
-    `(let ((,func-name-sym (intern (format "%s-for-emacs-daemon" (symbol-name ,name)))))
+    `(when-let (((daemonp))
+                (,func-name-sym (intern (format "%s-for-emacs-daemon" ,name))))
        (entropy/emacs-add-hook-with-lambda ,func-name-sym ,@new-args))))
 
 (when (daemonp)
