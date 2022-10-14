@@ -996,9 +996,9 @@ saved by
      #'entropy/emacs-wc-eyebrowse-savecfg--daemon-client-guard)
     ;; build daemon injection
     (entropy/emacs-with-daemon-make-frame-done
-     'Restore-eyebrowse-config
-     nil nil
-     '(let (_)
+      'Restore-eyebrowse-config (&rest _)
+      "Preserve eyebrowse configs for daemon client."
+      (let (_)
         (entropy/emacs-wc-eyebrowse-savecfg--daemon-restore-saved-config
          (selected-frame)))))
 

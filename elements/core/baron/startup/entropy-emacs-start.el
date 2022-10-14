@@ -402,9 +402,8 @@ notation.
     (defvar entropy/emacs-start--internalIME-daemon-init-guard-func nil)
     (setq entropy/emacs-start--internalIME-daemon-init-guard-func
           (entropy/emacs-with-daemon-make-frame-done
-           'startup-with-internal-ime
-           nil nil
-           '(unless entropy/emacs-IME-specs-initialized
+            'startup-with-internal-ime (&rest _)
+            (unless entropy/emacs-IME-specs-initialized
               (entropy/emacs-start--internalIME-startup-initialize)
               (remove-hook 'entropy/emacs-daemon-server-after-make-frame-hook
                            entropy/emacs-start--internalIME-daemon-init-guard-func)))))
@@ -637,9 +636,9 @@ Currently detected env variables:")
 (cond
  ((daemonp)
   (entropy/emacs-with-daemon-make-frame-done
-   'eemacs-linux-de-ime-warning
-   nil
-   '(progn
+    'eemacs-linux-de-ime-warning (&rest _)
+    :when-gui
+    (progn
       (when (and (not entropy/emacs-start-linux-DE-IME-warning-idle-timer)
                  (entropy/emacs-start-linux-DE-IME-warning t))
         (setq entropy/emacs-start-linux-DE-IME-warning-idle-timer

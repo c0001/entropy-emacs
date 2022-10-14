@@ -11386,50 +11386,70 @@ subroutine of `entropy/emacs-xterm-paste-core'.
 `entropy/emacs-daemon-server-after-make-frame-hook' which each
 function made by `entropy/emacs-with-daemon-make-frame-done'.")
 
-(defun entropy/emacs-with-daemon-make-frame-done
-    (name et-form ec-form &optional common-form)
+(defmacro entropy/emacs-with-daemon-make-frame-done (&rest args)
   "Do sth after emacs daemon make a new frame.
 
-- 'ET-FORM' is the form for cli emacs session
-- 'EC-FORM' is the form for gui emacs-session
+- WHEN-TUI is the form for tui emacs session
+- WHEN-GUI is the form for gui emacs-session
 
-Optional form COMMON-FORM run directly after ET-FORM and EC-FORM
-without any condition judgements.
+Optional form BODY run directly after WHEN-GUI sd and WHEN-TUI without
+any condition judgements.
 
-Return the hooker symbol.
+Return the define function name symbol named via SYMBOL.
+
+WITH-LEXICAL-BINDINGS has same meaning of
+‘entropy/emacs-cl-lambda-with-lcb’.
 
 *For eemacs developer:*
 
 We never allowed any error occurred inside of user spec forms but
 stored the error log in
-`entropy/emacs-with-daemon-make-frame-done-error-log'."
-  (let* ((--name--
-          (intern
-           (format "%s-for-emacs-daemon"
-                   (symbol-name name)))))
-    (entropy/emacs-add-hook-with-lambda
-      --name-- (&rest _)
-      :use-hook 'entropy/emacs-daemon-server-after-make-frame-hook
-      :use-append t
-      (condition-case error
-          (progn
-            (if (display-graphic-p)
-                (entropy/emacs-eval-with-lexical ec-form)
-              (entropy/emacs-eval-with-lexical et-form))
-            (entropy/emacs-eval-with-lexical common-form))
-        (error
-         (push (format "[%s]: time: (%s) display-type: (%s) error: (%S)"
-                       --name--
-                       (format-time-string "%Y-%m-%d %a %H:%M:%S")
-                       (display-graphic-p)
-                       error)
-               entropy/emacs-with-daemon-make-frame-done-error-log))))))
+`entropy/emacs-with-daemon-make-frame-done-error-log'.
+
+\(fn SYMBOL ARGLIST [DOCSTRING] [DECL] [INCT] \
+&key WHEN-GUI WHEN-TUI WITH-LEXICAL-BINDINGS &rest BODY)"
+  (declare (doc-string 3) (indent defun))
+  (let* ((name (car args))
+         (func-name-sym (make-symbol "func-name"))
+         (guip-sym      (make-symbol "guip"))
+         (args-parse (entropy/emacs-parse-lambda-args-plus (cdr args)))
+         (args-plist (plist-get args-parse :body-plist))
+         (user-body  (plist-get args-parse :body))
+         (bdl-obj (entropy/emacs-defun--get-body-without-keys
+                   args-plist nil :when-gui :when-tui))
+         (exl-pl (car bdl-obj))
+         (inc-pl (cdr bdl-obj))
+         (_
+          (setq inc-pl
+                (nconc
+                 (list :use-hook
+                       (list 'quote
+                             'entropy/emacs-daemon-server-after-make-frame-hook))
+                 (list :use-append t)
+                 inc-pl)))
+         (when-gui (entropy/emacs-macroexp-progn (list (plist-get exl-pl :when-gui))))
+         (when-tui (entropy/emacs-macroexp-progn (list (plist-get exl-pl :when-tui))))
+         new-body new-args-parse new-args)
+    (setq new-body
+          `((let ((,guip-sym (display-graphic-p)))
+              (condition-case err
+                  (progn (if ,guip-sym ,when-gui ,when-tui) ,@user-body)
+                (error
+                 (push (format "[%s]: time: (%s) display-type: (%s) error: (%S)"
+                               ,func-name-sym
+                               (format-time-string "%Y-%m-%d %a %H:%M:%S")
+                               ,guip-sym err)
+                       entropy/emacs-with-daemon-make-frame-done-error-log)))))
+          new-args-parse (progn (plist-put args-parse :body-plist inc-pl)
+                                (plist-put args-parse :body new-body))
+          new-args (entropy/emacs-merge-lambda-args new-args-parse))
+    `(let ((,func-name-sym (intern (format "%s-for-emacs-daemon" (symbol-name ,name)))))
+       (entropy/emacs-add-hook-with-lambda ,func-name-sym ,@new-args))))
 
 (when (daemonp)
-  ;; reset icon displayable cache while daemon frame makeup
-  (entropy/emacs-with-daemon-make-frame-done
-   'reset-icon-displayable-cache
-   nil nil '(entropy/emacs-icons-displayable-p t)))
+  (entropy/emacs-with-daemon-make-frame-done 'reset-icon-displayable-cache nil
+    "Reset eemacs icon available judgement stub."
+    (entropy/emacs-icons-displayable-p t)))
 
 ;; *** Proxy specification
 ;; **** process env with eemacs union internet proxy

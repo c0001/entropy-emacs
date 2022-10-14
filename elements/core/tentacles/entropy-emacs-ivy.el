@@ -115,20 +115,19 @@
               (setq ivy-add-newline-after-prompt nil)
               (setq ivy-height 6)))
          (hack-func
-          `(lambda ()
-             (if (display-graphic-p)
-                 (funcall ',with-nl-func)
-               ;; Disable newline for terminal mode emacs session
-               ;; while in emacs 28 or higher version, since it can
-               ;; not be fully displayed in minibuffer prompt area.
-               (funcall ',without-nl-func)))))
+          (lambda ()
+            (if (display-graphic-p)
+                (funcall with-nl-func)
+              ;; Disable newline for terminal mode emacs session
+              ;; while in emacs 28 or higher version, since it can
+              ;; not be fully displayed in minibuffer prompt area.
+              (funcall without-nl-func)))))
     (if (version< emacs-version "28")
         (funcall with-nl-func)
       (if (daemonp)
           (entropy/emacs-with-daemon-make-frame-done
-           'ivy-height-and-prompt-newline-set
-           nil nil
-           `(funcall ',hack-func))
+           'ivy-height-and-prompt-newline-set (&rest _)
+           (funcall hack-func))
         (funcall hack-func))))
 
 ;; *** ivy config

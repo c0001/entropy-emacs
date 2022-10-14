@@ -83,10 +83,12 @@
        (when (entropy/emacs-icons-displayable-p)
          (all-the-icons-ibuffer-mode 1))
      (entropy/emacs-with-daemon-make-frame-done
-      'all-the-icons-ibuffer
-      '(when (bound-and-true-p all-the-icons-ibuffer-mode)
+       'all-the-icons-ibuffer (&rest _)
+       :when-tui
+       (when (bound-and-true-p all-the-icons-ibuffer-mode)
          (all-the-icons-ibuffer-mode 0))
-      '(when (entropy/emacs-icons-displayable-p)
+       :when-gui
+       (when (entropy/emacs-icons-displayable-p)
          (all-the-icons-ibuffer-mode 1))))))
 
 ;; ** ibuffer-projectitle display

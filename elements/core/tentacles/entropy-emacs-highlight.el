@@ -405,9 +405,8 @@ dead and duplicated ones."
   ;; session graphic type since TUI has restriction show full colors
   ;; which gui supported and thus like other wise.
   (entropy/emacs-with-daemon-make-frame-done
-   'rainbow-x-color-reset
-   nil nil
-   '(let (enabled-buffs)
+    'rainbow-x-color-reset (&rest _)
+    (let (enabled-buffs)
       (mapc
        (lambda (buff)
          (with-current-buffer buff

@@ -98,8 +98,8 @@ With prefix argument binds, jump to the previous mark place."
       [remap save-buffers-kill-terminal] #'delete-frame)
    ;;; remap `entropy/emacs-top-key' for daemon session
     (entropy/emacs-with-daemon-make-frame-done
-     'top-key-bind nil nil
-     '(progn
+      'top-key-bind (&rest _)
+      (progn
         (setq entropy/emacs-top-key
               (if (display-graphic-p)
                   (car entropy/emacs-top-prefix-key-cons)
@@ -111,8 +111,8 @@ With prefix argument binds, jump to the previous mark place."
           entropy/emacs-top-keymap)))
     ;; after set the top key, rebind the `set-mark-command' key-bind
     (entropy/emacs-with-daemon-make-frame-done
-     'set-mark-command nil nil
-     '(entropy/emacs-basic-set-mark-command))))
+      'set-mark-command (&rest _)
+      (entropy/emacs-basic-set-mark-command))))
 
 ;; ** Personal infomation
 (when (and entropy/emacs-user-full-name
@@ -4961,11 +4961,13 @@ successfully both of situation of read persisit of create an new."
          (funcall enable-func))
      (defvar entropy/emacs-basic--xterm-paste-rebinded nil)
      (entropy/emacs-with-daemon-make-frame-done
-      'xterm-paste-bind
-      `(when (entropy/emacs-xterm-cut-or-yank-sync-with-system/functional-env-statisfied-p)
+       'xterm-paste-bind (&rest _)
+       :when-tui
+       (when (entropy/emacs-xterm-cut-or-yank-sync-with-system/functional-env-statisfied-p)
          (funcall ,enable-func)
          (setq entropy/emacs-basic--xterm-paste-rebinded t))
-      `(when entropy/emacs-basic--xterm-paste-rebinded
+       :when-gui
+       (when entropy/emacs-basic--xterm-paste-rebinded
          (funcall ,disable-func)
          (setq entropy/emacs-basic--xterm-paste-rebinded nil))))))
 
@@ -5965,9 +5967,8 @@ we do not want to init as duplicated which will cause messy."
         (entropy/emacs-internal-ime-popup-type-autoset)
         ;; also reset popup type while emacs daemon type change
         (entropy/emacs-with-daemon-make-frame-done
-         'eemacs-internal-ime-popuptype-autoreeset
-         nil nil
-         '(entropy/emacs-internal-ime-popup-type-autoset))
+          'eemacs-internal-ime-popuptype-autoreeset (&rest _)
+          (entropy/emacs-internal-ime-popup-type-autoset))
 
         ;; union function set
         (entropy/emacs-set-internal-IME-toggle-function

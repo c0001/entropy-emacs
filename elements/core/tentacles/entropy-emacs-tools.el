@@ -1171,9 +1171,11 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
       (unless (display-graphic-p)
         (setq entropy/sdcv-default-show-tooltip-method 'popup))
     (entropy/emacs-with-daemon-make-frame-done
-     'entropy-sdcv
-     '(setq entropy/sdcv-default-show-tooltip-method 'popup)
-     '(when (entropy/emacs-posframe-adapted-p)
+      'entropy-sdcv (&rest _)
+      :when-tui
+      (setq entropy/sdcv-default-show-tooltip-method 'popup)
+      :when-gui
+      (when (entropy/emacs-posframe-adapted-p)
         (setq entropy/sdcv-default-show-tooltip-method 'posframe))))
 
   (dolist (item '((eww  . eww-mode-hook)  (w3m . w3m-mode-hook)

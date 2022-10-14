@@ -74,9 +74,8 @@ non-nil."
   nil)
  ((daemonp)
   (entropy/emacs-with-daemon-make-frame-done
-   'disable-emacs-bar-refer-ui-features
-   nil nil
-   '(entropy/emacs-ui-disable-emacs-bar-refer-uifeature)))
+    'disable-emacs-bar-refer-ui-features (&rest _)
+    (entropy/emacs-ui-disable-emacs-bar-refer-uifeature)))
  (t
   (entropy/emacs-ui-disable-emacs-bar-refer-uifeature)))
 

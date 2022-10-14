@@ -822,14 +822,16 @@ in `entropy/emacs-company-frontend-sticker'."
         'company-show-doc-buffer)))
 
   (add-to-list 'entropy/emacs-company--frontend-register
-               '(default
+               `(default
                   :enable entropy/emacs-company--default-enable
                   :disable entropy/emacs-company--default-disable
                   :daemon-init
-                  (entropy/emacs-with-daemon-make-frame-done
-                   'company-default-mode
-                   '(entropy/emacs-company--default-disable)
-                   '(entropy/emacs-company--default-enable))))
+                  ,(entropy/emacs-with-daemon-make-frame-done
+                     'company-default-mode (&rest _)
+                     :when-tui
+                     (entropy/emacs-company--default-disable)
+                     :when-gui
+                     (entropy/emacs-company--default-enable))))
 
   :init
   (setq company-quickhelp-delay
@@ -906,13 +908,15 @@ in `entropy/emacs-company-frontend-sticker'."
              (entropy/emacs-company--default-enable)))))
 
   (add-to-list 'entropy/emacs-company--frontend-register
-               '(company-box :enable entropy/emacs-company--box-enable
+               `(company-box :enable entropy/emacs-company--box-enable
                              :disable entropy/emacs-company--box-disable
                              :daemon-init
-                             (entropy/emacs-with-daemon-make-frame-done
-                              'company-box-mode
-                              '(entropy/emacs-company--box-disable)
-                              '(entropy/emacs-company--box-enable))))
+                             ,(entropy/emacs-with-daemon-make-frame-done
+                                'company-box-mode (&rest _)
+                                :when-tui
+                                (entropy/emacs-company--box-disable)
+                                :when-gui
+                                (entropy/emacs-company--box-enable))))
 
 ;; **** init
   :init

@@ -1799,8 +1799,10 @@ Now just supply localization image file analyzing."
     :pdumper-no-end t
     (if (daemonp)
         (entropy/emacs-with-daemon-make-frame-done
-         'org-bullet-mode-init
-         '(progn
+          'org-bullet-mode-init (&rest _)
+          "Auto enable/disable `org-bullets-mode' for daemon client."
+          :when-tui
+          (progn
             (remove-hook 'org-mode-hook #'org-bullets-mode)
             (mapc
              (lambda (buffer)
@@ -1809,7 +1811,8 @@ Now just supply localization image file analyzing."
                             (bound-and-true-p org-bullets-mode))
                    (org-bullets-mode 0))))
              (buffer-list)))
-         '(progn
+          :when-gui
+          (progn
             (add-hook 'org-mode-hook #'org-bullets-mode)
             (mapc
              (lambda (buffer)
