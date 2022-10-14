@@ -11400,6 +11400,9 @@ Return the define function name symbol named via SYMBOL.
 WITH-LEXICAL-BINDINGS has same meaning of
 ‘entropy/emacs-cl-lambda-with-lcb’.
 
+For conventions, ARGLIST should be formed as `(&rest _)' since this
+macro may add optional arguments requirements in the future.
+
 *For eemacs developer:*
 
 We never allowed any error occurred inside of user spec forms but
@@ -11447,7 +11450,8 @@ stored the error log in
        (entropy/emacs-add-hook-with-lambda ,func-name-sym ,@new-args))))
 
 (when (daemonp)
-  (entropy/emacs-with-daemon-make-frame-done 'reset-icon-displayable-cache nil
+  (entropy/emacs-with-daemon-make-frame-done 'reset-icon-displayable-cache
+    (&rest _)
     "Reset eemacs icon available judgement stub."
     (entropy/emacs-icons-displayable-p t)))
 
