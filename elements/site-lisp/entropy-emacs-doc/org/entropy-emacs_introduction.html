@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2022-04-20 Wed 22:10 -->
+<!-- 2022-10-15 Sat 21:59 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>entropy emacs introduction</title>
@@ -1222,7 +1222,7 @@ img
 </div>
 </div>
 
-<div id="orgdd4684e" class="figure">
+<div id="orge370261" class="figure">
 <p><img src="../annex/img/logo.png" alt="logo.png" width="300px" />
 </p>
 </div>
@@ -1789,18 +1789,8 @@ Now, I built serveral packages shown as below table:
 </tr>
 
 <tr>
-<td class="org-left">entropy-project-manager</td>
-<td class="org-left">simple project managements system</td>
-</tr>
-
-<tr>
 <td class="org-left">entropy-dired-cp-or-mv</td>
 <td class="org-left">dired copy or move files extension for enhancing based dired refer function</td>
-</tr>
-
-<tr>
-<td class="org-left">entropy-epub2org</td>
-<td class="org-left">convert epub ebook into org-mode files format front-end</td>
 </tr>
 
 <tr>
@@ -1839,18 +1829,13 @@ Now, I built serveral packages shown as below table:
 </tr>
 
 <tr>
-<td class="org-left">entrop-proxy-url</td>
+<td class="org-left">entropy-proxy-url</td>
 <td class="org-left">http retrieving proxy tool for eww and emacs-w3m</td>
 </tr>
 
 <tr>
 <td class="org-left">entropy-s2t</td>
 <td class="org-left">convert simplified chinese to traditional chinese func used for <a href="https://github.com/tumashu/pyim">pyim</a> (emacs chinese input method)</td>
-</tr>
-
-<tr>
-<td class="org-left">entropy-unfill</td>
-<td class="org-left">unfill buffer paragraph with specific rules built by user self</td>
 </tr>
 
 <tr>
@@ -1942,7 +1927,7 @@ means its a unified platform, a framework or a system.
 <b>Hydra-Hollow UI:</b>
 </p>
 
-<pre class="example" id="org87cfd3e">
+<pre class="example" id="orgbf25632">
 +---------------------------------------------------------------------------------------------------------------------+
 | [page indicator] eemacs top dispacher [up]: previous page [down]: next page                                         |
 |                                                                                                                     |
@@ -2103,9 +2088,9 @@ stored the extern config files load function to it, i.e. some thing
 like below:
 </p>
 <div class="org-src-container">
-<pre class="src src-emacs-lisp"><span style="color: #6D6D6D;">;; </span><span style="color: #6D6D6D;">load "my_entropy-emacs_extern.el" after loading "custom.el" .</span>
-(<span style="color: #FF5E5E;">let</span> ((file (file-exists-p <span style="color: #FBE3BF;">"/xxx/xxxx/.../my_entropy-emacs_extern.el"</span>)))
-  (<span style="color: #FF5E5E;">when</span> (file-exists-p file)
+<pre class="src src-emacs-lisp"><span style="color: #888888; font-style: italic;">;; </span><span style="color: #888888; font-style: italic;">load "my_entropy-emacs_extern.el" after loading "custom.el" .</span>
+(<span style="color: #8197bf;">let</span> ((file (file-exists-p <span style="color: #99ad6a;">"/xxx/xxxx/.../my_entropy-emacs_extern.el"</span>)))
+  (<span style="color: #8197bf;">when</span> (file-exists-p file)
     (load-file file)))
 </pre>
 </div>
@@ -2276,7 +2261,7 @@ minibuffer and enhanced with candidates showing list powered by <a href="https:/
 each candidate was one unique slot number with workspace name:
 </p>
 
-<pre class="example" id="orgaffc517">
+<pre class="example" id="orgeef37e9">
 +--------------------------------------------------------------------------------+
 |  * 169 U(Unix) *scratch*      Lisp Interactioin Orgstruct&gt;&gt;      &lt;&lt; 4: 23 ALL  |
 +--------------------------------------------------------------------------------+
@@ -2320,7 +2305,7 @@ laggning the way when be with your poor eyesight.(also seen as your
 screen was low dimessions as traditional '1366x768'.)
 </p>
 
-<pre class="example" id="orgc251e43">
+<pre class="example" id="org95d3c16">
 
 
 +---------------+-------+--------------------------+
@@ -2377,7 +2362,7 @@ above description. Derived slot will be created when you doing for
 arbitray reason for that.
 </p>
 
-<pre class="example" id="orgf3e09ab">
+<pre class="example" id="org9d281d5">
 
 +------------+ +------------+ +------------+
 | main slot 1| | main slot 2| |main slot 3 |
@@ -2488,7 +2473,7 @@ way for solving that problem was what it is.
 <li><p>
 <b>Frame place jumping:</b><br />
 </p>
-<pre class="example" id="org50bb26e">
+<pre class="example" id="orgb638e58">
 
 +-------------+-----------------------------+
 |             |                             |
@@ -2657,10 +2642,10 @@ can set the custom-variable <code>entropy/emacs-modeline-style</code> with the
 tag symbole shown from above table:
 </p>
 <div class="org-src-container">
-<pre class="src src-emacs-lisp"><span style="color: #6D6D6D;">;; </span><span style="color: #6D6D6D;">demo modeline setting code snippets of entropy-emacs</span>
-(<span style="color: #FF5E5E;">setq</span> entropy/emacs-modeline-style 'powerline)
-(<span style="color: #FF5E5E;">setq</span> entropy/emacs-modeline-style 'spaceline)
-<span style="color: #6D6D6D;">;; </span><span style="color: #6D6D6D;">.... and so on</span>
+<pre class="src src-emacs-lisp"><span style="color: #888888; font-style: italic;">;; </span><span style="color: #888888; font-style: italic;">demo modeline setting code snippets of entropy-emacs</span>
+(<span style="color: #8197bf;">setq</span> entropy/emacs-modeline-style 'powerline)
+(<span style="color: #8197bf;">setq</span> entropy/emacs-modeline-style 'spaceline)
+<span style="color: #888888; font-style: italic;">;; </span><span style="color: #888888; font-style: italic;">.... and so on</span>
 </pre>
 </div>
 
@@ -2782,7 +2767,7 @@ PYIM 是一个 Emacs 中文输入法，支持全拼，双拼，五笔，仓颉 �
 </p>
 </blockquote>
 
-<pre class="example" id="org69066bd">
+<pre class="example" id="org0ce72e6">
 这是一段中文说明，你好shijie
                       ^
                       |
@@ -2805,7 +2790,7 @@ minibuffer
 <p>
 Using minibuffer be the widget as:
 </p>
-<pre class="example" id="org411e0a6">
+<pre class="example" id="orgcb51f8a">
 +----------------------------+
 |                            |
 | xxx|                       |
@@ -2837,7 +2822,7 @@ version below 26.1 and the oppsite using 'posframe'.
 
 <ul class="org-ul">
 <li><p>
-<b>Pyim dicts:</b> <a id="org4ae6843"></a>
+<b>Pyim dicts:</b> <a id="orgcabe07d"></a>
 </p>
 
 <p>
@@ -2852,7 +2837,7 @@ extra char dicts for driven for candidates completion.
 <p>
 <code>pyim</code> extra dict was plain text format as:
 </p>
-<pre class="example" id="org97f2341">
+<pre class="example" id="orgf33f4c5">
 ni-hao 你好
 shi-jie 世界
 </pre>
@@ -2917,7 +2902,7 @@ emacs startup finished i.e. <code>entropy/emacs-enable-pyim</code>, you can
 active it in your <code>custom.el</code> file, then the next time you start up
 or open new session of emacs , pyim will automatically startup using
 the default dicts specific by <code>entropy-emacs</code> as introduction form
-<a href="#org4ae6843">pyim dicts section</a>, or if you want to enable dicts specified by
+<a href="#orgcabe07d">pyim dicts section</a>, or if you want to enable dicts specified by
 yourself, you can setting up custom-variable
 <code>entropy/emacs-pyim-dicts</code>, the variable information and value
 format can be shown by touching <code>C-h v entropy/emacs-pyim-dicts
@@ -3071,8 +3056,8 @@ You will enable it do with filling follow elisp codes snippet into
 custom file:
 </p>
 <div class="org-src-container">
-<pre class="src src-emacs-lisp">(<span style="color: #FF5E5E;">setq</span> entropy/grom-enable t)
-(<span style="color: #FF5E5E;">setq</span> entropy/grom-readonly-type <span style="color: #FBE3BF;">"all"</span>)
+<pre class="src src-emacs-lisp">(<span style="color: #8197bf;">setq</span> entropy/grom-enable t)
+(<span style="color: #8197bf;">setq</span> entropy/grom-readonly-type <span style="color: #99ad6a;">"all"</span>)
 </pre>
 </div>
 
@@ -3085,12 +3070,12 @@ was regexp string matched before <code>find-file</code> opens file.  Til now thi
 list shown as blow:
 </p>
 <div class="org-src-container">
-<pre class="src src-emacs-lisp">'(<span style="color: #FBE3BF;">"autoloads\\.el"</span>
-  <span style="color: #FBE3BF;">"\\*Compile-.*\\*"</span>
-  <span style="color: #FBE3BF;">"loaddefs\\.el"</span>
-  <span style="color: #FBE3BF;">"COMMIT_EDITMSG"</span>
-  <span style="color: #FBE3BF;">"_archive"</span>
-  <span style="color: #FBE3BF;">"^ *\\*.*?\\* *$"</span>)
+<pre class="src src-emacs-lisp">'(<span style="color: #99ad6a;">"autoloads\\.el"</span>
+  <span style="color: #99ad6a;">"\\*Compile-.*\\*"</span>
+  <span style="color: #99ad6a;">"loaddefs\\.el"</span>
+  <span style="color: #99ad6a;">"COMMIT_EDITMSG"</span>
+  <span style="color: #99ad6a;">"_archive"</span>
+  <span style="color: #99ad6a;">"^ *\\*.*?\\* *$"</span>)
 </pre>
 </div>
 
@@ -3204,14 +3189,14 @@ heading level instead of the asterisk counts visualized.
 <p>
 <code>roman</code> type displayed as the sequence list as:
 </p>
-<pre class="example" id="org36e1e35">
+<pre class="example" id="orgbeae449">
 "●" "Ⅱ" "Ⅲ" "Ⅳ" "Ⅴ" "Ⅵ" "Ⅶ" "Ⅷ" "Ⅸ" "Ⅹ" "Ⅺ" "Ⅻ"
 </pre>
 
 <p>
 The instance for this is:
 </p>
-<pre class="example" id="org4a0a46f">
+<pre class="example" id="orgb0c4fce">
 ● heading 1
   Ⅱ heading 2
     Ⅲ heading 3
@@ -3225,7 +3210,7 @@ The instance for this is:
 <p>
 Same sytle show for circle numberic:
 </p>
-<pre class="example" id="org1e4df98">
+<pre class="example" id="org4b5db89">
 "⓪" "①" "②" "③" "④" "⑤" "⑥" "⑦"
 "⑧" "⑨" "⑩" "⑪" "⑫" "⑬" "⑭" "⑮"
 "⑯" "⑰" "⑱" "⑲" "⑳"
@@ -3236,7 +3221,7 @@ Bullets shown style was the minor fancy setup, choosing the taste as
 your way. follow config codes snippet for doing thus:
 </p>
 <div class="org-src-container">
-<pre class="src src-emacs-lisp">(<span style="color: #FF5E5E;">setq</span> entropy/emacs-org-bullets-type <span style="color: #FBE3BF;">"roman"</span>) <span style="color: #6D6D6D;">; </span><span style="color: #6D6D6D;">or with "circle numberic"</span>
+<pre class="src src-emacs-lisp">(<span style="color: #8197bf;">setq</span> entropy/emacs-org-bullets-type <span style="color: #99ad6a;">"roman"</span>) <span style="color: #888888; font-style: italic;">; </span><span style="color: #888888; font-style: italic;">or with "circle numberic"</span>
 </pre>
 </div></li>
 
@@ -3263,9 +3248,9 @@ place follow codes snippet into your custom file"
 </p>
 
 <div class="org-src-container">
-<pre class="src src-emacs-lisp">(<span style="color: #FF5E5E;">setq</span> entropy/emacs-disable-org-heading-scale nil)
+<pre class="src src-emacs-lisp">(<span style="color: #8197bf;">setq</span> entropy/emacs-disable-org-heading-scale nil)
 
-<span style="color: #6D6D6D;">;; </span><span style="color: #6D6D6D;">Reload major-mode for current to trigger the hook</span>
+<span style="color: #888888; font-style: italic;">;; </span><span style="color: #888888; font-style: italic;">Reload major-mode for current to trigger the hook</span>
 (funcall major-mode)
 </pre>
 </div></li>
@@ -3548,9 +3533,9 @@ point:
 </p>
 
 <div class="org-src-container">
-<pre class="src src-emacs-lisp">(<span style="color: #FF5E5E;">defun</span> <span style="color: #8CDAFF;">custom-org-download-method</span> (link)
+<pre class="src src-emacs-lisp">(<span style="color: #8197bf;">defun</span> <span style="color: #fad07a;">custom-org-download-method</span> (link)
         (org-download--fullname (org-link-unescape link)))
-(<span style="color: #FF5E5E;">setq</span> org-download-method 'custom-org-download-method)
+(<span style="color: #8197bf;">setq</span> org-download-method 'custom-org-download-method)
 </pre>
 </div>
 
@@ -3623,20 +3608,20 @@ not working on the temporally buffer, the whole relative link
 path return snippet process will not worked as well yet:
 </p>
 <div class="org-src-container">
-<pre class="src src-emacs-lisp">(<span style="color: #FF5E5E;">defun</span> <span style="color: #8CDAFF;">org-download-insert-link</span> (link filename)
-  (<span style="color: #FF5E5E;">if</span> (looking-back <span style="color: #FBE3BF;">"^[ \t]+"</span> (line-beginning-position))
+<pre class="src src-emacs-lisp">(<span style="color: #8197bf;">defun</span> <span style="color: #fad07a;">org-download-insert-link</span> (link filename)
+  (<span style="color: #8197bf;">if</span> (looking-back <span style="color: #99ad6a;">"^[ \t]+"</span> (line-beginning-position))
       (delete-region (match-beginning 0) (match-end 0))
     (newline))
   (insert
    (concat
     (funcall org-download-annotate-function link)
-    <span style="color: #FBE3BF;">"\n"</span>
-    (<span style="color: #FF5E5E;">if</span> (= org-download-image-html-width 0)
-        <span style="color: #FBE3BF;">""</span>
-      (format <span style="color: #FBE3BF;">"#+attr_html: :width %dpx\n"</span> org-download-image-html-width))
-    (<span style="color: #FF5E5E;">if</span> (= org-download-image-latex-width 0)
-        <span style="color: #FBE3BF;">""</span>
-      (format <span style="color: #FBE3BF;">"#+attr_latex: :width %dcm\n"</span> org-download-image-latex-width))
+    <span style="color: #99ad6a;">"\n"</span>
+    (<span style="color: #8197bf;">if</span> (= org-download-image-html-width 0)
+        <span style="color: #99ad6a;">""</span>
+      (format <span style="color: #99ad6a;">"#+attr_html: :width %dpx\n"</span> org-download-image-html-width))
+    (<span style="color: #8197bf;">if</span> (= org-download-image-latex-width 0)
+        <span style="color: #99ad6a;">""</span>
+      (format <span style="color: #99ad6a;">"#+attr_latex: :width %dcm\n"</span> org-download-image-latex-width))
     (format org-download-link-format (file-relative-name filename (file-name-directory (buffer-name))))))
   (org-display-inline-images))
 </pre>
@@ -4326,7 +4311,7 @@ divided three minor-modes individually and functionally purpose as
 the list below:
 </p>
 
-<pre class="example" id="org33e56a0">
+<pre class="example" id="org91ff96c">
 The keybindings for evaluating expressions in the browser are just
 like the Lisp modes. These are provided by the minor mode skewer-mode.
 
@@ -4386,7 +4371,7 @@ same folder of css or html files along into the server.
 <p>
 When one folder structer list as:
 </p>
-<pre class="example" id="org604ca6c">
+<pre class="example" id="org3b1e4d2">
 ~/:
  |____index.html
  |____index.css
@@ -4505,7 +4490,7 @@ The internal <code>M-x</code> replacement is swiper, using the same keybinding a
 it but with the interactive interface visualized as:
 </p>
 
-<pre class="example" id="orgae436b4">
+<pre class="example" id="orge0332ea">
 +-----------------------------------+
 | I                                 |
 |                                   |
@@ -4659,8 +4644,8 @@ using the demo as <code>counsel-describe-face</code>:
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(ivy-set-actions
  'counsel-describe-variable
- '((<span style="color: #FBE3BF;">"I"</span> counsel-info-lookup-symbol <span style="color: #FBE3BF;">"info"</span>)
-   (<span style="color: #FBE3BF;">"d"</span> counsel--find-symbol <span style="color: #FBE3BF;">"definition"</span>)))
+ '((<span style="color: #99ad6a;">"I"</span> counsel-info-lookup-symbol <span style="color: #99ad6a;">"info"</span>)
+   (<span style="color: #99ad6a;">"d"</span> counsel--find-symbol <span style="color: #99ad6a;">"definition"</span>)))
 </pre>
 </div></li>
 </ol></li>
@@ -4889,8 +4874,8 @@ those two variable to be the bridge to directed to the home path using
 the elisp code indicating:
 </p>
 <div class="org-src-container">
-<pre class="src src-emacs-lisp">(<span style="color: #FF5E5E;">defvar</span> <span style="color: #E9FDAC;">device-root</span> (concat (substring invocation-directory 0 -11) <span style="color: #FBE3BF;">"Msys2/"</span>))
-(setenv <span style="color: #FBE3BF;">"HOME"</span> (expand-file-name (concat device-root <span style="color: #FBE3BF;">"portable-HOME"</span>)))
+<pre class="src src-emacs-lisp">(<span style="color: #8197bf;">defvar</span> <span style="color: #cf6a4c;">device-root</span> (concat (substring invocation-directory 0 -11) <span style="color: #99ad6a;">"Msys2/"</span>))
+(setenv <span style="color: #99ad6a;">"HOME"</span> (expand-file-name (concat device-root <span style="color: #99ad6a;">"portable-HOME"</span>)))
 </pre>
 </div>
 
@@ -4934,7 +4919,7 @@ this by touching <code>win</code> key again.
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: Entropy</p>
-<p class="date">Created: 2022-04-20 Wed 22:10</p>
+<p class="date">Created: 2022-10-15 Sat 21:59</p>
 <p class="validation"><a href="https://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>

@@ -406,12 +406,8 @@ Now, I built serveral packages shown as below table:
 @tab the emacs multi-dictionaries framework
 @item entropy-common-library
 @tab librarys for building other @samp{entropy-emacs} package
-@item entropy-project-manager
-@tab simple project managements system
 @item entropy-dired-cp-or-mv
 @tab dired copy or move files extension for enhancing based dired refer function
-@item entropy-epub2org
-@tab convert epub ebook into org-mode files format front-end
 @item entropy-global-read-only-mode
 @tab emacs globally readonly mode for forcing lock buffer while opening
 @item entropy-open-with
@@ -426,12 +422,10 @@ Now, I built serveral packages shown as below table:
 @tab emacs @uref{https://portableapps.com/, portableapps query} and open front-end for windows plattform
 @item entropy-adblockP-rule-analysis
 @tab emacs adblock rule simple parser
-@item entrop-proxy-url
+@item entropy-proxy-url
 @tab http retrieving proxy tool for eww and emacs-w3m
 @item entropy-s2t
 @tab convert simplified chinese to traditional chinese func used for @uref{https://github.com/tumashu/pyim, pyim} (emacs chinese input method)
-@item entropy-unfill
-@tab unfill buffer paragraph with specific rules built by user self
 @item entropy-shellpop
 @tab the yet-another @uref{http://github.com/kyagi/shell-pop-el, shell-pop} toolkit replacement for using @uref{https://github.com/wasamasa/shackle, shackle} as the popup method
 @end multitable

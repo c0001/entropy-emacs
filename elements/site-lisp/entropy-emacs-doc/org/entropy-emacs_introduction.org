@@ -216,9 +216,7 @@ Now, I built serveral packages shown as below table:
 | entropy-cn-dict                 | point char or region translation for chinese words (also useful for traditional chinese)          |
 | entropy-sdcv                    | the emacs multi-dictionaries framework                                                            |
 | entropy-common-library          | librarys for building other =entropy-emacs= package                                               |
-| entropy-project-manager         | simple project managements system                                                                 |
 | entropy-dired-cp-or-mv          | dired copy or move files extension for enhancing based dired refer function                       |
-| entropy-epub2org                | convert epub ebook into org-mode files format front-end                                           |
 | entropy-global-read-only-mode   | emacs globally readonly mode for forcing lock buffer while opening                                |
 | entropy-open-with               | open files using external applications                                                            |
 | entropy-org-batch-refile        | batch refiling entries from org buffer                                                            |
@@ -226,9 +224,8 @@ Now, I built serveral packages shown as below table:
 | entropy-org-widget              | useful org widgets for other org refer extension building                                         |
 | entropy-portableapps            | emacs [[https://portableapps.com/][portableapps query]] and open front-end for windows plattform                                 |
 | entropy-adblockP-rule-analysis  | emacs adblock rule simple parser                                                                  |
-| entrop-proxy-url                | http retrieving proxy tool for eww and emacs-w3m                                                  |
+| entropy-proxy-url               | http retrieving proxy tool for eww and emacs-w3m                                                  |
 | entropy-s2t                     | convert simplified chinese to traditional chinese func used for [[https://github.com/tumashu/pyim][pyim]] (emacs chinese input method) |
-| entropy-unfill                  | unfill buffer paragraph with specific rules built by user self                                    |
 | entropy-shellpop                | the yet-another [[http://github.com/kyagi/shell-pop-el][shell-pop]] toolkit replacement for using [[https://github.com/wasamasa/shackle][shackle]] as the popup method               |
 
 * Eemacs top-key map
