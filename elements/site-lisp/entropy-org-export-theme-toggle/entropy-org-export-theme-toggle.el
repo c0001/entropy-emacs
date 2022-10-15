@@ -452,7 +452,7 @@ Core based was function `entropy/org-exptth-theme-urls-retrieve'."
                           (progn
                             (if (or use-proxy-p
                                     (and (yes-or-no-p "Use proxy \
-(assume you have setted `entropy/proxy-url-default-http-sever-host&port-string')?"
+(assume you have setted `entropy/proxy-url-default-http-sever-object')?"
                                                       )
                                          (setq use-proxy-p t)))
                                 (entropy/proxy-url-with-url-proxy

@@ -1,26 +1,25 @@
 # Table of Contents
 
-1.  [Copyright (C) 20190906  Entropy](#org7c7cb47)
-2.  [Commentary:](#orgb1a3e47)
-    1.  [Eww and emacs-w3m proxy stuff](#org4461bbc)
-    2.  [How this package working as?](#orgeabf3e2)
-    3.  [Methods given](#orge454c79)
-        1.  [Manually proxy way](#org8dc572a)
-        2.  [Proxy recipe](#org5bd7fcd)
-    4.  [Proxy reset](#orga7bae34)
-3.  [Configuration:](#org3916d4a)
-    1.  [Target operation advice](#orgc9afbf2)
-    2.  [customized varaibles](#orge8454c3)
-    3.  [The regexp rule-set list data](#org1d1d423)
-4.  [Change log:](#orgb919873)
+1.  [Copyright (C) 20190906  Entropy](#org81686c9)
+2.  [Commentary:](#org180c012)
+    1.  [Eww and emacs-w3m proxy stuff](#org3a85fdd)
+    2.  [How this package working as?](#org92daf4d)
+    3.  [Methods given](#org604c1f4)
+        1.  [Manually proxy way](#org6cb6787)
+        2.  [Proxy recipe](#org0ec4b8b)
+    4.  [Proxy reset](#org8613403)
+3.  [Configuration:](#org7a07dff)
+    1.  [Target operation advice](#org80e85e5)
+    2.  [customized varaibles](#org8b65421)
+    3.  [The regexp rule-set list data](#orgfbbb47b)
+4.  [Change log:](#orge63e500)
 
-<a id="org7c7cb47"></a>
+<a id="org81686c9"></a>
 
 # Copyright (C) 20190906  Entropy
 
     Author:        Entropy <bmsac0001@gmail.com>
     Maintainer:    Entropy <bmsac001@gmail.com>
-    URL:           https://github.com/c0001/entropy-proxy-url/
     Package-Version: v0.1.2
     Created:       2018
     Keywords:      proxy
@@ -40,7 +39,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-<a id="orgb1a3e47"></a>
+<a id="org180c012"></a>
 
 # Commentary:
 
@@ -50,7 +49,7 @@ pull down them into whole proxy tunnel.
 This package perform as the library role for the functional provision.
 
 
-<a id="org4461bbc"></a>
+<a id="org3a85fdd"></a>
 
 ## Eww and emacs-w3m proxy stuff
 
@@ -68,7 +67,7 @@ internal proxy mechanism, and the other one was based on the refer
 response creator's self mechanism.
 
 
-<a id="orgeabf3e2"></a>
+<a id="org92daf4d"></a>
 
 ## How this package working as?
 
@@ -99,19 +98,19 @@ for that reason to use this was that gfwlist was originally used for
 the webbrowser extensions for doing thus as what you have known for
 the internet charging among on CHINA. Thus for that, this package
 requires one `PAC` analyzer as now I use the another [entropy-emacs](https://github.com/c0001/entropy-emacs)
-specific package [entropy-adblock+-rule-analysis](https://github.com/c0001/entropy-adblockP-rule-analysis) to role as the gfwlist
+included package `entropy-adblock+-rule-analysis` to role as the gfwlist
 anaylizer, it will auto fetch the latest version gfwlist if possible
 when you current internet environment allow the connecting for that,
 or using the package built-in one which was the pre-fetched one, so it
 will not be the latest version.
 
 
-<a id="orge454c79"></a>
+<a id="org604c1f4"></a>
 
 ## Methods given
 
 
-<a id="org8dc572a"></a>
+<a id="org6cb6787"></a>
 
 ### Manually proxy way
 
@@ -129,7 +128,6 @@ Each of them has the same arguments list in case of:
 
     -   `:server-host-list` : as the from as the cdr of each element
         of `entropy/proxy-url-default-proxy-server-alist`.
-    -   `:no-proxy` : a list of no proxy host regexps.
 
     If there's no key specification given in the wrapper, they will
     fallback to use the default one builtin with this package, so
@@ -150,49 +148,28 @@ can use:
     ;; this will make an buffer to show the curl process retrieval
 
 
-<a id="org5bd7fcd"></a>
+<a id="org0ec4b8b"></a>
 
 ### Proxy recipe
 
 We using property list as a `PROXY-RECIPE` to given the customized
 way for specify the proxy subroutine.
 
-As the focurs on, the `PROXY-RECIPE` mainly use `advice-add` to
+As the focus on, the `PROXY-RECIPE` mainly use `advice-add` to
 around wrappering the target underline functional commands, like
 `w3m-goto-url` , `url-retrieve` etc.
 
-The `PROXY-RECIPE` slots valid for those listed below:
-
--   `:group-name` : a symbol to indicate the recipe name
-    identification
-
--   `:advice-fors` : list of functions for be wrappered with
-    \`entropy/proxy-url\` specification
-
--   `:type-source` : a symbol restored the proxy type (i.e. which
-    described in \`entropy/proxy-url-initial-typesource')
-
--   `:PROXY-MECHANISM` : a symbol indicate the proxy mechanism
-    (i.e. describe for \`entropy/proxy-url-default-proxy-server-alist')
-
--   `:server-host-alist` : a symbol indicate the proxy server host
-    alist which using the same struct with
-    \`entropy/proxy-url-default-proxy-server-alist'" but just
-    matching with the current `:proxy-mechanism` only in group
-    setting.
-
--   `:bind` : a alist which the each car of the element was the
-    key-map and the cdr was the keybinding specific valid as the
-    form for `kbd` function.
+The `PROXY-RECIPE` slots described in
+`entropy/proxy-url-make-recipes`'s docstring
 
 When building done an your own proxy-recipes, use function
 `entropy/proxy-url-make-recipes` to activated your proxy-recipes
-in batching way which means for an list of `proxy-recipe`,
-optional arg `unmake` means to disable those recipes if you want
+in batching way which means for an list of `PROXY-RECIPE`,
+optional arg `UNMAKE` means to disable those recipes if you want
 to disable any proxy patch feature in those recipes.
 
 
-<a id="orga7bae34"></a>
+<a id="org8613403"></a>
 
 ## Proxy reset
 
@@ -205,14 +182,14 @@ functioin \`entropy/proxy-url-update-proxy-port' for quickly reset
 proxy port only.
 
 
-<a id="org3916d4a"></a>
+<a id="org7a07dff"></a>
 
 # Configuration:
 
 Just require it, and building `PROXY-RECIPE` you specified.
 
 
-<a id="orgc9afbf2"></a>
+<a id="org80e85e5"></a>
 
 ## Target operation advice
 
@@ -225,14 +202,16 @@ mentioned above, and use function `entropy/proxy-url-make-recipes`
 to buiding it(see its doc-string for more details).
 
 
-<a id="orge8454c3"></a>
+<a id="org8b65421"></a>
 
 ## customized varaibles
 
 See customized-variable-group `entropy/proxy-url-group` for them.
 
+For default settings see `entropy/proxy-url-default-proxy-server-alist`.
 
-<a id="org1d1d423"></a>
+
+<a id="orgfbbb47b"></a>
 
 ## The regexp rule-set list data
 
@@ -250,9 +229,11 @@ can refresh it by calling `entropy/adbp-rule-update` at any time
 for keeping your rule-set updating with upstream.
 
 
-<a id="orgb919873"></a>
+<a id="orge63e500"></a>
 
 # Change log:
+
+-   <span class="timestamp-wrapper"><span class="timestamp">[2022-10-15 Sat 01:22] </span></span> Context refactor
 
 -   <span class="timestamp-wrapper"><span class="timestamp">[2022-02-24 Thu 01:22] </span></span> API add
     -   Add `entropy/proxy-url-inhbit-all-proxy` to allow permanently
@@ -290,4 +271,4 @@ for keeping your rule-set updating with upstream.
     First release out.
 
 
-<a id="orgbedca8d"></a>
+<a id="org22c494b"></a>
