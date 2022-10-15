@@ -1,4 +1,4 @@
-;;; entropy-code2org --- emacs package for convert code file to org file
+;;; entropy-code2org --- emacs package for convert code file to org file  -*- lexical-binding: t; -*-
 ;;
 ;; * Copyright (C) 20200417  Entropy
 ;; #+BEGIN_EXAMPLE
@@ -92,29 +92,29 @@ looping proceeding."
   :group 'outline)
 
 (defcustom entropy/code2org-special-context-rule
-  '(
+  `(
     ;; *emacs-lisp-mode*
-    ((lambda () (eq major-mode 'emacs-lisp-mode))
-     (lambda ()
-       ;; Deal with first line if it prefix with ";;;"
-       (goto-char (point-min))
-       (while (if (save-excursion (re-search-forward ";;[ ]?\\*+" (line-end-position) t))
-                  (re-search-forward "^;;[ ]?\\*+.*---[ ]+" (line-end-position) t)
-                (re-search-forward "^;;;.*---[ ]+" (line-end-position) t))
-         (replace-match ";; #+TITLE: " nil t))
-       ;; Remove lexical-binding string
-       (goto-char (point-min))
-       (while (re-search-forward "[ ]*-\\*-.*-\\*-[ ]*$"
-                                 (line-end-position) t)
-         (replace-match "" nil t))
-       ;; Deal with ";; Local Variables:" and ";; End:"
-       (goto-char (point-min))
-       (while (re-search-forward "^;;+[ ]+Local[ ]+Variables: *" nil t)
-         (replace-match ";; #+begin_example\n;; Local Variables:" nil t))
-       (goto-char (point-min))
-       (while (re-search-forward "^;;+[ ]+End: *" nil t)
-         (replace-match ";; End:\n;; #+end_example" nil t)))))
-  "A of content replacement predicate for specific buffer.
+    (,(lambda nil (eq major-mode 'emacs-lisp-mode))
+     ,(lambda nil
+        ;; Deal with first line if it prefix with ";;;"
+        (goto-char (point-min))
+        (while (if (save-excursion (re-search-forward ";;[ ]?\\*+" (line-end-position) t))
+                   (re-search-forward "^;;[ ]?\\*+.*---[ ]+" (line-end-position) t)
+                 (re-search-forward "^;;;.*---[ ]+" (line-end-position) t))
+          (replace-match ";; #+TITLE: " nil t))
+        ;; Remove lexical-binding string
+        (goto-char (point-min))
+        (while (re-search-forward "[ ]*-\\*-.*-\\*-[ ]*$"
+                                  (line-end-position) t)
+          (replace-match "" nil t))
+        ;; Deal with ";; Local Variables:" and ";; End:"
+        (goto-char (point-min))
+        (while (re-search-forward "^;;+[ ]+Local[ ]+Variables: *" nil t)
+          (replace-match ";; #+begin_example\n;; Local Variables:" nil t))
+        (goto-char (point-min))
+        (while (re-search-forward "^;;+[ ]+End: *" nil t)
+          (replace-match ";; End:\n;; #+end_example" nil t)))))
+  "A list of content replacement predicate for specific buffer.
 
 Each element was a list of two function subset, while both of
 them has non arguments requirement, and the car's function was a
@@ -141,7 +141,7 @@ all the predicate will be wrapped into thus. "
   buffer-or-name)
 
 (defun entropy/code2org--handle-comment-start-regexp
-    (specific-comment-start-regexp)
+    (&optional specific-comment-start-regexp)
   (or specific-comment-start-regexp
       (format "%s+[ ]*\\*+" comment-start)))
 
@@ -191,15 +191,16 @@ all the predicate will be wrapped into thus. "
      (current-buffer))))
 
 (defmacro entropy/code2org--with-current-buffer-output (&rest body)
-  `(let ((output (entropy/code2org-convert-which-buffer
-                  (current-buffer)
-                  (cons 'buffer
-                        (let ((buffer (get-buffer-create "*entropy/code2org-temp*"))
-                              (inhibit-read-only t))
-                          (with-current-buffer buffer
-                            (erase-buffer))
-                          buffer)))))
-     (with-current-buffer output
+  (macroexp-let2* ignore
+      ((output '(entropy/code2org-convert-which-buffer
+                 (current-buffer)
+                 (cons 'buffer
+                       (let ((buffer (get-buffer-create "*entropy/code2org-temp*"))
+                             (inhibit-read-only t))
+                         (with-current-buffer buffer
+                           (erase-buffer))
+                         buffer)))))
+    `(with-current-buffer ,output
        ,@body)))
 
 ;; ** Autoloads
@@ -263,7 +264,7 @@ the buffer name if its no related file visited bounding."
        (org-export-to-file
            'md
            (expand-file-name
-            (format "README.md" item-name)
+            (format "README.%s.md" item-name)
             archive-root))))))
 
 ;; * provide
