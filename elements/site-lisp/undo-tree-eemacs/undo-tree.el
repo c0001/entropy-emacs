@@ -1,4 +1,4 @@
-;;; undo-tree.el --- Treat undo history as a tree  -*- lexical-binding: t; -*-
+;;; undo-tree.el --- Treat undo history as a tree  -*- lexical-binding: t; entropy/emacs-inhibit-simple-whitespace-clean: t; -*-
 
 ;; Copyright (C) 2009-2020  Free Software Foundation, Inc
 
@@ -2746,9 +2746,11 @@ The following keys are available in `undo-tree-mode':
 Within the undo-tree visualizer, the following keys are available:
 
   \\{undo-tree-visualizer-mode-map}"
-
+  :init-value
   nil                       ; init value
+  :lighter
   undo-tree-mode-lighter    ; lighter
+  :keymap
   undo-tree-map             ; keymap
 
   (cond
