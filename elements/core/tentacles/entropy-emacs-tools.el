@@ -1530,7 +1530,7 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
             (emacs-w3m   "http://" ,http_proxy_host ,http_proxy_port)))
 
     (setq entropy/proxy-url-default-no-proxy-regexp-list
-          (mapcar (lambda (ip) (regexp-quote ip))
+          (mapcar (lambda (ip) (concat "^\\([hH][tT][tT][pP][sS]?://\\)?" (regexp-quote ip)))
                   (entropy/emacs-gen-eemacs-union-proxy-noproxy-envs
                    (or entropy/emacs-union-proxy-noproxy-list
                        '("127.0.0.1" "localhost"))

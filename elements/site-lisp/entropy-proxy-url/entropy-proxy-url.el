@@ -332,10 +332,10 @@ Used for `emacs-socks' type when its noproxy set is nil."
   :group 'entropy/proxy-url-group)
 
 (defcustom entropy/proxy-url-default-no-proxy-regexp-list
-  '("localhost"
-    "127.0.0.1"
-    "192.168.*"
-    "10.*")
+  '("^\\([hH][tT][tT][pP][sS]?://\\)?localhost"
+    "^\\([hH][tT][tT][pP][sS]?://\\)?127\\.0\\.0\\.1"
+    "^\\([hH][tT][tT][pP][sS]?://\\)?192\\.168\\.[0-9]\\{1,3\\}\\.[0-9]\\{1,3\\}"
+    "^\\([hH][tT][tT][pP][sS]?://\\)?10\\.[0-9]\\{1,3\\}\\.[0-9]\\{1,3\\}\\.[0-9]\\{1,3\\}")
   "The default \"no_proxy\" regexp list for url-retrieve
 `no_proxy` filter.
 
