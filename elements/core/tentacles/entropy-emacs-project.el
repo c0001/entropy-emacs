@@ -258,15 +258,5 @@ benchmark while exhibits."
 
   )
 
-;; ** entropy-project-manager
-(use-package entropy-prjm
-  :ensure nil
-  :commands entropy/prjm-inct-chosen-db
-  :eemacs-tpha
-  (((:enable t :defer (:data (:adfors (entropy/emacs-after-startup-hook) :adtype hook :pdumper-no-end t))))
-   ("Project"
-    (("C-c M-p" entropy/prjm-inct-chosen-db "Eemacs Project Management"
-      :enable t :exit t :global-bind t)))))
-
 ;; * provide
 (provide 'entropy-emacs-project)

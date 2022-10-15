@@ -1586,45 +1586,6 @@ can't visit one page suddenly."
   )
 
 
-;; *** entropy-unfill
-(use-package entropy-unfill
-  :ensure nil
-  :commands (entropy/unfill-full-buffer-without-special-region
-             entropy/unfill-paragraph
-             entropy/fill-full-buffer-without-special-region)
-  :eemacs-indhc
-  (((:enable t :defer (:data
-                       (:adfors
-                        (entropy/emacs-hydra-hollow-call-before-hook)
-                        :adtype hook
-                        :pdumper-no-end t)))
-    (entropy-unfill))
-   ("Unfill"
-    (("u" entropy/unfill-full-buffer-without-special-region
-      "Unfill full buffer without specific special region"
-      :enable t :exit t)
-     ("p" entropy/unfill-paragraph
-      "Takes paragraph into a single line of text"
-      :enable t :exit t))
-    "Fill"
-    (("f" entropy/fill-full-buffer-without-special-region
-      "Fill full buffer without specific special region"
-      :enable t :exit t))))
-
-  :eemacs-tpha
-  (((:enable t :defer (:data
-                       (:adfors
-                        (entropy/emacs-hydra-hollow-call-before-hook)
-                        :adtype hook
-                        :pdumper-no-end t))))
-   ("Utils"
-    (("u x"
-      (:eval
-       (entropy/emacs-hydra-hollow-category-common-individual-get-caller
-        'entropy-unfill))
-      "Entropy Unfill"
-      :enable t :exit t)))))
-
 ;; *** entropy-org-batch-refile
 (use-package entropy-org-batch-refile
   :ensure nil
@@ -1674,40 +1635,6 @@ can't visit one page suddenly."
       :enable t
       :exit t
       :eemacs-top-bind t)))))
-
-;; *** entropy-epub2org
-(use-package entropy-epub2org
-  :ensure nil
-  :commands (entropy/ep2o-dispatcher
-             entropy/ep2o-src-adjusting-manually)
-  :eemacs-tpha
-  (((:enable t :defer (:data
-                       (:adfors
-                        (entropy/emacs-hydra-hollow-call-before-hook)
-                        :adtype hook
-                        :pdumper-no-end t))))
-   ("Misc."
-    (("m e"
-      (:pretty-hydra-cabinet
-       (:data
-        "Convert ebook to org files"
-        (("m e d" entropy/ep2o-dispatcher
-          "Convert epub book to org-files"
-          :enable t :exit t)
-         ("m e m" entropy/ep2o-src-adjusting-manually
-          "Re-adjust epub book org version"
-          :enable t :exit t))))
-      "Convert ebook to org files"
-      :enable t :exit t))))
-  :config
-  (defun entropy/emacs-tools--ep2o-tidy-up-image-width-defaut ()
-    (unless (equal major-mode 'org-mode)
-      (org-mode)
-      (outline-show-all)
-      (org-show-all))
-    (add-file-local-variable 'org-image-actual-width 500))
-  (add-hook 'entropy/ep2o-tidy-hook #'entropy/emacs-tools--ep2o-tidy-up-image-width-defaut))
-
 
 ;; * provide
 (provide 'entropy-emacs-tools)
