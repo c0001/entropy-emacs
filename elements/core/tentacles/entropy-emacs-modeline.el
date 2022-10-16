@@ -331,7 +331,7 @@ return nil"
           (all-the-icons-icon-for-mode major-mode)))
    (entropy/emacs-modeline--origin-mdl-propertize-face
     (format "%s" major-mode)
-    (if (member entropy/emacs-theme-sticker '(doom-1337))
+    (if (memq entropy/emacs-theme-sticker '(doom-1337))
         'entropy/emacs-defface-simple-color-face-yellow-bold
       'success))))
 
