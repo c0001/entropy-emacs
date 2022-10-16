@@ -222,7 +222,11 @@ validation mechanism.")
   "Do `entropy/emacs-buffer-position-invalid-error-symbol' type error
 when a POSITION is not a valid buffer position value of
 `current-buffer' or error with message USE-ANY-MSG directly without
-any checks.
+any checks with error type of
+`entropy/emacs-buffer-position-invalid-error-symbol'.
+
+Basicly POSITION is a number or a marker, if not of thus, common
+error (i.e. without USE-ANY-MSG) raised up immediately.
 
 When USE-ANY-MSG is not set and when POSITION is a marker, error when
 its `marker-position' doesn't be set i.e. empty. In this occasion,
@@ -238,18 +242,22 @@ WITHOUT-RESTRICTION set, the buffer restriction is temporarily
 disabled using `save-restriction' to get the minimal `point-min' and
 max `point-max'.
 
-Return POSITION when no error matched or nil when any error occurred
-when NOERROR is set non-nil.
+Return POSITION when no error matched or nil when any common error
+occurred when NOERROR is set non-nil.
 "
+  (declare (indent 1))
   (if use-any-msg
       (signal
        entropy/emacs-buffer-position-invalid-error-symbol
        (list
-        (format "The buffer-position var '%s' invalid since: %s"
-                position use-any-msg)))
+        (format "The buffer-position '%S' invalid since: %s" position use-any-msg)))
     (let* ((posmk-p  (markerp position))
-           (pt       (if posmk-p (marker-position position) position))
-           (ptwp     (and (natnump pt) (> pt 0)))
+           (pre-p    (if (or posmk-p (integerp position)) t
+                       (if noerror nil
+                         (signal entropy/emacs-buffer-position-invalid-error-symbol
+                                 (list 'number-or-marker-p position)))))
+           (pt       (and pre-p (if posmk-p (marker-position position) position)))
+           (ptwp     (and pre-p (natnump pt) (> pt 0)))
            ptmin ptmax)
       (catch :exit
         (unless ptwp
@@ -257,12 +265,11 @@ when NOERROR is set non-nil.
             (signal
              entropy/emacs-buffer-position-invalid-error-symbol
              (list
-              (format "The buffer-position var '%s' is not a valid natural \
-integer or non-empty marker."
-                      position)))))
+              (format "The buffer-position '%S' is not a valid natural \
+integer or non-empty marker." position)))))
         (unless with-range-check (throw :exit position))
         (let ((limit-set-func
-               (lambda ()
+               (lambda nil
                  (setq ptmin (point-min)
                        ptmax (point-max)))))
           (if (and without-restriction
@@ -274,7 +281,7 @@ integer or non-empty marker."
               (signal
                entropy/emacs-buffer-position-invalid-error-symbol
                (list
-                (format "The buffer-position var '%s' is overflow for \
+                (format "The buffer-position '%S' is overflow for \
 current buffer %S's %s."
                         position (current-buffer)
                         (if without-restriction "whole portion"

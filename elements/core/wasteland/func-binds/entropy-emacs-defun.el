@@ -7553,7 +7553,9 @@ When DO-ERROR is set, do `error' like
 POSITION is invalid.
 
 Optional keys WITH-RANGE-CHECK and WITHOUT-RESTRICTION has same
-meaning of `entropy/emacs-do-error-for-buffer-position-invalid'."
+meaning of `entropy/emacs-do-error-for-buffer-position-invalid'.
+
+Error type is value of `entropy/emacs-buffer-position-invalid-error-symbol'."
   (let ((thefunc
          (lambda ()
            (funcall
@@ -7566,29 +7568,41 @@ meaning of `entropy/emacs-do-error-for-buffer-position-invalid'."
       (ignore-errors (funcall thefunc)))))
 
 (cl-defun entropy/emacs-buffer-position-p-plus
-    (position &key do-error with-range-check without-restriction)
-  "Like `entropy/emacs-buffer-position-p' but use `marker-buffer'
-instead of `current-buffer' when POSITION is a marker.
+    (position &key do-error must-in-current-buffer with-range-check without-restriction)
+  "Like `entropy/emacs-buffer-position-p' but use `marker-buffer' instead
+of `current-buffer' when POSITION is a marker.
 
-If DO-ERROR is set non-nil, also raise error when POSITION is a
-marker and its `marker-buffer' is not valid i.e. not `bufferp' or
-not `buffer-live-p'."
+Unless MUST-IN-CURRENT-BUFFER is set non-nil and POSITION is a marker
+in which case the check is failed when `current-buffer' is not that
+marker's `marker-buffer'.
+
+If DO-ERROR is set non-nil, include common errors and also raise error
+when POSITION is a marker and its `marker-buffer' is not valid
+i.e. not `bufferp' or not `buffer-live-p'.
+
+Error type is value of `entropy/emacs-buffer-position-invalid-error-symbol'."
   (let* ((posmk-p (markerp position))
          (mkbuff (and posmk-p
                       (marker-buffer position)))
          (do-body t)
          (_
-          (when (and posmk-p
-                     (or (not (bufferp mkbuff))
-                         (not (buffer-live-p mkbuff))))
-            (if do-error
-                (signal 'wrong-type-argument (list 'valid-markerp position))
-              (setq do-body nil))))
-         (pt (and do-body (if posmk-p (marker-position position) position))))
+          (progn
+            (when (and posmk-p must-in-current-buffer (not (eq mkbuff (current-buffer))))
+              (if (not do-error) (setq do-body nil)
+                (entropy/emacs-do-error-for-buffer-position-invalid position
+                  :use-any-msg
+                  (format "marker not in current-buffer `%s'" (current-buffer)))))
+            (when (and do-body posmk-p
+                       (or (not (bufferp mkbuff))
+                           (not (buffer-live-p mkbuff))))
+              (if do-error
+                  (signal entropy/emacs-buffer-position-invalid-error-symbol
+                          (list 'valid-markerp position))
+                (setq do-body nil))))))
     (when do-body
       (with-current-buffer (or mkbuff (current-buffer))
         (and (entropy/emacs-buffer-position-p
-              pt
+              position
               :do-error do-error
               :without-restriction without-restriction
               :with-range-check with-range-check)
@@ -7606,25 +7620,29 @@ thrown out.
 
 If NOERROR is set non-nil in which case always return nil without
 any operations did when such invalidation occurs."
-  (let* ((posmk-p (markerp position))
-         (pt (if posmk-p (marker-position position) position))
-         (validp
+  (let* ((validp
           (entropy/emacs-buffer-position-p
-           pt :do-error (not noerror) :with-range-check t)))
-    (when validp (goto-char pt))))
+           position :do-error (not noerror) :with-range-check t))
+         (posmk-p (markerp position))
+         (pt (if posmk-p (marker-position position) position)))
+    (when validp (goto-char pt) position)))
 
-(defun entropy/emacs-goto-char-plus (position &optional noerror)
+(defun entropy/emacs-goto-char-plus (position &optional noerror must-in-current-buffer)
   "Like `entropy/emacs-goto-char' but use
-`entropy/emacs-buffer-position-p-plus' to check position."
+`entropy/emacs-buffer-position-p-plus' to check position.
+
+MUST-IN-CURRENT-BUFFER has same meaning as
+`entropy/emacs-buffer-position-p-plus' declared."
   (let* ((validp
           (entropy/emacs-buffer-position-p-plus
-           position :do-error (not noerror) :with-range-check t))
+           position :do-error (not noerror)
+           :with-range-check t :must-in-current-buffer must-in-current-buffer))
          (posmk-p (and validp (markerp position)))
          (pt (and validp (if posmk-p (marker-position position) position))))
     (when validp
       (with-current-buffer
           (or (and posmk-p (marker-buffer position)) (current-buffer))
-        (goto-char pt)))))
+        (goto-char pt) position))))
 
 (cl-defmacro entropy/emacs-with-current-buffer
     (buffer-or-name &rest body
@@ -7633,14 +7651,13 @@ any operations did when such invalidation occurs."
                     use-switch-directly
                     &allow-other-keys)
   "Same as `with-current-buffer' but run BODY in that buffer after
-`switch-to-buffer' to BUFFER-OR-NAME when USE-SWITCH-DIRECTLY is
-non-nil, therefore do no use USE-SWITCH-DIRECTLY when in a
+`switch-to-buffer' to BUFFER-OR-NAME when USE-SWITCH-DIRECTLY is set
+and return non-nil, therefore do no use USE-SWITCH-DIRECTLY when in a
 `noninteractive' session.
 
-When USE-SWITCH-DIRECTLY is non-nil and is a non-nil list, it should
-be a list of rest args exclude the first argument i.e. the
-BUFFER-OR-NAME of `switch-to-buffer', used to apply to
-`switch-to-buffer'.
+When USE-SWITCH-DIRECTLY return a non-nil list, it should be a list of
+rest args exclude the first argument i.e. the BUFFER-OR-NAME of
+`switch-to-buffer', used to apply to `switch-to-buffer'.
 
 If NOERROR is set and return non-nil, do nothing and return nil while
 BUFFER-OR-NAME is invalid i.e. can not indicate any lived buffer.
@@ -7668,38 +7685,38 @@ Also see `entropy/emacs-with-selected-buffer-window'."
            ,@body)))))
 
 (cl-defmacro entropy/emacs-with-goto-char
-    (number-or-marker &rest body
-                      &key save-excursion use-switch-directly do-error
-                      &allow-other-keys)
-  "Run BODY after `goto-char' to NUMBER-OR-MARKER of the BUFFER (use
-NUMBER-OR-MARKER's buffer when it's a marker or use `current-buffer')
-and the whole procedure is with that BUFFER (i.e. run with the
-`current-buffer' set to BUFFER temporarily unless USE-SWITCH-DIRECTLY
-is non-nil see below). Return the result of last form of BODY when
-everthing is ok.
+    (position &rest body
+              &key save-excursion use-switch-directly do-error
+              &allow-other-keys)
+  "Run BODY after `goto-char' to POSITION of the BUFFER (use POSITION's
+buffer when it's a marker or use `current-buffer') and the whole
+procedure is with that BUFFER (i.e. run with the `current-buffer' set
+to BUFFER temporarily unless USE-SWITCH-DIRECTLY is non-nil see
+below). Return the result of last form of BODY when everthing is ok.
 
-When SAVE-EXCURSION is non-nil, try to restore the point of the BUFFER
-after run BODY when possible.
+When SAVE-EXCURSION is set and return non-nil, try to restore the
+point of the BUFFER after run BODY when possible.
 
-When USE-SWITCH-DIRECTLY is non-nil, it has same meaning of the same
-key of `entropy/emacs-with-current-buffer' and that body include this
-point movement, otherwise restore the former `current-buffer' which
-presented before whole procedure.
+When USE-SWITCH-DIRECTLY is set and return non-nil, it has same
+meaning of the same key of `entropy/emacs-with-current-buffer' and
+that BODY run with BUFFER after BUFFER has been switched to. Otherwise
+restore the former `current-buffer' which presented before whole
+procedure.
 
-If DO-ERROR set non-nil, raise an error when NUMBER-OR-MARKER can not
+If DO-ERROR set non-nil, raise an error when POSITION can not
 predicated by `entropy/emacs-buffer-position-p-plus' with visible
 portion of BUFFER. If not set that, always return nil without did
 anything when thus occasion occurred.
 "
   (declare (indent defun))
   (let ((body (entropy/emacs-get-plist-body body))
-        (pt-sym     (make-symbol "number-or-marker"))
+        (pt-sym     (make-symbol "position"))
         (mkbuf-sym  (make-symbol "the-marker-buffer"))
         (swtd-sym   (make-symbol "use-switch-directly"))
         (sves-sym   (make-symbol "use-save-excursion"))
         (buff-sym   (make-symbol "the-buffer")))
     `(let* ((,pt-sym (entropy/emacs-buffer-position-p-plus
-                      ,number-or-marker
+                      ,position
                       :with-range-check t
                       :do-error ,do-error))
             (,mkbuf-sym (and ,pt-sym (markerp ,pt-sym)
@@ -7713,7 +7730,7 @@ anything when thus occasion occurred.
            (entropy/emacs-save-excursion-when
             :when ,sves-sym
             (goto-char (if ,mkbuf-sym (marker-position ,pt-sym) ,pt-sym))
-            ,@body))))))
+            ,(entropy/emacs-macroexp-progn body)))))))
 
 (cl-defun entropy/emacs-buffer-goto-line
     (line-number &key buffer relative)
@@ -7783,8 +7800,9 @@ range check. When either START or END is a marker, only its
 END-OFFSET in buffer BUFFRE (omitted for using `current-buffer')
 respectively.
 
-POSITION must be predicated by `entropy/emacs-buffer-position-p-plus' with
-BUFFER's visible range check, or an error will be throwed out.
+POSITION must be predicated by `entropy/emacs-buffer-position-p-plus'
+with BUFFER's visible range check and BUFFER sticked in, or an error
+will be throwed out.
 
 If FROM-LINE-BEGIN is non-nil, the based position is the
 `line-beginning-position' of the line of position.
@@ -7808,7 +7826,7 @@ The returned cons of start and end is reversed when start's point is
   (with-current-buffer (or buffer (current-buffer))
     (save-excursion
       (if position
-          (entropy/emacs-goto-char-plus position)
+          (entropy/emacs-goto-char-plus position nil t)
         (setq position (point)))
       (let* ((lnbeg-pt (line-beginning-position))
              (lnend-pt (line-end-position))
@@ -7863,8 +7881,7 @@ line area. Also return nil when the calculated region is empty.
         begpt endpt region regbeg regend lnbegpt lnendpt)
     (with-current-buffer buffer
       (save-excursion
-        (and pos
-             (entropy/emacs-goto-char-plus pos))
+        (and pos (entropy/emacs-goto-char-plus pos nil t))
         (setq lnbegpt (line-beginning-position)
               lnendpt (line-end-position)
               start-offset (or start-offset 0)
