@@ -621,7 +621,7 @@ value.
 The main exist reason for this macro is used to clear out the
 lisp coding type."
   (declare (indent defun))
-  (when body `(setf ,var (progn ,@body))))
+  (when body `(setf ,var ,(entropy/emacs-macroexp-progn body))))
 
 (defmacro entropy/emacs-setf-by-func (var func &rest args)
   "Call FUNCTION with its ARGS and set its value to variable VAR by
@@ -7543,6 +7543,20 @@ not satisfied for what we are diretly expecting."
       (setq rtn nil))
     (cons rtn result)))
 
+(defsubst entropy/emacs-buffer-current-line-is-logical-empty-p ()
+  "Return non-nil when the `point' of `current-buffer' is
+positioned at a logical empty line i.e. the line do not have any
+characters for."
+  (declare (side-effect-free t))
+  (save-excursion (forward-line 0) (looking-at-p "^$")))
+
+(defsubst entropy/emacs-buffer-current-line-is-match-regexp-p (regexp)
+  "Return non-nil when the `point' of `current-buffer' is
+positioned at a line whose whole contents matched regexp string
+REGEXP."
+  (declare (side-effect-free t))
+  (save-excursion (forward-line 0) (looking-at-p regexp)))
+
 (cl-defun entropy/emacs-buffer-position-p
     (position &key do-error with-range-check without-restriction)
   "Return POSITION when POSITION is a vaid buffer position of
@@ -7608,6 +7622,45 @@ Error type is value of `entropy/emacs-buffer-position-invalid-error-symbol'."
               :with-range-check with-range-check)
              ;; convention return
              position)))))
+
+(defun entropy/emacs-make-marker (position &optional buffer type do-error)
+  "Return a newly allocated marker NEW-MARKER which point to POSITION of
+BUFFER, or nil while invalids happened.
+
+Invalids are:
+1) POSITION can not be predicated by
+   `entropy/emacs-buffer-position-p-plus' with range check. Raise
+   `entropy/emacs-buffer-position-invalid-error-symbol''s value type
+   error when DO-ERROR is non-nil while such case.
+2) BUFFER is invalid either when BUFFER is not a buffer or is not
+   lived. Do error when DO-ERROR is non-nil.
+
+If no invalids and BUFFER is not-set and POSITION is a marker, this
+function's behaviour is same as `copy-marker'. Or NEW-MARKER is point
+to POSITION of `current-buffer'.
+
+If no invalids and BUFFER is set, then always make NEW-MARKER point to
+BUFFER with `point' to where the POSITION's point value stick.
+
+The optional argument TYPE specifies the insertion type of the new
+marker; see `marker-insertion-type'."
+  (entropy/emacs-when-let*-first
+      ((vlp (entropy/emacs-buffer-position-p-plus
+             position :with-range-check t :do-error do-error))
+       (buff (or buffer (current-buffer)))
+       (pmp (markerp position)) (pmbuff (and pmp (marker-buffer position)))
+       (rtn nil))
+    (if (and pmp (or (not buffer) (eq pmbuff buff))) (copy-marker position type)
+      (if (buffer-live-p buff)
+          (progn
+            (set-marker-insertion-type
+             (entropy/emacs-setf-by-body rtn
+               (set-marker (make-marker)
+                           (if pmp (marker-position position) position) buff))
+             type)
+            rtn)
+        (if do-error (signal 'wrong-type-argument
+                             (list 'buffer-and-live-p buff)))))))
 
 (defun entropy/emacs-goto-char (position &optional noerror)
   "Like `goto-char' but this function guaranteeing that goto the
@@ -7851,6 +7904,33 @@ The returned cons of start and end is reversed when start's point is
         (if return-as-marker
             (entropy/emacs-get-buffer-region-markers begpt endpt)
           (cons begpt endpt))))))
+
+(defun entropy/emacs-get-buffer-pos-char (&optional position as-string do-error)
+  "Return the character where POSITION point to at BUFFER, as a
+number. At the end of the BUFFER or accessible region, return 0.
+
+If POSITION is marker then its buffer is used for BUFFER instead of
+`current-buffer' which is the default set.
+
+If AS-STRING is non-nil then return a single character string by
+`make-string' 1 of that number Instead.
+
+Return nil or raise error (when DO-ERROR is non-nil) when one of below
+invalids heppended:
+1) POSITION is not predicated by
+   `entropy/emacs-buffer-position-p-plus' with range check."
+  (let* ((pos (or position (point)))
+         (validp
+          (entropy/emacs-buffer-position-p-plus
+           pos :with-range-check t :do-error do-error)))
+    (entropy/emacs-when-let*-first
+        ((validp)
+         (pos-mkp (markerp pos)) (pt (or (and pos-mkp (marker-position pos)) pos))
+         (buff (or (and pos-mkp (marker-buffer pos)) (current-buffer)))
+         (rtn nil))
+      (with-current-buffer buff
+        (save-excursion (goto-char pt) (setq rtn (following-char))
+                        (if as-string (make-string 1 rtn) rtn))))))
 
 (cl-defun entropy/emacs-get-buffer-pos-line-content
     (&key start-offset end-offset buffer position without-properties)
@@ -8198,6 +8278,153 @@ The successful result plist has follow valid keys:
             :deleted-content-string
             reg-content))
     ))
+
+(cl-defun entropy/emacs-map-buffer-points
+    (map-func &key with-buffer with-step with-bound)
+  "Call function MAP-FUNC at each position of buffer WITH-BUFFER
+(defaults to `current-buffer') from current `point' CPOS with jump
+step WITH-STEP (defaults to 1) to the end (`eobp') or begin (`bobp')
+of WITH-BUFFER according to whether WITH-STEP is positive or not, or
+to the boundary at buffer position WITH-BOUND if it is set.
+
+If WITH-BOUND is a cons, its car is used as the boundary position and
+the line WITH-BOUND at is also included to run MAP-FUNC, where
+defaulty MAP-FUNC is not invoked in this case.
+
+MAP-FUNC's return is sensitive, as for that when its return is a plist
+then below keys is used as:
+
+1. `:exit' : exit the loop immediately.
+2. `:pause': continuing the loop but do not did jumping for next step.
+3. `:step' : used as next jumping's WITH-STEP only when `:pause' is nil.
+4. `:bound': used as next jumping's WITH-BOUND.
+
+Return the final `point' LPOS where is the position after run the last
+map. And the POS is the current `point' of WITH-BUFFER in the
+meanwhile."
+  (let* ((bound-error
+          (lambda (x)
+            (setq x (if (consp x) (car x) x))
+            (entropy/emacs-buffer-position-p x :do-error t :with-range-check t)))
+         (step-error
+          (lambda (x)
+            (unless (and (integerp x) (not (zerop x)))
+              (signal 'wrong-type-argument (list 'non-zero-integerp x)))))
+         (_ (progn (when with-step  (funcall step-error  with-step))
+                   (when with-bound (funcall bound-error with-bound))))
+         (with-step (or with-step 1))
+         map-rtn map-rtn-plist-p prev-final-pt
+         (bound-checker
+          #'(lambda nil
+              (if (not with-bound) t
+                (let* ((bound-consp (consp with-bound))
+                       (bound-pt (if bound-consp (car with-bound) with-bound))
+                       (pt (point)))
+                  (funcall
+                   (if (> with-step 0) (if bound-consp #'<= #'<)
+                     (if bound-consp #'>= #'>))
+                   pt bound-pt)))))
+         (map-framework
+          #'(lambda nil
+              (setq map-rtn (funcall map-func) prev-final-pt (point)
+                    ;; FIXME: we must find a high-efficiency way for
+                    ;; check whether it's a true plist. Thus we just
+                    ;; put a simple inaccuracy way here.
+                    map-rtn-plist-p (and (consp map-rtn) (keywordp (car map-rtn))))
+              (let (val)
+                (when (and map-rtn-plist-p (setq val (plist-get map-rtn :bound)))
+                  (funcall bound-error val)
+                  (setq with-bound val))
+                (when (and map-rtn-plist-p (setq val (plist-get map-rtn :step)))
+                  (funcall step-error val)
+                  (setq with-step val))))))
+    (with-current-buffer (or with-buffer (current-buffer))
+      (funcall map-framework)
+      (while (cond
+              ((or (and map-rtn-plist-p (plist-get map-rtn :stop))
+                   (not (funcall bound-checker)))
+               nil)
+              ((and map-rtn-plist-p (plist-get map-rtn :pause)) t)
+              (t (and (let ((next-pt (+ with-step prev-final-pt)))
+                        (when (and (<= (point-min) next-pt) (<= next-pt (point-max)))
+                          (goto-char next-pt)))
+                      (funcall bound-checker))))
+        (funcall map-framework))
+      (goto-char prev-final-pt))))
+
+(cl-defun entropy/emacs-map-buffer-lines
+    (map-func &key with-buffer with-step with-bound)
+  "Call function MAP-FUNC at start (\"start of line\" in the logical order)
+of each line of buffer WITH-BUFFER (defaults to `current-buffer') from
+the line where current `point' is on of WITH-BUFFER with jump step
+WITH-STEP (defaults to 1) to the last line or first line of
+WITH-BUFFER according to whether WITH-STEP is positive or not, or to
+the boundary at buffer position WITH-BOUND if it is set.
+
+If WITH-BOUND is a cons, its car is used as the boundary position and
+the line WITH-BOUND at is also included to run MAP-FUNC, where
+defaulty MAP-FUNC is not invoked in this case.
+
+MAP-FUNC's return is sensitive, as for that when its return is a plist
+then below keys is used as:
+
+1. `:exit' : exit the loop immediately.
+2. `:pause': continuing the loop but do not did jumping for next step.
+3. `:step' : used as next jumping's WITH-STEP only when `:pause' is nil.
+4. `:bound': used as next jumping's WITH-BOUND.
+
+Return the `point' POS where is the position after run the last
+map. And the POS is the current `point' of WITH-BUFFER in the
+meanwhile."
+  (declare (indent 1))
+  (let* ((bound-error
+          (lambda (x)
+            (setq x (if (consp x) (car x) x))
+            (entropy/emacs-buffer-position-p x :do-error t :with-range-check t)))
+         (step-error
+          (lambda (x)
+            (unless (and (integerp x) (not (zerop x)))
+              (signal 'wrong-type-argument (list 'non-zero-integerp x)))))
+         (_ (progn (when with-step  (funcall step-error  with-step))
+                   (when with-bound (funcall bound-error with-bound))))
+         (with-step (or with-step 1))
+         map-rtn map-rtn-plist-p prev-final-pt
+         (bound-checker
+          #'(lambda nil
+              (if (not with-bound) t
+                (let* ((bound-consp (consp with-bound))
+                       (bound-pt (if bound-consp (car with-bound) with-bound))
+                       (pt (point)))
+                  (funcall
+                   (if (> with-step 0) (if bound-consp #'<= #'<)
+                     (if bound-consp #'>= #'>))
+                   pt bound-pt)))))
+         (map-framework
+          #'(lambda nil
+              (setq map-rtn (funcall map-func) prev-final-pt (point)
+                    ;; FIXME: we must find a high-efficiency way for
+                    ;; check whether it's a true plist. Thus we just
+                    ;; put a simple inaccuracy way here.
+                    map-rtn-plist-p (and (consp map-rtn) (keywordp (car map-rtn))))
+              (let (val)
+                (when (and map-rtn-plist-p (setq val (plist-get map-rtn :bound)))
+                  (funcall bound-error val)
+                  (setq with-bound val))
+                (when (and map-rtn-plist-p (setq val (plist-get map-rtn :step)))
+                  (funcall step-error val)
+                  (setq with-step val))))))
+    (with-current-buffer (or with-buffer (current-buffer))
+      (forward-line 0)
+      (funcall map-framework)
+      (while (cond
+              ((or (and map-rtn-plist-p (plist-get map-rtn :stop))
+                   (not (funcall bound-checker)))
+               nil)
+              ((and map-rtn-plist-p (plist-get map-rtn :pause)) t)
+              (t (and (car (entropy/emacs-forward-line with-step))
+                      (funcall bound-checker))))
+        (funcall map-framework))
+      (goto-char prev-final-pt))))
 
 ;; **** buffer xy coordinates system
 
