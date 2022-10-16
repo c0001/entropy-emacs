@@ -312,6 +312,29 @@ return nil"
   (if (entropy/emacs-icons-displayable-p)
       (if (stringp icon) icon (format "%s" icon)) plain))
 
+(defun entropy/emacs-modeline--origin-mdl-get-major-mode-str ()
+  (entropy/emacs-modeline--origin-mdl-use-icon-or-plain
+   (cond ((string-match-p "magit" (symbol-name major-mode))
+          (all-the-icons-icon-for-mode major-mode :v-adjust 0.001))
+         ((and (derived-mode-p 'prog-mode)
+               (not (eq major-mode 'emacs-lisp-mode)))
+          (cond
+           ((and (eq major-mode 'python-mode)
+                 (eq entropy/emacs-theme-sticker 'doom-1337))
+            (all-the-icons-icon-for-mode
+             major-mode
+             :v-adjust 0.001
+             :face 'all-the-icons-maroon))
+           (t
+            (all-the-icons-icon-for-mode major-mode :v-adjust 0.001))))
+         (t
+          (all-the-icons-icon-for-mode major-mode)))
+   (entropy/emacs-modeline--origin-mdl-propertize-face
+    (format "%s" major-mode)
+    (if (member entropy/emacs-theme-sticker '(doom-1337))
+        'entropy/emacs-defface-simple-color-face-yellow-bold
+      'success))))
+
 (defvar entropy/emacs-modeline--simple-mode-line-format)
 (defvar entropy/emacs-modeline--simple-mode-line-rhs-fmt
   (list
@@ -356,47 +379,15 @@ return nil"
     ;; mode-line-modes
     " "
     ;; > Major Mode
-    (:eval
-     (entropy/emacs-modeline--origin-mdl-use-icon-or-plain
-      (cond ((string-match-p "magit" (symbol-name major-mode))
-             (all-the-icons-icon-for-mode major-mode :v-adjust 0.001))
-            ((and (derived-mode-p 'prog-mode)
-                  (not (eq major-mode 'emacs-lisp-mode)))
-             (cond
-              ((and (eq major-mode 'python-mode)
-                    (eq entropy/emacs-theme-sticker 'doom-1337))
-               (all-the-icons-icon-for-mode
-                major-mode
-                :v-adjust 0.001
-                :face 'all-the-icons-maroon))
-              (t
-               (all-the-icons-icon-for-mode major-mode :v-adjust 0.001))))
-            (t
-             (all-the-icons-icon-for-mode major-mode)))
-      (entropy/emacs-modeline--origin-mdl-propertize-face
-       (format "%s" major-mode)
-       (if (member entropy/emacs-theme-sticker '(doom-1337))
-           'entropy/emacs-defface-simple-color-face-yellow-bold
-         'success))))
+    (:eval (entropy/emacs-modeline--origin-mdl-get-major-mode-str))
     " "
     ;; > Buffer Name
     entropy/emac-modeline--origin-mdl-buffer-identification " "
     ;; ---------- alignment spaces ----------
     (:eval
-     (propertize
-      " "
-      'display
-      (entropy/emacs-double-list
-       'space
-       :align-to
-       (list '- '(+ right right-fringe right-margin scroll-bar)
-             (+
-              (string-width
-               (format-mode-line
-                ;; FIXME: why must be a cons or the calculation will
-                ;; not be precisely? (copied from `doom-modeline')
-                (cons "" entropy/emacs-modeline--simple-mode-line-rhs-fmt)))
-              (if (display-graphic-p) 2 0))))))
+     (entropy/emacs-make-space-align-to-modeline-rest
+      entropy/emacs-modeline--simple-mode-line-rhs-fmt
+      (if (display-graphic-p) 2 0)))
     ;; ---------- lhs ----------
     ,@entropy/emacs-modeline--simple-mode-line-rhs-fmt))
 

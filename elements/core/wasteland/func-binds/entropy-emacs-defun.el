@@ -10976,6 +10976,33 @@ modeline swither."
               (kill-local-variable 'mode-line-format))))
         (buffer-list)))
 
+(defun entropy/emacs-make-space-align-to-modeline-rest
+    (rest-mode-line-format &optional offset)
+  "Return a string used for current mode-line CMDL's `mode-line-format'
+which consists by a SPC (char 32) with `display' property set as
+aligning to a target position DPOS of CMDL before the tail of the
+`window-pixel-width' of the window where CMDL rely on from current
+position CPOS of CMDL.
+
+Where the distance of CPOS and DPOS is calculated by the
+`string-width' of a `mode-line-format' REST-MODE-LINE-FORMAT which is
+the remaining (or called rest) of current mode-line, plus the offset
+units number specfied by OFFSET (defaults to 0)."
+  (propertize
+   " "
+   'display
+   (entropy/emacs-double-list
+    'space
+    :align-to
+    `(- (+ right right-fringe right-margin scroll-bar)
+        ,(+
+          (string-width
+           (format-mode-line
+            ;; FIXME: why must be a cons or the calculation will
+            ;; not be precisely? (copied from `doom-modeline')
+            (cons "" rest-mode-line-format)))
+          (or offset 0))))))
+
 ;; *** Theme loading specification
 
 (declare-function doom-modeline-refresh-bars "ext:doom-modeline")
