@@ -7975,7 +7975,7 @@ enabled that both the mark and point of BUFF either never modified."
              (buff   (or pmbuff (current-buffer)))
              (rtn-func
               (lambda (x)
-                (if (or (not x) (not pmp) ) x
+                (if (or (not x) (not pmp)) x
                   (set-marker (make-marker) x buff)))))
         (with-current-buffer buff
           (entropy/emacs-save-excurstion-and-mark-and-match-data
