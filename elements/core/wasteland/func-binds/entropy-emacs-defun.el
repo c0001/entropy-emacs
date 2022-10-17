@@ -7919,10 +7919,12 @@ Return nil or raise error (when DO-ERROR is non-nil) when one of below
 invalids heppended:
 1) POSITION is not predicated by
    `entropy/emacs-buffer-position-p-plus' with range check."
-  (let* ((pos (or position (point)))
+  (let* ((pre-valid-p nil)
+         (pos (or position (prog1 (point) (setq pre-valid-p t))))
          (validp
-          (entropy/emacs-buffer-position-p-plus
-           pos :with-range-check t :do-error do-error)))
+          (if pre-valid-p t
+            (entropy/emacs-buffer-position-p-plus
+             pos :with-range-check t :do-error do-error))))
     (entropy/emacs-when-let*-first
         ((validp)
          (pos-mkp (markerp pos)) (pt (or (and pos-mkp (marker-position pos)) pos))
