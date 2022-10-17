@@ -5005,14 +5005,19 @@ backtrace:
   :signal (entropy/emacs-do-error-for-emacs-version-incompatible
            '<= "29")
   (when (or (not (display-graphic-p)) (daemonp))
-    (advice-patch 'help--analyze-key
-                  '(save-excursion
-                     (let ((evpt (event-end event)))
-                       (and (number-or-marker-p evpt)
-                            (posn-set-point evpt))
-                       (key-binding key t)))
-                  '(save-excursion (posn-set-point (event-end event))
-                                   (key-binding key t)))))
+    (entropy/emacs-lazy-initial-for-hook
+     ;; we must inject before any command really ran since the patch
+     ;; must take effective before the that describe procedure run.
+     '(pre-command-hook)
+     "advice-patch-help--analyze-key" "advice-patch-help--analyze-key"
+     :pdumper-no-end t :prompt-type 'prompt-echo
+     (advice-patch 'help--analyze-key
+                   '(save-excursion
+                      (let ((evpt (event-end event)))
+                        (and (number-or-marker-p evpt) (posn-set-point evpt))
+                        (key-binding key t)))
+                   '(save-excursion (posn-set-point (event-end event))
+                                    (key-binding key t))))))
 
 ;; ***** Restriction print level and length for help buffer
 
