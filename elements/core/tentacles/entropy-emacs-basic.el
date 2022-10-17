@@ -4164,7 +4164,9 @@ as thus."
   ;;
   ;; Command without 'delete-selection' property will not delete the
   ;; region before insertion.
-  (put 'entropy/emacs-xterm-paste 'delete-selection t))
+  (put 'entropy/emacs-xterm-paste 'delete-selection t)
+  ;; also set for `xterm-paste' for back compatibility
+  (put 'xterm-paste 'delete-selection t))
 
 ;; ****** Auto wrap line
 (setq-default truncate-lines t)
@@ -4923,15 +4925,15 @@ successfully both of situation of read persisit of create an new."
  :prompt-type 'prompt-echo
  :pdumper-no-end t
  (let* ((cli-enable-func
-         (lambda ()
+         (lambda nil
            (define-key global-map [xterm-paste]
              #'entropy/emacs-xterm-paste)))
         (cli-disable-func
-         (lambda ()
+         (lambda nil
            (define-key global-map [xterm-paste]
              #'xterm-paste)))
         (term-enable-func
-         (lambda ()
+         (lambda nil
            (entropy/emacs-require-only-once 'term)
            (define-key term-raw-map
              [S-insert]
@@ -4940,7 +4942,7 @@ successfully both of situation of read persisit of create an new."
              [xterm-paste]
              #'entropy/emacs-xterm-term-S-insert)))
         (term-disable-func
-         (lambda ()
+         (lambda nil
            (entropy/emacs-require-only-once 'term)
            (define-key term-raw-map
              [S-insert]
@@ -4949,13 +4951,13 @@ successfully both of situation of read persisit of create an new."
              [xterm-paste]
              #'term-paste)))
         (enable-func
-         `(lambda ()
-            (funcall ',cli-enable-func)
-            (funcall ',term-enable-func)))
+         (lambda nil
+           (funcall cli-enable-func)
+           (funcall term-enable-func)))
         (disable-func
-         `(lambda ()
-            (funcall ',cli-disable-func)
-            (funcall ',term-disable-func))))
+         (lambda nil
+           (funcall cli-disable-func)
+           (funcall term-disable-func))))
    (if (null (daemonp))
        (when (entropy/emacs-xterm-cut-or-yank-sync-with-system/functional-env-statisfied-p)
          (funcall enable-func))
@@ -4964,11 +4966,11 @@ successfully both of situation of read persisit of create an new."
        'xterm-paste-bind (&rest _)
        :when-tui
        (when (entropy/emacs-xterm-cut-or-yank-sync-with-system/functional-env-statisfied-p)
-         (funcall ,enable-func)
+         (funcall enable-func)
          (setq entropy/emacs-basic--xterm-paste-rebinded t))
        :when-gui
        (when entropy/emacs-basic--xterm-paste-rebinded
-         (funcall ,disable-func)
+         (funcall disable-func)
          (setq entropy/emacs-basic--xterm-paste-rebinded nil))))))
 
 ;; **** Bookmarks
