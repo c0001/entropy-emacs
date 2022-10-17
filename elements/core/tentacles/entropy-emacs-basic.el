@@ -4159,7 +4159,7 @@ as thus."
    :prompt-type 'prompt-echo
    :pdumper-no-end t
    (delete-selection-mode 1))
-  :config
+
   ;; EEMACS_MAINTENANCE:
   ;;
   ;; Command without 'delete-selection' property will not delete the
