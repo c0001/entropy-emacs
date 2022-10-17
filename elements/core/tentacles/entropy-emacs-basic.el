@@ -4152,13 +4152,9 @@ as thus."
 ;; Delete selection if you insert
 (use-package delsel
   :ensure nil
+  :functions (delete-selection-pre-hook)
   :init
-  (entropy/emacs-lazy-initial-advice-before
-   '(yank xterm-paste)
-   "delsel-mode-init" "delsel-mode-init"
-   :prompt-type 'prompt-echo
-   :pdumper-no-end t
-   (delete-selection-mode 1))
+  (add-hook 'pre-command-hook 'delete-selection-pre-hook)
 
   ;; EEMACS_MAINTENANCE:
   ;;
@@ -4166,7 +4162,10 @@ as thus."
   ;; region before insertion.
   (put 'entropy/emacs-xterm-paste 'delete-selection t)
   ;; also set for `xterm-paste' for back compatibility
-  (put 'xterm-paste 'delete-selection t))
+  (put 'xterm-paste 'delete-selection t)
+
+  :config
+  (delete-selection-mode 1))
 
 ;; ****** Auto wrap line
 (setq-default truncate-lines t)
