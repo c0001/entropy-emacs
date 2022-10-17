@@ -7932,6 +7932,73 @@ invalids heppended:
         (save-excursion (goto-char pt) (setq rtn (following-char))
                         (if as-string (make-string 1 rtn) rtn))))))
 
+(defun entropy/emacs-get-buffer-line-first-non-whitespace-pos
+    (&optional position use-syntax with-goto-char do-error)
+  "Return position POS where its `char-after' is not a whitespace
+character WHC where the line LN is at POSITION of its buffer BUFF or
+`current-buffer' while POSITION is not a marker.
+
+Return nil when LN is empty or filled with WHCs in which case is
+called non-matched NMC.
+
+Return nil when POSITION is invalid (i.e. not satisfied
+`entropy/emacs-buffer-position-p-plus') in which case is called
+INVPOS.
+
+And either NMC and INVPOS is all called ERR.
+
+If not ERR and POSITION is a valid marker, then POS is either a marker
+with same `marker-buffer' BUFF as POSITION has, otherwise POS is a
+number which indicate a position of BUFF which is `current-buffer'.
+
+If DO-ERROR is non-nil then raise error when ERR.
+
+If USE-SYNTAX is non-nil then we use current `syntax-table' as base to
+determine what character is a whitespace, otherwise we use common
+regexp string \"^\\s-*\" to searched for.
+
+If WITH-GOTO-CHAR is non-nil and not ERR then also set `point' of BUFF
+where POS point to. Defaulty there's movement happened, where says
+that at least match data is never modified and while not for movement
+enabled that both the mark and point of BUFF either never modified."
+  (let* ((pre-valid-p nil)
+         (pos (or position (prog1 (point) (setq pre-valid-p t))))
+         (validp
+          (if pre-valid-p t
+            (entropy/emacs-buffer-position-p-plus
+             pos :with-range-check t :do-error do-error)))
+         rtn)
+    (when validp
+      (let* ((pmp    (markerp pos))
+             (pmbuff (and pmp (marker-buffer pos)))
+             (pt     (or (and pmp (marker-position pos)) pos))
+             (buff   (or pmbuff (current-buffer)))
+             (rtn-func
+              (lambda (x)
+                (if (or (not x) (not pmp) ) x
+                  (set-marker (make-marker) x buff)))))
+        (with-current-buffer buff
+          (entropy/emacs-save-excurstion-and-mark-and-match-data
+            (goto-char pt) (forward-line 0)
+            (entropy/emacs-setf-by-body rtn
+              (funcall
+               rtn-func
+               (if (not use-syntax) (re-search-forward "^\\s-*" (line-end-position) t)
+                 (let ((nfoundp t))
+                   (while (and (setq nfoundp (= (syntax-class (syntax-after (point))) 0))
+                               (not (eolp)))
+                     (goto-char (1+ (point))))
+                   (and (not nfoundp) (point)))))))
+          (if with-goto-char (and rtn (goto-char rtn))))
+        (unless rtn
+          (when do-error
+            (entropy/emacs-do-error-for-buffer-position-invalid position
+              :use-any-msg
+              (format "in empty or whitespaces filled line (use %s search)"
+                      (if use-syntax "syntax" "regexp")))))
+        ;; return
+        rtn))))
+
 (cl-defun entropy/emacs-get-buffer-pos-line-content
     (&key start-offset end-offset buffer position without-properties)
   "Return substring of buffer BUFFER at the line of position
