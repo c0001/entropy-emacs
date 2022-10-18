@@ -7659,6 +7659,63 @@ Error type is value of `entropy/emacs-buffer-position-invalid-error-symbol'."
              ;; convention return
              position)))))
 
+(cl-defmacro entropy/emacs-buffer-with-safe-pos
+    (&optional
+     pos-var
+     &rest body
+     &key do-error
+     with-plus-checker
+     with-range-check without-restriction must-in-current-buffer
+     &allow-other-keys)
+  "Run BODY with buffer position POS-VAR in safe way.
+
+If POS-VAR satisfied `entropy/emacs-buffer-position-p' (or
+`entropy/emacs-buffer-position-p-plus' when WITH-PLUS-CHECK return
+non-nil.) return BODY's value, otherwise return nil or raise
+`entropy/emacs-buffer-position-invalid-error-symbol' value type error
+when DO-ERROR return non-nil.
+
+The optional keys are compatible by those checkers except of
+MUST-IN-CURRENT-BUFFER is just used when WITH-PLUS-CHECKER for
+`entropy/emacs-buffer-position-p-plus'.
+
+POS-VAR should be a variable name or a place used for `setf', to be
+replaced by a plist which has keys of:
+1) `:point': the POS-VAR's point value
+2) `:buffer': the buffer on where POS-VAR is hosted
+3) `:origin-val': the origin value of POS-VAR
+
+If POS-VAR is originally nil, the `point' of `current-buffer' is used."
+  (declare (indent 1))
+  (let ((body (entropy/emacs-defun--get-real-body body)))
+    (macroexp-let2* ignore
+        ((pre-validp nil) (use-error do-error)
+         (wrchk with-range-check) (witorst without-restriction)
+         (insamebuff must-in-current-buffer)
+         (pos-bak pos-var)
+         (the-pos `(or ,pos-bak (prog1 (point) (setq ,pre-validp t))))
+         (top-validp
+          `(if ,pre-validp t
+             (if ,with-plus-checker
+                 (entropy/emacs-buffer-position-p-plus
+                  ,the-pos
+                  :do-error ,use-error
+                  :must-in-current-buffer ,insamebuff
+                  :with-range-check ,wrchk
+                  :without-restriction ,witorst)
+               (entropy/emacs-buffer-position-p
+                ,the-pos
+                :do-error ,use-error
+                :with-range-check ,wrchk
+                :without-restriction ,witorst))))
+         (pos-mkp `(markerp ,the-pos)))
+      `(when ,top-validp
+         (setf ,pos-var
+               (list :point  (if ,pos-mkp (marker-position ,the-pos) ,the-pos)
+                     :buffer (if ,pos-mkp (marker-buffer ,the-pos) (current-buffer))
+                     :origin-val ,pos-bak))
+         ,(entropy/emacs-macroexp-progn body)))))
+
 (defun entropy/emacs-make-marker (position &optional buffer type do-error)
   "Return a newly allocated marker NEW-MARKER which point to POSITION of
 BUFFER, or nil while invalids happened.
