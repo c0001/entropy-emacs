@@ -35,6 +35,17 @@
 (entropy/emacs-common-require-feature 'entropy-emacs-defcustom)
 
 ;; ** Lisp referred constant
+;; *** arithmetic
+
+(defconst entropy/emacs-fixnum-bitwise-counts
+  (eval-when-compile
+    (let ((len (log (1+ most-positive-fixnum) 2)) ilen)
+      (or (and (= (setq ilen (floor len)) len)
+               (1+ ilen))
+          (error "eemacs internal error: \
+entropy/emacs-fixnum-bitwise-counts init as sub as `%S'" len))))
+  "Current emacs session's fixnum bitwise counts.")
+
 ;; *** regexp
 
 (defconst entropy/emacs-cjk-punc-regexp

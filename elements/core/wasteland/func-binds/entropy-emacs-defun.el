@@ -3331,6 +3331,42 @@ not overflow."
             (cons rtn (/ rtn cmb))
           rtn)))))
 
+(defun entropy/emacs-fixnum-bitwise-set-p (fixnum &optional index)
+  "Return non-nil when the bit at index INDEX of a `fixnump' FIXNUM is
+set.
+
+INDEX is zero-based from the lowest position of FIXNUM as 0 to
+higher. INDEX defaults to 0 if not specified."
+  (let* ((and-base (expt 2 index))
+         (mask (logand fixnum and-base)))
+    (= 1 (ash mask (- index)))))
+
+(defun entropy/emacs-get-fixnum-bitwise-vector
+    (fixnum &optional max-len as-string)
+  "Return a vector consists of t or nil represent the `fixnump' FIXNUM.
+
+The least significant bits of FIXNUM correspond to the lowest indices
+in the return.
+
+If MAX-LEN is set, it indicates at least counts of bits should be
+return in which case the return's `length' is MAX-LEN or using
+`entropy/emacs-fixnum-bitwise-counts' as thus.
+
+If AS-STRING is non-nil, then the return is convert to a bitwise
+string representation which consists of character \"1\" or \"0\". If
+AS-STRING is `stringp' at meanwhile, then also use it as the separator
+for that return, otherwise the separator is \"\"."
+  (let* ((len (or max-len entropy/emacs-fixnum-bitwise-counts))
+         (cnt 0) (num fixnum)
+         (rtn (make-vector len nil)))
+    (while (< cnt len)
+      (if (entropy/emacs-fixnum-bitwise-set-p num cnt) (aset rtn cnt t))
+      (cl-incf cnt))
+    (if (not as-string) rtn
+      (reverse (mapconcat (lambda (x) (if x "1" "0"))
+                          rtn
+                          (if (stringp as-string) as-string ""))))))
+
 ;; **** coordinates system
 ;; ***** xy coordinates system
 
