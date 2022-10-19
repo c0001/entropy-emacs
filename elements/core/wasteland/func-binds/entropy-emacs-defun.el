@@ -637,6 +637,16 @@ lisp coding type."
 VAR-NAME i.e. a symbol."
   (and (boundp var-name) (symbol-value var-name)))
 
+(defmacro entropy/emacs-use-value-once (var)
+  "Return variable VAR's value once i.e. the first call in current
+context of this evaluation procedure, and then clear it as nil in
+current context of rest of this evaluation procedure i.e. any
+rest value get or usage of this macro for VAR is always return
+nil.
+
+VAR should be a variable name or a place used by `setf'."
+  `(when-let* ((res ,var)) (setf ,var nil) res))
+
 (defmacro entropy/emacs-when-let*-first (spec &rest body)
   "Like `when-let*' but just check the `car' of SPEC whether is
 nil and handled that.
