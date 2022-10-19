@@ -8503,7 +8503,7 @@ meanwhile."
     (with-current-buffer (or with-buffer (current-buffer))
       (funcall map-framework)
       (while (cond
-              ((or (and map-rtn-plist-p (plist-get map-rtn :stop))
+              ((or (and map-rtn-plist-p (plist-get map-rtn :exit))
                    (not (funcall bound-checker)))
                nil)
               ((and map-rtn-plist-p (plist-get map-rtn :pause)) t)
@@ -8579,7 +8579,7 @@ meanwhile."
       (forward-line 0)
       (funcall map-framework)
       (while (cond
-              ((or (and map-rtn-plist-p (plist-get map-rtn :stop))
+              ((or (and map-rtn-plist-p (plist-get map-rtn :exit))
                    (not (funcall bound-checker)))
                nil)
               ((and map-rtn-plist-p (plist-get map-rtn :pause)) t)
