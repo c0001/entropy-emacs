@@ -11166,9 +11166,9 @@ hosted in `entropy/emacs-ext-emacs-pkgel-get-pkgs-root'."
 NOTE: this is the only legal way to set `package-user-dir' in
 eemacs context."
   (unless entropy/emacs--package-user-dir-setted
-    (if (string-match-p "^27" emacs-version)
+    (if (= emacs-major-version 27)
         (progn
-          (when (and (string= emacs-version "27.1")
+          (when (and (= emacs-minor-version 1)
                      (display-graphic-p))
             (warn "Please update to emacs 27.2 at least \
 since 27.1 has some fatal bug with gui session like posframe show
@@ -11178,12 +11178,11 @@ Eemacs don't ban 27.1 version but that's strong recommendation of
 thus."))
           (entropy/emacs--set-user-package-dir-common "27.1"))
       (cond
-       ((string-match-p "^28" emacs-version)
+       ((= emacs-major-version 28)
         (entropy/emacs--set-user-package-dir-common "28.1"))
-       ((string-match-p "^29" emacs-version)
+       ((= emacs-major-version 29)
         (entropy/emacs--set-user-package-dir-common "29.0.50"))
-       (t
-        (error "Unsupport emacs version '%s'" emacs-version))))
+       (t (error "Unsupport emacs version '%s'" emacs-version))))
     (when (memq entropy/emacs-ext-elpkg-get-type
                 '(entropy-emacs-extenisons-project
                   entropy-emacs-extensions-project-build))
