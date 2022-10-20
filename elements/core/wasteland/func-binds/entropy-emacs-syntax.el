@@ -278,7 +278,8 @@ get accuracy result or specify your own FILTER and PROBE robust."
     (let ((pt (plist-get position :point))
           (buff (plist-get position :buffer))
           (struct (alist-get case entropy/emacs-syntax--buffer-pos-at-predicates-alist)))
-      (with-current-buffer buff
+      (entropy/emacs-with-current-buffer buff
+        :unless (eq buff (current-buffer))
         (save-excursion
           (goto-char pt)
           (cl-case pred-type

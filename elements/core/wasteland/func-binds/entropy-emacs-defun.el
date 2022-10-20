@@ -7803,13 +7803,19 @@ MUST-IN-CURRENT-BUFFER has same meaning as
 (cl-defmacro entropy/emacs-with-current-buffer
     (buffer-or-name &rest body
                     &key
-                    noerror
+                    unless
                     use-switch-directly
+                    noerror
                     &allow-other-keys)
   "Same as `with-current-buffer' but run BODY in that buffer after
 `switch-to-buffer' to BUFFER-OR-NAME when USE-SWITCH-DIRECTLY is set
 and return non-nil, therefore do no use USE-SWITCH-DIRECTLY when in a
 `noninteractive' session.
+
+When UNLESS return non-nil, then run BODY directly without any current
+buffer temporarily modification.
+
+*Unless UNLESS, we do as below:*
 
 When USE-SWITCH-DIRECTLY return a non-nil list, it should be a list of
 rest args exclude the first argument i.e. the BUFFER-OR-NAME of
@@ -7820,25 +7826,26 @@ BUFFER-OR-NAME is invalid i.e. can not indicate any lived buffer.
 
 Also see `entropy/emacs-with-selected-buffer-window'."
   (declare (indent 1) (debug t))
-  (let ((body (entropy/emacs-get-plist-body body))
+  (let ((body (entropy/emacs-defun--get-real-body body))
         (bforbn-sym (make-symbol "buffer-or-name"))
         (buff-sym   (make-symbol "thebuffer"))
         (swtd-sym   (make-symbol "use-switch-directly"))
         (run-sym    (make-symbol "should-run-p")))
-    `(let* ((,run-sym t)
-            (,bforbn-sym ,buffer-or-name)
-            (,buff-sym
-             (or (get-buffer ,bforbn-sym)
-                 (if ,noerror (setq ,run-sym nil)
-                   (signal 'wrong-type-argument
-                           (list 'valid-buffer-or-name-p ,bforbn-sym)))))
-            (,swtd-sym (and ,run-sym ,use-switch-directly)))
-       (when ,run-sym
-         (when ,swtd-sym
-           (if (atom ,swtd-sym) (switch-to-buffer ,buff-sym)
-             (apply 'switch-to-buffer ,buff-sym ,swtd-sym)))
-         (with-current-buffer ,buff-sym
-           ,@body)))))
+    `(if ,unless ,(entropy/emacs-macroexp-progn body)
+       (let* ((,run-sym t)
+              (,bforbn-sym ,buffer-or-name)
+              (,buff-sym
+               (or (get-buffer ,bforbn-sym)
+                   (if ,noerror (setq ,run-sym nil)
+                     (signal 'wrong-type-argument
+                             (list 'valid-buffer-or-name-p ,bforbn-sym)))))
+              (,swtd-sym (and ,run-sym ,use-switch-directly)))
+         (when ,run-sym
+           (when ,swtd-sym
+             (if (atom ,swtd-sym) (switch-to-buffer ,buff-sym)
+               (apply 'switch-to-buffer ,buff-sym ,swtd-sym)))
+           (with-current-buffer ,buff-sym
+             ,@body))))))
 
 (cl-defmacro entropy/emacs-with-goto-char
     (position &rest body
@@ -7846,7 +7853,7 @@ Also see `entropy/emacs-with-selected-buffer-window'."
               &allow-other-keys)
   "Run BODY after `goto-char' to POSITION of the BUFFER (use POSITION's
 buffer when it's a marker or use `current-buffer') and the whole
-procedure is with that BUFFER (i.e. run with the `current-buffer' set
+procedure is within that BUFFER (i.e. run with the `current-buffer' set
 to BUFFER temporarily unless USE-SWITCH-DIRECTLY is non-nil see
 below). Return the result of last form of BODY when everthing is ok.
 
@@ -7919,46 +7926,49 @@ buffer line."
 
 (defun entropy/emacs-get-buffer-region-markers
     (start end &optional buffer)
-  "Make and return a cons of car of the marker of start START and
-cdr of the marker of end END in buffer BUFFER (omitted for using
-`current-buffer').
+  "Make and return a buffer region cons of car of the marker of start
+START and cdr of the marker of end END in buffer BUFFER (omitted for
+using `current-buffer').
 
-When START is `<' than END, the returned cons is reversed to obey
-the start-to-end order.
+When START is `<' than END, the returned cons is reversed to obey the
+start-to-end order.
 
-START and END must be predicated by
-`entropy/emacs-buffer-position-p' with BUFFER's visible portion
-range check. When either START or END is a marker, only its
-`marker-position' is used.
-"
+START and END must be predicated by `entropy/emacs-buffer-position-p'
+with BUFFER's visible portion range check or error will be raised
+up. When either START or END is a marker, only its `marker-position'
+is used.
+
+Always return nil when START an END has same buffer character bumber
+position (i.e. position's integer values are `=') after checking their
+validation."
+  (declare (side-effect-free t))
   (with-current-buffer (or buffer (current-buffer))
-    (dolist (pt `(,start ,end))
+    (dolist (pt (list start end))
       (entropy/emacs-buffer-position-p pt :do-error t :with-range-check t))
     (entropy/emacs-use-markers-position start end)
-    (let (start-mk end-mk)
-      (save-excursion
-        (setq start-mk (set-marker (make-marker) start)
-              end-mk (set-marker (make-marker) end))
-        (entropy/emacs-swap-two-places-value start-mk end-mk
-          (> start-mk end-mk)))
-      (cons start-mk end-mk))))
+    (unless (= start end)
+      (entropy/emacs-swap-two-places-value start end
+        (> start end))
+      (let (start-mk end-mk (cur-buff (current-buffer)))
+        (setq start-mk (set-marker (make-marker) start cur-buff)
+              end-mk   (set-marker (make-marker) end cur-buff))
+        (cons start-mk end-mk)))))
 
 (cl-defun entropy/emacs-get-buffer-region-from-pos
     (start-offset
      end-offset
      &key
-     buffer position
+     position
      from-line-begin
      from-line-end
      return-as-marker)
   "Get a region cons of '(start . end) offset based on position POSITION
 (omitted for using `point')' `+' the integer START-OFFSET and
-END-OFFSET in buffer BUFFRE (omitted for using `current-buffer')
-respectively.
+END-OFFSET in buffer BUFFER (using `current-buffer' or POSITION's
+`marker-buffer' when it's a valid marker) respectively.
 
 POSITION must be predicated by `entropy/emacs-buffer-position-p-plus'
-with BUFFER's visible range check and BUFFER sticked in, or an error
-will be throwed out.
+with BUFFER's visible range check, or an error will be throwed out.
 
 If FROM-LINE-BEGIN is non-nil, the based position is the
 `line-beginning-position' of the line of position.
@@ -7978,35 +7988,42 @@ If RETURN-AS-MARKER is non-nil, then the car and cdr of the return are
 both a marker `=' start or end respectively.
 
 The returned cons of start and end is reversed when start's point is
-`>' then end's point."
-  (with-current-buffer (or buffer (current-buffer))
-    (save-excursion
-      (if position
-          (entropy/emacs-goto-char-plus position nil t)
-        (setq position (point)))
-      (let* ((lnbeg-pt (line-beginning-position))
-             (lnend-pt (line-end-position))
-             begpt endpt)
-        (cond ((and from-line-begin from-line-end)
-               (setq begpt (max 1 (+ lnbeg-pt start-offset))
-                     endpt (max 1 (+ lnend-pt end-offset))))
-              (from-line-begin
-               (setq begpt (max 1 (+ lnbeg-pt start-offset))
-                     endpt (max 1 (+ lnbeg-pt end-offset))))
-              (from-line-end
-               (setq begpt (max 1 (+ lnend-pt start-offset))
-                     endpt (max 1 (+ lnend-pt end-offset))))
-              (t
-               (setq begpt (max 1 (+ position start-offset))
-                     endpt (max 1 (+ position end-offset)))))
-        (dolist (pt (list begpt endpt))
-          (entropy/emacs-buffer-position-p-plus
-           pt :do-error t :with-range-check t))
-        (entropy/emacs-swap-two-places-value begpt endpt
-          (< endpt begpt))
-        (if return-as-marker
-            (entropy/emacs-get-buffer-region-markers begpt endpt)
-          (cons begpt endpt))))))
+`>' the end's point.
+
+If the calculated and validated start and end are `=' then return nil
+since an empty buffer region is meaningless."
+  (declare (side-effect-free t))
+  (entropy/emacs-buffer-with-safe-pos position
+    :with-plus-checker t :with-range-check t :do-error t
+    (let ((dest-pt (plist-get position :point))
+          (buff    (plist-get position :buffer)))
+      (entropy/emacs-with-current-buffer buff
+        :unless (eq buff (current-buffer))
+        (save-excursion
+          (goto-char dest-pt)
+          (let* ((lnbeg-pt (line-beginning-position))
+                 (lnend-pt (line-end-position))
+                 begpt endpt)
+            (cond ((and from-line-begin from-line-end)
+                   (setq begpt (max 1 (+ lnbeg-pt start-offset))
+                         endpt (max 1 (+ lnend-pt end-offset))))
+                  (from-line-begin
+                   (setq begpt (max 1 (+ lnbeg-pt start-offset))
+                         endpt (max 1 (+ lnbeg-pt end-offset))))
+                  (from-line-end
+                   (setq begpt (max 1 (+ lnend-pt start-offset))
+                         endpt (max 1 (+ lnend-pt end-offset))))
+                  (t
+                   (setq begpt (max 1 (+ dest-pt start-offset))
+                         endpt (max 1 (+ dest-pt end-offset)))))
+            (dolist (pt (list begpt endpt))
+              (entropy/emacs-buffer-position-p pt :do-error t :with-range-check t))
+            (unless (= begpt endpt)
+              (entropy/emacs-swap-two-places-value begpt endpt
+                (< endpt begpt))
+              (if return-as-marker
+                  (entropy/emacs-get-buffer-region-markers begpt endpt)
+                (cons begpt endpt)))))))))
 
 (defun entropy/emacs-get-buffer-pos-char (&optional position as-string do-error)
   "Return the character where POSITION point to at BUFFER, as a
@@ -8105,17 +8122,15 @@ enabled that both the mark and point of BUFF either never modified."
         rtn))))
 
 (cl-defun entropy/emacs-get-buffer-pos-line-content
-    (&key start-offset end-offset buffer position without-properties)
-  "Return substring of buffer BUFFER at the line of position
-POSITION with `line-beginning-position' to `line-end-position' as
-default region. Return nil when the default region is empty.
+    (&key start-offset end-offset position without-properties)
+  "Return substring of buffer BUFFER (use `current-buffer' or buffer
+position POSITION's `marker-buffer' when it's a valid marker) at the
+line in where POSITION hosted, with `line-beginning-position' to
+`line-end-position' as default region.
 
-When BUFFER is omitted, use `current-buffer' as default.
-
-When POSITION is omitted use `point' in BUFFER as
-default. POSITION must be predicated by
-`entropy/emacs-buffer-position-p-plus' with BUFFER's visible portion
-check or a error will be throwed out.
+When POSITION is omitted use `point' in BUFFER as default. POSITION
+must be predicated by `entropy/emacs-buffer-position-p-plus' with
+BUFFER's visible range check or a error will be throwed out.
 
 When WITHOUT-PROPERTIES is non-nil, trim all text properties of the
 return.
@@ -8124,38 +8139,42 @@ When either START-OFFSET or END-OFFSET is non-nil, it should be a
 integer used to calculate the position offset by
 `line-beginning-position' and `line-end-position' respectively and use
 that region with error when the calculated region is wider than the
-line area. Also return nil when the calculated region is empty.
-"
-  (let ((buffer (or buffer (current-buffer)))
-        (pos position)
-        (extfunc (if without-properties 'buffer-substring-no-properties
-                   'buffer-substring))
-        begpt endpt region regbeg regend lnbegpt lnendpt)
-    (with-current-buffer buffer
-      (save-excursion
-        (and pos (entropy/emacs-goto-char-plus pos nil t))
-        (setq lnbegpt (line-beginning-position)
-              lnendpt (line-end-position)
-              start-offset (or start-offset 0)
-              end-offset  (or end-offset  0)))
-      (setq region (entropy/emacs-get-buffer-region-from-pos
-                    start-offset end-offset
-                    :position pos
-                    :from-line-begin t
-                    :from-line-end t)
-            regbeg (car region)
-            regend (cdr region)
-            begpt (or (and (>= regbeg lnbegpt) (<= regbeg lnendpt) regbeg)
-                      (error "Region begin point %s out of current line's %s point %s"
-                             regbeg
-                             (if (< regbeg lnbegpt) "line-begin" "line-end")
-                             (if (< regbeg lnbegpt) lnbegpt lnendpt)))
-            endpt (or (and (>= regend lnbegpt) (<= regend lnendpt) regend)
-                      (error "Region end point %s out of current line's %s point %s"
-                             regend
-                             (if (< regend lnbegpt) "line-begin" "line-end")
-                             (if (< regend lnbegpt) lnbegpt lnendpt))))
-      (funcall extfunc begpt endpt))))
+line area.
+
+Always return nil when the calculated region (or default region when
+both of that offsets are not set) is empty."
+  (entropy/emacs-buffer-with-safe-pos position
+    :with-plus-checker t :with-range-check t :do-error t
+    (let ((pt   (plist-get position :point))
+          (buff (plist-get position :buffer)))
+      (let ((extfunc (if without-properties 'buffer-substring-no-properties
+                       'buffer-substring))
+            begpt endpt region regbeg regend lnbegpt lnendpt)
+        (entropy/emacs-with-current-buffer buff
+          :unless (eq buff (current-buffer))
+          (goto-char pt)
+          (setq lnbegpt (line-beginning-position)
+                lnendpt (line-end-position)
+                start-offset (or start-offset 0)
+                end-offset   (or end-offset  0))
+          (when (setq region (entropy/emacs-get-buffer-region-from-pos
+                              start-offset end-offset
+                              :position pt
+                              :from-line-begin t
+                              :from-line-end t))
+            (setq regbeg (car region)
+                  regend (cdr region)
+                  begpt (or (and (>= regbeg lnbegpt) (<= regbeg lnendpt) regbeg)
+                            (error "Region begin point %s out of current line's %s point %s"
+                                   regbeg
+                                   (if (< regbeg lnbegpt) "line-begin" "line-end")
+                                   (if (< regbeg lnbegpt) lnbegpt lnendpt)))
+                  endpt (or (and (>= regend lnbegpt) (<= regend lnendpt) regend)
+                            (error "Region end point %s out of current line's %s point %s"
+                                   regend
+                                   (if (< regend lnbegpt) "line-begin" "line-end")
+                                   (if (< regend lnbegpt) lnbegpt lnendpt))))
+            (funcall extfunc begpt endpt)))))))
 
 (cl-defun entropy/emacs-buffer-delete-line-at-pos
     (&key
