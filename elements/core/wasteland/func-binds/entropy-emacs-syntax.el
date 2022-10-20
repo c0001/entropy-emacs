@@ -115,7 +115,7 @@ syntactic `%s' region in where `point' of `current-buffer' be.
 Or nil when `point' is not satisfied `%s'.
 
 The region detective is for each positions around `point' using
-`%s', thus using its filter
+`%s', thus using its FILTER and PROBE
 as more accuracy specific.
 
 FILTER and PROBE are used for
