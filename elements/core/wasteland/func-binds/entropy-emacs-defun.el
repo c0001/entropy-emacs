@@ -8832,6 +8832,7 @@ This function is based on `comment-beginning'."
           (goto-char (1+ (point)))
           (comment-beginning))))))
 
+(autoload 'entropy/emacs-syntax-buffer-pos-at-> "entropy-emacs-syntax")
 (cl-defun entropy/emacs-buffer-pos-at-top-level-parenthesis-sibling-p
     (&optional
      position
@@ -8859,7 +8860,9 @@ immediately, otherwise do the subroutines."
   (declare (side-effect-free t))
   (let* (cur-ln-with-psis-p
          start-psis-pos start end prepare-result
-         start-psis-search-func (i 0))
+         start-psis-search-func
+         str-or-cmt-pred-func
+         (i 0))
     (entropy/emacs-save-excurstion-and-mark-and-match-data
       (and position (goto-char position))
       (and with-preparation (setq prepare-result
@@ -8871,11 +8874,15 @@ immediately, otherwise do the subroutines."
                       (if (not for-close-paren)
                           (re-search-forward "\\s(" (line-end-position) t)
                         (unless (or backward-no-repos (eolp)) (goto-char (1+ (point))))
-                        (re-search-backward "\\s)" (line-beginning-position) t)))))
+                        (re-search-backward "\\s)" (line-beginning-position) t))))
+              str-or-cmt-pred-func
+              (lambda nil
+                (let* ((pt (point))
+                       (_ (setq pt (if for-close-paren pt (1- pt)))))
+                  (or (entropy/emacs-syntax-buffer-pos-at-> 'string pt)
+                      (entropy/emacs-syntax-buffer-pos-at-> 'comment pt)))))
         (while (and (funcall start-psis-search-func (not (= i 0)))
-                    (entropy/emacs-buffer-pos-at-comment-region-p
-                     (let ((pt (point)))
-                       (if for-close-paren pt (1- pt)))))
+                    (funcall str-or-cmt-pred-func))
           (cl-incf i))
         (when cur-ln-with-psis-p
           (if for-close-paren (setq start-psis-pos (1+ (point)) end start-psis-pos)
