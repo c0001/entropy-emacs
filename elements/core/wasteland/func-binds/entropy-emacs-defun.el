@@ -7767,15 +7767,15 @@ marker; see `marker-insertion-type'."
 
 (defun entropy/emacs-goto-char (position &optional noerror)
   "Like `goto-char' but this function guaranteeing that goto the
-POSITION's point in `current-buffer' even if POSITION is a maker
-in another buffer.
+POSITION's point in `current-buffer' even if POSITION is a maker in
+another buffer.
 
-POSITION must be prediated by `entropy/emacs-buffer-position-p'
-with `current-buffer''s visible portion or an error will be
-thrown out.
+POSITION must be prediated by `entropy/emacs-buffer-position-p' with
+`current-buffer''s visible portion or an error will be thrown out.
 
-If NOERROR is set non-nil in which case always return nil without
-any operations did when such invalidation occurs."
+If NOERROR is set non-nil in which case always return nil without any
+operations did when such invalidation occurs. Otherwise do error for
+invalidations or return POSITION when all is ok."
   (let* ((validp
           (entropy/emacs-buffer-position-p
            position :do-error (not noerror) :with-range-check t))
@@ -7783,22 +7783,53 @@ any operations did when such invalidation occurs."
          (pt (if posmk-p (marker-position position) position)))
     (when validp (goto-char pt) position)))
 
-(defun entropy/emacs-goto-char-plus (position &optional noerror must-in-current-buffer)
+(defun entropy/emacs-goto-char-plus
+    (position &optional noerror must-in-current-buffer set-window-point)
   "Like `entropy/emacs-goto-char' but use
-`entropy/emacs-buffer-position-p-plus' to check position.
+`entropy/emacs-buffer-position-p-plus' to check POSITION and the
+`current-buffer' BUFFER where going to is used POSITION's
+`marker-position' when POSITION is as a valid marker as such required.
 
 MUST-IN-CURRENT-BUFFER has same meaning as
-`entropy/emacs-buffer-position-p-plus' declared."
+`entropy/emacs-buffer-position-p-plus' declared.
+
+When MUST-IN-CURRENT-BUFFER is nil, SET-WINDOW-POINT if set non-nil
+that it will be one of below types:
+1) Any non-nil `atom' except function symbol indicate to set all lived
+   windows displayed BUFFER will be set their `window-point's to
+   POSITION's point value POS-PT.
+2) A function which accept two arguments i.e. the BUFFER and POS-PT,
+   and its return when non-nil should be a window or list of windows
+   which used to be set their `window-point's as POS-PTqq.
+3) A list of arguments applied to `get-buffer-window-list' except its
+   first buffer argument, which used to let it return windows which
+   would be set `window-point' as POS-PT.
+
+Return POSITION when all is ok or nil when invalidations happend with
+NOERROR non-nil."
   (let* ((validp
           (entropy/emacs-buffer-position-p-plus
            position :do-error (not noerror)
            :with-range-check t :must-in-current-buffer must-in-current-buffer))
          (posmk-p (and validp (markerp position)))
-         (pt (and validp (if posmk-p (marker-position position) position))))
+         (pt (and validp (if posmk-p (marker-position position) position)))
+         wins)
     (when validp
       (with-current-buffer
           (or (and posmk-p (marker-buffer position)) (current-buffer))
-        (goto-char pt) position))))
+        (goto-char pt)
+        (when (and set-window-point
+                   (setq wins
+                         (cond
+                          ((functionp set-window-point)
+                           (funcall set-window-point (current-buffer) pt))
+                          ((consp set-window-point)
+                           (apply #'get-buffer-window-list (current-buffer)
+                                  set-window-point))
+                          (t (get-buffer-window-list (current-buffer))))))
+          (setq wins (if (consp wins) wins (list wins)))
+          (dolist (w wins) (set-window-point w pt)))
+        position))))
 
 (cl-defmacro entropy/emacs-with-current-buffer
     (buffer-or-name &rest body
