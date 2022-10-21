@@ -7855,6 +7855,11 @@ rest args exclude the first argument i.e. the BUFFER-OR-NAME of
 If NOERROR is set and return non-nil, do nothing and return nil while
 BUFFER-OR-NAME is invalid i.e. can not indicate any lived buffer.
 
+If BUFFER-OR-NAME specified buffer is `current-buffer' already (after
+above preparations if presented), then run BODY directly without
+`with-current-buffer' wrapper since it's meaningless and be indeed a
+computation resource waste behaviour.
+
 Also see `entropy/emacs-with-selected-buffer-window'."
   (declare (indent 1) (debug t))
   (let ((body (entropy/emacs-defun--get-real-body body))
@@ -7875,8 +7880,10 @@ Also see `entropy/emacs-with-selected-buffer-window'."
            (when ,swtd-sym
              (if (atom ,swtd-sym) (switch-to-buffer ,buff-sym)
                (apply 'switch-to-buffer ,buff-sym ,swtd-sym)))
-           (with-current-buffer ,buff-sym
-             ,@body))))))
+           (if (eq ,buff-sym (current-buffer))
+               ,(entropy/emacs-macroexp-progn body)
+             (with-current-buffer ,buff-sym
+               ,@body)))))))
 
 (cl-defmacro entropy/emacs-with-goto-char
     (position &rest body
