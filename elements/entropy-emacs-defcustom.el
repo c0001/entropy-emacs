@@ -3490,7 +3490,7 @@ that."
            (path-root nil))
       (unless
           ;; avoid when user pre sets in `custom-file'
-          (and (boundp var-sym)
+          (and (default-boundp var-sym)
                ;; but for some pre loaded customized var that it is
                ;; handled in its package internally so that we do not
                ;; need to build that directory for saving check time.
