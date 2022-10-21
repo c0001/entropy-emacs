@@ -208,8 +208,6 @@
         ("^ ?\\*openwith-process\\*"   :regexp t   :dedicated t :align bottom :size 0.2 :autoclose t   :select nil)
         ))
 
-(defvar entropy/emacs-tools-beacon-blink-ignore)
-
 ;; ** shackle mode
 (use-package shackle
   :commands (shackle-mode
@@ -222,6 +220,7 @@
   (defvar shackle-popup-mode-map
     (let ((map (make-sparse-keymap)))
       map))
+  (defvar entropy/emacs-popwin--shackle/beacon-blink-ignore nil)
 
 ;; *** keybindings
   :eemacs-indhc
@@ -502,14 +501,13 @@ specification."
   ;; experience adjustments
   (defun entropy/emacs-popwin--shackle-popup-buffers-exist-then-ignore-beacon-blink
       ()
-    (let (_)
-      (setq entropy/emacs-tools-beacon-blink-ignore
-            (progn
-              (entropy/emacs-popwin--shackle-prunning-popup-history)
-              (not
-               (null
-                entropy/emacs-popwin--shackle-popup-display-history))))))
-  (add-hook 'entropy/emacs-tools-beacon-blink-top-hook
+    (or entropy/emacs-popwin--shackle/beacon-blink-ignore
+        (progn
+          (entropy/emacs-popwin--shackle-prunning-popup-history)
+          (not
+           (null
+            entropy/emacs-popwin--shackle-popup-display-history)))))
+  (add-hook 'beacon-dont-blink-predicates
             #'entropy/emacs-popwin--shackle-popup-buffers-exist-then-ignore-beacon-blink)
 
 ;; ***** autoclose `\C-g' bindings
@@ -525,7 +523,7 @@ specification."
               ;; Suppress `beacon-blink' to prevent from activating
               ;; region where effects next operation of the condition
               ;; part of this function.
-              (entropy/emacs-tools-beacon-blink-ignore t))
+              (entropy/emacs-popwin--shackle/beacon-blink-ignore t))
           (cond
            ((one-window-p)
             (setq stick-buffer (window-buffer)

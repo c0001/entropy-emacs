@@ -529,7 +529,10 @@ directory tree. Or use `setq-local' to make it temporarily locally for
   :group 'entropy/emacs-customize-group-for-editor-line-hints)
 
 (defcustom entropy/emacs-init-beacon-blink nil
-  "Enable `beacon-blink' at start up time."
+  "Enable `beacon-blink' at start up time.
+
+Disabled defaultly since it may cause large extra computation
+spending which cause post command lag experience."
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-editor-line-hints)
 

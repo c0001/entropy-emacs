@@ -530,40 +530,26 @@ vertical-top buffer."
 
 ;; *** beacon cursor blanking
 (use-package beacon
-  :preface
-  (defvar entropy/emacs-tools-beacon-blink-ignore nil
-    "Non-nill to give out an ignore condition signal to
-`beacon-blink' which press it off any way.")
-
-  (defvar entropy/emacs-tools-beacon-blink-top-hook nil
-    "List of functions to run before `beacon-blink', you may want
-to use it as enable `entropy/emacs-tools-beacon-blink-ignore'
-dynamically.")
   :commands (beacon-mode beacon-blink)
   :init
-  (defun entropy/emacs-tools--beacon-blink-advice
-      (orig-func &rest orig-args)
-    (let ((rtn (apply orig-func orig-args)))
-      ;; reset the ignore pattern since previous set by
-      ;; `entropy/emacs-tools-beacon-blink-top-hook'
-      (setq entropy/emacs-tools-beacon-blink-ignore nil)
-      (run-hooks 'entropy/emacs-tools-beacon-blink-top-hook)
-      (unless (or (not (fboundp 'beacon-blink))
-                  entropy/emacs-tools-beacon-blink-ignore
-                  ;; Disable beacon blink in mpc referred buffer for performance issue
-                  (member major-mode '(mpc-mode
-                                       mpc-tagbrowser-mode
-                                       mpc-songs-mode
-                                       mpc-status-mode
-                                       mpc-tagbrowser-dir-mode
-                                       )))
-        (beacon-blink)
-        rtn)))
-  (when (bound-and-true-p entropy/emacs-init-beacon-blink)
-    (advice-add 'windmove-do-window-select :around
-                #'entropy/emacs-tools--beacon-blink-advice)
-    (advice-add 'recenter-top-bottom :around
-                #'entropy/emacs-tools--beacon-blink-advice)))
+  (when entropy/emacs-init-beacon-blink
+    (entropy/emacs-lazy-initial-for-hook
+     '(pre-command-hook)
+     "init-beacon-mode" "init-beacon-mode"
+     :pdumper-no-end t
+     (beacon-mode)))
+
+  :config
+  (add-to-list
+   'beacon-dont-blink-major-modes
+   '(
+     ;; Disable beacon blink in mpc referred buffer for performance issue
+     mpc-mode
+     mpc-tagbrowser-mode
+     mpc-songs-mode
+     mpc-status-mode
+     mpc-tagbrowser-dir-mode))
+  )
 
 ;; *** visual-regexp
 ;;
