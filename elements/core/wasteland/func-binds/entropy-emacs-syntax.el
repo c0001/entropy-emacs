@@ -455,10 +455,10 @@ The non-nil return is the SYN-LIST-REGION."
        (cons-func (lambda nil (cons (point) (scan-lists (point) 1 0))))
        (probe-func
         (lambda nil (when probe (funcall probe (funcall cons-func))))))
-    (goto-char (car breg))
-    (if (funcall probe-func) breg
-      (entropy/emacs-save-excursion-when
-        :when nomove
+    (entropy/emacs-save-excursion-when
+      :when nomove
+      (goto-char (car breg))
+      (if (funcall probe-func) breg
         (while (and (condition-case _err
                         (goto-char (scan-lists (point) -1 1))
                       (scan-error nil))
