@@ -102,6 +102,34 @@ For lisp coding aim, always return the transfered buffer.
 ;; Note: `elisp-mode' was called `emacs-lisp-mode' in <=24
 (use-package elisp-mode
   :ensure nil
+  :preface
+  (defvar entropy/emacs-lisp--emacs-lisp-lambda-form-keywords
+    '(defun cl-defun defalias
+       lambda cl-lambda
+       defmacro cl-defmacro
+       entropy/emacs-cl-lambda
+       entropy/emacs-cl-lambda-with-lcb
+       entropy/emacs-define-lambda-as-exp
+       entropy/emacs-define-lambda-as-exp-with-lcb
+       entropy/emacs-with-lambda
+       entropy/emacs-funcall-with-lambda
+       entropy/emacs-add-hook-with-lambda
+       )
+    "List of eemacs's lambda wrapper cars used for as those specified
+form indicator.")
+
+  (defun entropy/emacs-lisp--emacs-lisp-lambda-form-keywords-regexp nil
+    "Generate a OR relationship regexp string for
+`entropy/emacs-lisp--emacs-lisp-lambda-form-keywords' without `^'
+and `$' dedicated."
+    (entropy/emacs-eval-with-lexical
+     `(rx
+       (seq
+        "("
+        (or
+         ,@(mapcar #'symbol-name
+                   entropy/emacs-lisp--emacs-lisp-lambda-form-keywords))))))
+
   :commands (entropy/emacs-lisp-elisp-eval-defun
              entropy/emacs-lisp-elisp-eval-buffer
              entropy/emacs-lisp-elisp-eval-region
@@ -292,6 +320,14 @@ for function '%s', eval and compile its defination instead?"
      last-sexp
      (call-interactively 'eval-last-sexp)))
 
+  (defun __eemacs-elisp-lambda-keywords-look-at-p (reg)
+    (entropy/emacs-save-excurstion-and-mark-and-match-data
+      (goto-char (car reg))
+      (and (looking-at-p
+            (entropy/emacs-lisp--emacs-lisp-lambda-form-keywords-regexp))
+           (or (bolp)
+               (not (looking-back (rx (or "`" "'")) (line-beginning-position)))))))
+
   (defun entropy/emacs-lisp-elisp-byte-compile-defun-form ()
     "`byte-compile' a form (commonly `defun' like) around `point'.
 
@@ -306,13 +342,33 @@ byte-code."
                 (save-excursion
                   (goto-char (car reg))
                   (looking-at-p
-                   (rx (seq "(" (or "defun" "cl-defun" "defalias"
-                                    "lambda" "cl-lambda"))))))
+                   (rx (seq "(" (or "defun" "cl-defun"))))))
             'nomove)))
       (unless region (error "No paired syntax list group found at point"))
       (entropy/emacs-lisp--elisp-inct-eval-safaty-wrap
        byte-compile
        :use-byte-compile region)))
+
+  (defun entropy/emacs-lisp-elisp-narrow-to-defun (&optional arg)
+    "Narrow to `defun' like region around of `point', or to `point' hosted
+top level form if thus not found.
+
+This command is used for replace `narrow-to-defun' in
+`emacs-lisp-mode' where the latter is not support to found a defun
+which is not a top-level form.
+
+If ARG is non-nil (use `current-prefix-arg' when called from
+interaction) then normally wrapped to top-level form."
+    (declare (interactive-only t))
+    (interactive "P" emacs-lisp-mode lisp-interaction-mode)
+    (let ((region
+           (entropy/emacs-syntax-get-top-list-region-around-buffer-point
+            t (if arg nil #'__eemacs-elisp-lambda-keywords-look-at-p) 'nomove)))
+      (unless region (error "No paired syntax list group found at point"))
+      (narrow-to-region (car region) (cdr region))))
+
+  (define-key emacs-lisp-mode-map (kbd "C-x n d")
+    #'entropy/emacs-lisp-elisp-narrow-to-defun)
   )
 
 (use-package eldoc-eval
