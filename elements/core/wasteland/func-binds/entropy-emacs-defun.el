@@ -704,6 +704,7 @@ Arbitrarily, any optional keys supported by
     (&rest body &key when &allow-other-keys)
   "Like `save-excursion' when WHEN is set and evaluated return
 non-nil, or run BODY like `progn'."
+  (declare (indent defun))
   (let ((body (entropy/emacs-defun--get-real-body body))
         (use-when-p (not (null when))))
     `(if (and ,use-when-p ,when)

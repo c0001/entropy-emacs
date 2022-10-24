@@ -165,6 +165,306 @@ FILTER and PROBE are used for
                              :common-p-pred ,common-func-name
                              :region-get-pred ,region-func-name)))))))
 
+;; ** Common syntax APIs
+
+(defun entropy/emacs-syntax-class-to-char-at-point (&optional as-string)
+  "Return `current-buffer's current `point's syntax class character.
+
+If AS-STRING is non-nil then make that char as string and return
+that string."
+  (let ((rtn (syntax-class-to-char (syntax-class (syntax-after (point))))))
+    (if as-string (char-to-string rtn)
+      rtn)))
+
+(defun entropy/emacs-syntax-skip-forward (syntax &optional lim nomove)
+  "Same as `skip-syntax-forward' but return a list whose car is the first
+buffer position (a integer number) whose character is not matched
+SYNTAX or nil otherwise, `cadr' of non-nil when the movement stoped at
+`eobp' and `caddr' of what `skip-syntax-forward' return.
+
+When NOMOVE is non-nil then all the movements is wrapped with
+`save-excursion' where there's no movement after call.
+
+See also `entropy/emacs-syntax-skip-backward'."
+  (let (tr a-pt)
+    (entropy/emacs-save-excursion-when
+      :when nomove
+      (setq tr (skip-syntax-forward syntax lim)
+            a-pt (point))
+      (if (eobp) (list nil t tr)
+        (if (save-excursion
+              (forward-char) (= 0 (skip-syntax-backward syntax)))
+            (list a-pt nil tr) (list nil nil tr))))))
+
+(defun entropy/emacs-syntax-skip-backward (syntax &optional lim nomove)
+  "Same as `skip-syntax-forward' but return a list whose car is the first
+buffer position (a integer number) whose character is not matched
+SYNTAX or nil otherwise, `cadr' of non-nil when the movement stoped at
+`bobp' and `caddr' of what `skip-syntax-forward' return.
+
+When NOMOVE is non-nil then all the movements is wrapped with
+`save-excursion' where there's no movement after call.
+
+See also `entropy/emacs-syntax-skip-forward'."
+  (let (tr d-pt)
+    (entropy/emacs-save-excursion-when
+      :when nomove
+      (setq tr (skip-syntax-backward syntax lim))
+      (if (bobp) (list nil t tr)
+        (if (save-excursion
+              (backward-char) (setq d-pt (point))
+              (= 0 (skip-syntax-forward syntax)))
+            (list d-pt nil tr) (list nil nil tr))))))
+
+(defun entropy/emacs-syntax-buffer-point-at-list-p
+    (&optional filter nomove paren prev-first)
+  "Return non-nil when `point' CPT of `current-buffer' is at a
+SYN-LIST-REGION (a balanced parenthetical group presented as buffer
+region whose car is a `(' syntax class character LSTART-CHAR's
+position LSTART and cdr is a buffer position LEND after a `)' syntax
+class charater LEND-CHAR.).
+
+SYN-LIST-REGION is using current `syntax-table' to determine what
+delimiters DLS are used for searching. Since DLS may have several
+parenthetical character groups (e.g. \"(\" and \")\", \"[\" and \"]\" etc. ),
+thus defaully LSTART-CHAR is \"(\" and \")\" for LEND-CHAR. A cons PAREN
+if set, its car and cdr is used to replace them as using. Only
+characater whose syntax class matched and it's `=' one of DLS is
+recognized as matched, and it's a PRCHAR.
+
+If FILTER is set, it should be a function which accept one argumet,
+the PRCHAR's buffer position number to determine whether is should be
+the final used one while return non-nil for ignore that PRCHAR as a
+common character. FILTER can either be `t' which means ignore any
+PRCHAR in comments and strings that both of them defined by current
+`syntax-table'. FILTER should not do any movements or modifications or
+you should use `save-excursion' at least for just movements.
+
+If PREV-FIRST is non-nil, search from CPT to `bobp' i.e. the PREVS
+type, otherwise to `eobp' i.e. the ENDS type. This used for user to
+optimze the SYN-LIST-REGION founding speed in which case if the
+LEND-CHAR is too many after CPT then its suggest for backward search
+first where may have nearest `(' placed in already so that the search
+is did just once.
+
+PREV-FIRST will be ignored while CPT is already at a position of a
+PRCHAR, that the search direction is determined by that PRCHAR where
+using PREVS when its a LEND-CHAR and reverse otherwise. This did as a
+internal automatically optimization.
+
+The `current-buffer''s point will be moved to the final searched
+place, i.e. to the LSTART-CHAR when PREVS matched or `bobp' when not
+matched of thus, to the LEND-CHAR when ENDS matched or `eobp' when not
+matched of thus. But be without movement when NOMOVE is non-nil.
+
+The non-nil return is SYN-LIST-REGION."
+  (when (eq filter t)
+    (setq filter
+          (lambda (x)
+            (or (entropy/emacs-syntax-buffer-pos-at-> 'string  x)
+                (entropy/emacs-syntax-buffer-pos-at-> 'comment x)))))
+  (let* ((origin-pt (point))
+         ;; disable comments ignorance for `scan-lists' in top-level
+         ;; since we should respect user interface.
+         (parse-sexp-ignore-comments nil)
+         ;; the main iterator for searching loop
+         mt-res
+         (prl     (or (car-safe paren) ?\())
+         (prr     (or (cdr-safe paren) ?\)))
+         prchar nprchar
+         (prchar-set-func
+          (lambda nil
+            (setq prchar  (if prev-first prl prr))
+            (setq nprchar (if prev-first prr prl))))
+         (main-syntax "^()")
+         (nbump-func    (lambda nil (not (if prev-first (bobp) (eobp)))))
+         (char-mtp-func (lambda (x c) (= (char-after x) c)))
+         (bs-nfilter-func
+          (lambda (x)
+            "Ignore backslashed parenthetical delimiters."
+            (if (= x (point-min)) t
+              (if (not (funcall char-mtp-func (1- x) ?\\)) t
+                (let* ((pm (point-min))
+                       (st (- x 1)) (dt (- x pm)) (ct 0))
+                  (if (= dt 1) nil
+                    (catch :exit
+                      (dotimes (i dt)
+                        (if (funcall char-mtp-func (- st i) ?\\)
+                            (cl-incf ct) (throw :exit nil))))
+                    (not (cl-oddp ct))))))))
+         (nfilter-func
+          (lambda (x)
+            (and (funcall bs-nfilter-func x)
+                 (if filter (not (funcall filter x)) t))))
+         (synp-func
+          (lambda (x)
+            (let ((syn-res (car-safe (memql (syntax-class (syntax-after x)) '(4 5)))))
+              (when syn-res (if (= syn-res 4) 0 1)))))
+         (prp-func (lambda (x &optional no-direc syn-check)
+                     "Return the delimeter type when it's passed filter and is indeed
+a delimeter whose corresponding char is `=' user spec."
+                     (let (isp)
+                       (and (if syn-check (funcall synp-func x) t)
+                            (if no-direc
+                                (or (and (funcall char-mtp-func x prl) (setq isp 0))
+                                    (and (funcall char-mtp-func x prr) (setq isp 1)))
+                              (and (funcall char-mtp-func x prchar)
+                                   (setq isp (if (= prchar prl) 0 1))))
+                            (funcall nfilter-func x)
+                            isp))))
+         (scl-func (lambda (x)
+                     (entropy/emacs-save-excurstion-and-mark-and-match-data
+                       (condition-case _err
+                           (scan-lists x (if prev-first -1 1) 0)
+                         (scan-error nil)))))
+         (nscl-func (lambda (x)
+                      (entropy/emacs-save-excurstion-and-mark-and-match-data
+                        (condition-case _err
+                            (scan-lists x (if prev-first 1 -1) 0)
+                          (scan-error nil)))))
+         (at-nprchar-p-func
+          (lambda (x)
+            (and (funcall char-mtp-func x nprchar)
+                 (funcall prp-func x 'no-direct))))
+         (mt-goto-func
+          (lambda (mt)
+            "Goto proper pos for next searching with respecting search
+direction and match type."
+            (when (car mt)
+              (let ((prp-p (funcall prp-func (car mt) 'no-direct)))
+                (goto-char (car mt))
+                (if (= (funcall synp-func (point)) 1) (forward-char 1)
+                  (if (and (not prev-first) (not prp-p)) (forward-char 1)))
+                (and prp-p mt)))))
+         (sfunc (lambda nil
+                  "search and goto proper pos suitable for looping."
+                  (funcall mt-goto-func
+                           (funcall
+                            (if prev-first #'entropy/emacs-syntax-skip-backward
+                              #'entropy/emacs-syntax-skip-forward)
+                            main-syntax))))
+         (lo-func
+          (lambda nil
+            "The main looper."
+            (while (and (not (setq mt-res (funcall sfunc)))
+                        (funcall nbump-func)))
+            mt-res))
+         (tiktok-search-func
+          (lambda nil
+            "Search delimeter with direction by skip negative direction siblings.
+
+This will enlarge the search speed by skiping all non necessary
+sub-groups powered by `scan-lists'."
+            (let* ((scl-mt-func
+                    (lambda nil (funcall prp-func (if prev-first (point) (1- (point))))))
+                   (tt-func
+                    (lambda nil
+                      (let ((fp mt-res) nt ntp (first-jump-p t) abort)
+                        (while (and (not abort) fp (funcall at-nprchar-p-func (car fp)))
+                          (if (not (if (entropy/emacs-syntax-buffer-pos-at-> 'comment (car fp))
+                                       (setq nt (funcall scl-func (point)))
+                                     (let ((parse-sexp-ignore-comments t))
+                                       (setq nt (funcall scl-func (point))))))
+                              (progn (unless prev-first (forward-char 1))
+                                     (setq fp (funcall lo-func) first-jump-p nil))
+                            (progn (goto-char nt) (setq ntp (funcall scl-mt-func)))
+                            (if (and ntp first-jump-p (= (car fp) origin-pt)) (setq abort t)
+                              (setq fp (funcall lo-func) first-jump-p nil))))
+                        (setq mt-res fp)))))
+              (unless mt-res (funcall lo-func))
+              (when mt-res (funcall tt-func))))))
+    (entropy/emacs-save-excursion-when
+      :when nomove
+      (let* ((top-res (entropy/emacs-syntax-skip-forward main-syntax nil 'nomove))
+             (top-res-p (and (car top-res) (= (nth 2 top-res) 0)))
+             (start-matched-p
+              (and top-res-p (funcall prp-func (car top-res) 'no-direct)))
+             final-scl the-start the-end)
+        ;; determin whether origin point at a valid delimeter so that
+        ;; we can directly judge its region.
+        (if (not start-matched-p)
+            (progn (funcall prchar-set-func)
+                   ;; we must skip from the valid first search since
+                   ;; the `skip-syntax-forward' will start at origin
+                   ;; point where will cause infinitely looping.
+                   (when top-res-p (unless prev-first (forward-char 1))))
+          (setq mt-res top-res
+                prev-first (if (= start-matched-p 1) t))
+          (funcall prchar-set-func)
+          (funcall mt-goto-func top-res))
+        ;; first search
+        (funcall tiktok-search-func)
+        ;; engaged that the search result valid or did again until yes
+        ;; or return nil.
+        (entropy/emacs-when-let*-first
+            ((mt-res)
+             (fnscl-get-func
+              (lambda nil (setq final-scl (funcall nscl-func (point)))))
+             (fnscl-prp-func
+              (lambda nil
+                (funcall prp-func (if prev-first (1- final-scl) final-scl) 'no-direct)))
+             (fnscl-good-func
+              (lambda nil
+                (let ((parse-sexp-ignore-comments
+                       (not (entropy/emacs-syntax-buffer-pos-at-> 'comment
+                                (if prev-first (point) (1- (point)))))))
+                  (and (funcall fnscl-get-func)
+                       (funcall fnscl-prp-func))))))
+          (while (and
+                  (not
+                   (and mt-res
+                        (funcall fnscl-good-func)
+                        (progn (setq the-start (point) the-end final-scl)
+                               (entropy/emacs-swap-two-places-value the-start the-end
+                                 (> the-start the-end)) t)
+                        (<= the-start origin-pt) (> the-end origin-pt)))
+                  (progn (setq the-start nil the-end nil) t)
+                  (funcall nbump-func))
+            (if mt-res (setq mt-res nil))
+            (funcall tiktok-search-func)))
+        (when (and the-start the-end) (cons the-start the-end))))))
+
+(defun entropy/emacs-syntax-get-top-list-region-around-buffer-point
+    (&optional filter probe nomove paren prev-first)
+  "Return non-nil when `point' of `current-buffer' has a top-level
+context SYN-LIST-REGION (see
+`entropy/emacs-syntax-buffer-point-at-list-p').  Return nil otherwise.
+
+A top-level SYN-LIST-REGION is a SYN-LIST-REGION doesn't has any outer
+groups wrapped around.
+
+Optional arguments all has same meaning as
+`entropy/emacs-syntax-buffer-point-at-list-p', except that for NOMOVE
+and PREV-FIRST, where PREV-FIRST is just used in first region
+obtaining procedure since this function use that region as base and
+using `scan-lists' to get outer region repeatly untile non of that
+i.e. the top is found; And if NOMOVE is omitted or nil then stop at
+the top open parenthesis or `bobp' when nil returned.
+
+PROBE when set it should be a function accept current got context
+SYN-LIST-REGION as the only argument; it should return non-nil that
+indicate that that SYN-LIST-REGION is considerred as the `top-level
+LIST', or nil when not. PROBE should not do any movements or
+modifications or you should use `save-excursion' at least for just
+movements.
+
+The non-nil return is the SYN-LIST-REGION."
+  (entropy/emacs-when-let*-first
+      ((breg (entropy/emacs-syntax-buffer-point-at-list-p
+              filter t paren prev-first))
+       (cons-func (lambda nil (cons (point) (scan-lists (point) 1 0))))
+       (probe-func
+        (lambda nil (when probe (funcall probe (funcall cons-func))))))
+    (goto-char (car breg))
+    (if (funcall probe-func) breg
+      (entropy/emacs-save-excursion-when
+        :when nomove
+        (while (and (condition-case _err
+                        (goto-char (scan-lists (point) -1 1))
+                      (scan-error nil))
+                    (not (funcall probe-func))))
+        (funcall cons-func)))))
+
 ;; ** POS at APIs
 ;; *** pos at string
 (entropy/emacs-syntax--gen-buffer-pos-at-predicates 'string
