@@ -293,32 +293,23 @@ for function '%s', eval and compile its defination instead?"
      (call-interactively 'eval-last-sexp)))
 
   (defun entropy/emacs-lisp-elisp-byte-compile-defun-form ()
-    "`byte-compile' the top-level form whose ending at line at `point'.
-
-see `entropy/emacs-buffer-pos-at-top-level-parenthesis-sibling-p' for
-what is a top-leve form.
+    "`byte-compile' a form (commonly `defun' like) around `point'.
 
 This function is commonly used for a `defun' like function defination
 form, but by the way you can `byte-compile' any form to see its
 byte-code."
     (declare (interactive-only t))
     (interactive)
-    (let (region reg-get-func)
-      (setq reg-get-func
-            (lambda nil
-              (setq region
-                    (entropy/emacs-buffer-pos-at-top-level-parenthesis-sibling-p
-                     nil :for-close-paren t
-                     :with-preparation (lambda nil (end-of-line))))))
-      (save-excursion
-        (unless (funcall reg-get-func) (end-of-defun)
-                ;; try to back to the end of defun line since commonly
-                ;; `end-of-defun' will jump to next line of thus.
-                (if (looking-at-p entropy/emacs-buffer-blank-line-regexp)
-                    (goto-char (1- (point))))
-                (funcall reg-get-func)
-                (unless region
-                  (error "No top-level form found for read at point!"))))
+    (let ((region
+           (entropy/emacs-syntax-get-top-list-region-around-buffer-point
+            t (lambda (reg)
+                (save-excursion
+                  (goto-char (car reg))
+                  (looking-at-p
+                   (rx (seq "(" (or "defun" "cl-defun" "defalias"
+                                    "lambda" "cl-lambda"))))))
+            'nomove)))
+      (unless region (error "No paired syntax list group found at point"))
       (entropy/emacs-lisp--elisp-inct-eval-safaty-wrap
        byte-compile
        :use-byte-compile region)))

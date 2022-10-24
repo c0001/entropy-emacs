@@ -8866,103 +8866,18 @@ Commonly a position in a overlay is that:
                    (throw :exit t)))))))
     (if return-all rtn (car rtn))))
 
-;; **** buffer sexp rounding manipulation
-
-(defun entropy/emacs-buffer-pos-at-comment-region-p
-    (&optional position without-comment-start)
-  "Return the comment region begining position when
-POSITION (default to `point') of `current-buffer' is in a comment
-region. Return nil otherwise.
-
-If WITHOUT-COMMENT-START is non-nil then return nil when POSITION
-is at the `comment-beginning'. Otherwise, as defaulty any
-position in the comment region was a predicated as true.
-
-This function is based on `comment-beginning'."
-  (declare (side-effect-free t))
-  (entropy/emacs-save-excurstion-and-mark-and-match-data
-    (and position (goto-char position))
-    (let (cmbeg)
-      (if (setq cmbeg (save-excursion (comment-beginning))) cmbeg
-        (unless (or without-comment-start (eolp))
-          ;; for case when poin at the start of comment region
-          ;; i.e. the first open delimiter.
-          (goto-char (1+ (point)))
-          (comment-beginning))))))
-
-(autoload 'entropy/emacs-syntax-buffer-pos-at-> "entropy-emacs-syntax")
-(cl-defun entropy/emacs-buffer-pos-at-top-level-parenthesis-sibling-p
-    (&optional
-     position
-     &key for-close-paren with-preparation)
-  "Return the a region (i.e. cons of start and end) of `current-buffer'
-which contained a top-level parentheses region, only when
-`re-search-forward' (or `re-search-backward', when FOR-CLOSE-PAREN is
-non-nil) from POSITION (defaults to `point') (when FOR-CLOSE-PAREN is
-non-nil, the search starts from POSITION when `eolp' or POSITION+1) to
-the end (or begin when FOR-CLOSE-PAREN is non-nil) of current line
-where POSITION at that can match `current-buffer''s major-mode's
-defined open (or close if FOR-CLOSE-PAREN is non-nil) parenthesis
-syntax matched char with skipped all comment regions and it's must be
-the top-level parenthesis char. Return nil otherwise.
-
-A top-level parenthesis char is a parenthesis char who is at the depth
-0 of its sub-parenthese-groups and it's not a sub-parenthese-group of
-any of outers within visible portion of `current-buffer'.
-
-When WITH-PREPARATION is set, it should be a function without any
-arguments requested for did any operations in a safe way i.e. (without
-the mark modification or position movement or match data modification
-after return). Its return is meaningful, if non-nil just return nil
-immediately, otherwise do the subroutines."
-  (declare (side-effect-free t))
-  (let* (cur-ln-with-psis-p
-         start-psis-pos start end prepare-result
-         start-psis-search-func
-         str-or-cmt-pred-func
-         (i 0))
-    (entropy/emacs-save-excurstion-and-mark-and-match-data
-      (and position (goto-char position))
-      (and with-preparation (setq prepare-result
-                                  (funcall with-preparation)))
-      (unless prepare-result
-        (setq start-psis-search-func
-              (lambda (&optional backward-no-repos)
-                (setq cur-ln-with-psis-p
-                      (if (not for-close-paren)
-                          (re-search-forward "\\s(" (line-end-position) t)
-                        (unless (or backward-no-repos (eolp)) (goto-char (1+ (point))))
-                        (re-search-backward "\\s)" (line-beginning-position) t))))
-              str-or-cmt-pred-func
-              (lambda nil
-                (let* ((pt (point))
-                       (_ (setq pt (if for-close-paren pt (1- pt)))))
-                  (or (entropy/emacs-syntax-buffer-pos-at-> 'string pt)
-                      (entropy/emacs-syntax-buffer-pos-at-> 'comment pt)))))
-        (while (and (funcall start-psis-search-func (not (= i 0)))
-                    (funcall str-or-cmt-pred-func))
-          (cl-incf i))
-        (when cur-ln-with-psis-p
-          (if for-close-paren (setq start-psis-pos (1+ (point)) end start-psis-pos)
-            (setq start-psis-pos (1- (point)) start start-psis-pos))
-          (let ((parse-sexp-ignore-comments t))
-            (condition-case _
-                (progn
-                  (goto-char
-                   (scan-lists start-psis-pos (if for-close-paren -1 1) 0)))
-              (scan-error
-               (setq start-psis-pos nil)))
-            (when start-psis-pos
-              (condition-case _
-                  (when (goto-char
-                         (scan-lists (point) (if for-close-paren 1 -1) 1))
-                    (setq start-psis-pos nil))
-                (scan-error nil))
-              (when start-psis-pos
-                (if for-close-paren (setq start (point))
-                  (setq end (point)))
-                ;; return
-                (cons start end)))))))))
+;; **** buffer syntax manipulation
+;; autoload `entropy-emacs-syntax'
+(dolist (func
+         '(
+           entropy/emacs-syntax-skip-forward
+           entropy/emacs-syntax-skip-backward
+           entropy/emacs-syntax-class-to-char-at-point
+           entropy/emacs-syntax-buffer-point-at-list-p
+           entropy/emacs-syntax-get-top-list-region-around-buffer-point
+           entropy/emacs-syntax-buffer-pos-at->
+           ))
+  (autoload func "entropy-emacs-syntax"))
 
 ;; *** Hook manipulation
 
