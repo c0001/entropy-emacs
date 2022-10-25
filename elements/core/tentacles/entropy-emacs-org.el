@@ -1713,9 +1713,8 @@ chosen as prompted query location state."
                                        'read-file-name-internal
                                        nil t))
          (target-imgs-dir
-          (completing-read "Choosing imgs extract location: "
-                           'read-file-name-internal
-                           nil t))
+          (read-directory-name "Choosing imgs extract location: "
+                               nil nil t))
          imgs-paths imgs-lost imgs-copied)
     (cond
      ((not (file-exists-p target-file))
