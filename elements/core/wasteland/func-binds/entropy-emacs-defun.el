@@ -677,6 +677,14 @@ Where N is a explicitly specified `natnump' number."
           `(when-let* (,@wspec)
              ,@(if rspec `((let* (,@rspec) ,@body)) body)))))))
 
+(defmacro entropy/emacs-cancel-timer-var (var)
+  "Same as `cancel-timer' for canceling a `timerp' object which is
+the value of VAR but also set VAR to nil after the canceling
+succeed.
+
+Value should be a variable name or a `setf' place."
+  `(when (timerp ,var) (cancel-timer ,var) (setf ,var nil)))
+
 ;; **** Apis with when wrapper
 (cl-defmacro entropy/emacs-when-defun (&rest args)
   "Like `defun' but only define NAME as an function when WHEN is
