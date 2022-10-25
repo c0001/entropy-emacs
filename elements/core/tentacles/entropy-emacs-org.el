@@ -735,19 +735,7 @@ unwanted space when exporting org-mode to html."
   (add-to-list 'entropy/emacs-org-export-backends
                'ox-reveal)
   :config
-  (setq org-reveal-root "http://cdn.jsdelivr.net/reveal.js/3.0.0/")
-  (setq org-reveal-theme "black")
-  (setq org-reveal-width 1200)
-  (setq org-reveal-height 1000)
-  (setq org-reveal-margin "0.1")
-  (setq org-reveal-min-scale "0.5")
-  (setq org-reveal-max-scale "2.5")
-  (setq org-reveal-transition "cube")
-  (setq org-reveal-plugins '(classList markdown zoom notes))
-  (setq org-reveal-control t)
-  (setq org-reveal-center t)
-  (setq org-reveal-progress t)
-  (setq org-reveal-history nil))
+  (setq org-reveal-root "https://cdn.jsdelivr.net/npm/reveal.js"))
 
 ;; *** org-publish
 (use-package ox-publish
