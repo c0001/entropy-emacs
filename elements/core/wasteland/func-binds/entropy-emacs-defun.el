@@ -7315,7 +7315,7 @@ lexical environment."
                           ,body-lambda-exp-sym)))
              ((and (listp ,feature-sym)
                    (= 1 (length ,feature-sym)))
-              (setq forms
+              (setq ,forms-sym
                     (list 'eval-after-load (funcall ,extitem-func-sym (car ,feature-sym))
                           ,body-lambda-exp-sym)))
              ((and (listp ,feature-sym)
