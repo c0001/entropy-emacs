@@ -7280,24 +7280,30 @@ effect the expection or try use another way to avoid this.
 generated `lambda' or closures used to debug for view whether
 some context is useing `lexical-binding' environemnt. (only
 enabled when `entropy/emacs-startup-with-Debug-p' is set)")
-(defmacro entropy/emacs-eval-after-load (feature &rest body)
+(cl-defmacro entropy/emacs-eval-after-load
+    (feature &rest body &key with-lexical-bindings &allow-other-keys)
   "Wrap BODY into FEATURE using `eval-after-load'.
 
 FEATURE is the FILE arg of `eval-after-load' or a list of that.
 
-BODY is wrapped into a `lambda', it is defined with lexical
-bindings of the stack context who calling this macro but only
-when `lexical-binding' is enabled in that context, otherwise it
-is just a anonymous no arguments function."
+BODY is wrapped into a `lambda', it is defined with lexical bindings
+of the stack context who calling this macro but only when
+`lexical-binding' is enabled in that context, or set
+WITH-LEXICAL-BINDIGN as where is a alist of what LEXICAL argument for
+`eval' used in which case the BODY is whenever wrapped with that
+lexical environment."
   (declare (indent defun))
-  (let ((forms-sym              (make-symbol "forms"))
+  (let ((body (entropy/emacs-defun--get-real-body body))
+        (forms-sym              (make-symbol "forms"))
         (feature-sym            (make-symbol "feature"))
         (body-lambda-exp-sym    (make-symbol "body-func"))
         (extitem-func-sym (make-symbol "extract-item-func")))
     `(let (,forms-sym
            (,feature-sym ,feature)
            (,body-lambda-exp-sym
-            (entropy/emacs-define-lambda-as-exp nil ,@body))
+            (entropy/emacs-define-lambda-as-exp-with-lcb nil
+              :with-lexical-bindins ,with-lexical-bindings
+              ,@body))
            (,extitem-func-sym
             (lambda (file)
               (if (stringp file)
@@ -10658,7 +10664,7 @@ pollute eemacs internal lazy load optimization."
             ;; and LOAD-FNAME var bindind in runtime.
             (t
              (setq ,body-lambda-exp-sym
-                   (entropy/emacs-define-lambda-as-exp-with-lcb nil
+                   (entropy/emacs-cl-lambda-with-lcb nil
                      :with-lexical-bindins
                      (append
                       (list (cons ',feature-sym ,feature-sym)
@@ -10677,10 +10683,10 @@ pollute eemacs internal lazy load optimization."
                       (entropy/emacs-general-run-with-protect-and-gc-strict
                        :when-use-gc-restrict entropy/emacs-startup-done
                        ,@body))))
-             (entropy/emacs-eval-with-lexical
-              (list 'entropy/emacs-eval-after-load
-                    (list 'quote ,feature-sym)
-                    (list 'funcall ,body-lambda-exp-sym)))))))
+             (entropy/emacs-eval-after-load ,feature-sym
+               :with-lexical-bindins
+               (list (cons ',body-lambda-exp-sym ,body-lambda-exp-sym))
+               (funcall ,body-lambda-exp-sym))))))
         ((null entropy/emacs-custom-enable-lazy-load)
          (when (not (null ,feature-sym))
            (unless ,no-msg-sym
