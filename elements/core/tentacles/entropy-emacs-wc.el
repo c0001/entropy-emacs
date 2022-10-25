@@ -1110,18 +1110,13 @@ saved by
 
   :config
   (defvar entropy/emacs-basic-winner---winner-save-old-config-run-orig-func-p nil)
-
-  (defvar entropy/emacs-basic-winner---winner-save-old-config-run-with-idle-type-cache
-    nil)
+  (defvar entropy/emacs-basic-winner---winner-save-old-config-idler-timer nil)
   (defun entropy/emacs-basic-winner---winner-save-old-config-run-with-idle-type ()
     (cond
-     ((bound-and-true-p buffer-read-only)
-      0.2)
+     (buffer-read-only 0.2)
      ((entropy/emacs-operation-status/running-auto-completion-op-p)
-      (+ 1
-         (entropy/emacs-operation-status/auto-completion-idle-delay)))
-     (t
-      0.4)))
+      (+ 1 (entropy/emacs-operation-status/auto-completion-idle-delay)))
+     (t 0.4)))
   (defun entropy/emacs-wc-winner--winner-save-old-configurations/run-with-idle
       (orig-func &rest orig-args)
     "Trigger `winner-mode' `post-command-hook'
@@ -1132,25 +1127,22 @@ issue."
        (entropy/emacs-basic-winner---winner-save-old-config-run-orig-func-p
         (apply orig-func orig-args))
        ((and
+         (not (timerp entropy/emacs-basic-winner---winner-save-old-config-idler-timer))
          ;; EEMACS_MAINTENANCE: the original post judger for
          ;; `winner-save-old-configurations', please update with
          ;; upstream updates.
          (zerop (minibuffer-depth)))
         (setq idle-delay
-              (entropy/emacs-basic-winner---winner-save-old-config-run-with-idle-type)
-              )
-        (unless (equal idle-delay
-                       entropy/emacs-basic-winner---winner-save-old-config-run-with-idle-type-cache)
-          (setq entropy/emacs-basic-winner---winner-save-old-config-run-with-idle-type-cache
-                idle-delay)
-          (entropy/emacs-eval-with-lexical
-           `(entropy/emacs-run-at-idle-immediately
-             __idle/winner-save-old-config
-             ;; use enlarge idle hook to reduce lag
-             :which-hook ,idle-delay
-             (apply ',orig-func ',orig-args)))))
-       (t
-        (apply orig-func orig-args)))))
+              (entropy/emacs-basic-winner---winner-save-old-config-run-with-idle-type))
+        (setq entropy/emacs-basic-winner---winner-save-old-config-idler-timer
+              (run-with-idle-timer
+               idle-delay nil
+               #'(lambda nil
+                   (unwind-protect
+                       (apply orig-func orig-args)
+                     (setq entropy/emacs-basic-winner---winner-save-old-config-idler-timer
+                           nil))))))
+       (t (apply orig-func orig-args)))))
   (advice-add
    'winner-save-old-configurations
    :around
@@ -1163,7 +1155,11 @@ issue."
       (setq this-command 'winner-undo)
       (if (bound-and-true-p winner-mode)
           (let ((entropy/emacs-basic-winner---winner-save-old-config-run-orig-func-p
-                 t))
+                 t)
+                (inhibit-quit t))
+            (when (timerp entropy/emacs-basic-winner---winner-save-old-config-idler-timer)
+              (cancel-timer entropy/emacs-basic-winner---winner-save-old-config-idler-timer)
+              (setq entropy/emacs-basic-winner---winner-save-old-config-idler-timer nil))
             (winner-save-old-configurations)
             (winner-undo))
         (user-error "winner-mode not enabled"))))
