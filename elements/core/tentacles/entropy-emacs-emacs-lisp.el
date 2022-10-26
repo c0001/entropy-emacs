@@ -417,7 +417,11 @@ interaction) then normally wrapped to top-level form."
     (("C-c e" macrostep-expand "Expand Macro At Point"
       :enable t
       :exit t
-      :map-inject t)))))
+      :map-inject t))))
+  :config
+  ;; show expanding in temporal buffer where we do not pollute current
+  ;; buffer even that's safe.
+  (setq macrostep-expand-in-separate-buffer t))
 
 ;; Make M-. and M-, work in elisp like they do in slime.
 ;; `xref' is perfect since 25, so only use in <=24.
