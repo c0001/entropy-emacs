@@ -4892,7 +4892,7 @@ wrong type of :with-filter '%s'" with-filter)))
         (funcall map-func default-attrs 'end-call-p)))
 
     ;; return
-    (reverse rtn)))
+    (nreverse rtn)))
 
 (defun entropy/emacs-list-dir-subdirs-recursively/filter/ignore-hidden
     (type _ node-name)
