@@ -4178,7 +4178,8 @@ internally to reduce the duplicated `file-attributes' computation."
                                   (list 'filesystem-node-type-p
                                         filesystem-node-type))))))
         (if (or ftype-p (not with-symlink)) ftype-p
-          (when ftype                   ;confirm that it is a symbolic link
+          ;; confirm that it is a symbolic link and only for symbolic link
+          (when (stringp ftype)
             (if without-chasing-all-symlink
                 (entropy/emacs-filesystem-node--match-type-p
                  filesystem-node-type
