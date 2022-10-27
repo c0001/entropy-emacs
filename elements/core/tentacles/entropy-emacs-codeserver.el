@@ -152,7 +152,7 @@ Bounds is an cons of (beg . end) point of `current-buffer'"
 
 ;; ***** Dwim with `entropy-emacs-structure'
   (defun entropy/emacs-codeserver-xref--show-entry-after-jump (&rest _)
-    "Show hidden entry afte xref jump which hidden by
+    "Show hidden entry after xref jump which hidden by
 `entropy-emacs-structure' feature."
     (when-let* ((feature-p (featurep 'entropy-emacs-structure))
                 (pt (point))
@@ -204,6 +204,26 @@ Bounds is an cons of (beg . end) point of `current-buffer'"
   (add-hook 'xref-after-jump-hook
             #'entropy/emacs-codeserver-xref--show-entry-after-jump
             100)
+
+  ;; EEMACS_MAINTENANCE: follow upstream's internal defination.
+  (defun __ya/xref-pop-marker-stack ()
+    "Like `xref-pop-marker-stack' but use `xref--goto-char' when the
+popup destination position in buffer who is narraowed where the
+accessible portion is outside of that position."
+    (interactive)
+    (let ((ring xref--marker-ring))
+      (when (ring-empty-p ring)
+        (user-error "Marker stack is empty"))
+      (let ((marker (ring-remove ring 0)))
+        (switch-to-buffer (or (marker-buffer marker)
+                              (user-error "The marked buffer has been deleted")))
+        (xref--goto-char (marker-position marker))
+        (set-marker marker nil nil)
+        (run-hooks 'xref-after-return-hook))))
+
+  (advice-add 'xref-pop-marker-stack
+              :override
+              #'__ya/xref-pop-marker-stack)
 
 ;; *** __end__
   )
