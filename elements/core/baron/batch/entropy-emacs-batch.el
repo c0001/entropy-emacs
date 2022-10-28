@@ -305,47 +305,36 @@ In used emacs version is: %s
 
 ;; **** native compile `package-user-dir'
 
-(defun entropy/emacs-batch--around-advice-for-native-compile (orig-func &rest orig-args)
-  (let ((file-or-func (caar comp-files-queue)))
-    (entropy/emacs-message-do-message
-     "%s%s%s"
-     "↳ "
-     (yellow (format "⚠ native compiling for %s :"
-                     (if (functionp file-or-func)
-                         "function"
-                       (if (ignore-errors (file-exists-p file-or-func))
-                           "file"
-                         "unkown object")
-                       )))
-     (if (ignore-errors (file-exists-p file-or-func))
-         (file-name-nondirectory file-or-func)
-       (format "%s" file-or-func)))
-    (apply orig-func orig-args)))
+(defun entropy/emacs-batch--native-comp-cu-done (file)
+  (entropy/emacs-message-do-message
+   "%s native compiled for file `%s'"
+   (green "✓ DONE")
+   file))
 
 (defun entropy/emacs-batch--native-compile-package-dir ()
+  (require 'comp)
   (let* ((comp-verbose 0)
-         (pkg-dirs `(,package-user-dir
-                     ,(file-name-directory
-                       (locate-library "subr")))))
+         (pkg-dirs `(,package-user-dir ,(file-name-directory (locate-library "subr"))))
+         (native-comp-async-cu-done-functions '(entropy/emacs-batch--native-comp-cu-done))
+         (ignore-rexps native-comp-deferred-compilation-deny-list)
+         files)
     (dolist (pkg-dir pkg-dirs)
-      (unwind-protect
-          (progn
-            (entropy/emacs-message-do-message
-             "%s '%s' %s"
-             (green "Do native compile for package dir")
-             (yellow  (format "%s" pkg-dir))
-             (green  "......"))
-            (sleep-for 3)
-            (advice-add 'comp-run-async-workers
-                        :around #'entropy/emacs-batch--around-advice-for-native-compile)
-            (native-compile-async pkg-dir 'recursively)
-            (while (or comp-files-queue
-                       (> (comp-async-runnings) 0))
-              (sleep-for 1)))
-        (progn
-          (advice-remove
-           'comp-run-async-workers
-           #'entropy/emacs-batch--around-advice-for-native-compile))))))
+      (entropy/emacs-setf-by-body files
+        (entropy/emacs-mapcar-without-orphans
+         (lambda (x) (unless (entropy/emacs-string-match-p x ignore-rexps) x))
+         (directory-files-recursively pkg-dir comp-valid-source-re)
+         nil nil))
+      (entropy/emacs-message-do-message
+       "%s%s%s `%s' %s"
+       (green "Do native compile")
+       (format " (%d files) " (length files))
+       (green "for package dir")
+       (yellow  (format "%s" pkg-dir))
+       (green  "......"))
+      (sleep-for 0.001)
+      (native-compile-async files)
+      (entropy/emacs-sleep-while
+       (or comp-files-queue (> (comp-async-runnings) 0))))))
 
 ;; **** get entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo
 

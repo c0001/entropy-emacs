@@ -34,7 +34,7 @@
 ;; configuration
 
 ;; * Code:
-;; ** require
+;; ** Require
 (require 'cl-lib)
 (require 'subr-x)
 
@@ -49,7 +49,28 @@
 It's a version string which can be used for `version<' and
 `version<='.")
 
-;; ** eemacs top declares
+;; Native compile specs
+;;
+;; Disable all auto native compilation bootstraps since we use union
+;; native comp procedure in the makefile's 'make native-comp' section.
+(setq native-comp-always-compile nil
+      native-comp-deferred-compilation nil)
+(setq native-comp-deferred-compilation-deny-list
+      '(
+        ;; general exclusions
+        "^.*/?\\.?dir-locals\\(\\.el\\)?$"
+        "^.*/?.*-loaddefs\\.el$"
+        "^.*/?loaddefs\\.el$"
+        "^.*/?.*-pkg\\.el$"
+        "^.*/?.*-autoloads\\.el$"
+        ;; melpa specs
+        "^.*/?.*\\.yas-setup\\.el$"
+        ;; we must excluded eemacs code for native comp
+        "^.*/?entropy-emacs-[^/]*\\.el$"
+        "^.*/?liberime[^/]*\\.el$"
+        "^.*/?fakecygpty[^/]*\\.el$"))
+
+;; ** Eemacs top declares
 
 (defgroup entropy-emacs-customize-top-group nil
   "Eemacs customizable variables top group."
@@ -101,7 +122,7 @@ renderred after init this.)"
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-pdumper)
 
-;; ** prepare
+;; ** Prepare
 ;; *** multi-version emacs compatible
 ;; TODO ...
 
@@ -131,7 +152,7 @@ renderred after init this.)"
                 process-environment)))
      ,@body))
 
-;; ** startup entropy-emacs
+;; ** Startup entropy-emacs
 
 (defvar __inited-p? nil)
 

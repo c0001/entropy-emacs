@@ -258,7 +258,7 @@ in baron part to simplify context distinction search")
 ;; we should also guaranteed the pdumper reload session has this too.
 (add-hook 'entropy/emacs-pdumper-load-hook #'__set_eemacs_top_env_indicator)
 
-;; start eemacs
+;; ** Start Eemacs
 (cond
  ((entropy/emacs-is-make-session)
   (!eemacs-require 'entropy-emacs-batch))
@@ -266,4 +266,5 @@ in baron part to simplify context distinction search")
   (!eemacs-require 'entropy-emacs-pure-env))
  (t (!eemacs-require 'entropy-emacs-start)))
 
+;; * Provide
 (provide 'entropy-emacs)

@@ -58,19 +58,6 @@
       help-enable-symbol-autoload nil
       )
 
-;;;; Native compile config
-
-;; Disable all auto native compilation bootstraps since we use union
-;; native comp procedure in the makefile's 'make native-comp' section.
-(setq native-comp-always-compile nil
-      native-comp-deferred-compilation nil)
-(setq native-comp-deferred-compilation-deny-list
-      ;; we must excluded eemacs code for native comp
-      '("entropy-emacs-.*"
-        "liberime*"
-        "fakecygpty"
-        "\\.?dir-locals"))
-
 ;;;; Font lock mode config
 
 ;; ;; Globally downgrade font-lock decoration to improve performance
