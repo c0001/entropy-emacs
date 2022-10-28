@@ -2799,29 +2799,17 @@ both ommited, that as:
 
 ;; ***** defer parse
 
-(defvar entropy/emacs-hydra-hollow/use-package/defer-parse-random-func-ids-pool nil)
+(defvar entropy/emacs-hydra-hollow/use-package/defer-parse-random-func-ids-pool -1)
 (defun  entropy/emacs-hydra-hollow/use-package/defer-parse/gen-random-ad-funcname-prefix
     (use-name adtype)
-  (let* ((id-pool
-          entropy/emacs-hydra-hollow/use-package/defer-parse-random-func-ids-pool)
-         (id (if id-pool
-                 (+ (car id-pool) 1)
-               0)))
-    (push id
-          entropy/emacs-hydra-hollow/use-package/defer-parse-random-func-ids-pool)
+  (let* ((id (cl-incf entropy/emacs-hydra-hollow/use-package/defer-parse-random-func-ids-pool)))
     (format "eemacs-use-package/hydra-hollow-defer-parse/for-%s/adtype-of-%s/func-id_%s"
             use-name adtype id)))
 
-(defvar entropy/emacs-hydra-hollow/use-package/defer-parse-random-judger-ids-pool nil)
+(defvar entropy/emacs-hydra-hollow/use-package/defer-parse-random-judger-ids-pool -1)
 (defun  entropy/emacs-hydra-hollow/use-package/defer-parse/gen-random-ad-judger-prefix
     (use-name)
-  (let* ((id-pool
-          entropy/emacs-hydra-hollow/use-package/defer-parse-random-judger-ids-pool)
-         (id (if id-pool
-                 (+ (car id-pool) 1)
-               0)))
-    (push id
-          entropy/emacs-hydra-hollow/use-package/defer-parse-random-judger-ids-pool)
+  (let* ((id (cl-incf entropy/emacs-hydra-hollow/use-package/defer-parse-random-judger-ids-pool)))
     (format "eemacs-use-package/hydra-hollow-defer-parse/for-%s/judger-id_%s"
             use-name id)))
 
@@ -2953,10 +2941,11 @@ the instance has been created and the related form is banned."
       (setq rtn (nconc (list 'progn) (nreverse rtn))))
      ((eq patterns t)
       (setq rtn
-            `(entropy/emacs-lazy-load-simple ',use-name
-               ;; NOTE: always defer for require
-               :always-lazy-load t
-               ,form-use-judge)))
+            (macroexpand-all
+             `(entropy/emacs-lazy-load-simple ',use-name
+                ;; NOTE: always defer for require
+                :always-lazy-load t
+                ,form-use-judge))))
      (t (setq rtn form)))
     ;; return
     rtn))
