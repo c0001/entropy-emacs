@@ -98,12 +98,6 @@ at some proper time.")
 (defvar entropy/emacs-hydra-hollow-call-before-hook nil
   "Hook before run any eemacs-hydra-hollow instances")
 
-(defvar entropy/emacs-hydra-hollow-random-func-name-number-register nil
-  "The register for the random number suffix as name for random
-function naming.
-
-Do not manually modify this variable or risking on your self.")
-
 (defun entropy/emacs-hydra-hollow-call-union-form (&rest _)
   "Call `entropy/emacs-hydra-hollow-union-form' recursively til
 it becoming one empty form."
@@ -112,7 +106,8 @@ it becoming one empty form."
   (let (
         ;; NOTE: this is important to prevent hydra hollow init failure
         (inhibit-quit t)
-        (copy-union-form (copy-sequence entropy/emacs-hydra-hollow-union-form)))
+        (copy-union-form (copy-sequence entropy/emacs-hydra-hollow-union-form))
+        use-recursive)
     (unless (null (cddr copy-union-form))
       (progn
         (funcall entropy/emacs-hydra-hollow-union-form)
@@ -123,9 +118,11 @@ it becoming one empty form."
                              :test 'eq  ;use `eq' may enough
                              ;; guarantee not delete the form head i.e. (lambda args ...)
                              :start 2)))
+          (setq use-recursive t)
           (entropy/emacs-hydra-hollow-call-union-form))
-        (unless (equal entropy/emacs-hydra-hollow-union-form
-                       entropy/emacs-hydra-hollow-union-form-const)
+        (unless (or use-recursive
+                    (equal entropy/emacs-hydra-hollow-union-form
+                           entropy/emacs-hydra-hollow-union-form-const))
           (setq entropy/emacs-hydra-hollow-union-form
                 (copy-sequence
                  entropy/emacs-hydra-hollow-union-form-const)))))))
@@ -282,7 +279,7 @@ type listed as:
               (not (null pattern)))
          (entropy/emacs-eval-with-lexical pattern))
         ((and (symbolp pattern)
-              (member pattern '(nil t)))
+              (memq pattern '(nil t)))
          (unless (null pattern)
            t))
         ((symbolp pattern)
@@ -794,7 +791,7 @@ hand, either 't' or 'nil' is for that.
               rtn (list width-sign :width-desc width-desc))))
      ((funcall eval-form-p ctg-width-indc)
       (setq rtn (entropy/emacs-hydra-hollow--common-judge-p ctg-width-indc)))
-     ((or (member ctg-width-indc '(t nil))
+     ((or (memq ctg-width-indc '(t nil))
           (integerp ctg-width-indc))
       (setq rtn (or ctg-width-indc entropy/emacs-hydra-hollow-category-default-width)))
      ((listp ctg-width-indc)
@@ -1273,7 +1270,7 @@ Optional argument PRETTY-HYDRA-CATEGORY-WIDTH-INDICATOR is a
                  rest-ctg-inc (cdr ctg-indc))))
 
     ;; immediately throw out error of the wrong type *width-sign*
-    (unless (or (member cur-ctg-indc '(t nil))
+    (unless (or (memq cur-ctg-indc '(t nil))
                 (and (integerp cur-ctg-indc)
                      (> cur-ctg-indc 0)))
       (error "wrong type of argument: *width-sign*-p %s" cur-ctg-indc))
@@ -1780,61 +1777,33 @@ The normalizing procedure provided by
 (defun entropy/emacs-hydra-hollow-define-key (keymap key form)
   "Bind KEY to KEYMAP with FORM.
 
-If FORM is not a symbol then define a function with unique random
-name suffix by request from
-`entropy/emacs-hydra-hollow-random-func-name-number-register'.
+If FORM is not a symbol then define a function with unique name via
+`entropy/emacs-make-new-interned-symbol'.
 
 KEYMAP was a keymap, a keymap symbol or for some meaningful usage:
 
 - KEYMAP `eq' 'global-map', binding KEY to global map.
 - KEYMAP `eq' 'eemacs-top-map, binding KEY to
   `entropy/emacs-top-keymap'."
-  (let* (command
-         (func-reg-num
-          (or
-           (ignore-errors
-            (+
-             (car
-              entropy/emacs-hydra-hollow-random-func-name-number-register)
-             1))
-           0)))
-    ;; get new random func name suffix
-    (while (member func-reg-num
-                   entropy/emacs-hydra-hollow-random-func-name-number-register)
-      (cl-incf func-reg-num))
-
+  (let* (command)
     ;; normalize command
     (cond
-     ((symbolp form)
-      (setq command form))
+     ((symbolp form) (setq command form))
      ((listp form)
-      (let ((func-name (intern
-                        (format "eemacs-hydra-hollow-random-func--/number-%s"
-                                (number-to-string func-reg-num)))))
+      (let ((func-name
+             (entropy/emacs-make-new-interned-symbol "eemacs-hydra-hollow--random-func/")))
         (when (fboundp func-name)
           (error "Function '%s' has been existed, random function creating fatal!"
                  (symbol-name func-name)))
-        (push func-reg-num
-              entropy/emacs-hydra-hollow-random-func-name-number-register)
-        (entropy/emacs-eval-with-lexical
-         `(defun ,func-name ()
-            (interactive)
-            ,form))
+        (entropy/emacs-eval-with-lexical `(defun ,func-name () (interactive) ,form))
         (setq command func-name))))
-
     ;; inject command to map
     (pcase keymap
-      ('global-map
-       (global-set-key (kbd key) command))
-      ('eemacs-top-map
-       (entropy/emacs-!set-key
-         (kbd key) command))
+      ('global-map (global-set-key (kbd key) command))
+      ('eemacs-top-map (entropy/emacs-!set-key (kbd key) command))
       (_
-       (if (listp keymap)
-           (define-key keymap (kbd key) command)
-         (define-key (symbol-value keymap)
-           (kbd key) command))))
-    ))
+       (if (keymapp keymap) (define-key keymap (kbd key) command)
+         (define-key (symbol-value keymap) (kbd key) command))))))
 
 ;; ******* hydra-injector
 
@@ -1871,7 +1840,7 @@ Basiclly, it is a list of three parts:
                               (not (null feature)))
                          (and (listp feature)
                               (not (null feature))
-                              (not (member nil feature))))
+                              (not (memq nil feature))))
                (error "Wrong type of argument: hydra-injector-feature-P '%s'"
                       feature))
              (unless (not (null map))
@@ -2121,7 +2090,7 @@ valid result type are:
       (setq notation
             (entropy/emacs-hydra-hollow-pretty-hydra-head-notation-handler
              notation 'mode-map-inject
-             (and (member :global-bind-notation-beautified restrict)
+             (and (memq :global-bind-notation-beautified restrict)
                   (entropy/emacs-hydra-hollow--common-judge-p
                    (plist-get restrict :global-bind-notation-beautified)))))
       (setq restrict
@@ -2143,7 +2112,7 @@ valid result type are:
           (setq notation
                 (entropy/emacs-hydra-hollow-pretty-hydra-head-notation-handler
                  notation 'mode-map-inject
-                 (member :global-bind-notation-beautified restrict)))
+                 (memq :global-bind-notation-beautified restrict)))
           (setq restrict
                 (append restrict '(:map-inject-notation-beautified t))))
         (when do-inherit-predicate
@@ -2375,14 +2344,8 @@ handle its value and replace the new value to the lexical one.
 
 
 (defun entropy/emacs-hydra-hollow-get-random-individual-hydra-name ()
-  (let ((suffix (or (ignore-errors
-                      (+ 1
-                         (apply 'max
-                                entropy/emacs-hydra-hollow-random-func-name-number-register)))
-                    1)))
-    (push suffix entropy/emacs-hydra-hollow-random-func-name-number-register)
-    (intern
-     (format "entropy/emacs-individual-hydra-random-name-of-%s" suffix))))
+  (entropy/emacs-make-new-interned-symbol
+   "entropy/emacs-individual-hydra-random-name-of-"))
 
 (defun entropy/emacs-hydra-hollow-build-random-individual-hydra
     (pretty-hydra-cabinet &optional pretty-hydra-category-width-indicator hydra-injector)
