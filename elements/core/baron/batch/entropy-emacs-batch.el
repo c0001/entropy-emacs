@@ -313,7 +313,7 @@ In used emacs version is: %s
 
 (defun entropy/emacs-batch--native-compile-package-dir ()
   (require 'comp)
-  (let* ((comp-verbose 0)
+  (let* ((native-comp-verbose 0)
          (pkg-dirs `(,package-user-dir ,(file-name-directory (locate-library "subr"))))
          (native-comp-async-cu-done-functions '(entropy/emacs-batch--native-comp-cu-done))
          (ignore-rexps native-comp-deferred-compilation-deny-list)
