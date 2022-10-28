@@ -295,8 +295,7 @@ In used emacs version is: %s
          (bcknew (expand-file-name archive-bck host-path)))
     (entropy/emacs-message-do-message
      (green "Backup `package-user-dir' ..."))
-    (copy-directory package-user-dir
-                    bcknew)
+    (copy-directory package-user-dir bcknew)
     (entropy/emacs-message-do-message
      "%s %s %s"
      (green "Backup to")
@@ -419,18 +418,14 @@ faild with hash '%s' which must match '%s'"
   (let ((host entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-local-path)
         (did-p t))
     (when (file-exists-p host)
-      (setq did-p
-            (yes-or-no-p
-             (format "Remove old install (%s)? "
-                     host)))
+      (setq did-p (yes-or-no-p (format "Remove old install (%s)? " host)))
       (and did-p
            (rename-file
             host
             (concat host
                     (format ".bak_%s"
                             (format-time-string "%Y%m%d%H%M%S"))))))
-    (if did-p
-        (entropy/emacs-batch--install-eemacs-ext-stable-build-repo-core)
+    (if did-p (entropy/emacs-batch--install-eemacs-ext-stable-build-repo-core)
       (entropy/emacs-message-do-message
        "%s"
        (yellow "Abort!")))))
