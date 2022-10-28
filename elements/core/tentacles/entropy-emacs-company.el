@@ -991,45 +991,40 @@ in `entropy/emacs-company-frontend-sticker'."
 EEMACS_MAINTENANCE: may need update with company-box upstream."
     (company-box-doc--show selection frame)
     (company-ensure-emulation-alist))
-  (defun company-box-doc (selection frame)
-    "NOTE: this function has been redefined for adapting to
-eemacs.
+  (defun __ya/company-box-doc (selection frame)
+    "Patched for: Run doc frame hide just once time when consecutively fast
+hints.
 
-Patched for: Run doc frame hide just one time when consecutively
-fast hints.
-
-The origin `company-box-doc' has preparation with doc frame
-visible checking with function `frame-local-get' which mapped
-local frame obarray to search local varaible which has bad
-benchmark performance as an scroll lagging reason when toggle on
-`company-box-doc-enable'.
+The origin `company-box-doc' has preparation with doc frame visible
+checking with function `frame-local-get' which mapped local frame
+obarray to search local varaible which has bad benchmark performance
+as an scroll lagging reason when toggle on `company-box-doc-enable'.
 
 EEMACS_MAINTENANCE: need patching updately with `company-box'
 upstream."
-    (when company-box-doc-enable
-      (eval
-       `(progn
-          (unless __local-company-box-doc-hided
-            (let ((doc-frame
-                   (frame-local-getq company-box-doc-frame
-                                     ,frame)))
-              (when (and doc-frame
-                         (framep doc-frame)
-                         (frame-live-p frame)
-                         (frame-visible-p doc-frame)
-                         ;; to ensuer is not the root frame
-                         (framep (frame-parent doc-frame)))
-                (make-frame-invisible doc-frame))
-              (setq __local-company-box-doc-hided t)))
-          (when (timerp company-box-doc--timer)
-            (cancel-timer company-box-doc--timer)
-            (cancel-function-timers '__company-doc-show-timer-func)
-            (setq company-box-doc--timer nil))
-          (setq company-box-doc--timer
-                (run-with-timer
-                 company-box-doc-delay nil
-                 #'__company-doc-show-timer-func
-                 ',selection ,frame))))))
+    (when-let* ((company-box-doc-enable))
+      (unless __local-company-box-doc-hided
+        (let ((doc-frame
+               (frame-local-getq company-box-doc-frame
+                                 frame)))
+          (when (and doc-frame
+                     (framep doc-frame)
+                     (frame-live-p frame)
+                     (frame-visible-p doc-frame)
+                     ;; to ensuer is not the root frame
+                     (framep (frame-parent doc-frame)))
+            (make-frame-invisible doc-frame))
+          (setq __local-company-box-doc-hided t)))
+      (when (timerp company-box-doc--timer)
+        (cancel-timer company-box-doc--timer)
+        (cancel-function-timers '__company-doc-show-timer-func)
+        (setq company-box-doc--timer nil))
+      (setq company-box-doc--timer
+            (run-with-timer
+             company-box-doc-delay nil
+             #'__company-doc-show-timer-func
+             selection frame))))
+  (advice-add 'company-box-doc :override #'__ya/company-box-doc)
 
   (defun __local-company-box-doc-hided-rest
       (orig-func &rest orig-args)
