@@ -69,8 +69,7 @@
       (macroexpand-1
        `(entropy/emacs-start--run-with-duration-log
          ,car-args
-         (apply 'entropy/emacs-common-require-feature
-                ,car-args ,cdr-args))))))
+         (entropy/emacs-common-require-feature ,@args))))))
 
 (defun entropy/emacs-start--sort-duration-log
     (&rest _)
@@ -453,32 +452,32 @@ notation.
     (!eemacs-require 'entropy-emacs-pdumper))
 
   ;; basic feature defination
-  (entropy/emacs-common-require-feature 'entropy-emacs-basic)
+  (entropy/emacs-start--require-with-duration-log 'entropy-emacs-basic)
 
   ;; ============================
   ;; mainly ui configuration
-  (entropy/emacs-common-require-feature 'entropy-emacs-modeline)
+  (entropy/emacs-start--require-with-duration-log 'entropy-emacs-modeline)
 
   ;; loading theme configuration after the modeline for loading theme
   ;; specifics for some mode-line adaption
-  (entropy/emacs-common-require-feature 'entropy-emacs-themes)
+  (entropy/emacs-start--require-with-duration-log 'entropy-emacs-themes)
   ;; FIXME: we must set up font initially after theme spec config load
   ;; to take font set effectively WHY?
   (entropy/emacs-font-set--setfont-initial)
 
-  (entropy/emacs-common-require-feature 'entropy-emacs-wc)
-  (entropy/emacs-common-require-feature 'entropy-emacs-popwin)
+  (entropy/emacs-start--require-with-duration-log 'entropy-emacs-wc)
+  (entropy/emacs-start--require-with-duration-log 'entropy-emacs-popwin)
   ;; =============================
 
   ;; ineractive
   (cond ((eq entropy/emacs-command-completion-use-style 'ivy)
-         (entropy/emacs-common-require-feature 'entropy-emacs-ivy))
+         (entropy/emacs-start--require-with-duration-log 'entropy-emacs-ivy))
         (t
          nil))
   ;; org
-  (entropy/emacs-common-require-feature 'entropy-emacs-org)
+  (entropy/emacs-start--require-with-duration-log 'entropy-emacs-org)
   ;; code folding
-  (entropy/emacs-common-require-feature 'entropy-emacs-structure)
+  (entropy/emacs-start--require-with-duration-log 'entropy-emacs-structure)
 
   ;; ends for minimal start
   (advice-remove 'require #'entropy/emacs-start--advice-for-require-prompt)
@@ -502,45 +501,45 @@ notation.
   (when entropy/emacs-use-highlight-features
     ;; highlight package will cause the low performance of emacs interpretering, so this be the
     ;; choiced option
-    (entropy/emacs-common-require-feature 'entropy-emacs-highlight))
+    (entropy/emacs-start--require-with-duration-log 'entropy-emacs-highlight))
 
   ;; For code IDE
-  (entropy/emacs-common-require-feature 'entropy-emacs-yas)
-  (entropy/emacs-common-require-feature 'entropy-emacs-codeserver)
-  (entropy/emacs-common-require-feature 'entropy-emacs-company)
-  (entropy/emacs-common-require-feature 'entropy-emacs-comments)
+  (entropy/emacs-start--require-with-duration-log 'entropy-emacs-yas)
+  (entropy/emacs-start--require-with-duration-log 'entropy-emacs-codeserver)
+  (entropy/emacs-start--require-with-duration-log 'entropy-emacs-company)
+  (entropy/emacs-start--require-with-duration-log 'entropy-emacs-comments)
   ;; For useful tools
-  (entropy/emacs-common-require-feature 'entropy-emacs-shell)
-  (entropy/emacs-common-require-feature 'entropy-emacs-ibuffer)
-  (entropy/emacs-common-require-feature 'entropy-emacs-textwww)
-  (entropy/emacs-common-require-feature 'entropy-emacs-rss)
-  (entropy/emacs-common-require-feature 'entropy-emacs-gnus)
-  (entropy/emacs-common-require-feature 'entropy-emacs-project)
-  (entropy/emacs-common-require-feature 'entropy-emacs-tools)
-  (entropy/emacs-common-require-feature 'entropy-emacs-music)
-  (entropy/emacs-common-require-feature 'entropy-emacs-vcs)
+  (entropy/emacs-start--require-with-duration-log 'entropy-emacs-shell)
+  (entropy/emacs-start--require-with-duration-log 'entropy-emacs-ibuffer)
+  (entropy/emacs-start--require-with-duration-log 'entropy-emacs-textwww)
+  (entropy/emacs-start--require-with-duration-log 'entropy-emacs-rss)
+  (entropy/emacs-start--require-with-duration-log 'entropy-emacs-gnus)
+  (entropy/emacs-start--require-with-duration-log 'entropy-emacs-project)
+  (entropy/emacs-start--require-with-duration-log 'entropy-emacs-tools)
+  (entropy/emacs-start--require-with-duration-log 'entropy-emacs-music)
+  (entropy/emacs-start--require-with-duration-log 'entropy-emacs-vcs)
 
   ;; init-calendar was not adapt emacs 27 or higher and just adapt emacs 25 or earlier
   ;; [2018-03-09 Fri 13:35:45] it's be fixed by xwl (the maintainer)
   ;; issue url `https://github.com/xwl/cal-china-x/issues/12'
-  (entropy/emacs-common-require-feature 'entropy-emacs-calendar)
+  (entropy/emacs-start--require-with-duration-log 'entropy-emacs-calendar)
 
   ;; For programing language
-  (entropy/emacs-common-require-feature 'entropy-emacs-bash)
-  (entropy/emacs-common-require-feature 'entropy-emacs-web)
-  (entropy/emacs-common-require-feature 'entropy-emacs-python)
-  (entropy/emacs-common-require-feature 'entropy-emacs-c)
-  (entropy/emacs-common-require-feature 'entropy-emacs-markdown)
-  (entropy/emacs-common-require-feature 'entropy-emacs-emacs-lisp)
-  (entropy/emacs-common-require-feature 'entropy-emacs-lua)
-  (entropy/emacs-common-require-feature 'entropy-emacs-zeal)
-  (entropy/emacs-common-require-feature 'entropy-emacs-go)
-  (entropy/emacs-common-require-feature 'entropy-emacs-rust)
-  (entropy/emacs-common-require-feature 'entropy-emacs-yaml)
+  (entropy/emacs-start--require-with-duration-log 'entropy-emacs-bash)
+  (entropy/emacs-start--require-with-duration-log 'entropy-emacs-web)
+  (entropy/emacs-start--require-with-duration-log 'entropy-emacs-python)
+  (entropy/emacs-start--require-with-duration-log 'entropy-emacs-c)
+  (entropy/emacs-start--require-with-duration-log 'entropy-emacs-markdown)
+  (entropy/emacs-start--require-with-duration-log 'entropy-emacs-emacs-lisp)
+  (entropy/emacs-start--require-with-duration-log 'entropy-emacs-lua)
+  (entropy/emacs-start--require-with-duration-log 'entropy-emacs-zeal)
+  (entropy/emacs-start--require-with-duration-log 'entropy-emacs-go)
+  (entropy/emacs-start--require-with-duration-log 'entropy-emacs-rust)
+  (entropy/emacs-start--require-with-duration-log 'entropy-emacs-yaml)
   ;; For tramp
-  (entropy/emacs-common-require-feature 'entropy-emacs-tramp)
+  (entropy/emacs-start--require-with-duration-log 'entropy-emacs-tramp)
   ;; For game
-  (entropy/emacs-common-require-feature 'entropy-emacs-game)
+  (entropy/emacs-start--require-with-duration-log 'entropy-emacs-game)
   ;; end
   (advice-remove 'require #'entropy/emacs-start--advice-for-require-prompt)
 
