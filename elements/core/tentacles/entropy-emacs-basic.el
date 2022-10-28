@@ -3369,7 +3369,8 @@ displayed image as same operated mechanism as
   (defun entropy/emacs-Man-mode-fit-to-window-with-idle (window)
     (unwind-protect
         (when (window-live-p window) (Man-fit-to-window window))
-      (setq entropy/emacs-Man-mode-fit-to-window-timer nil)))
+      (entropy/emacs-cancel-timer-var
+       entropy/emacs-Man-mode-fit-to-window-timer)))
   (defun entropy/emacs-Man-mode-fit-to-window
       (&optional buffer inct)
     "Like `Man-fit-to-window' but with eemacs spec."
@@ -3381,28 +3382,28 @@ displayed image as same operated mechanism as
                 (window    (get-buffer-window buffer))
                 (winobj-p  (and window (window-live-p window))))
       (with-current-buffer buffer
-        (let (_)
-          (when (and winobj-p (eq major-mode 'Man-mode))
-            (if
-                ;; Use direct progn did in these conditions
-                (or inct
-                    (not
-                     (entropy/emacs-window-auto-center-mode-base-condition-satisfied-judge)))
-                (unless (and entropy/emacs-Man-mode-fit-to-window-timer
-                             (timerp entropy/emacs-Man-mode-fit-to-window-timer)
-                             (eq (car
-                                  (timer--args
-                                   entropy/emacs-Man-mode-fit-to-window-timer))
-                                 window))
-                  (Man-fit-to-window window)))
+        (when (eq major-mode 'Man-mode)
+          (if
+              ;; Use direct progn did in these conditions
+              (or inct
+                  (not
+                   (entropy/emacs-window-auto-center-mode-base-condition-satisfied-judge)))
+              (unless (and entropy/emacs-Man-mode-fit-to-window-timer
+                           (timerp entropy/emacs-Man-mode-fit-to-window-timer)
+                           (eq (car
+                                (timer--args
+                                 entropy/emacs-Man-mode-fit-to-window-timer))
+                               window))
+                (Man-fit-to-window window))
             ;; FIXME: why in wc auto center mode the progn did not
             ;; work? (so we use idle timer do as instead)
-            (unless entropy/emacs-Man-mode-fit-to-window-timer
-              (setq entropy/emacs-Man-mode-fit-to-window-timer
-                    (run-with-idle-timer
-                     0.2 nil
-                     #'entropy/emacs-Man-mode-fit-to-window-with-idle
-                     window))))))))
+            (when (entropy/emacs-window-auto-center-mode-base-condition-satisfied-judge)
+              (unless entropy/emacs-Man-mode-fit-to-window-timer
+                (setq entropy/emacs-Man-mode-fit-to-window-timer
+                      (run-with-idle-timer
+                       0.2 nil
+                       #'entropy/emacs-Man-mode-fit-to-window-with-idle
+                       window)))))))))
 
   (add-hook 'entropy/emacs-window-center-enable-after-hook
             #'entropy/emacs-Man-mode-fit-to-window)
