@@ -736,8 +736,8 @@ in `entropy/emacs-company-frontend-sticker'."
             ;; regist the new one
             (setq entropy/emacs-company--frontend-daemon-current-hook
                   daemon-init)
-            (unless (member daemon-init
-                            entropy/emacs-daemon-server-after-make-frame-hook)
+            (unless (memq daemon-init
+                          entropy/emacs-daemon-server-after-make-frame-hook)
               (add-hook 'entropy/emacs-daemon-server-after-make-frame-hook
                         daemon-init)))))
     (when (not (functionp cur-disable))
@@ -778,6 +778,7 @@ in `entropy/emacs-company-frontend-sticker'."
   :after company
   :commands (company-quickhelp-mode
              company-quickhelp-manual-begin)
+  :eemacs-functions (company-quickhelp-frontend)
   :bind (:map company-active-map
               ("<f1>" . nil))
   :preface
@@ -822,16 +823,16 @@ in `entropy/emacs-company-frontend-sticker'."
         'company-show-doc-buffer)))
 
   (add-to-list 'entropy/emacs-company--frontend-register
-               `(default
+               '(default
                   :enable entropy/emacs-company--default-enable
                   :disable entropy/emacs-company--default-disable
                   :daemon-init
-                  ,(entropy/emacs-with-daemon-make-frame-done
-                     'company-default-mode (&rest _)
-                     :when-tui
-                     (entropy/emacs-company--default-disable)
-                     :when-gui
-                     (entropy/emacs-company--default-enable))))
+                  (entropy/emacs-with-daemon-make-frame-done
+                    'company-default-mode (&rest _)
+                    :when-tui
+                    (entropy/emacs-company--default-disable)
+                    :when-gui
+                    (entropy/emacs-company--default-enable))))
 
   :init
   (setq company-quickhelp-delay
@@ -843,7 +844,7 @@ in `entropy/emacs-company-frontend-sticker'."
 (use-package company-box
   :after company
   :commands (company-box-mode)
-
+  :eemacs-functions (entropy/emacs-company-box-delete-all-child-frames)
 ;; **** preface
   :preface
 
@@ -875,7 +876,10 @@ in `entropy/emacs-company-frontend-sticker'."
       (entropy/emacs-set-key-without-remap
         company-active-map
         (kbd "C-h")
-        'company-show-doc-buffer)))
+        'company-show-doc-buffer)
+      ;; We must remove all unvisible company-box frame since it may
+      ;; make cli session hang (i.e. the focus missed in)
+      (entropy/emacs-company-box-delete-all-child-frames)))
 
   (defun entropy/emacs-company--box-enable ()
     (cond ((entropy/emacs-posframe-adapted-p)
@@ -908,15 +912,15 @@ in `entropy/emacs-company-frontend-sticker'."
              (entropy/emacs-company--default-enable)))))
 
   (add-to-list 'entropy/emacs-company--frontend-register
-               `(company-box :enable entropy/emacs-company--box-enable
+               '(company-box :enable entropy/emacs-company--box-enable
                              :disable entropy/emacs-company--box-disable
                              :daemon-init
-                             ,(entropy/emacs-with-daemon-make-frame-done
-                                'company-box-mode (&rest _)
-                                :when-tui
-                                (entropy/emacs-company--box-disable)
-                                :when-gui
-                                (entropy/emacs-company--box-enable))))
+                             (entropy/emacs-with-daemon-make-frame-done
+                               'company-box-mode (&rest _)
+                               :when-tui
+                               (entropy/emacs-company--box-disable)
+                               :when-gui
+                               (entropy/emacs-company--box-enable))))
 
 ;; **** init
   :init

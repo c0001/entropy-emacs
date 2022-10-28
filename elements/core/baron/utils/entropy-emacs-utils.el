@@ -455,7 +455,13 @@ of `eldoc-idle-delay' after excute the ORIG-FUNC."
   (defun entropy/emacs-posframe-adapted-p ()
     "Judge whether posframe can be used in current emacs session."
     (and (not (version< emacs-version "26.1"))
-         (display-graphic-p))))
+         (display-graphic-p)))
+  (entropy/emacs-with-daemon-make-frame-done
+    'delete-all-posframe-frames-for-cli nil
+    "Remove all posframe child-frames for cli session since they may
+hang thus (i.e. focus missed in)"
+    :when-tui
+    (posframe-delete-all)))
 
 ;; ** popup
 
