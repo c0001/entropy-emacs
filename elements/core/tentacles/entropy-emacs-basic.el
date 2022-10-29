@@ -3311,8 +3311,7 @@ displayed image as same operated mechanism as
 ;; *** Man-mode
 (use-package man
   :ensure nil
-  :commands (man
-             entropy/emacs-Man-mode-fit-to-window)
+  :commands (man)
   :eemacs-mmphc
   (((:enable t :defer t)
     (Man-mode (man Man-mode-map) t (1 2 2)))
@@ -3323,7 +3322,7 @@ displayed image as same operated mechanism as
      ("u"    Man-update-manpage
       "Reformat current manpage by calling the man command again synchronously."
       :enable t :exit t :map-inject t)
-     ("f"    entropy/emacs-Man-mode-fit-to-window
+     ("f"    (Man-fit-to-window (selected-window))
       "Fit current manpage to `window-width'."
       :enable t :exit t :map-inject t)
      ("m"    man
@@ -3357,6 +3356,8 @@ displayed image as same operated mechanism as
   :config
   (defun __adv/around/Man-mode/disable-auto-window-fit
       (orig-func &rest orig-args)
+    "Do not auto fit man page window since it's may laggy while large
+size of man page's re-calling caused by `Man-fit-to-window'."
     (prog1
         (apply orig-func orig-args)
       (remove-hook 'window-state-change-functions
@@ -3365,50 +3366,14 @@ displayed image as same operated mechanism as
               :around
               #'__adv/around/Man-mode/disable-auto-window-fit)
 
-  (defvar entropy/emacs-Man-mode-fit-to-window-timer nil)
-  (defun entropy/emacs-Man-mode-fit-to-window-with-idle (window)
-    (unwind-protect
-        (when (window-live-p window) (Man-fit-to-window window))
-      (entropy/emacs-cancel-timer-var
-       entropy/emacs-Man-mode-fit-to-window-timer)))
-  (defun entropy/emacs-Man-mode-fit-to-window
-      (&optional buffer inct)
-    "Like `Man-fit-to-window' but with eemacs spec."
-    (interactive
-     (list (current-buffer) t)
-     Man-mode)
-    (when-let* ((buffer    (or buffer (current-buffer)))
-                (buffobj-p (and buffer (buffer-live-p buffer)))
-                (window    (get-buffer-window buffer))
-                (winobj-p  (and window (window-live-p window))))
-      (with-current-buffer buffer
-        (when (eq major-mode 'Man-mode)
-          (if
-              ;; Use direct progn did in these conditions
-              (or inct
-                  (not
-                   (entropy/emacs-window-auto-center-mode-base-condition-satisfied-judge)))
-              (unless (and entropy/emacs-Man-mode-fit-to-window-timer
-                           (timerp entropy/emacs-Man-mode-fit-to-window-timer)
-                           (eq (car
-                                (timer--args
-                                 entropy/emacs-Man-mode-fit-to-window-timer))
-                               window))
-                (Man-fit-to-window window))
-            ;; FIXME: why in wc auto center mode the progn did not
-            ;; work? (so we use idle timer do as instead)
-            (when (entropy/emacs-window-auto-center-mode-base-condition-satisfied-judge)
-              (unless entropy/emacs-Man-mode-fit-to-window-timer
-                (setq entropy/emacs-Man-mode-fit-to-window-timer
-                      (run-with-idle-timer
-                       0.2 nil
-                       #'entropy/emacs-Man-mode-fit-to-window-with-idle
-                       window)))))))))
-
-  (add-hook 'entropy/emacs-window-center-enable-after-hook
-            #'entropy/emacs-Man-mode-fit-to-window)
-  (add-hook 'entropy/emacs-window-center-disable-after-hook
-            #'entropy/emacs-Man-mode-fit-to-window)
+  (defun __ya/Man-columns (orig-func &rest orig-args)
+    "Like `Man-columns' but obey `entropy/emacs-window-center-mode'
+and `entropy/emacs-window-center-auto-mode-enable-p'."
+    (if (or entropy/emacs-window-center-mode
+            (entropy/emacs-window-auto-center-mode-base-condition-satisfied-judge))
+        (entropy/emacs-window-center-emulate-window-column-width-as-enabled)
+      (apply orig-func orig-args)))
+  (advice-add 'Man-columns :around #'__ya/Man-columns)
 
   )
 
