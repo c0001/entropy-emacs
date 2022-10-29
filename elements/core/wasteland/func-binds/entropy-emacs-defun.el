@@ -10094,7 +10094,7 @@ object which can be used for `eval'."
                         ,proc-name)))))))
     proc))
 
-(declare async-start "ext:async")
+(declare-function async-start "ext:async")
 (defun entropy/emacs-run-batch-with-eemacs-pure-env
     (start-form finish-form &optional with-default-directory-as)
   "Invoke eemacs in batch-mode (i.e. `noninteractive' was non-nil)
