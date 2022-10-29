@@ -167,10 +167,6 @@ into ERROR-VAR."
      (condition-case err
          ,(entropy/emacs-macroexp-progn body)
        (error
-        ;; escape byte-compile warning
-        (eval-when-compile
-          (unless (boundp ',error-var)
-            (defvar ,error-var)))
         (push (cons ',name err) ,error-var)
         nil))))
 
@@ -373,7 +369,7 @@ idle trigger guard `entropy/emacs--set-idle-signal'"
 (add-variable-watcher 'entropy/emacs-current-session-is-idle-p
                       #'entropy/emacs--idle-var-guard)
 
-(defun entropy/emacs-def-idle-hook-refer-context (idle-sec)
+(defun entropy/emacs-def-idle-hook-refer-context-1 (idle-sec)
   (let ((hook-idle-trigger-start-varname
          (__eemacs--get-idle-hook-refer-symbol-name
           'hook-trigger-start-var idle-sec))
@@ -430,6 +426,10 @@ but used for hook `%s'."
         (push ,idle-sec
               entropy/emacs-idle-session-trigger-delay-clusters)
         ))))
+
+(defun entropy/emacs-def-idle-hook-refer-context (idle-sec)
+  (unless (memq idle-sec entropy/emacs-idle-session-trigger-delay-clusters)
+    (entropy/emacs-def-idle-hook-refer-context-1 idle-sec)))
 
 (defun entropy/emacs-current-session-is-idle
     (&optional idle-sec)
@@ -566,6 +566,9 @@ context."
          (with-buff-stick-form-p-sym (make-symbol "buffer-stick-p-2"))
          (cur-buff-sym (make-symbol "current-used-buffer")))
 
+    ;; define context before macro expanding for bypass byte-compile warning.
+    (entropy/emacs-def-idle-hook-refer-context hook-idle-sec)
+
     `(let (_)
        (if (or
             ;; forcely run without idle since is idle yet
@@ -575,8 +578,7 @@ context."
               ,hook-error-list
               (not ,idle-p)))
 
-           (progn
-             ,body-wrapper)
+           (progn ,body-wrapper)
 
          ;; intitial the context when not defined
          (unless (fboundp ',hook-timer-func)
@@ -612,19 +614,11 @@ context."
           ',name)
          ;; We should append the hook to the tail since follow the time
          ;; order.
-         ;;
-         ;; escape byte-compile warning
-         (eval-when-compile
-           (unless (boundp ',hook) (defvar ,hook)))
          (entropy/emacs-nconc-with-setvar-use-rest ,hook
            (list #',name))
 
          ;; Intial the trigger timer when not bound
          (unless (bound-and-true-p ,hook-timer-varname)
-           ;; escape byte-compile warning
-           (eval-when-compile
-             (unless (boundp ',hook-timer-varname)
-               (defvar ,hook-timer-varname)))
            (setq ,hook-timer-varname
                  (run-with-idle-timer
                   ,hook-idle-sec
