@@ -1131,6 +1131,8 @@ indicate the false meaning."
                (throw :exit 'minibufferp))
              (unless win-live-p
                (throw :exit 'no-live-win))
+             (when (get-buffer-process buff-buff)
+               (throw :exit 'is-proc-buffer))
              (unless (or (entropy/emacs-frame-is-fullscreen-p)
                          (entropy/emacs-frame-is-maximized-p))
                (when (and (not noninteractive) (not (display-graphic-p)))
