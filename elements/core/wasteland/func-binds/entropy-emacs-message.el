@@ -110,12 +110,13 @@ thus."
 
 (defun entropy/emacs-message--in-daemon-load-p ()
   "Judge whether current env is a daemon silence status e.g both
-satisficed `daemonp' and in emacs init time.
+satisficed `daemonp' and in dameon load time i.e. before make a client
+frame done.
 
-This function used to give out a notation that in thus time we
-can not use popup message style where the emacs session do not
-have window feature started up."
-  (and (daemonp) (null after-init-time)))
+This function used to give out a notation that in thus time we can not
+use popup message style where the emacs session do not have window
+feature started up."
+  (and (daemonp) (null window-system)))
 
 (defun entropy/emacs-message--get-plist-body (args)
   "Get BODY inside of 'pre-plist' ARGS, commonly is the last non
