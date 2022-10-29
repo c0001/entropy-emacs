@@ -338,6 +338,9 @@ return nil"
 (defvar entropy/emacs-modeline--simple-mode-line-format)
 (defvar entropy/emacs-modeline--simple-mode-line-rhs-fmt
   (list
+   ;; > Union informations
+   '("" mode-line-misc-info " ")
+   '("" mode-line-process   " ")
    '(:eval
      ;; > VCS
      (when vc-mode
@@ -345,14 +348,12 @@ return nil"
         (format " %s%s " (all-the-icons-octicon "git-branch" :v-adjust 0.01 :face 'all-the-icons-red)
                 vc-mode)
         (format "%s " (entropy/emacs-modeline--origin-mdl-propertize-face vc-mode 'warning)))))
-   ;; > Union informations
-   'mode-line-misc-info
    ;; > Buffer position
    '(:eval
      (entropy/emacs-modeline--origin-mdl-use-icon-or-plain
       (concat (all-the-icons-faicon "pencil-square-o" :face 'all-the-icons-yellow :v-adjust -0.1) " ")
       " "))
-   'mode-line-position))
+   '("" mode-line-position)))
 
 (entropy/emacs-setf-by-body entropy/emacs-modeline--simple-mode-line-format
   `("%e"
