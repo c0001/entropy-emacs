@@ -1298,7 +1298,10 @@ with the base file name of FILE to speedup in most of cases."
 (defvar entropy/emacs-gc-threshold-basic (* 1 1024 1024)
   "The basic thredshold for the growth for `gc-cons-threshold'")
 
-(defvar entropy/emacs-gc-percentage-basic 0.3
+(defvar entropy/emacs-gc-percentage-basic
+  ;; FIXME: [2022-10-30 Sun 06:11:57] emacs-29.0.50's gc percentage is
+  ;; suggested to 1.0?
+  (if (= emacs-major-version 29) 1.0 0.3)
   "The basic portion for the growth for `gc-cons-percentage'")
 
 (defvar entropy/emacs-garbage-collect-idle-timer nil
