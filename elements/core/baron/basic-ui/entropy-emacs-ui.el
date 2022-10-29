@@ -736,11 +736,14 @@ value as optional interaction while `PREFIX' is non-nil."
          (when prefix
            (string-to-number
             (read-string
-             "Input bg trransparent var (75-95): ")))))
+             "Input bg trransparent var (75-95): "))))
+        (real-alpha-supported-p (version< "29" emacs-version))
+        key)
+    (setq key (if real-alpha-supported-p 'alpha-background 'alpha))
     ;; Restrict transparent integer value be between 75 to 95 where is
     ;; the best customization
     (setq bgtr
-          (let ()
+          (let (_)
             (if (not (integerp bgtr))
                 bgtr-default
               (if (> bgtr 95)
@@ -752,17 +755,17 @@ value as optional interaction while `PREFIX' is non-nil."
      (lambda (a)
        (unless entropy/emacs-ui--loop-alpha-selected-frame-is-did
          (setq a 100))
-       (let ((alpha-items (mapcar (lambda (x) (when (eq (car x) 'alpha) x))
-                                  default-frame-alist)))
+       (let ((alpha-items
+              (entropy/emacs-mapcar-without-orphans
+               (lambda (x) (when (eq (car x) key) x))
+               default-frame-alist nil nil))
+             (val (if real-alpha-supported-p a (list a 100))))
          (dolist (el alpha-items)
-           (unless (null el)
-             (setq default-frame-alist
-                   (delete el default-frame-alist)))))
-       (set-frame-parameter (selected-frame) 'alpha (list a 100))
-       (add-to-list 'default-frame-alist (cons 'alpha (list a 100))))
+           (setq default-frame-alist (delete el default-frame-alist)))
+         (set-frame-parameter (selected-frame) key val)
+         (add-to-list 'default-frame-alist (cons key val))))
      bgtr)
-    (setq entropy/emacs-loop-alpha-value
-          bgtr)))
+    (setq entropy/emacs-loop-alpha-value bgtr)))
 
 (when (and entropy/emacs-start-with-frame-transparent-action
            (display-graphic-p))
