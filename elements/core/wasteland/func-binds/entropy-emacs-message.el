@@ -297,14 +297,12 @@ interactive session."
                      0.15 0.22))))
             (selected-frame))))
        (if (window-live-p (setq the-window (get-buffer-window the-buff)))
-           ;; we must do insert withins window selected since we can
-           ;; denote the current line of that window.
-           (with-selected-window the-window
+           (progn
              (set-window-parameter
               the-window 'entropy/emacs-message--cur-win-is-popup-p t)
              (let ((inhibit-read-only t))
                (with-current-buffer the-buff
-                 (unless (eq the-buff (window-buffer))
+                 (unless (eq the-window (get-buffer-window (current-buffer)))
                    ;; FIXME: why this happened in some case?
                    (error "[internal error] eemacs popup buffer is not dedicated to its window!"))
                  (let* ((fn-msgstr (concat "-> " message-str))
@@ -317,6 +315,10 @@ interactive session."
                                ,without-log-message-before-eemacs-init-done)
                      (message "%s" fn-msgstr))
                    (insert fn-insertion)
+                   ;; we must set the window point since we can denote
+                   ;; the current line of that window in visual way
+                   ;; immediately.
+                   (set-window-point the-window (point))
                    (redisplay t)
                    (setq entropy/emacs-message--cur-buf-is-popup-p t)))))
          (error "Can not create an `entropy/emacs-message-message-buffname' window."))
