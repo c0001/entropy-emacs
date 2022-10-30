@@ -2401,6 +2401,22 @@ mechanism."
   ;; NOTE: emacs 29's `image-dired' has lots of obsolte declarations,
   ;; so we should escape the requirement of it for escaping
   ;; byte-compile warnings
+  :defines
+  (
+   image-dired-show-all-from-dir-max-files
+   image-dired-queue-active-jobs
+   image-dired-queue
+   image-dired-thumbnail-buffer
+   image-dired-cmd-create-thumbnail-program
+   image-dired-cmd-create-thumbnail-options
+   image-dired-cmd-create-standard-thumbnail-options
+   image-dired-cmd-create-temp-image-program
+   image-dired-cmd-create-temp-image-options
+   image-dired-thumb-visible-marks
+   image-dired-track-movement
+   image-dired-temp-image-file
+   image-dired-display-image-buffer
+   )
   :no-require (= emacs-major-version 29)
   :commands (image-dired entropy/emacs-image-dired-init)
 ;; ****** preface
