@@ -362,7 +362,7 @@ With prefix argument binds, jump to the previous mark place."
 ;; ******* Patch for `dired-mark-pop-up'
 
   ;; EEMACS_MAINTENANCE: follow upstream updates
-  (eval
+  (entropy/emacs-eval-with-lexical
    '(cond
      ((version< emacs-version "28")
       (defun __ya/dired-mark-pop-up (buffer-or-name op-symbol files function &rest args)
@@ -1761,7 +1761,7 @@ TODO:
       ;; boring regexp due to lack of imagination
       (dired-rainbow-define log (:inherit default :italic t) ".*\\.log")))
   :config
-  (eval
+  (entropy/emacs-eval-with-lexical
    `(progn
       ,@entropy/emacs-dired-rainbow-spec)))
 

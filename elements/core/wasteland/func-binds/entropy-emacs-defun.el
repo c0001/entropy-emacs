@@ -295,9 +295,9 @@ If WITH-LEXICAL-BINDINGS is not set, this is same as
          (lcb        (plist-get (car bdpl-obj) :with-lexical-bindins))
          (args       (entropy/emacs-merge-lambda-args
                       (plist-put args-parse :body-plist (cdr bdpl-obj))))
-         (func-exp   (macroexpand-1 `(entropy/emacs-cl-lambda ,@args))))
+         (func-exp   (macroexpand-all `(entropy/emacs-cl-lambda ,@args))))
     (if (not lcb) func-exp
-      `(entropy/emacs-eval-with-lexical #',func-exp ,lcb))))
+      `(entropy/emacs-eval-with-lexical ',func-exp ,lcb))))
 
 (cl-defmacro entropy/emacs-define-lambda-as-exp-with-lcb (&rest args)
   "Like `entropy/emacs-define-lambda-as-exp' but use
