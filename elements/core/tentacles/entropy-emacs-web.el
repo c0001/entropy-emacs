@@ -268,6 +268,10 @@ set of `entropy/emacs-browse-url-function-get-for-web-preview'."
 ;; **** Emmet-mode for quick edittng
 (use-package emmet-mode
   :commands emmet-mode
+  ;; FIXME: since it use obsolete `cl' package which will cause
+  ;; byte-compiler warning
+  :no-require t
+  :defines emmet-mode-keymap
   :hook ((web-mode . emmet-mode)
          (html-mode . emmet-mode))
   :eemacs-mmphca
@@ -499,6 +503,8 @@ format."
 ;; ** web backend technologies
 ;; *** php
 (use-package php-mode
+  ;; FIXME: since its dups byte-compile warning : Function provided is already compiled
+  :no-require t
   :mode "\\.php$"
   :commands php-mode)
 

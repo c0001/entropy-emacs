@@ -1390,6 +1390,9 @@ that for en-words candi recognized "
 ;; **** javascript
 (use-package company-tern
   :ensure nil
+  ;; FIXME: it using `dash-functional' which will cause obsolete
+  ;; warning within byte-compiling
+  :no-require t
   :if (eq (entropy/emacs-get-use-ide-type 'js2-mode) 'traditional)
   :after company
   :commands company-tern
