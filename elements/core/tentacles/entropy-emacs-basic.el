@@ -2398,9 +2398,16 @@ mechanism."
 
 (entropy/emacs-basic-image-dired-use-package image-dired
   :ensure nil
-  :commands (image-dired)
+  ;; NOTE: emacs 29's `image-dired' has lots of obsolte declarations,
+  ;; so we should escape the requirement of it for escaping
+  ;; byte-compile warnings
+  :no-require (= emacs-major-version 29)
+  :commands (image-dired entropy/emacs-image-dired-init)
 ;; ****** preface
   :preface
+
+;; ****** config
+  :config
 
   (defun entropy/emacs-image-dired-init (&optional arg)
     "Initial `image-dired' automatically when proper.
@@ -2476,9 +2483,6 @@ an error."
         (with-current-buffer cur-buffer
           (dired-unmark-all-marks)))))
 
-;; ****** config
-  :config
-
   (setq image-dired-cmd-create-thumbnail-program
         (if (executable-find "gm") "gm" "convert"))
   (setq image-dired-cmd-create-temp-image-program
@@ -2528,6 +2532,26 @@ an error."
 
 (entropy/emacs-basic-image-dired-use-package image-dired
   :ensure nil
+  ;; NOTE: emacs 29's `image-dired' has lots of obsolte declarations,
+  ;; so we should escape the requirement of it for escaping
+  ;; byte-compile warnings
+  :no-require (= emacs-major-version 29)
+  :defines
+  (
+   image-dired-show-all-from-dir-max-files
+   image-dired-queue-active-jobs
+   image-dired-queue
+   image-dired-thumbnail-buffer
+   image-dired-cmd-create-thumbnail-program
+   image-dired-cmd-create-thumbnail-options
+   image-dired-cmd-create-standard-thumbnail-options
+   image-dired-cmd-create-temp-image-program
+   image-dired-cmd-create-temp-image-options
+   image-dired-thumb-visible-marks
+   image-dired-track-movement
+   image-dired-temp-image-file
+   image-dired-display-image-buffer
+   )
   :commands (image-dired)
 ;; ****** eemacs hydra hollow instance
   :eemacs-mmphc
@@ -3212,6 +3236,10 @@ dired buffer."
 ;; ***** image-dired-display-image-mode
 (entropy/emacs-basic-image-dired-use-package image-dired
   :ensure nil
+  ;; NOTE: emacs 29's `image-dired' has lots of obsolte declarations,
+  ;; so we should escape the requirement of it for escaping
+  ;; byte-compile warnings
+  :no-require (= emacs-major-version 29)
 ;; ****** eemacs hydra hollow instance
   :eemacs-mmphc
   (((:enable t :defer t)
