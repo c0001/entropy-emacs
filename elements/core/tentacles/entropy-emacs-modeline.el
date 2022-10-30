@@ -388,7 +388,9 @@ return nil"
     (:eval
      (entropy/emacs-make-space-align-to-modeline-rest
       entropy/emacs-modeline--simple-mode-line-rhs-fmt
-      (if (display-graphic-p) 2 0)))
+      ;; FIXME: leave enough space for tail increase since its align
+      ;; fixed pos is not always enough and why?
+      (if (display-graphic-p) 5 2)))
     ;; ---------- lhs ----------
     ,@entropy/emacs-modeline--simple-mode-line-rhs-fmt))
 
