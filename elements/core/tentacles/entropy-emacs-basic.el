@@ -2394,7 +2394,18 @@ mechanism."
          ,@body))))
 
 ;; ***** core
-(defvar-local __ya/image-dired-display-image-buffer-image-file nil)
+(entropy/emacs-defvar-local-with-pml
+  ;; make this var permanently buffer local so that it will not
+  ;; disappear after change `major-mode'
+  __ya/image-dired-display-image-buffer-image-file nil)
+
+(defun entropy/emacs-image-dired--mode-match-assert (&rest modes)
+  (or (bound-and-true-p __ya/image-dired-display-image-buffer-image-file)
+      (let ((modes `(image-dired-image-mode
+                     image-dired-display-image-mode
+                     ,@modes)))
+        (if (memq major-mode modes) t
+          (user-error "Not in an dired image display spec buffer!")))))
 
 (entropy/emacs-basic-image-dired-use-package image-dired
   :ensure nil
@@ -2932,7 +2943,7 @@ dwim memory and use both height and width fit display type."
       (unless (get-buffer-window buf)
         (display-buffer buf))
       (with-current-buffer buf
-        (when (eq major-mode 'image-dired-display-image-mode)
+        (when (derived-mode-p 'image-mode)
           (with-selected-window (get-buffer-window buf)
             (image-set-window-vscroll 0)
             (image-set-window-hscroll 0)))
@@ -2951,11 +2962,30 @@ dwim memory and use both height and width fit display type."
                      (when (equal original-size '(4))
                        1))
                    t)))
-          (image-dired-display-image-mode)))
+          (image-dired-image-mode)))
       (select-window cur-win)))
 
   (advice-add 'image-dired-display-image
               :override #'__ya/image-dired-display-image)
+
+  (entropy/emacs-when-defun __ya/image-transform-check-size
+    (orig-func &rest orig-args)
+    "Ignore the assert for some occasions.
+
+This patch existed since `__ya/image-dired-display-image' need
+the obsolete `image-auto-resize' value of `fit-width' and
+`fit-height' (they are moved to `image-transform-resize') but
+emacs 29 and higher default to singal error when such size is not
+`=' fully in such cases."
+    :when (version< "29" emacs-version)
+    (if (or (bound-and-true-p __ya/image-dired-display-image-buffer-image-file)
+            (memq this-command
+                  '(image-dired-display-thumbnail-original-image
+                    image-dired-display-this
+                    image-dired-display-next))) (always)
+      (apply orig-func orig-args)))
+  (when (fboundp '__ya/image-transform-check-size)
+    (advice-add 'image-transform-check-size :around #'__ya/image-transform-check-size))
 
 ;; ******* eemacs spec commands
 ;; ******** open with external app
@@ -3282,8 +3312,7 @@ dired buffer."
     "View current displayed image in external app."
     (declare (interactive-only t))
     (interactive nil image-dired-display-image-mode)
-    (unless (eq major-mode 'image-dired-display-image-mode)
-      (user-error "Not in an dired image display spec buffer!"))
+    (entropy/emacs-image-dired--mode-match-assert)
     (let ((file __ya/image-dired-display-image-buffer-image-file))
       (unless (and file (file-exists-p file))
         (user-error "No image displayed in this buffer"))
@@ -3295,8 +3324,7 @@ displayed image as same operated mechanism as
 `image-dired-display-thumbnail-original-image'."
     (declare (interactive-only t))
     (interactive "P" image-dired-display-image-mode)
-    (unless (eq major-mode 'image-dired-display-image-mode)
-      (user-error "Not in an dired image display spec buffer!"))
+    (entropy/emacs-image-dired--mode-match-assert)
     (let ((file __ya/image-dired-display-image-buffer-image-file))
       (unless (and file (file-exists-p file))
         (user-error "No image displayed in this buffer"))
@@ -3306,8 +3334,7 @@ displayed image as same operated mechanism as
     "Enable `image-mode' in `image-dired-display-image-buffer'"
     (declare (interactive-only t))
     (interactive nil image-dired-display-image-mode)
-    (unless (eq major-mode 'image-dired-display-image-mode)
-      (user-error "Not in an dired image display spec buffer!"))
+    (entropy/emacs-image-dired--mode-match-assert)
     (let ((inhibit-read-only t)
           (file __ya/image-dired-display-image-buffer-image-file)
           (modified (buffer-modified-p)))
