@@ -94,7 +94,7 @@ Bounds is an cons of (beg . end) point of `current-buffer'"
 (use-package xref
   :ensure nil
   :defines
-  (xref--marker-ring)
+  (xref--marker-ring xref--history)
   :commands
   (xref-show-location-at-point
    xref-query-replace-in-results
@@ -118,7 +118,11 @@ Bounds is an cons of (beg . end) point of `current-buffer'"
    ("Identifier find"
     (("M-." xref-find-definitions "Find the definition of the identifier at point"
       :enable t :exit t :global-bind t)
-     ("M-," xref-pop-marker-stack "Pop back to where M-. was last invoked"
+     ("M-," (:eval (cond ((= emacs-major-version 29) 'xref-go-back)
+                         ((< emacs-major-version 29) 'xref-pop-marker-stack)
+                         (t (error "xref-pop-marker-stack patch failed: unknow emacs version %s"
+                                   emacs-version))))
+      "Pop back to where M-. was last invoked"
       :enable t :exit t :global-bind t))))
   :eemacs-tpha
   (((:enable t :defer (:data (:adfors (prog-mode-hook) :adtype hook :pdumper-no-end t))))
@@ -145,12 +149,12 @@ Bounds is an cons of (beg . end) point of `current-buffer'"
         :lexical-bindings `((map-ob . ,map-ob)
                             (key . ,key))
         (define-key (symbol-value (car map-ob))
-          (kbd key)
-          (lambda ()
-            (interactive)
-            (message
-             "You can not using xref functions in minibuffer"
-             ))))))
+                    (kbd key)
+                    (lambda ()
+                      (interactive)
+                      (message
+                       "You can not using xref functions in minibuffer"
+                       ))))))
 
 ;; ***** Dwim with `entropy-emacs-structure'
   (defun entropy/emacs-codeserver-xref--show-entry-after-jump (&rest _)
@@ -208,24 +212,46 @@ Bounds is an cons of (beg . end) point of `current-buffer'"
             100)
 
   ;; EEMACS_MAINTENANCE: follow upstream's internal defination.
-  (defun __ya/xref-pop-marker-stack ()
-    "Like `xref-pop-marker-stack' but use `xref--goto-char' when the
+  (let ((fname '__ya/xref-pop-marker-stack))
+    (cond
+     ((= emacs-major-version 29)
+      (defalias fname
+        (lambda (&rest _)
+          "Like `xref-go-back' but use `xref--goto-char' when the
 popup destination position in buffer who is narraowed where the
 accessible portion is outside of that position."
-    (interactive)
-    (let ((ring xref--marker-ring))
-      (when (ring-empty-p ring)
-        (user-error "Marker stack is empty"))
-      (let ((marker (ring-remove ring 0)))
-        (switch-to-buffer (or (marker-buffer marker)
-                              (user-error "The marked buffer has been deleted")))
-        (xref--goto-char (marker-position marker))
-        (set-marker marker nil nil)
-        (run-hooks 'xref-after-return-hook))))
-
-  (advice-add 'xref-pop-marker-stack
-              :override
-              #'__ya/xref-pop-marker-stack)
+          (interactive)
+          (if (null (car xref--history))
+              (user-error "At start of xref history")
+            (let ((marker (pop (car xref--history))))
+              (xref--push-forward (point-marker))
+              (switch-to-buffer (or (marker-buffer marker)
+                                    (user-error "The marked buffer has been deleted")))
+              (xref--goto-char (marker-position marker))
+              (set-marker marker nil nil)
+              (run-hooks 'xref-after-return-hook)))))
+      (advice-add 'xref-go-back :override fname))
+     ((<= emacs-major-version 28)
+      (defalias fname
+        (lambda (&rest _)
+          "Like `xref-pop-marker-stack' but use `xref--goto-char' when the
+popup destination position in buffer who is narraowed where the
+accessible portion is outside of that position."
+          (interactive)
+          (let ((ring
+                 ;; bypass byte-compile warning in emacs-29
+                 (bound-and-true-p xref--marker-ring)))
+            (when (ring-empty-p ring)
+              (user-error "Marker stack is empty"))
+            (let ((marker (ring-remove ring 0)))
+              (switch-to-buffer (or (marker-buffer marker)
+                                    (user-error "The marked buffer has been deleted")))
+              (xref--goto-char (marker-position marker))
+              (set-marker marker nil nil)
+              (run-hooks 'xref-after-return-hook)))))
+      (advice-add 'xref-pop-marker-stack :override fname))
+     (t (error "xref-pop-marker-stack patch failed: unknow emacs version %s"
+               emacs-version))))
 
 ;; *** __end__
   )
