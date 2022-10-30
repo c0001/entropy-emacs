@@ -93,6 +93,8 @@ Bounds is an cons of (beg . end) point of `current-buffer'"
 ;; ** xref jumping
 (use-package xref
   :ensure nil
+  :defines
+  (xref--marker-ring)
   :commands
   (xref-show-location-at-point
    xref-query-replace-in-results

@@ -48,13 +48,14 @@
     (cl-incf entropy/emacs/c-mode/change-iterate)
     ;; fontify the buffer context round at `current-point' with idle
     ;; style
-    (let ((curpt (point)) (curiter entropy/emacs/c-mode/change-iterate)
+    (let (;; (curpt (point))
+          (curiter entropy/emacs/c-mode/change-iterate)
           (curbuff (current-buffer)))
       (entropy/emacs-run-at-idle-immediately
        idle-fontify-c-type-buffer
        :which-hook 0.5
        :current-buffer t
-       (let ((cur-pos curpt)
+       (let (;; (cur-pos curpt)
              ;; (cur-line (string-to-number (format-mode-line "%l")))
              (buff curbuff)
              )
