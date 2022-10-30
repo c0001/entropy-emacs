@@ -192,7 +192,7 @@ return the actual color value.  Otherwise return the value unchanged."
      (default                                      :foreground base05 :background base00)
      (fringe                                       :background entropy/emacs-base16-theme-settings-fringe-bg)
      (gui-element                                  :background base01)
-     (header-line                                  :foreground base0E :background nil :inherit mode-line)
+     (header-line                                  :foreground base0E :background unspecified :inherit mode-line)
      (highlight                                    :background base01)
      (link                                         :foreground base0D :underline t)
      (link-visited                                 :foreground base0E :underline t)
@@ -253,7 +253,7 @@ return the actual color value.  Otherwise return the value unchanged."
 
 ;;;; mode-line
      (mode-line                                    :foreground entropy/emacs-base16-theme-settings-mode-line-fg :background base02 :box entropy/emacs-base16-theme-settings-mode-line-box)
-     (mode-line-buffer-id                          :foreground base0B :background nil)
+     (mode-line-buffer-id                          :foreground base0B :background unspecified)
      (mode-line-emphasis                           :foreground base06 :slant italic)
      (mode-line-highlight                          :foreground base0E :box nil :weight bold)
      (mode-line-inactive                           :foreground base03 :background base01 :box nil)
@@ -330,30 +330,30 @@ return the actual color value.  Otherwise return the value unchanged."
 
 ;;;; dired+
      (diredp-compressed-file-suffix                :foreground base0D)
-     (diredp-dir-heading                           :foreground nil :background nil :inherit heading)
-     (diredp-dir-priv                              :foreground base0C :background nil)
-     (diredp-exec-priv                             :foreground base0D :background nil)
-     (diredp-executable-tag                        :foreground base08 :background nil)
+     (diredp-dir-heading                           :foreground unspecified :background unspecified :inherit heading)
+     (diredp-dir-priv                              :foreground base0C :background unspecified)
+     (diredp-exec-priv                             :foreground base0D :background unspecified)
+     (diredp-executable-tag                        :foreground base08 :background unspecified)
      (diredp-file-name                             :foreground base0A)
      (diredp-file-suffix                           :foreground base0B)
-     (diredp-flag-mark-line                        :background nil :inherit highlight)
+     (diredp-flag-mark-line                        :background unspecified :inherit highlight)
      (diredp-ignored-file-name                     :foreground base04)
-     (diredp-link-priv                             :foreground base0E :background nil)
+     (diredp-link-priv                             :foreground base0E :background unspecified)
      (diredp-mode-line-flagged                     :foreground base08)
      (diredp-mode-line-marked                      :foreground base0B)
-     (diredp-no-priv                               :background nil)
+     (diredp-no-priv                               :background unspecified)
      (diredp-number                                :foreground base0A)
-     (diredp-other-priv                            :foreground base0E :background nil)
-     (diredp-rare-priv                             :foreground base08 :background nil)
-     (diredp-read-priv                             :foreground base0B :background nil)
+     (diredp-other-priv                            :foreground base0E :background unspecified)
+     (diredp-rare-priv                             :foreground base08 :background unspecified)
+     (diredp-read-priv                             :foreground base0B :background unspecified)
      (diredp-symlink                               :foreground base0E)
-     (diredp-write-priv                            :foreground base0A :background nil)
+     (diredp-write-priv                            :foreground base0A :background unspecified)
 
 ;;;; ediff-mode
-     (ediff-even-diff-A                            :foreground nil :background nil :inverse-video t)
-     (ediff-even-diff-B                            :foreground nil :background nil :inverse-video t)
-     (ediff-odd-diff-A                             :foreground base04 :background nil :inverse-video t)
-     (ediff-odd-diff-B                             :foreground base04 :background nil :inverse-video t)
+     (ediff-even-diff-A                            :foreground unspecified :background unspecified :inverse-video t)
+     (ediff-even-diff-B                            :foreground unspecified :background unspecified :inverse-video t)
+     (ediff-odd-diff-A                             :foreground base04 :background unspecified :inverse-video t)
+     (ediff-odd-diff-B                             :foreground base04 :background unspecified :inverse-video t)
 
 ;;;; eldoc-mode
      (eldoc-highlight-function-argument            :foreground base0B :weight bold)
@@ -426,20 +426,20 @@ return the actual color value.  Otherwise return the value unchanged."
      (git-gutter-fr:modified                       :foreground base0E)
 
 ;;;; gnus
-     (gnus-cite-1                                  :foreground nil :inherit outline-1)
-     (gnus-cite-2                                  :foreground nil :inherit outline-2)
-     (gnus-cite-3                                  :foreground nil :inherit outline-3)
-     (gnus-cite-4                                  :foreground nil :inherit outline-4)
-     (gnus-cite-5                                  :foreground nil :inherit outline-5)
-     (gnus-cite-6                                  :foreground nil :inherit outline-6)
-     (gnus-cite-7                                  :foreground nil :inherit outline-7)
-     (gnus-cite-8                                  :foreground nil :inherit outline-8)
+     (gnus-cite-1                                  :foreground unspecified :inherit outline-1)
+     (gnus-cite-2                                  :foreground unspecified :inherit outline-2)
+     (gnus-cite-3                                  :foreground unspecified :inherit outline-3)
+     (gnus-cite-4                                  :foreground unspecified :inherit outline-4)
+     (gnus-cite-5                                  :foreground unspecified :inherit outline-5)
+     (gnus-cite-6                                  :foreground unspecified :inherit outline-6)
+     (gnus-cite-7                                  :foreground unspecified :inherit outline-7)
+     (gnus-cite-8                                  :foreground unspecified :inherit outline-8)
      ;; there are several more -cite- faces...
      (gnus-header-content                          :inherit message-header-other)
      (gnus-header-subject                          :inherit message-header-subject)
      (gnus-header-from                             :foreground base09 :weight bold :inherit message-header-other-face)
      (gnus-header-name                             :inherit message-header-name)
-     (gnus-button                                  :foreground nil :inherit link)
+     (gnus-button                                  :foreground unspecified :inherit link)
      (gnus-signature                               :inherit font-lock-comment-face)
 
      (gnus-summary-normal-unread                   :foreground base0D :weight normal)
@@ -453,28 +453,28 @@ return the actual color value.  Otherwise return the value unchanged."
      (gnus-summary-high-read                       :foreground base0B :weight normal)
      (gnus-summary-high-ancient                    :foreground base0B :weight normal)
      (gnus-summary-high-ticked                     :foreground base09 :weight normal)
-     (gnus-summary-cancelled                       :foreground base08 :background nil :weight normal)
+     (gnus-summary-cancelled                       :foreground base08 :background unspecified :weight normal)
 
      (gnus-group-mail-low                          :foreground base04)
      (gnus-group-mail-low-empty                    :foreground base04)
-     (gnus-group-mail-1                            :foreground nil :weight normal :inherit outline-1)
-     (gnus-group-mail-2                            :foreground nil :weight normal :inherit outline-2)
-     (gnus-group-mail-3                            :foreground nil :weight normal :inherit outline-3)
-     (gnus-group-mail-4                            :foreground nil :weight normal :inherit outline-4)
-     (gnus-group-mail-5                            :foreground nil :weight normal :inherit outline-5)
-     (gnus-group-mail-6                            :foreground nil :weight normal :inherit outline-6)
+     (gnus-group-mail-1                            :foreground unspecified :weight normal :inherit outline-1)
+     (gnus-group-mail-2                            :foreground unspecified :weight normal :inherit outline-2)
+     (gnus-group-mail-3                            :foreground unspecified :weight normal :inherit outline-3)
+     (gnus-group-mail-4                            :foreground unspecified :weight normal :inherit outline-4)
+     (gnus-group-mail-5                            :foreground unspecified :weight normal :inherit outline-5)
+     (gnus-group-mail-6                            :foreground unspecified :weight normal :inherit outline-6)
      (gnus-group-mail-1-empty                      :foreground base04 :inherit gnus-group-mail-1)
      (gnus-group-mail-2-empty                      :foreground base04 :inherit gnus-group-mail-2)
      (gnus-group-mail-3-empty                      :foreground base04 :inherit gnus-group-mail-3)
      (gnus-group-mail-4-empty                      :foreground base04 :inherit gnus-group-mail-4)
      (gnus-group-mail-5-empty                      :foreground base04 :inherit gnus-group-mail-5)
      (gnus-group-mail-6-empty                      :foreground base04 :inherit gnus-group-mail-6)
-     (gnus-group-news-1                            :foreground nil :weight normal :inherit outline-5)
-     (gnus-group-news-2                            :foreground nil :weight normal :inherit outline-6)
-     (gnus-group-news-3                            :foreground nil :weight normal :inherit outline-7)
-     (gnus-group-news-4                            :foreground nil :weight normal :inherit outline-8)
-     (gnus-group-news-5                            :foreground nil :weight normal :inherit outline-1)
-     (gnus-group-news-6                            :foreground nil :weight normal :inherit outline-2)
+     (gnus-group-news-1                            :foreground unspecified :weight normal :inherit outline-5)
+     (gnus-group-news-2                            :foreground unspecified :weight normal :inherit outline-6)
+     (gnus-group-news-3                            :foreground unspecified :weight normal :inherit outline-7)
+     (gnus-group-news-4                            :foreground unspecified :weight normal :inherit outline-8)
+     (gnus-group-news-5                            :foreground unspecified :weight normal :inherit outline-1)
+     (gnus-group-news-6                            :foreground unspecified :weight normal :inherit outline-2)
      (gnus-group-news-1-empty                      :foreground base04 :inherit gnus-group-news-1)
      (gnus-group-news-2-empty                      :foreground base04 :inherit gnus-group-news-2)
      (gnus-group-news-3-empty                      :foreground base04 :inherit gnus-group-news-3)
@@ -489,23 +489,23 @@ return the actual color value.  Otherwise return the value unchanged."
      (grep-context-face                            :foreground base04)
      (grep-error-face                              :foreground base08 :weight bold :underline t)
      (grep-hit-face                                :foreground base0D)
-     (grep-match-face                              :foreground nil :background nil :inherit match)
+     (grep-match-face                              :foreground unspecified :background unspecified :inherit match)
 
 ;;;; helm
      (helm-M-x-key                                 :foreground base0C)
      (helm-action                                  :foreground base05)
-     (helm-buffer-directory                        :foreground base04 :background nil :weight bold)
+     (helm-buffer-directory                        :foreground base04 :background unspecified :weight bold)
      (helm-buffer-file                             :foreground base0C)
      (helm-buffer-not-saved                        :foreground base08)
      (helm-buffer-process                          :foreground base03)
      (helm-buffer-saved-out                        :foreground base0F)
      (helm-buffer-size                             :foreground base09)
      (helm-candidate-number                        :foreground base00 :background base09)
-     (helm-ff-directory                            :foreground base04 :background nil :weight bold)
+     (helm-ff-directory                            :foreground base04 :background unspecified :weight bold)
      (helm-ff-executable                           :foreground base0B)
      (helm-ff-file                                 :foreground base0C)
      (helm-ff-invalid-symlink                      :foreground base00 :background base08)
-     (helm-ff-prefix                               :foreground nil :background nil)
+     (helm-ff-prefix                               :foreground unspecified :background unspecified)
      (helm-ff-symlink                              :foreground base00 :background base0C)
      (helm-grep-cmd-line                           :foreground base0B)
      (helm-grep-file                               :foreground base0C)
@@ -516,8 +516,8 @@ return the actual color value.  Otherwise return the value unchanged."
      (helm-header                                  :foreground base0A :background base00 :underline nil)
      (helm-match                                   :foreground base0A)
      (helm-moccur-buffer                           :foreground base0C)
-     (helm-selection                               :foreground nil :background base02 :underline nil)
-     (helm-selection-line                          :foreground nil :background base02)
+     (helm-selection                               :foreground unspecified :background base02 :underline nil)
+     (helm-selection-line                          :foreground unspecified :background base02)
      (helm-separator                               :foreground base02)
      (helm-source-header                           :foreground base05 :background base01 :weight bold)
      (helm-visible-mark                            :foreground base00 :background base0B)
@@ -591,7 +591,7 @@ return the actual color value.  Otherwise return the value unchanged."
 
 ;;;; js2-mode
      (js2-warning-face                             :underline base09)
-     (js2-error-face                               :foreground nil :underline base08)
+     (js2-error-face                               :foreground unspecified :underline base08)
      (js2-external-variable-face                   :foreground base0E)
      (js2-function-param-face                      :foreground base0D)
      (js2-instance-member-face                     :foreground base0D)
@@ -599,7 +599,7 @@ return the actual color value.  Otherwise return the value unchanged."
 
 ;;;; js3-mode
      (js3-warning-face                             :underline base09)
-     (js3-error-face                               :foreground nil :underline base08)
+     (js3-error-face                               :foreground unspecified :underline base08)
      (js3-external-variable-face                   :foreground base0E)
      (js3-function-param-face                      :foreground base0D)
      (js3-jsdoc-tag-face                           :foreground base09)
@@ -652,26 +652,26 @@ return the actual color value.  Otherwise return the value unchanged."
      (magit-signature-untrusted                    :foreground base0C)
      (magit-tag                                    :foreground base05)
 ;;;; mark-multiple
-     (mm/master-face                               :foreground nil :background nil :inherit region)
-     (mm/mirror-face                               :foreground nil :background nil :inherit region)
+     (mm/master-face                               :foreground unspecified :background unspecified :inherit region)
+     (mm/mirror-face                               :foreground unspecified :background unspecified :inherit region)
 
 ;;;; markdown-mode
      (markdown-url-face                            :inherit link)
      (markdown-link-face                           :foreground base0D :underline t)
 
 ;;;; message-mode
-     (message-header-other                         :foreground nil :background nil :weight normal)
+     (message-header-other                         :foreground unspecified :background unspecified :weight normal)
      (message-header-subject                       :foreground base0A :weight bold :inherit message-header-other)
      (message-header-to                            :foreground base09 :weight bold :inherit message-header-other)
-     (message-header-cc                            :foreground nil :inherit message-header-to)
-     (message-header-name                          :foreground base0D :background nil)
-     (message-header-newsgroups                    :foreground base0C :background nil :slant normal)
+     (message-header-cc                            :foreground unspecified :inherit message-header-to)
+     (message-header-name                          :foreground base0D :background unspecified)
+     (message-header-newsgroups                    :foreground base0C :background unspecified :slant normal)
      (message-separator                            :foreground base0E)
 
 ;;;; mic-paren
-     (paren-face-match                             :foreground nil :background nil :inherit show-paren-match)
-     (paren-face-mismatch                          :foreground nil :background nil :inherit show-paren-mismatch)
-     (paren-face-no-match                          :foreground nil :background nil :inherit show-paren-mismatch)
+     (paren-face-match                             :foreground unspecified :background unspecified :inherit show-paren-match)
+     (paren-face-mismatch                          :foreground unspecified :background unspecified :inherit show-paren-mismatch)
+     (paren-face-no-match                          :foreground unspecified :background unspecified :inherit show-paren-mismatch)
 
 ;;;; mmm-mode
      (mmm-code-submode-face                        :background base03)
@@ -715,7 +715,7 @@ return the actual color value.  Otherwise return the value unchanged."
      (org-warning                                  :foreground base08 :weight bold)
 
 ;;;; paren-face-mode
-     (paren-face                                   :foreground base04 :background nil)
+     (paren-face                                   :foreground base04 :background unspecified)
 
 ;;;; popup
      (popup-face                                   :foreground base05 :background base02)
@@ -748,7 +748,7 @@ return the actual color value.  Otherwise return the value unchanged."
      (rainbow-delimiters-depth-9-face              :foreground base05)
 
 ;;;; regex-tool
-     (regex-tool-matched-face                      :foreground nil :background nil :inherit match)
+     (regex-tool-matched-face                      :foreground unspecified :background unspecified :inherit match)
 
 ;;;; rhtml-mode
      (erb-delim-face                               :background base03)
@@ -760,8 +760,8 @@ return the actual color value.  Otherwise return the value unchanged."
      (erb-comment-delim-face                       :background base03)
 
 ;;;; sh-mode
-     (sh-heredoc                                   :foreground nil :weight normal :inherit font-lock-string-face)
-     (sh-quoted-exec                               :foreground nil :inherit font-lock-preprocessor-face)
+     (sh-heredoc                                   :foreground unspecified :weight normal :inherit font-lock-string-face)
+     (sh-quoted-exec                               :foreground unspecified :inherit font-lock-preprocessor-face)
 
 ;;;; show-paren-mode
      (show-paren-match                             :foreground base01 :background base0D)
@@ -836,7 +836,7 @@ return the actual color value.  Otherwise return the value unchanged."
      (w3m-tab-unselected-retrieving                :foreground base03 :background base01)
 
 ;;;; which-func-mode
-     (which-func                                   :foreground base0D :background nil :weight bold)
+     (which-func                                   :foreground base0D :background unspecified :weight bold)
 
 ;;;; whitespace-mode
      (whitespace-empty                             :foreground base08 :background base0A)
