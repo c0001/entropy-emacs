@@ -48,19 +48,20 @@
     (cl-incf entropy/emacs/c-mode/change-iterate)
     ;; fontify the buffer context round at `current-point' with idle
     ;; style
-    (entropy/emacs-eval-with-lexical
-     `(entropy/emacs-run-at-idle-immediately
+    (let ((curpt (point)) (curiter entropy/emacs/c-mode/change-iterate)
+          (curbuff (current-buffer)))
+      (entropy/emacs-run-at-idle-immediately
        idle-fontify-c-type-buffer
        :which-hook 0.5
        :current-buffer t
-       (let ((cur-pos ,(point))
+       (let ((cur-pos curpt)
              ;; (cur-line (string-to-number (format-mode-line "%l")))
-             (buff ',(current-buffer))
+             (buff curbuff)
              )
          (ignore-errors
            (with-current-buffer buff
              (save-excursion
-               (cond ((< ,entropy/emacs/c-mode/change-iterate 10)
+               (cond ((< curiter 10)
                       ;; (c-font-lock-fontify-region
                       ;;  (line-beginning-position)
                       ;;  cur-pos)

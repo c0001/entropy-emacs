@@ -831,15 +831,15 @@ otherwise uses the original procedure."
           (intern
            (format "entropy/emacs-print-limit-advice-for-%s"
                    func-name))))
-     (entropy/emacs-eval-with-lexical
-      `(defun ,ad-name (orig-func &rest orig-args)
-         (if (or (null ',satisfy-func)
-                 (and (functionp ',satisfy-func)
-                      (funcall ',satisfy-func)))
-             (let ((print-level (or ,level 3))
-                   (print-length (or ,length 20)))
-               (apply orig-func orig-args))
-           (apply orig-func orig-args))))
+     (entropy/emacs-with-lambda (cons t ad-name)
+       (orig-func &rest orig-args)
+       (if (or (null satisfy-func)
+               (and (functionp satisfy-func)
+                    (funcall satisfy-func)))
+           (let ((print-level (or level 3))
+                 (print-length (or length 20)))
+             (apply orig-func orig-args))
+         (apply orig-func orig-args)))
      ad-name)))
 
 (defun entropy/emacs-get-object-eemacs-print-method

@@ -584,12 +584,12 @@ recognized as a normal macro."
                       (evfunc-0 (lambda (val)
                                   (cond ((symbolp val)
                                          val)
-                                        ((listp val)
+                                        ((consp val)
                                          (entropy/emacs-eval-with-lexical val)))))
                       (evfunc-1 (lambda (val)
                                   (cond ((symbolp val)
                                          (symbol-value val))
-                                        ((listp val)
+                                        ((consp val)
                                          (entropy/emacs-eval-with-lexical val)))))
                       (evfunc-2 (lambda (val)
                                   (cond ((symbolp val)
@@ -643,19 +643,18 @@ plist are:
           (intern
            (use-package-eemacs-adrequire/gen-random-ad-judger-prefix
             use-name)))
-         (_ (entropy/emacs-eval-with-lexical
-             `(defvar ,judger-var nil
-                ,(format
-                  "the judger var for use-package \
-:eemacs-adrequire for package '%s' which non-nil indicate that \
-the :eemacs-adrequrie has been loaded and the related form is banned."
-                  use-name))))
          (rest-body (use-package-process-keywords use-name rest state))
          (form
-          `(unless (bound-and-true-p ,judger-var)
-             (prog1
-                 (require ',use-name)
-               (setq ,judger-var t))))
+          `(progn
+             (defvar ,judger-var nil
+               ,(format
+                 "the judger var for use-package \
+:eemacs-adrequire for package '%s' which non-nil indicate that \
+the :eemacs-adrequrie has been loaded and the related form is banned."
+                 use-name))
+             (unless (bound-and-true-p ,judger-var)
+               (prog1 (require ',use-name)
+                 (setq ,judger-var t)))))
          init-form)
     (dolist (ptr patterns)
       (let* ((enable       (plist-get ptr :enable))
@@ -675,11 +674,13 @@ the :eemacs-adrequrie has been loaded and the related form is banned."
                         use-name adtype)))
         (when enable
           (entropy/emacs-nconc-with-setvar-use-rest init-form
-            `((,ad-wrapper
-               ',adfors ',adprefix ',adprefix
-               :prompt-type 'prompt-echo
-               :pdumper-no-end ',pdump-no-end
-               ,form))))))
+            (list
+             (macroexpand-all
+              `(,ad-wrapper
+                ',adfors ',adprefix ',adprefix
+                :prompt-type 'prompt-echo
+                :pdumper-no-end ',pdump-no-end
+                ,form)))))))
     (use-package-concat
      rest-body
      init-form)))

@@ -2827,12 +2827,12 @@ both ommited, that as:
                       (evfunc-0 (lambda (val)
                                   (cond ((symbolp val)
                                          val)
-                                        ((listp val)
+                                        ((consp val)
                                          (entropy/emacs-eval-with-lexical val)))))
                       (evfunc-1 (lambda (val)
                                   (cond ((symbolp val)
                                          (symbol-value val))
-                                        ((listp val)
+                                        ((consp val)
                                          (entropy/emacs-eval-with-lexical val)))))
                       (evfunc-2 (lambda (val)
                                   (cond ((symbolp val)
@@ -2899,18 +2899,17 @@ And if PATTERN is nil, then we return the form as is.
           (intern
            (entropy/emacs-hydra-hollow/use-package/defer-parse/gen-random-ad-judger-prefix
             use-name)))
-         (_ (entropy/emacs-eval-with-lexical
-             `(defvar ,judger-var nil
-                ,(format
-                  "the judger var for use-package \
+         (form-use-judge
+          `(progn
+             (defvar ,judger-var nil
+               ,(format
+                 "the judger var for use-package \
 hydra hollow instance deferred creation for package '%s' \
 which non-nil indicate that \
 the instance has been created and the related form is banned."
-                  use-name))))
-         (form-use-judge
-          `(unless (bound-and-true-p ,judger-var)
-             (prog1 ,form
-               (setq ,judger-var t))))
+                 use-name))
+             (unless (bound-and-true-p ,judger-var)
+               (prog1 ,form (setq ,judger-var t)))))
          rtn)
     (cond
      ((and (listp patterns)
@@ -2938,7 +2937,8 @@ the instance has been created and the related form is banned."
              ,form-use-judge)
            rtn)))
       ;; progn wrap the result
-      (setq rtn (nconc (list 'progn) (nreverse rtn))))
+      (setq rtn (nconc (list 'progn) (nreverse rtn))
+            rtn (macroexpand-all rtn)))
      ((eq patterns t)
       (setq rtn
             (macroexpand-all
@@ -2946,7 +2946,7 @@ the instance has been created and the related form is banned."
                 ;; NOTE: always defer for require
                 :always-lazy-load t
                 ,form-use-judge))))
-     (t (setq rtn form)))
+     (t (setq rtn (macroexpand-all form))))
     ;; return
     rtn))
 
@@ -3222,6 +3222,7 @@ evaluated result as its value.
                     (entropy/emacs-hydra-hollow/defer-parse/gen-wrapper
                      ',use-name defer core-caller)
                   core-caller))))))))
+    (setq init-form (list (macroexpand-all (car init-form))))
     (use-package-concat init-form rest-body)))
 
 (defalias 'use-package-normalize/:eemacs-mmphca
