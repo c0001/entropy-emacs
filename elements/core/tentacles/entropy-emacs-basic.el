@@ -2439,7 +2439,6 @@ can be found in this dired buffer, cancel the operation and throw
 an error."
     (declare (interactive-only t))
     (interactive "P" dired-mode)
-    (entropy/emacs-require-only-once 'image-dired)
     (unless (eq major-mode 'dired-mode)
       (user-error "Not in an dired buffer"))
     (let ((cur-buffer (current-buffer))
@@ -5035,6 +5034,7 @@ backtrace:
  'describe-variable
  nil 100
  (lambda (&rest _)
+   ;; TODO: add limitations
    t))
 
 ;; ***** Print variable
