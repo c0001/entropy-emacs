@@ -3397,7 +3397,7 @@ size of man page's re-calling caused by `Man-fit-to-window'."
   (defun __ya/Man-columns (orig-func &rest orig-args)
     "Like `Man-columns' but obey `entropy/emacs-window-center-mode'
 and `entropy/emacs-window-center-auto-mode-enable-p'."
-    (if (or entropy/emacs-window-center-mode
+    (if (or (bound-and-true-p entropy/emacs-window-center-mode)
             (entropy/emacs-window-auto-center-mode-base-condition-satisfied-judge))
         (entropy/emacs-window-center-emulate-window-column-width-as-enabled)
       (apply orig-func orig-args)))
