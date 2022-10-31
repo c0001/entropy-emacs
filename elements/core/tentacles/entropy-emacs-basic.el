@@ -5018,6 +5018,7 @@ successfully both of situation of read persisit of create an new."
 
 (entropy/emacs--api-restriction-uniform 'describe-key/bug/xterm-paste/advice-patch
     'emacs-version-incompatible
+  :when (or (daemonp) (not (display-graphic-p)))
   :doc "Fix the `help--analyze-key' error while terminal emacs session can not
 read the event correctly since the pseudo terminal instance's
 implementation.
@@ -5037,9 +5038,10 @@ backtrace:
     command-execute(describe-key)
 #+end_example
 "
-  :detector (<= 29 emacs-major-version)
+  :detector (not (entropy/emacs-do-error-for-emacs-version-incompatible
+                  '<= "29.1" 'noerror))
   :signal (entropy/emacs-do-error-for-emacs-version-incompatible
-           '<= "29")
+           '<= "29.1")
   (when (or (not (display-graphic-p)) (daemonp))
     (entropy/emacs-lazy-initial-for-hook
      ;; we must inject before any command really ran since the patch

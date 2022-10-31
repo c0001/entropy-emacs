@@ -445,6 +445,7 @@ but current stands on '%s'"
      type
      &rest body
      &key
+     when
      doc
      detector
      signal
@@ -499,6 +500,11 @@ demo usage.
   corrupt the current emacs loop thread to avoid invoke any
   letter processes influenced by the BODY.
 
+- WHEN:
+
+  When set as non-nil, then just run body and detection only when WHEN
+  return non-nil.
+
 NOTE: all the key can be evaluated at run-time
 
 "
@@ -514,26 +520,28 @@ NOTE: all the key can be evaluated at run-time
         (err-sym       (make-symbol "err-sym"))
         (err-data-sym  (make-symbol "err-data"))
         (do-body-p-sym (make-symbol "do-body-p")))
-    `(let* ((,op-name-sym ,op-name)
-            (,type-sym    ,type)
-            (,doc-sym     ,doc)
-            (,default-sym
-              (alist-get ,type-sym
-                         entropy/emacs-api-restriction-uniform-type-alist))
-            (,detector-sym
-             (or ,(if detector `(lambda nil ,detector))
-                 (lambda nil (eval (plist-get ,default-sym :default-detector)))))
-            (,signal-sym
-             (or ,(if signal `(lambda nil ,signal))
-                 (lambda nil (eval (plist-get ,default-sym :default-signal)))))
-            ,err-sym ,err-data-sym ,do-body-p-sym
-            (,warn-func-sym
-             (lambda ()
-               (entropy/emacs-api-restriction-display-warn
-                (format "%s: [type: '%s' op-name: '%s' err-msg: \"%s\"], \
+    `(entropy/emacs-when-let*-first
+         ((,(or when t))
+          (,op-name-sym ,op-name)
+          (,type-sym    ,type)
+          (,doc-sym     ,doc)
+          (,default-sym
+           (alist-get ,type-sym
+                      entropy/emacs-api-restriction-uniform-type-alist))
+          (,detector-sym
+           (or ,(if detector `(lambda nil ,detector))
+               (lambda nil (eval (plist-get ,default-sym :default-detector)))))
+          (,signal-sym
+           (or ,(if signal `(lambda nil ,signal))
+               (lambda nil (eval (plist-get ,default-sym :default-signal)))))
+          ,err-sym ,err-data-sym ,do-body-p-sym
+          (,warn-func-sym
+           (lambda ()
+             (entropy/emacs-api-restriction-display-warn
+              (format "%s: [type: '%s' op-name: '%s' err-msg: \"%s\"], \
 see `entropy/emacs-api-restriction-detection-log' for details."
-                        ,err-sym ,type-sym ,op-name-sym ,err-data-sym)
-                ,do-error))))
+                      ,err-sym ,type-sym ,op-name-sym ,err-data-sym)
+              ,do-error))))
        (unless ,default-sym
          (entropy/emacs-do-eemacs-top-error
           "%s"

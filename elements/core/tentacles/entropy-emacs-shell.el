@@ -104,17 +104,24 @@ open eshell on tramp-buffer when on windows platform. "
   ;; Redefine `eshell-search-path' for preventing search executable
   ;; binary in current path automatically without prefix "./" manually
   ;; given in WINDOWS.
-  (when sys/win32p
-    (entropy/emacs--api-restriction-uniform 'eshell-search-path-patch-for-windows
-        'emacs-version-incompatible
-      :detector (and (<= emacs-major-version 29) (> emacs-major-version 26))
-      :signal (progn
-                (entropy/emacs-do-error-for-emacs-version-incompatible
-                 '<= "29")
-                (entropy/emacs-do-error-for-emacs-version-incompatible
-                 '> "26"))
-      (defun __ya/eshell-search-path (name)
-        "Patched as compat with entropy-emacs for the reason as:
+  (entropy/emacs--api-restriction-uniform 'eshell-search-path-patch-for-windows
+      'emacs-version-incompatible
+    :when sys/win32p
+    :detector
+    (not
+     (and
+      (entropy/emacs-do-error-for-emacs-version-incompatible
+       '<= "29.1" 'noerr)
+      (entropy/emacs-do-error-for-emacs-version-incompatible
+       '> "26" 'noerr)))
+    :signal
+    (progn
+      (entropy/emacs-do-error-for-emacs-version-incompatible
+       '<= "29.1")
+      (entropy/emacs-do-error-for-emacs-version-incompatible
+       '> "26"))
+    (defun __ya/eshell-search-path (name)
+      "Patched as compat with entropy-emacs for the reason as:
 
 FOR preventing search executable binary in current path automatically
 without prefix \"./\" manually given in WINDOWS platform, as for command
@@ -127,27 +134,27 @@ In this case, each command file name was concatenated for \".\" and
 \"git\" which make the filename \".git\" for search which matched by the
 '.git' description file exactly. So as on, the external git command
 will not be called for the instance as your expection."
-        (if (file-name-absolute-p name)
-            name
-          (let ((list (cdr (eshell-get-path)))
-                suffixes n1 n2 file)
-            ;; Remove current
-            (if (eshell-under-windows-p) (setq list (cdr list)))
-            (while list
-              (setq n1 (concat (car list) name))
-              (setq suffixes eshell-binary-suffixes)
-              (while suffixes
-                (setq n2 (concat n1 (car suffixes)))
-                (if (and (or (file-executable-p n2)
-                             (and eshell-force-execution
-                                  (file-readable-p n2)))
-                         (not (file-directory-p n2)))
-                    (setq file n2 suffixes nil list nil))
-                (setq suffixes (cdr suffixes)))
-              (setq list (cdr list)))
-            file)))
-      (advice-add '__ya/eshell-search-path
-                  :override #'__ya/eshell-search-path)))
+      (if (file-name-absolute-p name)
+          name
+        (let ((list (cdr (eshell-get-path)))
+              suffixes n1 n2 file)
+          ;; Remove current
+          (if (eshell-under-windows-p) (setq list (cdr list)))
+          (while list
+            (setq n1 (concat (car list) name))
+            (setq suffixes eshell-binary-suffixes)
+            (while suffixes
+              (setq n2 (concat n1 (car suffixes)))
+              (if (and (or (file-executable-p n2)
+                           (and eshell-force-execution
+                                (file-readable-p n2)))
+                       (not (file-directory-p n2)))
+                  (setq file n2 suffixes nil list nil))
+              (setq suffixes (cdr suffixes)))
+            (setq list (cdr list)))
+          file)))
+    (advice-add '__ya/eshell-search-path
+                :override #'__ya/eshell-search-path))
 
   ;; self-function
   (defun eshell/touch (&rest files)
