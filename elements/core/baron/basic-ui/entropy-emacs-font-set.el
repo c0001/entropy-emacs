@@ -292,6 +292,11 @@ when available."
              :family font-family)
             (throw :exit nil)))))))
 
+(defun entropy/emacs-font-set--prog-font-set-all ()
+  (dolist (buff (buffer-list))
+    (with-current-buffer buff
+      (entropy/emacs-font-set--prog-font-set))))
+
 (entropy/emacs-lazy-initial-advice-before
  '(find-file switch-to-buffer)
  "__set-prog-mode-font-set__" "__set-prog-mode-font-set__"
@@ -300,10 +305,13 @@ when available."
  (add-hook 'prog-mode-hook
            #'entropy/emacs-font-set--prog-font-set)
  ;; enable font set to opened buffers
- (dolist (buff (buffer-list))
-   (with-current-buffer buff
-     (when (derived-mode-p 'prog-mode)
-       (entropy/emacs-font-set--prog-font-set)))))
+ (entropy/emacs-font-set--prog-font-set-all))
+
+(entropy/emacs-with-daemon-make-frame-done
+  'enable-eemacs-prog-font-set
+  (&rest _)
+  :when-gui
+  (entropy/emacs-font-set--prog-font-set-all))
 
 (defun entropy/emacs--fontsize-set-guard (symbol newval operation _where)
   "`entropy/emacs-font-size-default' vairable wather guard to reset
