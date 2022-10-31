@@ -86,52 +86,33 @@
 ;; *** eemaac-specification
 
 ;; **** core lib
-(defvar entropy/emacs-modeline--subr-var->current-selected-window
-  (frame-selected-window))
-
 (defun entropy/emacs-modeline--subr-func->get-current-window ()
   ;; Get the current window but should exclude on the child frame.
   (let (frmp)
-    (if (and (fboundp 'frame-parent) (setq frmp (frame-parent)))
-        (frame-selected-window frmp)
+    (if (setq frmp (frame-parent)) (frame-selected-window frmp)
       (frame-selected-window))))
 
-(defun entropy/emacs-modeline--subr-func->set-selected-window
-    (&optional orig-func &rest orig-args)
-  (let ((rtn (when (and orig-func (functionp orig-func))
-               (apply orig-func orig-args)))
-        (win (entropy/emacs-modeline--subr-func->get-current-window)))
-    (unless (minibuffer-window-active-p win)
-      (setq entropy/emacs-modeline--subr-var->current-selected-window win))
-    rtn))
+(defun entropy/emacs-modeline--subr-var->messy-window-p (&optional win)
+  (or (minibuffer-window-active-p (or win (selected-window)))))
+(defvar entropy/emacs-modeline--subr-var->selected-window
+  (entropy/emacs-modeline--subr-func->get-current-window))
+(defun entropy/emacs-modeline--subr-func->set-selected-window nil
+  (unless (entropy/emacs-modeline--subr-var->messy-window-p)
+    (setq entropy/emacs-modeline--subr-var->selected-window
+          (entropy/emacs-modeline--subr-func->get-current-window))))
 
-(defun entropy/emacs-modeline--subr-func->unset-selected-window ()
-  (setq entropy/emacs-modeline--subr-var->current-selected-window nil))
+(defun entropy/emacs-modeline--subr-func->window-selection-change-function
+    (&rest _)
+  (entropy/emacs-modeline--subr-func->set-selected-window))
+(add-hook 'window-selection-change-functions
+          #'entropy/emacs-modeline--subr-func->window-selection-change-function)
 
 (defun entropy/emacs-modeline--subr-func->judge-current-window-focus-on-p ()
-  (and entropy/emacs-modeline--subr-var->current-selected-window
-       (eq (entropy/emacs-modeline--subr-func->get-current-window)
-           entropy/emacs-modeline--subr-var->current-selected-window)))
-
-;; hooks for set selected window var
-(add-hook 'window-configuration-change-hook
-          #'entropy/emacs-modeline--subr-func->set-selected-window)
-(advice-add #'handle-switch-frame
-            :around
-            #'entropy/emacs-modeline--subr-func->set-selected-window)
-(advice-add #'select-window
-            :around
-            #'entropy/emacs-modeline--subr-func->set-selected-window)
-
-(defun entropy/emacs-modeline--subr-func/->refresh-frame ()
-  (setq entropy/emacs-modeline--subr-var->current-selected-window nil)
-  (cl-loop for frame in (frame-list)
-           if (and (eq (frame-focus-state frame) t)
-                   ;; not a child frame
-                   (not (frame-parent frame)))
-           return (entropy/emacs-modeline--subr-func->set-selected-window)))
-(add-function :after after-focus-change-function
-              #'entropy/emacs-modeline--subr-func/->refresh-frame)
+  (let* ((win entropy/emacs-modeline--subr-var->selected-window)
+         (cwin (entropy/emacs-modeline--subr-func->get-current-window)))
+    (and (eq win cwin)
+         (not (entropy/emacs-modeline--subr-var->messy-window-p
+               cwin)))))
 
 ;; **** advices after swither
 

@@ -175,6 +175,33 @@ until it returns nil."
      ;; and cpu usage.
      (sleep-for 0.001)))
 
+(defsubst entropy/emacs-nxor (cond1 cond2)
+  "Like `xor' but as reverse return i.e. return non-nil when cond1
+and cond2 are both of non-nil or nil."
+  (not (xor cond1 cond2)))
+
+(defun entropy/emacs-child-frame-p (&optional frame)
+  "Return FRAME's parent frame if it is a child-frame (See Info node
+`(elisp) Child Frames' for what is child-frame), nil if it is not
+a child-frame.
+
+If FRAME is omitted or nil use `selected-frame' as default."
+  (frame-parameter frame 'parent-frame))
+
+(defun entropy/emacs-server-client-frame-p (&optional frame)
+  "FIXME&NOTE&EEMACS_MAINTENANCE: use emacs unexposed API
+i.e. `client' frame parameter to detect whether FRAME is a server
+client frame. Return non-nil when thus is, nil for otherwise.
+
+Precisely say that `client' frame parameter is inherit from
+`frame-inherited-parameters' which is registered by
+`server-create-tty-frame' and `server-create-window-system-frame'
+who are rely on the core `server--create-frame' frame creators
+and set by it as well.
+
+If FRAME is omitted or nil use `selected-frame' as default."
+  (frame-parameter frame 'client))
+
 ;; *** eemacs-require-func
 
 (defun entropy/emacs-common-require-feature

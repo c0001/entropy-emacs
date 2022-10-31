@@ -862,6 +862,18 @@ status existed
 
 When eq 'nil' that say the initialization is going on.")
 
+;; ** kill emacs refer
+
+(defvar entropy/emacs-kill-emacs-running-p nil
+  "Non-nil when current progress is running and just before
+`kill-emacs'.")
+(defun entropy/emacs--set-indicator-before-kill-emacs
+    (orig-func &rest orig-args)
+  (progn
+    (setq entropy/emacs-kill-emacs-running-p t)
+    (apply orig-func orig-args)))
+(advice-add 'kill-emacs :around #'entropy/emacs--set-indicator-before-kill-emacs)
+
 ;; ** coworker refer
 (defvar entropy/emacs-coworker-bin-host-path
   (expand-file-name "bin" entropy/emacs-coworker-host-root)
@@ -1526,8 +1538,8 @@ NOTE: do not manually modify this variable, since eemacs auto set
 it internally.")
 
 (defvar entropy/emacs-delete-frame-functions nil
-  "Like `delete-frame-functions' but ran before it and any function
-in this list should not kill the frame internally which is
+  "Like `delete-frame-functions' but ran before `delete-frame' and any
+function in this list should not kill the frame internally which is
 restricted by thus.")
 
 (defun entropy/emacs--run-eemacs-delete-frame-functions
@@ -1581,20 +1593,41 @@ reset.")
 (defvar entropy/emacs-daemon--legal-clients nil
   "A list of legal daemon clients representation.")
 
-(defun entropy/emacs-daemon-multi-gui-clients-p ()
+(defun entropy/emacs-daemon-multi-gui-clients-p (&optional always-return)
   "Indicate whether current daemon clients has 2 or more gui
-clients."
+clients.
+
+Return the number of gui clients if thus or nil when not of thus.
+
+If ALWAYS-RETURN is non-nil then return the detected gui
+daemon-clients number."
   (when (daemonp)
     (let ((cnt 0) frame gui-p)
       (dolist (el entropy/emacs-daemon--legal-clients)
         (setq frame (plist-get el :frame)
               gui-p (plist-get el :gui-p))
-        (when (and gui-p
-                   (frame-live-p frame))
+        (when (and gui-p (frame-live-p frame))
           (cl-incf cnt)))
-      (if (> cnt 1)
-          t
-        nil))))
+      (if always-return cnt
+        (if (> cnt 1) cnt nil)))))
+
+(defun entropy/emacs-daemon-multi-tui-clients-p (&optional always-return)
+  "Indicate whether current daemon clients has 2 or more tui
+clients.
+
+Return the number of tui clients if thus or nil when not of thus.
+
+If ALWAYS-RETURN is non-nil then return the detected tui
+daemon-clients number."
+  (when (daemonp)
+    (let ((cnt 0) frame gui-p)
+      (dolist (el entropy/emacs-daemon--legal-clients)
+        (setq frame (plist-get el :frame)
+              gui-p (plist-get el :gui-p))
+        (when (and (not gui-p) (frame-live-p frame))
+          (cl-incf cnt)))
+      (if always-return cnt
+        (if (> cnt 1) cnt nil)))))
 
 (defun entropy/emacs-daemon-frame-is-daemon-client-p (frame)
   "Return non-nil when frame is an daemon client."
@@ -1677,7 +1710,7 @@ when non-nil.
 EEMACS_MAINTENANCE:
 Please just use in debug way as may not work in lexical way.")
 
-(defun entropy/emacs-daemon--client-initialize ()
+(defun entropy/emacs-daemon--client-initialize-1 ()
   "Initial daemon client instance with eemacs specification
 creation procedure.
 
@@ -1691,20 +1724,33 @@ internal functional."
   (when (and (daemonp)
              (null entropy/emacs-daemon--dont-init-client)
              (and
-              ;; must an visisble frame, NOTE: we can not use
-              ;; `frame-visible-p' or the frame parameter `visibility'
-              ;; since they just return non-nil when frame is
-              ;; displayed even if the frame is created used to
-              ;; display, so we must use the underlying mechanism
-              (frame-parameter nil 'display)
+              ;; must in interaction mode
+              (null noninteractive)
+              ;; must be a visible and indeed user focused in frame
+              ;; since the non-focused/invisible frame commonly is not
+              ;; a usually emacsclient start connection.
+              (frame-visible-p (selected-frame))
+              ;; FIXME: the focus state just be set while accept a
+              ;; user input event, thus a pretty new daemon client
+              ;; which not accept any input event will not get its
+              ;; focused status even if its raised up in the most
+              ;; front of others.
+              ;;
+              ;; (eq (frame-focus-state) t)
+
+              ;; must not a child frame and must looks like a normal
+              ;; used frame
+              (not (entropy/emacs-child-frame-p))
+              (eq (frame-parameter nil 'minibuffer) t)
+              ;; TODO: add more normal frame like detectors
+
               ;; must not an existed client frame since
               ;; `server-process-filter' use current frame like some
               ;; server based package such as `with-editor' to make
               ;; pseudo frame which reused current one.
               (not (entropy/emacs-daemon-frame-is-daemon-client-p
                     (selected-frame)))
-              ;; must in interaction mode
-              (null noninteractive)
+
               ;; TODO: add more filters to make explicit judge whether
               ;; the frame is maked from command line
               ;; i.e. 'emacsclient ...'
@@ -1724,37 +1770,46 @@ internal functional."
     ;; startup daemon specification
     (if (or (not entropy/emacs-daemon--main-client-indicator)
             ;; in same display type
-            (eq (display-graphic-p)
-                (plist-get entropy/emacs-daemon--main-client-indicator
-                           :gui-p)))
+            (entropy/emacs-nxor
+             (display-graphic-p)
+             (plist-get entropy/emacs-daemon--main-client-indicator
+                        :gui-p)))
         (let ((daemon-client-obj (entropy/emacs-daemon--create-daemon-client-plist)))
           (push daemon-client-obj entropy/emacs-daemon--legal-clients)
           (unless entropy/emacs-daemon--main-client-indicator
             (entropy/emacs-daemon--set-main-client-indictor
              daemon-client-obj))
+          ;; NOTE: must run hooks after legal clients registered since
+          ;; any hooker may use eemacs legal clients viewer
+          ;; subroutines
           (when entropy/emacs-daemon-server-after-make-frame-hook
-            (run-hooks 'entropy/emacs-daemon-server-after-make-frame-hook)))
+            (entropy/emacs-message-simple-progress-message
+             (format
+              "eemacs daemon client spec init for frame `%s'"
+              (selected-frame))
+             (run-hooks 'entropy/emacs-daemon-server-after-make-frame-hook))))
       (let ((frame (selected-frame)))
         (unless (entropy/emacs-daemon-current-is-main-client)
           (with-selected-frame frame
             (warn "
 ===========[*entropy emacs daemonwarn*]==============
 
-Please close another '%s' daemon clients first before creating a
-'%s' daemon client. Before did thus, some feature can not enable
+Please close another `%s' daemon clients first before creating a
+`%s' daemon client. Before did thus, some feature can not enable
 properly!
 
-That's because of the each daemon specification will just load
+That's because of that each daemon specification will just load
 once for the main daemon client (the specified recognized daemon
 client of entropy-emacs created by `emacsclient'), thus you
 should close the origin main daemon client so that you can create
 a new main daemon client instead.
 
-For the main reason, emacs can not set frame-local variables,
-that entropy-emacs forbidden create more than one daemon clients
-at the same time, to prevent messing configuration up from
-creating tty and gui daemon clients at same time, because tty and
-gui session has huge sets of differents in entropy-emacs.
+For the main reason, emacs can not set frame-local variables, that
+entropy-emacs forbidden create more than one daemon clients with
+different display type at the same time, to prevent messing
+configuration up from creating tty and gui daemon clients at same
+time, because tty and gui session has huge sets of differents in
+entropy-emacs.
 
 ------------------------------------------------------
 "
@@ -1767,11 +1822,31 @@ gui session has huge sets of differents in entropy-emacs.
                     "TTY"))))))
     ;; finally we sign the init done for daemon for fist time.
     (unless entropy/emacs-daemon-server-init-done
-      (setq entropy/emacs-daemon-server-init-done t))))
+      (setq entropy/emacs-daemon-server-init-done t))
+    ;; return as did
+    t))
+
+(defun entropy/emacs-daemon--client-initialize (frame timer-sym)
+  (let ((timer (symbol-value timer-sym))
+        (inhibit-quit t))
+    (if (frame-live-p frame)
+        (when (eq (selected-frame) frame)
+          (when (entropy/emacs-daemon--client-initialize-1)
+            (cancel-timer timer)))
+      (cancel-timer timer))))
+
+(defun entropy/emacs-daemon--client-initialize-main (&rest _)
+  (let ((var-sym (make-symbol "__timer_var__"))
+        (inhibit-quit t))
+    (set var-sym
+         (run-with-idle-timer
+          0.001 t
+          #'entropy/emacs-daemon--client-initialize
+          (selected-frame) var-sym))))
 
 (when (daemonp)
   (add-hook 'server-after-make-frame-hook
-            #'entropy/emacs-daemon--client-initialize))
+            #'entropy/emacs-daemon--client-initialize-main))
 
 ;; ** ime refer
 

@@ -116,7 +116,8 @@ it.
   (let ((after-do (and entropy/emacs-font-setting-enable
                        (plist-get (alist-get entropy/emacs-font-setting-enable
                                              entropy/emacs-fontsets-fonts-collection-alias)
-                                  :after))))
+                                  :after)))
+        (frame (or frame (selected-frame))))
     (cond
      ((and entropy/emacs-font-setting-enable
            (display-graphic-p)
@@ -131,19 +132,23 @@ it.
       ;; Setting latin Font
       (set-fontset-font nil 'latin
                         (font-spec :family entropy/emacs-fontsets-used-latin-font)
-                        (or frame (selected-frame)))
+                        frame)
       (set-face-attribute
        'variable-pitch
-       (or frame (selected-frame))
+       frame
        :family entropy/emacs-fontsets-used-latin-font)
 
       ;; default interface font spec
-      (mapc (lambda (type)
-              (set-fontset-font
-               type 'latin
-               (font-spec :family entropy/emacs-fontsets-used-latin-font)
-               (or frame (selected-frame))))
-            '("fontset-default" "fontset-startup" "fontset-standard"))
+      (when (eq frame entropy/emacs-main-frame)
+        ;; NOTE: We only set those standard fontset in main frame
+        ;; since it will affect all frames and further more affects
+        ;; other frames currnt font size.
+        (mapc (lambda (type)
+                (set-fontset-font
+                 type 'latin
+                 (font-spec :family entropy/emacs-fontsets-used-latin-font)
+                 frame))
+              '("fontset-default" "fontset-startup" "fontset-standard")))
 
       ;;Setting cjk
       (dolist (charset '(han cjk-misc kana kanbun bopomofo))
@@ -152,29 +157,25 @@ it.
                           (font-spec
                            :family
                            entropy/emacs-default-cjk-cn-font)
-                          (or frame (selected-frame))))
+                          frame))
 
       (set-fontset-font nil
                         '(?ぁ . ?ヶ)
                         (font-spec
                          :family
                          entropy/emacs-fontsets-used-cjk-jp-font)
-                        (or frame (selected-frame)))
+                        frame)
 
       (set-fontset-font nil
                         'hangul
                         (font-spec :family entropy/emacs-fontsets-used-cjk-kr-font)
-                        (or frame (selected-frame)))
+                        frame)
 
-      (set-fontset-font nil
-                        ?“
-                        (font-spec :family entropy/emacs-default-cjk-cn-font)
-                        (or frame (selected-frame)))
-
-      (set-fontset-font nil
-                        ?”
-                        (font-spec :family entropy/emacs-default-cjk-cn-font)
-                        (or frame (selected-frame)))
+      (dolist (char '(?“ ?”))
+        (set-fontset-font nil
+                          char
+                          (font-spec :family entropy/emacs-default-cjk-cn-font)
+                          frame))
 
       ;; setting unicode symbol font
       (if entropy/emacs-fontsets-used-symbol-font
@@ -182,12 +183,12 @@ it.
                  (set-fontset-font nil
                                    'symbol
                                    (font-spec :family entropy/emacs-fontsets-used-symbol-font)
-                                   (or frame (selected-frame))))
+                                   frame))
         (setq use-default-font-for-symbols t))
 
       ;; extra spec setting
       (when (and after-do (functionp after-do))
-        (funcall after-do (or frame (selected-frame))))
+        (funcall after-do frame))
 
       ;; font size scaling
       (if (eq entropy/emacs-font-setting-enable 'sarasa)
@@ -251,20 +252,15 @@ it.
                    (t
                     nil)))
             (when height
-              (set-face-attribute 'default (or frame (selected-frame))
-                                  :height
-                                  height)))
+              (set-face-attribute 'default frame :height height)))
         (warn
          "Your default font size is too large,
-you must set it smaller than 24 for adapting to other entropy-emacs settings."))
-      )
+you must set it smaller than 24 for adapting to other entropy-emacs settings.")))
      (t
       (let ((height (ceiling (* entropy/emacs-font-size-default 10))))
-        (set-face-attribute 'default (or frame (selected-frame))
-                            :height
-                            height))))
+        (set-face-attribute 'default frame :height height))))
     ;; run font-set after hooks
-    (run-hooks 'entropy/emacs-font-set-end-hook)))
+    (run-hook-with-args 'entropy/emacs-font-set-end-hook frame)))
 
 (defun entropy/emacs-font-set--prog-font-set ()
   "Remap `prog-mode' face font using mordern programming fonts
@@ -281,37 +277,48 @@ when available."
       (catch :exit
         (dolist (font-family font-familys)
           (when (find-font (font-spec :family font-family))
-            (face-remap-add-relative
-             (or
-              ;; remap for solaire if found
-              (and (facep 'solaire-default-face)
-                   (or (bound-and-true-p solaire-mode)
-                       (bound-and-true-p entropy/emacs-solaire-mode))
-                   'solaire-default-face)
-              'default)
-             :family font-family)
-            (throw :exit nil)))))))
+            (throw
+             :exit
+             ;; set and return the remap COOKIE used for `face-remap-remove-relative'
+             (face-remap-add-relative
+              (or
+               ;; remap for solaire if found
+               (and (facep 'solaire-default-face)
+                    (or (bound-and-true-p solaire-mode)
+                        (bound-and-true-p entropy/emacs-solaire-mode))
+                    'solaire-default-face)
+               'default)
+              :family font-family))))))))
 
-(defun entropy/emacs-font-set--prog-font-set-all ()
+(defvar-local entropy/emacs-font-set--prog-local-remap-cache nil)
+(defun entropy/emacs-font-set--prog-font-set-all (&optional reset)
   (dolist (buff (buffer-list))
     (with-current-buffer buff
-      (entropy/emacs-font-set--prog-font-set))))
+      (when entropy/emacs-font-set--prog-local-remap-cache
+        (face-remap-remove-relative
+         entropy/emacs-font-set--prog-local-remap-cache))
+      (unless reset
+        (setq entropy/emacs-font-set--prog-local-remap-cache
+              (entropy/emacs-font-set--prog-font-set))))))
 
-(entropy/emacs-lazy-initial-advice-before
- '(find-file switch-to-buffer)
- "__set-prog-mode-font-set__" "__set-prog-mode-font-set__"
- :prompt-type 'prompt-echo
- :pdumper-no-end nil
- (add-hook 'prog-mode-hook
-           #'entropy/emacs-font-set--prog-font-set)
- ;; enable font set to opened buffers
- (entropy/emacs-font-set--prog-font-set-all))
-
-(entropy/emacs-with-daemon-make-frame-done
-  'enable-eemacs-prog-font-set
-  (&rest _)
-  :when-gui
-  (entropy/emacs-font-set--prog-font-set-all))
+(if (daemonp)
+    (entropy/emacs-with-daemon-make-frame-done
+      'enable-eemacs-prog-font-set (&rest _)
+      :when-gui
+      (progn
+        (entropy/emacs-run-body-just-once
+         (add-hook 'prog-mode-hook #'entropy/emacs-font-set--prog-font-set))
+        (entropy/emacs-font-set--prog-font-set-all))
+      :when-tui
+      (entropy/emacs-font-set--prog-font-set-all 'reset))
+  (entropy/emacs-lazy-initial-advice-before
+   '(find-file switch-to-buffer)
+   "__set-prog-mode-font-set__" "__set-prog-mode-font-set__"
+   :prompt-type 'prompt-echo
+   :pdumper-no-end nil
+   (add-hook 'prog-mode-hook #'entropy/emacs-font-set--prog-font-set)
+   ;; enable font set to opened buffers
+   (entropy/emacs-font-set--prog-font-set-all)))
 
 (defun entropy/emacs--fontsize-set-guard (symbol newval operation _where)
   "`entropy/emacs-font-size-default' vairable wather guard to reset

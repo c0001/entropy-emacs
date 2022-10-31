@@ -530,6 +530,14 @@ any properties set) of the defination of BODY.
          ,(macroexpand-1 `(entropy/emacs-cl-lambda-with-lcb ,@args)))
        ,sym)))
 
+(defmacro entropy/emacs-run-body-just-once (&rest body)
+  "Run BODY just once i.e. the first time invoke it."
+  (when body
+    (let ((var-sym (entropy/emacs-make-new-special-variable
+                    nil "___eemacs-run-body-just-once/")))
+      `(unless (bound-and-true-p ,var-sym)
+         (prog1 (progn ,@body) (setq ,var-sym t))))))
+
 (defun entropy/emacs-unintern-symbol (symbol &optional use-obarray)
   "Like `unintern' but use SYMBOL as the main arg since although
 `unintern' support symbol as main arg but it may not `eq' to the
@@ -11864,13 +11872,19 @@ subroutine of `entropy/emacs-xterm-paste-core'.
 function made by `entropy/emacs-with-daemon-make-frame-done'.")
 
 (defmacro entropy/emacs-with-daemon-make-frame-done (&rest args)
-  "Do sth after emacs daemon make a new frame.
+  "Run progresses PROGRESSs after emacs daemon server make a new frame
+where PROGRESS is a emacs lisp form.
 
-- WHEN-TUI is the form for tui emacs session
-- WHEN-GUI is the form for gui emacs-session
+1) WHEN-TUI is the PROGRESS ran after the first tui daemon client frame created
+2) WHEN-TUI-EACH is the PROGRESS ran after every tui daemon client frame created
+3) WHEN-GUI is the PROGRESS ran after the first gui daemon client frame created
+4) WHEN-GUI-EACH is the PROGRESS ran after every gui daemon client frame created
 
-Optional form BODY run directly after WHEN-GUI sd and WHEN-TUI without
-any condition judgements.
+If WHEN-TUI-EACH and WHEN-TUI are both set, just WHEN-TUI-EACH is used
+to run. (same choice as when WHEN-GUI-EACH and WHEN-GUI are both set)
+
+Optional form BODY run directly after PROGRESS without any condition
+judgements.
 
 Return the define function name symbol named via SYMBOL.
 
@@ -11886,8 +11900,8 @@ We never allowed any error occurred inside of user spec forms but
 stored the error log in
 `entropy/emacs-with-daemon-make-frame-done-error-log'.
 
-\(fn SYMBOL ARGLIST [DOCSTRING] [DECL] [INCT] \
-&key WHEN-GUI WHEN-TUI WITH-LEXICAL-BINDINGS &rest BODY)"
+\(fn SYMBOL ARGLIST [DOCSTRING] [DECL] [INCT] &key \
+WHEN-GUI WHEN-GUI-EACH WHEN-TUI WHEN-TUI-EACH WITH-LEXICAL-BINDINGS &rest BODY)"
   (declare (doc-string 3) (indent defun))
   (let* ((name (car args))
          (func-name-sym (make-symbol "func-name"))
@@ -11896,7 +11910,9 @@ stored the error log in
          (args-plist (plist-get args-parse :body-plist))
          (user-body  (plist-get args-parse :body))
          (bdl-obj (entropy/emacs-defun--get-body-without-keys
-                   args-plist nil :when-gui :when-tui))
+                   args-plist nil
+                   :when-gui :when-gui-each
+                   :when-tui :when-tui-each))
          (exl-pl (car bdl-obj))
          (inc-pl (cdr bdl-obj))
          (_
@@ -11908,12 +11924,26 @@ stored the error log in
                  (list :use-append t)
                  inc-pl)))
          (when-gui (entropy/emacs-macroexp-progn (list (plist-get exl-pl :when-gui))))
+         (when-gui-each (entropy/emacs-macroexp-progn
+                         (list (plist-get exl-pl :when-gui-each))))
          (when-tui (entropy/emacs-macroexp-progn (list (plist-get exl-pl :when-tui))))
+         (when-tui-each (entropy/emacs-macroexp-progn
+                         (list (plist-get exl-pl :when-tui-each))))
          new-body new-args-parse new-args)
     (setq new-body
           `((let ((,guip-sym (display-graphic-p)))
               (condition-case err
-                  (progn (if ,guip-sym ,when-gui ,when-tui) ,@user-body)
+                  (progn
+                    (cond
+                     (,guip-sym
+                      (if ,(if when-gui-each t) ,when-gui-each
+                        (unless (entropy/emacs-daemon-multi-gui-clients-p)
+                          ,when-gui)))
+                     (t
+                      (if ,(if when-tui-each t) ,when-tui-each
+                        (unless (entropy/emacs-daemon-multi-tui-clients-p)
+                          ,when-tui))))
+                    ,@user-body)
                 (error
                  (push (format "[%s]: time: (%s) display-type: (%s) error: (%S)"
                                ,func-name-sym

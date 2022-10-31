@@ -5743,13 +5743,14 @@ current displayed buffer area wile
 ;; ****** preface
   :preface
 
-  (defun entropy/emacs-basic--emacs-rime-set-posframe-parameter ()
-    (let* ((rime-buff (ignore-errors (get-buffer rime-posframe-buffer)))
-           (rime-posframe (and rime-buff
-                               (posframe--find-existing-posframe
-                                rime-buff)))
-           ;; repos
-           )
+  (defun entropy/emacs-basic--emacs-rime-set-posframe-parameter (&rest _)
+    (entropy/emacs-when-let*-firstn 2
+        (((bound-and-true-p rime-posframe-buffer))
+         (rime-buff (get-buffer rime-posframe-buffer))
+         (rime-posframe (posframe--find-existing-posframe
+                         rime-buff))
+         ;; repos
+         )
       (when (and rime-posframe (frame-live-p rime-posframe))
         (posframe-delete-frame rime-buff)
         ;; FIXME: find a way to reopen the rime posframe
@@ -5759,7 +5760,7 @@ current displayed buffer area wile
             `(:internal-border-width
               10
               :font
-              ,(frame-parameter (selected-frame) 'font)))))
+              ,(frame-parameter entropy/emacs-main-frame 'font)))))
 
   (defun entropy/emacs-basic-emacs-rime-start ()
     "Load `rime' and set the schema by

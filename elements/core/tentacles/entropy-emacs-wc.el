@@ -531,7 +531,7 @@ confirmation when sets it to 't'."
     (interactive)
     (when $confirm
       (unless (yes-or-no-p "Do you want to clean all workspace and buiding new workspaces? ")
-        (error "Canceld rebuild workspaces.")))
+        (user-error "Canceld rebuild workspaces.")))
     (entropy/emacs-basic-eyebrowse-kill-all-group)
     (let ((current-slot (eyebrowse--get 'current-slot ))
           (ws (if ws-list
@@ -960,6 +960,8 @@ only one lived daemon client and predicated by
 `entropy/emacs-daemon-current-is-main-client' so that we always
 stored the eyebrowse config user focused."
     (when (and
+           ;; there's no need to run save when `kill-emacs'
+           (not entropy/emacs-kill-emacs-running-p)
            (entropy/emacs-daemon-current-is-main-client frame)
            (= 1 (length entropy/emacs-daemon--legal-clients))
            t)
@@ -977,9 +979,25 @@ stored the eyebrowse config user focused."
     "Restore the eyebrowse config for dameon client's frame FAME
 saved by
 `entropy/emacs-wc-eyebrowse-savecfg--daemon-client-guard'."
-    (when entropy/emacs-wc-eyebrowse-savecfg-current-config
-      (with-selected-frame frame
-        (let (log)
+    (let* (miniw
+           (minibuff
+            (if (minibufferp nil t) (current-buffer)
+              (and (setq miniw (active-minibuffer-window))
+                   (window-buffer miniw)))))
+      (when minibuff
+        ;; quit minibuffer firstly since we can not restore
+        ;; window-configuration while thus actived. Using idle timer
+        ;; recalling this function since `abort-minibuffers' is abort to
+        ;; `top-level' thus we can not continuously did rest procedure.
+        (run-with-idle-timer
+         0.1 nil
+         #'entropy/emacs-wc-eyebrowse-savecfg--daemon-restore-saved-config
+         frame)
+        (with-current-buffer minibuff
+          (abort-minibuffers))))
+    (let* ((inhibit-quit t) log)
+      (when entropy/emacs-wc-eyebrowse-savecfg-current-config
+        (with-selected-frame frame
           (message "Restore eyebrowse config from previous daemon client ...")
           (progn
             (setq log (entropy/emacs-wc-eyebrowes-savecfg--restore-previous-config
@@ -998,7 +1016,7 @@ saved by
     (entropy/emacs-with-daemon-make-frame-done
       'Restore-eyebrowse-config (&rest _)
       "Preserve eyebrowse configs for daemon client."
-      (let (_)
+      (let ((inhibit-quit t))
         (entropy/emacs-wc-eyebrowse-savecfg--daemon-restore-saved-config
          (selected-frame)))))
 

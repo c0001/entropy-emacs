@@ -422,9 +422,11 @@ progress."
               ;; created daemon frame even for the same display type
               ;; since the new frame didn't inherit the previous one's
               ;; font spec.
-              (when (bound-and-true-p entropy/emacs-font-setting-enable)
-                (message "Daemon enable eemacs font spec ...")
-                (entropy/emacs-font-set-setfont-core))))
+              (entropy/emacs-message-simple-progress-message
+               (if entropy/emacs-font-setting-enable
+                   "Daemon enable eemacs font spec"
+                 "Daemon enable font size spec")
+               (entropy/emacs-font-set-setfont-core))))
            (t
             nil)))))
 
