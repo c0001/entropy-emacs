@@ -3728,14 +3728,41 @@ NOTE: this is a advice wrapper for any function."
 
 ;; ***** Smooth scrolling
 ;; Force smooth mouse scroll experience
-(when (display-graphic-p)
-  (setq
-   mouse-wheel-scroll-amount '(1 ((shift) . 1))
-   mouse-wheel-progressive-speed nil))
 
-(defvar-local entropy/emacs-basic--next-screen-context-lines-orig-value next-screen-context-lines)
-(defvar-local entropy/emacs-basic--scroll-margin-orig-value scroll-margin)
-(defvar-local entropy/emacs-basic--scroll-conservatively-orig-value scroll-conservatively)
+(defun entropy/emacs-basic--smooth-scroll-basic-set nil
+  "The basic smooth scroll specs handler for entropy-emacs."
+  (when (display-graphic-p)
+    (setq
+     mouse-wheel-scroll-amount
+     '(0.1
+       ((shift) . hscroll)
+       ((meta))
+       ((control meta) . global-text-scale)
+       ((control) . text-scale))
+     mouse-wheel-progressive-speed nil)
+    (when (fboundp 'pixel-scroll-precision)
+      (unless (bound-and-true-p pixel-scroll-precision-mode)
+        (pixel-scroll-precision-mode 1)))))
+
+(if (not (daemonp)) (entropy/emacs-basic--smooth-scroll-basic-set)
+  (entropy/emacs-with-daemon-make-frame-done 'eemacs-basic-smooth-scroll-set
+    (&rest _) (entropy/emacs-basic--smooth-scroll-basic-set)))
+
+(entropy/emacs-defvar-local-with-pml
+  entropy/emacs-basic--scroll-preserve-screen-position-orig-value
+  scroll-preserve-screen-position)
+(entropy/emacs-defvar-local-with-pml
+  entropy/emacs-basic--maximum-scroll-margin-orig-value
+  maximum-scroll-margin)
+(entropy/emacs-defvar-local-with-pml
+  entropy/emacs-basic--next-screen-context-lines-orig-value
+  next-screen-context-lines)
+(entropy/emacs-defvar-local-with-pml
+  entropy/emacs-basic--scroll-margin-orig-value
+  scroll-margin)
+(entropy/emacs-defvar-local-with-pml
+  entropy/emacs-basic--scroll-conservatively-orig-value
+  scroll-conservatively)
 
 (defun entropy/emacs-basic-smooth-scrolling-mode-turn-on ()
   (unless (and (functionp entropy/emacs-unreadable-buffer-judge-function)
@@ -3748,15 +3775,22 @@ NOTE: this is a advice wrapper for any function."
   :group 'scrolling
   (if entropy/emacs-basic-smooth-scrolling-mode
       (progn
+        (setq entropy/emacs-basic--scroll-preserve-screen-position-orig-value
+              scroll-preserve-screen-position)
+        (setq entropy/emacs-basic--maximum-scroll-margin-orig-value maximum-scroll-margin)
         (setq entropy/emacs-basic--next-screen-context-lines-orig-value next-screen-context-lines)
         (setq entropy/emacs-basic--scroll-margin-orig-value scroll-margin)
         (setq entropy/emacs-basic--scroll-conservatively-orig-value scroll-conservatively)
         (setq-local
-         next-screen-context-lines 0
-         scroll-margin             0
-         scroll-conservatively     100))
+         scroll-preserve-screen-position 'always
+         maximum-scroll-margin           0.0
+         next-screen-context-lines       0
+         scroll-margin                   0
+         scroll-conservatively           101))
     (progn
       (setq-local
+       scroll-preserve-screen-position entropy/emacs-basic--scroll-preserve-screen-position-orig-value
+       maximum-scroll-margin           entropy/emacs-basic--maximum-scroll-margin-orig-value
        next-screen-context-lines entropy/emacs-basic--next-screen-context-lines-orig-value
        scroll-margin             entropy/emacs-basic--scroll-margin-orig-value
        scroll-conservatively     entropy/emacs-basic--scroll-conservatively-orig-value)
