@@ -3740,7 +3740,7 @@ NOTE: this is a advice wrapper for any function."
        ((control meta) . global-text-scale)
        ((control) . text-scale))
      mouse-wheel-progressive-speed nil)
-    (when (fboundp 'pixel-scroll-precision)
+    (when (fboundp 'pixel-scroll-precision-mode)
       (unless (bound-and-true-p pixel-scroll-precision-mode)
         (pixel-scroll-precision-mode 1)))))
 

@@ -87,7 +87,7 @@ non-nil."
       (add-to-list 'load-path initial-theme-path)
       (load-theme 'entropy-base16-theme-bright t))))
 
-(unless entropy/emacs-fall-love-with-pdumper
+(unless (or entropy/emacs-fall-love-with-pdumper (daemonp))
   (entropy/emacs-ui--load-basic-theme-core))
 
 ;; ** init-frame position and width and height
@@ -167,8 +167,7 @@ determined by above variable you setted."
     (interactive)
     (when (and (buffer-live-p (get-buffer "*scratch*"))
                (bound-and-true-p entropy/emacs-ui-init-welcom-mode))
-      (switch-to-buffer
-       "*scratch*")))
+      (switch-to-buffer "*scratch*")))
 
   (defvar entropy/emacs-ui-init-welcom-mode-map
     (let ((keymap (make-sparse-keymap)))
@@ -257,7 +256,7 @@ char \"|\")."
             (setq counter (+ counter (length (plist-get el2 :str)))))
           (push counter str-counts-list)
           (setq counter 0))
-        (setq str-counts-list (reverse str-counts-list)))
+        (setq str-counts-list (nreverse str-counts-list)))
       ;; Return the widget entries list used for the insert func
       ;; `entropy/emacs-ui--init-welcom-create-widget'. list contains the car as list of str-fancy-obj format
       ;; relied on func `entropy/emacs-ui--init-welcom-insert-widget-entry' and the cdr as align-width for the
@@ -270,7 +269,7 @@ char \"|\")."
                    el align-width current-str-width)
                   str-fancy-list)
             (setq n (1+ n))))
-        (setq str-fancy-list (reverse str-fancy-list)
+        (setq str-fancy-list (nreverse str-fancy-list)
               str-fancy-list (cons str-fancy-list (+ 2 align-width))))
       str-fancy-list))
 
@@ -427,7 +426,7 @@ module (see `entropy/emacs-ui--init-welcom-text-logo-align').
             (backward-char 9)
             (setq end (point))
             (push (buffer-substring beg end) rtn))))
-      (setq rtn (reverse rtn))
+      (setq rtn (nreverse rtn))
       (unless (<= logo_id (length rtn))
         (error "Text logo id overflow!"))
       (let* ((str-choice (nth (- logo_id 1) rtn))
@@ -455,7 +454,7 @@ text logo module was one plist which has three keys:
         (push
          (mapconcat
           (lambda (x) x)
-          (reverse
+          (nreverse
            (let (align-list
                  (align_str
                   (make-string
@@ -490,7 +489,7 @@ First insert entropy-emacs logo into initial buffer
 and entropy-emacs version with tag description. Last to insert
 widget used func `entropy/emacs-ui--init-welcom-create-widget'."
     (let ((buffer (get-buffer-create entropy/emacs-init-welcome-buffer-name))
-          (img (ignore-errors (create-image entropy/emacs-fancy-splash-logo-file)))
+          img
           (title " WELCOME TO ENTROPY-EMACS ")
           (version entropy/emacs-ecv))
       (with-current-buffer buffer
@@ -498,7 +497,10 @@ widget used func `entropy/emacs-ui--init-welcom-create-widget'."
         (goto-char (point-min))
         (insert "\n\n\n")
         (forward-line 0)
-        (if (and img (display-graphic-p))
+        (if (and (display-graphic-p)
+                 (entropy/emacs-setf-by-body img
+                   (ignore-errors
+                     (create-image entropy/emacs-fancy-splash-logo-file))))
             (progn
               (insert (propertize " " 'display
                                   `(space :align-to (+ center (-0.5 . ,img)))))
@@ -771,7 +773,9 @@ value as optional interaction while `PREFIX' is non-nil."
            (display-graphic-p))
   (entropy/emacs-lazy-with-load-trail
     'loop-alpha
-    (entropy/emacs-ui-loop-alpha-selected-frame)))
+    (run-with-idle-timer
+     0.2 nil
+     #'entropy/emacs-ui-loop-alpha-selected-frame)))
 
 ;; ** Misc
 ;; *** minor misc
