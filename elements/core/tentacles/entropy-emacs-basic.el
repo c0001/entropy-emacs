@@ -4188,7 +4188,7 @@ as thus."
 ;; Delete selection if you insert
 (use-package delsel
   :ensure nil
-  :functions (delete-selection-pre-hook)
+  :eemacs-functions (delete-selection-pre-hook)
   :init
   (add-hook 'pre-command-hook 'delete-selection-pre-hook)
 
