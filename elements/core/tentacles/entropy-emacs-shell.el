@@ -153,7 +153,7 @@ will not be called for the instance as your expection."
               (setq suffixes (cdr suffixes)))
             (setq list (cdr list)))
           file)))
-    (advice-add '__ya/eshell-search-path
+    (advice-add 'eshell-search-path
                 :override #'__ya/eshell-search-path))
 
   ;; self-function
