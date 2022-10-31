@@ -5037,7 +5037,7 @@ backtrace:
     command-execute(describe-key)
 #+end_example
 "
-  :detector (version< "29" (number-to-string emacs-major-version))
+  :detector (<= 29 emacs-major-version)
   :signal (entropy/emacs-do-error-for-emacs-version-incompatible
            '<= "29")
   (when (or (not (display-graphic-p)) (daemonp))
