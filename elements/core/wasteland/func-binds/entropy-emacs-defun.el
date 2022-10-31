@@ -380,6 +380,8 @@ information used to distinguish this as special from others.
        (when ,(if aux-form t)
          (let ((,opt-var-sym
                 (cons ,fname-sym (list ,@opt-plist))))
+           ;; bypass byte-compile warning for unused lexical var `option'
+           (ignore ,opt-var-sym)
            ,aux-form))
        ,fname-sym)))
 
@@ -546,6 +548,7 @@ forcely get that name in USE-OBARRAY."
 (defmacro entropy/emacs-add-to-list
     (list-var element &optional append compare-fn)
   "Like `add-to-list' but LIST-VAR can also be a generalized varaible."
+  (declare (indent defun))
   (let ((cmpf-sym   (make-symbol "compare-fn"))
         (append-sym (make-symbol "use-append"))
         (list-sym   (make-symbol "list-var"))
@@ -1169,7 +1172,9 @@ BODY will not run also when EXTRA-UNLESS is set and return non-nil."
                  (list 'entropy/emacs-nlonely-listp ,obsym)))
        (when (and ,type-p-sym (not ,extra-unless))
          (when ,set-len-p-sym
-           (setf ,set-list-len-for (safe-length ,obsym)))
+           ;; bypass byte-compile warning for setf costant `nil'
+           ,(when set-list-len-for
+              `(setf ,set-list-len-for (safe-length ,obsym))))
          ,(entropy/emacs-macroexp-progn body)))))
 
 (defsubst entropy/emacs-double-list (&rest objects)

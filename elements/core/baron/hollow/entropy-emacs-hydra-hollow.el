@@ -1418,12 +1418,11 @@ of =pretty-hydra-category-width-indicator= which used for
               pretty-hydra-category-name-prefix)))
         (unless (boundp ctg-hook-name)
           (set ctg-hook-name nil))
-        (entropy/emacs-add-to-list
-         (symbol-value ctg-hook-name)
-         (lambda ()
-           (entropy/emacs-hydra-hollow-category-frame-work-define+
-            pretty-hydra-category-name-prefix pretty-hydra-body pretty-hydra-cabinet
-            pretty-hydra-category-width-indicator-for-inject)) 'append 'eq)))
+        (entropy/emacs-add-to-list ctg-hook-name
+          (lambda ()
+            (entropy/emacs-hydra-hollow-category-frame-work-define+
+             pretty-hydra-category-name-prefix pretty-hydra-body pretty-hydra-cabinet
+             pretty-hydra-category-width-indicator-for-inject)) 'append 'eq)))
     (when top-category-exists-p
       (dolist (part-ctg ctgs)
         (let* ((group (car part-ctg))

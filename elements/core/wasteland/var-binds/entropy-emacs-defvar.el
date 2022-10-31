@@ -64,6 +64,8 @@ repository and has submodule inited."
           (expand-file-name "autogen.sh" dir))
          dir)))
 
+;; bypass byte-compile warning
+(and (< emacs-major-version 28) (defvar read-extended-command-predicate))
 (defvar entropy/emacs-read-extended-command-predicates
   '(
     ;; The default filter inspired by
