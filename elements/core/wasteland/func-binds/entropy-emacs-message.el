@@ -306,6 +306,8 @@ interactive session."
                  (unless (eq the-window (get-buffer-window (current-buffer)))
                    ;; FIXME: why this happened in some case?
                    (error "[internal error] eemacs popup buffer is not dedicated to its window!"))
+                 ;; prepare to update display
+                 (force-window-update the-window)
                  (let* ((fn-msgstr (concat "-> " message-str))
                         (fn-insertion (concat fn-msgstr "\n")))
                    (goto-char (point-max))
@@ -320,8 +322,8 @@ interactive session."
                    ;; the current line of that window in visual way
                    ;; immediately.
                    (set-window-point the-window (point))
-                   (redisplay t)
-                   (setq entropy/emacs-message--cur-buf-is-popup-p t)))))
+                   (setq entropy/emacs-message--cur-buf-is-popup-p t)
+                   (redisplay t)))))
          (error "Can not create an `entropy/emacs-message-message-buffname' window."))
        ;; run an timer guard to force hide popuped message window
        (unless (timerp entropy/emacs-message--idle-timer-for-hide-popup)
