@@ -2752,10 +2752,10 @@ invoke the `entropy/emacs-require-only-needed' every time for that
 context evaluated. It's always highly recommend to `byte-compile' the
 file invoked this macro."
   (let* ((id (cl-incf entropy/emacs-require--place-top-id))
-         (stvar (intern (format "__eemacs-require-status-%s" id))))
+         (stvar (make-symbol (format "__eemacs-require-status-%s" id))))
     `(unless (bound-and-true-p ,stvar)
        (entropy/emacs-require-only-needed ,@args)
-       (eval '(defconst ,stvar t)))))
+       (set ',stvar t))))
 
 ;; *** run-hooks with prompt
 (defvar entropy/emacs--run-hooks-cache nil)
