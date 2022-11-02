@@ -6987,12 +6987,12 @@ can be used into your form:
           (entropy/emacs-get-plist-form
            eemacs-make-proc-args :synchronously t t)))
         (default-directory
-          (entropy/emacs-return-as-default-directory
-           (or
-            (entropy/emacs-eval-with-lexical
-             (entropy/emacs-get-plist-form
-              eemacs-make-proc-args :default-directory t t))
-            default-directory)))
+         (entropy/emacs-return-as-default-directory
+          (or
+           (entropy/emacs-eval-with-lexical
+            (entropy/emacs-get-plist-form
+             eemacs-make-proc-args :default-directory t t))
+           default-directory)))
         ;; make-proc args
         ($make_proc_name
          (entropy/emacs-eval-with-lexical
@@ -7047,7 +7047,7 @@ can be used into your form:
                      ;; interaction session may freeze emacs why? and thus
                      ;; we just used this in noninteraction session.
                      noninteractive)
-            (entropy/emacs-make-new-special-variable nil)))
+            (entropy/emacs-make-new-symbol nil)))
 
     ;; set var-binding here to prevent duplicate eval
     (let ((cprss-args (entropy/emacs-eval-with-lexical
@@ -7120,10 +7120,7 @@ can be used into your form:
                     ;; just ran after form when this process ran out successfully
                     (entropy/emacs-eval-with-lexical after-form lcb-env))
                 ;; run clean form
-                (unwind-protect
-                    (entropy/emacs-eval-with-lexical clean-form lcb-env)
-                  ;; unintern the temp sync indicator symbol
-                  (entropy/emacs-unintern-symbol thiscur_sync_sym))))))
+                (entropy/emacs-eval-with-lexical clean-form lcb-env)))))
         ;; return the processor
         thiscur_proc)
        (t
@@ -9288,7 +9285,7 @@ Thus, defaulty this function will forcely using the system 'curl'
 command to be the main subroutine when the 'curl' command existed in
 your system. Unless its `eq' to an symbol 'force-not'."
   (let* ((timeout (or (and (integerp timeout) timeout) 1))
-         (cbksym (entropy/emacs-make-new-special-variable nil))
+         (cbksym (entropy/emacs-make-new-symbol nil))
          (use-curl (or (and (and use-curl (not (eq use-curl 'force-not)))
                             (if (executable-find "curl")
                                 t
@@ -9329,15 +9326,13 @@ your system. Unless its `eq' to an symbol 'force-not'."
         (progn
           (entropy/emacs-make-process
            `(:name
-             ,(format "eemacs network url canbe connected test for 'url'" url)
+             ,(format "eemacs network url canbe connected test for '%s'" url)
              :synchronously t
              :command ',cmd-args
              :buffer nil
              :after
              (setq ,cbksym t)))
-          (prog1
-              (symbol-value cbksym)
-            (unintern cbksym nil)))
+          (symbol-value cbksym))
       (message "Use `url-http-head' to test url '%s' (warn: it may stuck emacs while GFW.) ..."
                url)
       (condition-case error
@@ -9430,7 +9425,7 @@ so that following keys are supported:
                         (expand-file-name (file-name-nondirectory tmp-file) destination)))
          (default-directory (entropy/emacs-return-as-default-directory
                              temporary-file-directory))
-         (cbk-symbol (entropy/emacs-make-new-special-variable nil))
+         (cbk-symbol (entropy/emacs-make-new-symbol nil))
          (tmp-file-del-func
           (lambda (&optional do-error)
             (condition-case err
@@ -9494,7 +9489,7 @@ so that following keys are supported:
            (inhibit-quit t)
            (success-message (format "Download from '%s' finished" url))
            (success-or-fatal-func-call-done-p-sym
-            (entropy/emacs-make-new-special-variable nil))
+            (entropy/emacs-make-new-symbol nil))
            (success-func (lambda ()
                            (message success-message)
                            (set cbk-symbol 'success)
@@ -9570,8 +9565,7 @@ so that following keys are supported:
                     (entropy/emacs-sleep-while (process-live-p proc))
                     ;; wait for sentinel done
                     (entropy/emacs-sleep-while
-                     (null (symbol-value success-or-fatal-func-call-done-p-sym)))
-                    (entropy/emacs-unintern-symbol success-or-fatal-func-call-done-p-sym))
+                     (null (symbol-value success-or-fatal-func-call-done-p-sym))))
                 (if (process-live-p proc) (kill-process proc))
                 (funcall fatal-func)))
           (condition-case error

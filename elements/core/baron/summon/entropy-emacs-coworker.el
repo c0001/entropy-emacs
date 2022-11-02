@@ -487,7 +487,6 @@ EXIT /b
       (entropy/emacs-coworker--coworker-message-install-success
        server-name-string))))
 
-
 ;; **** advice them using http proxy
 
 (dolist (install-func  '(entropy/emacs-coworker--coworker-install-by-archive-get
