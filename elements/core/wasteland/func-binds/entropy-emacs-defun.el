@@ -468,6 +468,7 @@ VAR should be a variable name or a `setf' compatible place.
   (declare (indent 1))
   `(setf ,var ,(macroexpand-1 `(entropy/emacs-intern ,@body))))
 
+(defvar entropy/emacs-make-new-interned-symbol--counter 0)
 (defun entropy/emacs-make-new-interned-symbol (&optional prefix identity for-obarray)
   "Return a new allocated symbol where its value is void, and its
 function definition and property list are also nil. And it's
@@ -489,11 +490,19 @@ symbol consisted by PREFIX or its `symbol-name' immediately."
       (while
           (intern-soft
            (entropy/emacs-setf-by-body sym
-             (symbol-name (gensym (or prefix "entropy/emacs-make-new-interned-symbol/"))))
-           for-obarray))
+             (format "%s%d" (or prefix "entropy/emacs-make-new-interned-symbol/")
+                     entropy/emacs-make-new-interned-symbol--counter))
+           for-obarray)
+        (cl-incf entropy/emacs-make-new-interned-symbol--counter))
       (setq sym (intern sym for-obarray))
+      (cl-incf entropy/emacs-make-new-interned-symbol--counter)
       ;; return
       sym)))
+
+(defun entropy/emacs-make-new-symbol (value &optional prefix)
+  "Like `gensym' as for PREFIX but also `set' that new symbol with
+value VALUE."
+  (let ((sym (gensym prefix))) (set sym value) sym))
 
 (defun entropy/emacs-make-new-special-variable (value &optional prefix)
   "Make a new dynamic symbol (predicated by `special-variable-p' and it's
@@ -533,7 +542,7 @@ any properties set) of the defination of BODY.
 (defmacro entropy/emacs-run-body-just-once (&rest body)
   "Run BODY just once i.e. the first time invoke it."
   (when body
-    (let ((var-sym (entropy/emacs-make-new-special-variable
+    (let ((var-sym (entropy/emacs-make-new-symbol
                     nil "___eemacs-run-body-just-once/")))
       `(unless (bound-and-true-p ,var-sym)
          (prog1 (progn ,@body) (setq ,var-sym t))))))

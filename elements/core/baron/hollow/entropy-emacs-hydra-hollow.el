@@ -2279,11 +2279,11 @@ as an =pretty-hydra-cabinet-name/lexical= i.e. a lexical symbol
 whose value is an =pretty-hydra-cabinet=, since
 =pretty-hydra-cabinet-name= must be an dynamic variable's name so
 that we can not using normal subroutines to manipulate it, thus
-we use `entropy/emacs-make-new-special-variable' to
+we use `entropy/emacs-make-new-symbol' to
 handle its value and replace the new value to the lexical one.
 "
   (let ((dysym-name (make-symbol "dysym-name")))
-    `(let ((,dysym-name (entropy/emacs-make-new-special-variable
+    `(let ((,dysym-name (entropy/emacs-make-new-symbol
                          ,pretty-hydra-cabinet-name/lexical)))
        (entropy/emacs-hydra-hollow-customize-pretty-hydra-cabinet
         ,dysym-name)
@@ -2447,11 +2447,11 @@ as an =pretty-hydra-cabinet-name/lexical= i.e. a lexical symbol
 whose value is an =pretty-hydra-cabinet=, since
 =pretty-hydra-cabinet-name= must be an dynamic variable's name so
 that we can not using normal subroutines to manipulate it, thus
-we use `entropy/emacs-make-new-special-variable' to
+we use `entropy/emacs-make-new-symbol' to
 handle its value and replace the new value to the lexical one.
 "
   (let ((dysym-name (make-symbol "dysym-name")))
-    `(let ((,dysym-name (entropy/emacs-make-new-special-variable
+    `(let ((,dysym-name (entropy/emacs-make-new-symbol
                          ,pretty-hydra-cabinet-name/lexical)))
        (entropy/emacs-hydra-holow-recursive-expand-pretty-hydra-cabinet
         ,dysym-name)
