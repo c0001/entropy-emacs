@@ -2738,7 +2738,6 @@ See also `entropy/emacs-require-only-once'."
         (if falp (apply 'require fa)
           (require fa))))))
 
-(defvar entropy/emacs-require--place-top-id -1)
 (defmacro entropy/emacs-require-only-once (&rest args)
   "Require features of ARGS using
 `entropy/emacs-require-only-needed' only once in context.
@@ -2751,11 +2750,31 @@ execution. Thus any context not matched any of those occasions will
 invoke the `entropy/emacs-require-only-needed' every time for that
 context evaluated. It's always highly recommend to `byte-compile' the
 file invoked this macro."
-  (let* ((id (cl-incf entropy/emacs-require--place-top-id))
-         (stvar (make-symbol (format "__eemacs-require-status-%s" id))))
+  (let* ((stvar (gensym "__eemacs-require-status/")))
+    ;; bypass byte-compile warning
+    (eval `(defvar ,stvar nil))
     `(unless (bound-and-true-p ,stvar)
        (entropy/emacs-require-only-needed ,@args)
        (set ',stvar t))))
+
+(defmacro entropy/emacs-run-body-only-once (&rest body)
+  "Run BODY just once i.e. the first time invoke it, and return its
+value as that once and nil as for any other time.
+
+NOTE&EEMACS_MAINTENANCE:
+
+This macro just can be used in an `lambda' or `defun' and the
+`byte-compile' context, since this macro must be expanded before
+execution. Thus any context not matched any of those occasions
+will invoke the BODY every time for that context evaluated. It's
+always highly recommend to `byte-compile' the file used this
+macro."
+  (when body
+    (let ((var-sym (gensym "___eemacs-run-body-just-once/")))
+      ;; bypass byte-compile warning
+      (eval `(defvar ,var-sym nil))
+      `(unless (bound-and-true-p ,var-sym)
+         (prog1 (progn ,@body) (set ',var-sym t))))))
 
 ;; *** run-hooks with prompt
 (defvar entropy/emacs--run-hooks-cache nil)

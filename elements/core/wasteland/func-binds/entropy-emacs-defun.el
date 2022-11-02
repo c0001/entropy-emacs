@@ -539,23 +539,6 @@ any properties set) of the defination of BODY.
          ,(macroexpand-1 `(entropy/emacs-cl-lambda-with-lcb ,@args)))
        ,sym)))
 
-(defmacro entropy/emacs-run-body-just-once (&rest body)
-  "Run BODY just once i.e. the first time invoke it.
-
-NOTE&EEMACS_MAINTENANCE:
-
-This macro just can be used in an `lambda' or `defun' and the
-`byte-compile' context, since this macro must be expanded before
-execution. Thus any context not matched any of those occasions
-will invoke the BODY every time for that context evaluated. It's
-always highly recommend to `byte-compile' the file used this
-macro."
-  (when body
-    (let ((var-sym (entropy/emacs-make-new-symbol
-                    nil "___eemacs-run-body-just-once/")))
-      `(unless (bound-and-true-p ,var-sym)
-         (prog1 (progn ,@body) (set ',var-sym t))))))
-
 (defun entropy/emacs-unintern-symbol (symbol &optional use-obarray)
   "Like `unintern' but use SYMBOL as the main arg since although
 `unintern' support symbol as main arg but it may not `eq' to the

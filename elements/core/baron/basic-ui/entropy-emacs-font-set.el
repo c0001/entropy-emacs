@@ -306,7 +306,7 @@ when available."
       'enable-eemacs-prog-font-set (&rest _)
       :when-gui
       (progn
-        (entropy/emacs-run-body-just-once
+        (entropy/emacs-run-body-only-once
          (add-hook 'prog-mode-hook #'entropy/emacs-font-set--prog-font-set))
         (entropy/emacs-font-set--prog-font-set-all))
       :when-tui
