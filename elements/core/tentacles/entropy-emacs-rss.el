@@ -1054,8 +1054,8 @@ the entry contents since we should respect
           (add-hook 'entropy/emacs-window-center-disable-after-hook
                     func-sym nil t)
           (add-hook 'kill-buffer-hook
-                    `(lambda (&rest _)
-                       (entropy/emacs-unintern-symbol ',func-sym))
+                    (lambda (&rest _)
+                      (entropy/emacs-unintern-symbol func-sym))
                     nil t)
           (unless (eq (entropy/emacs-wc-window-auto-center-mode-turn-on-judger
                        (current-buffer))
