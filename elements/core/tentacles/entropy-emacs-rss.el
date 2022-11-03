@@ -590,16 +590,21 @@ will be automatically modified in `custom-file'."
 the current elfeed-show-buffer."
     (declare (interactive-only t))
     (interactive)
-    (if (not (equal major-mode 'elfeed-show-mode))
-        (kill-buffer (current-buffer))
-      (progn
-        (kill-buffer (current-buffer))
-        (let* ((bfl (mapcar #'(lambda (x) (buffer-name x))
-                            (buffer-list))))
-          (if (member "*elfeed-search*" bfl)
-              (progn (switch-to-buffer "*elfeed-search*" nil t)
-                     (message "Back to *elfeed-search* buffer."))
-            (user-error "Couldn't found *elfeed-search* buffer."))))))
+    (let ((curbuff (current-buffer)) (md major-mode) did-p)
+      (unwind-protect
+          (when (eq md 'elfeed-show-mode)
+            (catch :exit
+              (mapc
+               #'(lambda (x)
+                   (with-current-buffer x
+                     (when (eq major-mode 'elfeed-search-mode)
+                       (switch-to-buffer x nil t)
+                       (throw :exit (setq did-p t)))))
+               (buffer-list)))
+            (if did-p (message "Back to *elfeed-search* buffer done \
+(maybe counts huge elfeed entries ...)")
+              (user-error "Couldn't found *elfeed-search* buffer.")))
+        (kill-buffer curbuff))))
 
   (defun entropy/emacs-rss-elfeed-clean-filter ()
     "Clean all filter for curren elfeed search buffer."
