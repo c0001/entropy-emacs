@@ -285,7 +285,7 @@ instead."
               #'__ya/elfeed-add-feed-around)
 
 
-  (defun entropy/emacs-rss--elfeed-prun-feeds-plist (feeds &optional feeds-plist-name)
+  (defun entropy/emacs-rss--elfeed-prune-feeds-plist (feeds &optional feeds-plist-name)
     "Destructively prune FEEDS-PLIST-NAME's value by FEEDS, and
 return the pruned 'feeds-plist'.
 
@@ -578,7 +578,7 @@ will be automatically modified in `custom-file'."
         (setq elfeed-feeds (delete (car el) elfeed-feeds))
         (push (car el) olist))
       (customize-save-variable 'entropy/emacs-elfeed-feeds
-                               (entropy/emacs-rss--elfeed-prun-feeds-plist
+                               (entropy/emacs-rss--elfeed-prune-feeds-plist
                                 olist))
       (elfeed-db-gc-empty-feeds)))
 
@@ -886,7 +886,7 @@ will automatically be modified in `custom-file'."
           (setq rtn (delete el rtn))))
       (setq elfeed-feeds rtn)
       (customize-save-variable 'entropy/emacs-elfeed-feeds
-                               (entropy/emacs-rss--elfeed-prun-feeds-plist
+                               (entropy/emacs-rss--elfeed-prune-feeds-plist
                                 entropy/emacs-rss--elfeed-feed-remove-list))
       (when (yes-or-no-p "Do you want to remove all empty feeds? ")
         (elfeed-db-gc-empty-feeds))))
@@ -911,7 +911,7 @@ will automatically be modified in `custom-file'."
         (setq rtn (delete el rtn)))
       (setq elfeed-feeds rtn)
       (customize-save-variable 'entropy/emacs-elfeed-feeds
-                               (entropy/emacs-rss--elfeed-prun-feeds-plist
+                               (entropy/emacs-rss--elfeed-prune-feeds-plist
                                 mlist))))
 
 ;; *** update feed function
