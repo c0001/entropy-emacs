@@ -160,7 +160,8 @@ NOTE: this function is an around advice wrapper."
 
 NOTE: this function is an around advice wrapper."
   (let* ((company-candidates-length
-          entropy/company--this-candi-length))
+          (or entropy/company--this-candi-length
+              company-candidates-length)))
     (apply orig-func orig-args)))
 
 
@@ -279,9 +280,11 @@ eemacs specifications"
     (global-company-mode t)
     ;;reduce lagging on increase company echo idle delay
     (setq company-echo-delay 1)
-    (dolist (func '(company-idle-begin company-complete))
-      (advice-add func
-                  :before 'entropy/emacs-company-start-with-yas))
+    (entropy/emacs-lazy-initial-advice-before
+     '(company-idle-begin company-complete)
+     "eemacs-company-with-yas-init" "eemacs-company-with-yas-init"
+     :pdumper-no-end t :prompt-type 'prompt-echo
+     (entropy/emacs-company-start-with-yas))
     (entropy/emacs-company-yas-for-docs-init)
     (entropy/emacs-company-toggle-frontend
      entropy/emacs-company-tooltip-use-type))
@@ -367,10 +370,12 @@ eemacs specifications"
 ;; ***** `company-post-command' idle trigger
 
   ;; EEMACS_MAINTENANCE: follow upstream updates
+  (defvar-local __ya/company-post-command/current-buffer nil)
   (defun __ya/company-post-command ()
     "Yet another `company-post-command' which run with
 `entropy/emacs-run-at-idle-immediately' so that the sequentially
 fast hints not laggy by `candidates' re-calculation."
+    (setq __ya/company-post-command/current-buffer (current-buffer))
     (when (or (and company-candidates
                    (null this-command))
               (eq this-command 'keyboard-quit))
@@ -383,11 +388,20 @@ fast hints not laggy by `candidates' re-calculation."
     (entropy/emacs-run-at-idle-immediately
      __idle/company-post-command
      :which-hook 0.2
-     :current-buffer t
      :idle-when
      ;; TODO: complete the precise conditions
-     (let ((special_key_p (member this-command
+     (let ((special_key_p (memq   this-command
                                   '(
+                                    ;; TODO: common navigation hints
+                                    next-line
+                                    previous-line
+                                    scroll-up-command
+                                    move-end-of-line
+                                    move-beginning-of-line
+                                    forward-char
+                                    forward-word
+                                    backward-char
+                                    backward-word
                                     ;; `company-active-map' hints
                                     company-abort
                                     company-select-next
@@ -405,10 +419,15 @@ fast hints not laggy by `candidates' re-calculation."
                                     company-search-candidates
                                     company-filter-candidates
                                     company-complete-number
+                                    company-complete-quick-access
                                     ;; `company-search-map' hints
                                     company-search-other-char
                                     company-search-delete-char
                                     company-search-abort
+                                    company-select-next-or-abort
+                                    company-select-previous-or-abort
+                                    company--select-next-and-warn
+                                    company--select-previous-and-warn
                                     company-search-repeat-forward
                                     company-search-repeat-backward
                                     company-search-toggle-filtering
@@ -427,7 +446,9 @@ fast hints not laggy by `candidates' re-calculation."
            (last-command (if (bound-and-true-p entropy/emacs-current-session-is-idle-p)
                              entropy/emacs-current-session-last-command-before-idle
                            last-command)))
-       (unless (company-keep this-command)
+       (unless (or (not (eq __ya/company-post-command/current-buffer
+                            (current-buffer)))
+                   (company-keep this-command))
          ;; we just use `condition-case' since run within idle trigger
          ;; wrapper as it has its own debug facilities.
          (condition-case err
@@ -446,9 +467,7 @@ fast hints not laggy by `candidates' re-calculation."
                              'company-idle-begin
                              (current-buffer) (selected-window)
                              (buffer-chars-modified-tick) (point))
-                          (when (timerp company-timer)
-                            (cancel-timer company-timer))
-                          (setq company-timer nil)
+                          (entropy/emacs-cancel-timer-var company-timer)
                           (setq company-timer
                                 (run-with-timer
                                  delay nil
@@ -956,7 +975,19 @@ in `entropy/emacs-company-frontend-sticker'."
                     (string-match-p "GNOME" value))))
             ;; Not future-proof, but we can use it now.
             (setq x-gtk-resize-child-frames 'resize-mode)
-          (setq x-gtk-resize-child-frames 'hide))))
+          (if ;; FIXME: in emacs-29 gui session
+              ;; `x-gtk-resize-child-frames' eq to `hide' will make
+              ;; emacs broken and non-usable as error msg like:
+              ;; `(circular-list (("29.0.50") . #2))' when quick
+              ;; delete chars and reinput those chars and lead the
+              ;; next show causing this bug.
+              ;;
+              ;; This seems to a eemacs internal bug caused since we
+              ;; can not reproduce in vanilla emacs-29. And just
+              ;; appeared in `company-box'.
+              (<= emacs-major-version 29)
+              (setq x-gtk-resize-child-frames nil)
+            (setq x-gtk-resize-child-frames 'hide)))))
 
   (advice-add 'company-box-show
               :around
@@ -985,7 +1016,7 @@ in `entropy/emacs-company-frontend-sticker'."
 ;; ***** company box doc hide when fly on editing
 
   (defvar-local __local-company-box-doc-hided nil)
-  (defun __company-doc-show-timer-func (selection frame)
+  (defun __company-box-doc-show-timer-func (selection frame)
     "`company-box-doc' delay show core subroutine.
 
 EEMACS_MAINTENANCE: may need update with company-box upstream."
@@ -1017,12 +1048,12 @@ upstream."
           (setq __local-company-box-doc-hided t)))
       (when (timerp company-box-doc--timer)
         (cancel-timer company-box-doc--timer)
-        (cancel-function-timers '__company-doc-show-timer-func)
+        (cancel-function-timers '__company-box-doc-show-timer-func)
         (setq company-box-doc--timer nil))
       (setq company-box-doc--timer
             (run-with-timer
              company-box-doc-delay nil
-             #'__company-doc-show-timer-func
+             #'__company-box-doc-show-timer-func
              selection frame))))
   (advice-add 'company-box-doc :override #'__ya/company-box-doc)
 
@@ -1052,13 +1083,8 @@ upstream."
 older doc show is actived since we delayed company update command
 while in `company-box-mode'."
     (if (bound-and-true-p company-box-mode)
-        (cond
-         ((bound-and-true-p company-box-mode)
-          (add-hook 'pre-command-hook
-                    #'__ya_company-box-doc-hide nil t))
-         (t
-          (add-hook 'pre-command-hook
-                    #'__ya_company-box-doc-hide nil t)))
+        (add-hook 'pre-command-hook
+                  #'__ya_company-box-doc-hide nil t)
       (remove-hook 'pre-command-hook
                    #'__ya_company-box-doc-hide t)))
   (add-hook 'company-box-mode-hook
