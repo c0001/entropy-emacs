@@ -707,7 +707,7 @@ entropy-emacs."
   ;; EEMACS_MAINTENANCE: update folllow upstream internal defination
   (doom-modeline-def-segment buffer-position
     "The buffer position information."
-    (cond ((and entropy/emacs-current-session-is-idle-p
+    (cond ((and t ;; entropy/emacs-current-session-is-idle-p
                 (doom-modeline--active) ;EEMACS_MAINTENANCE: update folllow upstream internal defination
                 (not (bound-and-true-p company-candidates)))
            (let* ((active (doom-modeline--active))
@@ -766,7 +766,7 @@ mouse-1: Display Line and Column Mode Menu"
     "Redefined by eemacs to run while
 `entropy/emacs-current-session-is-idle-p' is non-nill"
     (cond
-     ((and entropy/emacs-current-session-is-idle-p
+     ((and t ;; entropy/emacs-current-session-is-idle-p
            (doom-modeline--active))
       (let ((meta (concat (doom-modeline--macro-recording)
                           (doom-modeline--symbol-overlay))))
@@ -789,7 +789,7 @@ while `entropy/emacs-current-session-is-idle-p' is non-nil."
        ;; we do not inhibit show for some non frequency status
        (or
         (eq last-command 'entropy/grom-read-only-buffer))
-       (and entropy/emacs-current-session-is-idle-p
+       (and t ;; entropy/emacs-current-session-is-idle-p
             (doom-modeline--active)))
       (concat
        doom-modeline-wspc
@@ -803,7 +803,7 @@ while `entropy/emacs-current-session-is-idle-p' is non-nil."
 
   (defun __ya/doom-modeline-segment--major-mode
       (orig-func &rest orig-args)
-    (cond ((and entropy/emacs-current-session-is-idle-p
+    (cond ((and t ;; entropy/emacs-current-session-is-idle-p
                 (doom-modeline--active))
            (apply orig-func orig-args))
           (t
