@@ -1906,35 +1906,38 @@ current inserted annotation when `org-adapt-indentation' non-nil.
 "
     (interactive nil org-mode)
     (let* ((inhibit-read-only t)
-           success-p
-           (win-method "SnippingTool.exe")
+           success-p error-msg
            (indent-func
             (lambda ()
               (beginning-of-line)
               (org-indent-line)))
+           (win-fallback-method "SnippingTool.exe")
            (windows-use-fallback-p
             (lambda ()
               (and sys/is-win-group
-                   (executable-find win-method))))
+                   (executable-find win-fallback-method))))
            (windows-fallback-func
             (lambda ()
               (let ((link entropy/emacs-win-org-download-file-name))
-                (if (not (ignore-errors (process-lines win-method)))
-                    (error "Capture image using '%s' failed!" win-method)
-                  (org-download-image link)
-                  ;; delete the tempo capture image
-                  (delete-file link))))))
-      (condition-case nil
+                (process-lines win-fallback-method)
+                (org-download-image link)
+                ;; delete the tempo capture image
+                (delete-file link)))))
+      (condition-case err
           (progn
             (call-interactively #'org-download-screenshot)
             (setq success-p t))
         (error
          (cond
           ((funcall windows-use-fallback-p)
-           (funall windows-fallback-func)
-           (setq success-p t)))))
-      (when (and success-p
-                 org-adapt-indentation)
+           (condition-case err
+               (progn
+                 (funcall windows-fallback-func)
+                 (setq success-p t))
+             (error (setq error-msg err))))
+          (t (setq error-msg err)))))
+      (unless success-p (user-error "eemacs-org-download error: %s" error-msg))
+      (when (and success-p org-adapt-indentation)
         (let ((prev (+ 0
                        (if org-download-annotate-function       1 0)
                        (if (= org-download-image-html-width 0)  0 1)
