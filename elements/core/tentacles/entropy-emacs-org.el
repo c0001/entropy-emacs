@@ -1950,40 +1950,8 @@ current inserted annotation when `org-adapt-indentation' non-nil.
           (funcall indent-func)))))
 
 ;; **** enhance org-download-insert-link
-  (defun entropy/emacs-org--odl-judgement-whether-capture-name (buffname)
-    "Judgement whether using 'org-download' in capture mode, if
-indeed then auto-transfer buffer-name to origin one and return
-FILENAME.
-
-FILENAME transfer depending on the value of
-`uniquify-buffer-name-style' which uniquify `buffer-name'
-duplicated in `buffer-list', thus each type of uniquify name style
-corresponding to the specific transfer method."
-    (if (string-match-p "^CAPTURE-" buffname)
-        (let ((tname (replace-regexp-in-string "^CAPTURE-" "" buffname))
-              (forward-re "\\(.*?/\\)+")
-              (reverse-re "\\(.*?\\\\\\)+")
-              (post-forward-re "\\|.*?/?.*?$")
-              (post-angle-re "<.*?>$"))
-          (cond
-           ;; forward uniquify buffer name type
-           ((string-match-p forward-re tname)
-            (setq tname (file-name-nondirectory tname)))
-           ((string-match-p reverse-re tname)
-            (setq tname (file-name-nondirectory tname)))
-           ;; post-forward-angle-brackets uniquify buffer name type
-           ((string-match-p post-angle-re tname)
-            (setq tname (replace-regexp-in-string post-angle-re "" tname)))
-           ;; post-forward uniquify buffer name type
-           ((string-match-p post-forward-re tname)
-            (setq tname (replace-regexp-in-string post-forward-re "" tname)))
-           ;; non-duplicated files
-           (t tname))
-          (concat default-directory tname))
-      buffer-file-name))
-
-  (defun org-download-insert-link (link filename)
-    "This function has been redefine for the bug of using
+  (defun __ya/org-download-insert-link (link filename)
+    "Redefine origin function for fixing the bug of using
 `buffer-name' in `file-name-directory' and automatically
 adjusting the link insert position follow the rules below:
 
@@ -2031,8 +1999,12 @@ adjusting the link insert position follow the rules below:
               (file-relative-name
                filename
                (file-name-directory
-                (entropy/emacs-org--odl-judgement-whether-capture-name (buffer-name)))))))
-    (org-indent-line)))
+                (or buffer-file-name
+                    (and (eq major-mode 'org-capture-mode)
+                         (org-capture-get :position-for-last-stored 'local))
+                    (user-error "eemacs org-download insert link: Not a file buffer")))))))
+    (org-indent-line))
+  (advice-add 'org-download-insert-link :override #'__ya/org-download-insert-link))
 
 ;; ** toc-org
 (use-package toc-org
