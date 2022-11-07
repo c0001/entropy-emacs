@@ -67,12 +67,21 @@
 ;; ** require
 
 ;; ** defvar
+
+;; declare firtly for lexical proper
+(defvar company-backends)
+(defvar company-candidates)
+(defvar company-candidates-length)
+(defvar company-frontends)
+(defvar company-backends)
+(defvar company-dabbrev-code-everywhere)
+(defvar company-dabbrev-ignore-case)
+(defvar company-dabbrev-downcase)
+(defvar company-dabbrev-char-regexp)
+
 (defvar entropy/emacs-company-top-initial-backends
   '(company-files company-capf :separate company-en-words)
   "Basic top company-backend for all situations.")
-
-(defvar entropy/emacs-company-max-candidates 12
-  "The companys max canids length restriction.")
 
 (defvar entropy/emacs-company-internal-pseudo-frontends
   '(company-pseudo-tooltip-frontend
@@ -82,7 +91,6 @@
 
 NOTE: update with `company' upstream.")
 
-(defvar company-backends)
 (entropy/emacs-lazy-load-simple 'company
   (setq-default company-backends
                 (append (list entropy/emacs-company-top-initial-backends)
@@ -129,41 +137,6 @@ yasnippet support *locally*."
        macros))
     (dolist (macro macros)
       (funcall macro))))
-
-
-;; *** Candidates length restriction
-
-;; declare firtly for lexical proper
-(defvar company-candidates)
-(defvar company-candidates-length)
-(defvar company-frontends)
-(defvar company-backends)
-
-(defvar-local entropy/company--this-candi-length nil)
-
-(defun entropy/emacs-company--company-candis-restrict-advice
-    (orig-func &rest orig-args)
-  "Restrict company content to reduce lagging feels.
-
-NOTE: this function is an around advice wrapper."
-  (let* ((company-candidates
-          (-take entropy/emacs-company-max-candidates
-                 company-candidates))
-         (company-candidates-length
-          (setq entropy/company--this-candi-length
-                (length company-candidates))))
-    (apply orig-func orig-args)))
-
-(defun entropy/emacs-company--company-candis-length-follow-advice
-    (orig-func &rest orig-args)
-  "Follow candis length via `entropy/company--this-candi-length'.
-
-NOTE: this function is an around advice wrapper."
-  (let* ((company-candidates-length
-          (or entropy/company--this-candi-length
-              company-candidates-length)))
-    (apply orig-func orig-args)))
-
 
 ;; *** prunning `company-frontends'
 
@@ -305,10 +278,6 @@ eemacs specifications"
 ;; **** basic setting
 
   ;; common internal customization
-  (defvar company-dabbrev-code-everywhere)
-  (defvar company-dabbrev-ignore-case)
-  (defvar company-dabbrev-downcase)
-  (defvar company-dabbrev-char-regexp)
   (setq
    ;; just enable company in some prog referred modes
    company-global-modes (append '(emacs-lisp-mode
@@ -358,131 +327,91 @@ eemacs specifications"
   (setq-default company-frontends '(company-pseudo-tooltip-frontend))
 
 ;; **** advices
-;; ***** restrict company candidates length
-  (advice-add 'company-pseudo-tooltip-frontend
-              :around
-              #'entropy/emacs-company--company-candis-restrict-advice)
-  (advice-add 'company-set-selection
-              :around
-              #'entropy/emacs-company--company-candis-length-follow-advice)
-
-
 ;; ***** `company-post-command' idle trigger
 
+  (defvar entropy/emacs-company--company-special-keys
+    '(
+      ;; TODO: common navigation hints
+      next-line
+      previous-line
+      scroll-up-command
+      move-end-of-line
+      move-beginning-of-line
+      forward-char
+      forward-word
+      backward-char
+      backward-word
+      ;; `company-active-map' hints
+      company-abort
+      company-select-next
+      company-select-previous
+      company-select-previous-or-abort
+      company-select-next-or-abort
+      company-next-page
+      company-previous-page
+      company-complete-mouse
+      company-select-mouse
+      company-complete-selection
+      company-quickhelp-manual-begin
+      company-show-doc-buffer
+      company-show-location
+      company-search-candidates
+      company-filter-candidates
+      company-complete-number
+      company-complete-quick-access
+      ;; `company-search-map' hints
+      company-search-other-char
+      company-search-delete-char
+      company-search-abort
+      company-select-next-or-abort
+      company-select-previous-or-abort
+      company--select-next-and-warn
+      company--select-previous-and-warn
+      company-search-repeat-forward
+      company-search-repeat-backward
+      company-search-toggle-filtering
+      company-search-printing-char
+      ;; company internal fake set
+      company-idle-begin
+      ))
+
   ;; EEMACS_MAINTENANCE: follow upstream updates
-  (defvar-local __ya/company-post-command/current-buffer nil)
-  (defun __ya/company-post-command ()
+  (defvar-local __ya/company-post-command/current-point nil)
+  (defvar-local __ya/company-post-command/previous-point nil)
+  (defun __ya/company-post-command (orig-func &rest orig-args)
     "Yet another `company-post-command' which run with
 `entropy/emacs-run-at-idle-immediately' so that the sequentially
 fast hints not laggy by `candidates' re-calculation."
-    (setq __ya/company-post-command/current-buffer (current-buffer))
-    (when (or (and company-candidates
-                   (null this-command))
-              (eq this-command 'keyboard-quit))
-      ;; Happens when the user presses `C-g' while inside
-      ;; `flyspell-post-command-hook', for example.
-      ;; Or any other `post-command-hook' function that can call `sit-for',
-      ;; or any quittable timer function.
-      (company-abort)
-      (setq this-command 'company-abort))
-    (entropy/emacs-run-at-idle-immediately
-     __idle/company-post-command
-     :which-hook 0.2
-     :idle-when
-     ;; TODO: complete the precise conditions
-     (let ((special_key_p (memq   this-command
-                                  '(
-                                    ;; TODO: common navigation hints
-                                    next-line
-                                    previous-line
-                                    scroll-up-command
-                                    move-end-of-line
-                                    move-beginning-of-line
-                                    forward-char
-                                    forward-word
-                                    backward-char
-                                    backward-word
-                                    ;; `company-active-map' hints
-                                    company-abort
-                                    company-select-next
-                                    company-select-previous
-                                    company-select-previous-or-abort
-                                    company-select-next-or-abort
-                                    company-next-page
-                                    company-previous-page
-                                    company-complete-mouse
-                                    company-select-mouse
-                                    company-complete-selection
-                                    company-quickhelp-manual-begin
-                                    company-show-doc-buffer
-                                    company-show-location
-                                    company-search-candidates
-                                    company-filter-candidates
-                                    company-complete-number
-                                    company-complete-quick-access
-                                    ;; `company-search-map' hints
-                                    company-search-other-char
-                                    company-search-delete-char
-                                    company-search-abort
-                                    company-select-next-or-abort
-                                    company-select-previous-or-abort
-                                    company--select-next-and-warn
-                                    company--select-previous-and-warn
-                                    company-search-repeat-forward
-                                    company-search-repeat-backward
-                                    company-search-toggle-filtering
-                                    company-search-printing-char
-                                    ;; company internal fake set
-                                    company-idle-begin
-                                    )))
-           (candi_exist_p (bound-and-true-p company-candidates)))
-       (cond
-        (special_key_p nil)
-        (candi_exist_p t)
-        (t nil)))
-     (let ((this-command (if (bound-and-true-p entropy/emacs-current-session-is-idle-p)
-                             entropy/emacs-current-session-this-command-before-idle
-                           this-command))
-           (last-command (if (bound-and-true-p entropy/emacs-current-session-is-idle-p)
-                             entropy/emacs-current-session-last-command-before-idle
-                           last-command)))
-       (unless (or (not (eq __ya/company-post-command/current-buffer
-                            (current-buffer)))
-                   (company-keep this-command))
-         ;; we just use `condition-case' since run within idle trigger
-         ;; wrapper as it has its own debug facilities.
-         (condition-case err
-             (progn
-               (unless (equal (point) company-point)
-                 (let (company-idle-delay) ; Against misbehavior while debugging.
-                   (company--perform)))
-               (if company-candidates
-                   (company-call-frontends 'post-command)
-                 (let ((delay (company--idle-delay)))
-                   (and (numberp delay)
-                        (not defining-kbd-macro)
-                        (company--should-begin)
-                        (if (bound-and-true-p entropy/emacs-current-session-is-idle-p)
-                            (funcall
-                             'company-idle-begin
-                             (current-buffer) (selected-window)
-                             (buffer-chars-modified-tick) (point))
-                          (entropy/emacs-cancel-timer-var company-timer)
-                          (setq company-timer
-                                (run-with-timer
-                                 delay nil
-                                 'company-idle-begin
-                                 (current-buffer) (selected-window)
-                                 (buffer-chars-modified-tick) (point))))
-                        ))))
-           (error (message "Company: An error occurred in post-command")
-                  (message "%s" (error-message-string err))
-                  (company-cancel))))
-       (company-install-map))))
+    (setq __ya/company-post-command/previous-point __ya/company-post-command/current-point
+          __ya/company-post-command/current-point (point))
+    (if (or (current-idle-time)
+            (memq this-command entropy/emacs-company--company-special-keys)
+            ;; FIXME: if we using idle in `delete' char cases, company
+            ;; will not working properly and may cause emacs hang?
+            (and __ya/company-post-command/previous-point
+                 (< __ya/company-post-command/current-point
+                    __ya/company-post-command/previous-point)))
+        (apply orig-func orig-args)
+      (let ((curbuff (current-buffer)))
+        (entropy/emacs-run-at-idle-immediately
+         __idle/company-post-command
+         :which-hook 0.2
+         (let ((this-command
+                (if (bound-and-true-p entropy/emacs-current-session-is-idle-p)
+                    entropy/emacs-current-session-this-command-before-idle
+                  this-command))
+               (last-command
+                (if (bound-and-true-p entropy/emacs-current-session-is-idle-p)
+                    entropy/emacs-current-session-last-command-before-idle
+                  last-command)))
+           (when (eq curbuff (current-buffer))
+             (apply orig-func orig-args)))))
+      ;; EEMACS_MAINTENANCE&TODO: ensure no duplicate for above idle
+      ;; progress but seemes company has its own preventing condition
+      ;; wrapped already.
+      (company-install-map)))
 
-  (advice-add 'company-post-command
-              :override
-              #'__ya/company-post-command)
+  (advice-add 'company-post-command :around #'__ya/company-post-command)
 
 ;; ***** fly on type for `delete-char'
   (defvar-local __company-delc-time-host nil)
@@ -514,8 +443,7 @@ activated status. Default time during set is less than 70ms."
                (memq (car company-frontends)
                      entropy/emacs-company-internal-pseudo-frontends)
                (__company-delc-time-fly-p))
-          (when (bound-and-true-p company-mode)
-            (company-abort))))
+          (company-abort)))
       (setq rtn (apply orig-func orig-args)
             __company-delc-time-host
             (current-time))
@@ -622,6 +550,8 @@ efficiently way."
 with `shackle'."
     (interactive)
     (let* ((orig-win (selected-window))
+           (_ (when (minibuffer-window-active-p orig-win)
+                (setq orig-win (minibuffer-selected-window))))
            (other-window-scroll-buffer nil)
            (selection-index (or company-selection 0))
            (selected-candi-str (nth selection-index company-candidates))
@@ -988,13 +918,6 @@ in `entropy/emacs-company-frontend-sticker'."
               (<= emacs-major-version 29)
               (setq x-gtk-resize-child-frames nil)
             (setq x-gtk-resize-child-frames 'hide)))))
-
-  (advice-add 'company-box-show
-              :around
-              #'entropy/emacs-company--company-candis-restrict-advice)
-  (advice-add 'company-box--update
-              :around
-              #'entropy/emacs-company--company-candis-length-follow-advice)
 
 ;; ***** Icons specified patch
 

@@ -931,6 +931,7 @@ directly identified the input regexp string which do not be with
 ;; **** enhance counsel company
 
   (defvar entropy/emacs-ivy--counsel-company-candidates nil)
+  (defvar entropy/emacs-ivy--counsel-company-candidates-length nil)
   (defvar entropy/emacs-ivy--counsel-company-backend nil)
   (defvar entropy/emacs-ivy--counsel-company-common nil)
   (defvar entropy/emacs-ivy--counsel-company-prefix nil)
@@ -952,6 +953,8 @@ directly identified the input regexp string which do not be with
                 company-candidates
                 entropy/emacs-ivy--counsel-company-backend
                 company-backend
+                entropy/emacs-ivy--counsel-company-candidates-length
+                company-candidates-length
                 entropy/emacs-ivy--counsel-company-common
                 company-common
                 entropy/emacs-ivy--counsel-company-selection
@@ -996,6 +999,8 @@ directly identified the input regexp string which do not be with
       (cond ((and (member major-mode '(emacs-lisp-mode lisp-interaction-mode))
                   (not (eq entropy/emacs-ivy--counsel-company-backend
                            'company-en-words)))
+             (with-current-buffer entropy/emacs-ivy--counsel-orig-buff
+               (company-abort))
              (let ((sym (intern selection)))
                (when sym
                  (cond ((fboundp sym) (describe-function sym))
@@ -1006,7 +1011,9 @@ directly identified the input regexp string which do not be with
                        (t . nil)))))
             (t
              (with-current-buffer entropy/emacs-ivy--counsel-orig-buff
+               (company-abort)
                (let* ((company-candidates entropy/emacs-ivy--counsel-company-candidates)
+                      (company-candidates-length entropy/emacs-ivy--counsel-company-candidates-length)
                       (company-backend entropy/emacs-ivy--counsel-company-backend)
                       (company-point entropy/emacs-ivy--counsel-company-point)
                       (company-search-string entropy/emacs-ivy--counsel-company-search-string)
