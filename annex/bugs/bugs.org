@@ -1289,6 +1289,26 @@ There's a temporally fix that is to required =tramp-archive= before
 calling `entropy/emacs-basic-dired/print-tree' then anything is ok, so
 as I guess for, the bug is related to tramp loading mechanism.
 
+** TODO emacs-29 interactively usage cause circular list error where making emacs unusable for rest usage
+:PROPERTIES:
+:CUSTOM_ID: h:c5b6bd90-0662-4daa-877f-5be88c04ce2a
+:END:
+
+It's mainly caused by the mode-line-format segment
+~mode-line-position~ of eemacs origin type mode line after my
+investigation few days. And found by using =company-box= with its
+subroutine ~company-box--with-icons-p~ which invoking ~posn-at-point~.
+
+For now [2022-11-08 Tue 17:42:40] there's no lisp code reproducing
+snippet can be built for thus since its a interactive problem just
+when triggered by above usage description.
+
+The mode-line refer bug detection is found by studing emacs source
+code of ~make_lispy_position~ which is the primitive subroutine of
+~posn-at-point~ at emacs master commit =b250f89e63a= and found that it
+has some temporarily fixing snippet that may not be robust for
+release.
+
 * COMMENT Local Varaibles
 :PROPERTIES:
 :CUSTOM_ID: h-550f1e2d-23da-47d3-98e1-cd8be05baa7d

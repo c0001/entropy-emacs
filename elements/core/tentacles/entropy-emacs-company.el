@@ -378,12 +378,14 @@ eemacs specifications"
   ;; EEMACS_MAINTENANCE: follow upstream updates
   (defvar-local __ya/company-post-command/current-point nil)
   (defvar-local __ya/company-post-command/previous-point nil)
+  (defvar-local __ya/company-post-command/idle-cancel-p nil)
   (defun __ya/company-post-command (orig-func &rest orig-args)
     "Yet another `company-post-command' which run with
 `entropy/emacs-run-at-idle-immediately' so that the sequentially
 fast hints not laggy by `candidates' re-calculation."
     (setq __ya/company-post-command/previous-point __ya/company-post-command/current-point
-          __ya/company-post-command/current-point (point))
+          __ya/company-post-command/current-point (point)
+          __ya/company-post-command/idle-cancel-p nil)
     (if (or (current-idle-time)
             (memq this-command entropy/emacs-company--company-special-keys)
             ;; FIXME: if we using idle in `delete' char cases, company
@@ -391,21 +393,24 @@ fast hints not laggy by `candidates' re-calculation."
             (and __ya/company-post-command/previous-point
                  (< __ya/company-post-command/current-point
                     __ya/company-post-command/previous-point)))
-        (apply orig-func orig-args)
+        (progn (apply orig-func orig-args)
+               (setq __ya/company-post-command/idle-cancel-p t))
       (let ((curbuff (current-buffer)))
         (entropy/emacs-run-at-idle-immediately
          __idle/company-post-command
-         :which-hook 0.2
-         (let ((this-command
-                (if (bound-and-true-p entropy/emacs-current-session-is-idle-p)
-                    entropy/emacs-current-session-this-command-before-idle
-                  this-command))
-               (last-command
-                (if (bound-and-true-p entropy/emacs-current-session-is-idle-p)
-                    entropy/emacs-current-session-last-command-before-idle
-                  last-command)))
-           (when (eq curbuff (current-buffer))
-             (apply orig-func orig-args)))))
+         :which-hook 0.12
+         (entropy/emacs-when-let*-firstn 2
+             (((eq curbuff (current-buffer)))
+              ((not __ya/company-post-command/idle-cancel-p))
+              (this-command
+               (if (bound-and-true-p entropy/emacs-current-session-is-idle-p)
+                   entropy/emacs-current-session-this-command-before-idle
+                 this-command))
+              (last-command
+               (if (bound-and-true-p entropy/emacs-current-session-is-idle-p)
+                   entropy/emacs-current-session-last-command-before-idle
+                 last-command)))
+           (apply orig-func orig-args))))
       ;; EEMACS_MAINTENANCE&TODO: ensure no duplicate for above idle
       ;; progress but seemes company has its own preventing condition
       ;; wrapped already.
@@ -915,6 +920,8 @@ in `entropy/emacs-company-frontend-sticker'."
               ;; This seems to a eemacs internal bug caused since we
               ;; can not reproduce in vanilla emacs-29. And just
               ;; appeared in `company-box'.
+              ;;
+              ;; see eemacs bug h:c5b6bd90-0662-4daa-877f-5be88c04ce2a
               (<= emacs-major-version 29)
               (setq x-gtk-resize-child-frames nil)
             (setq x-gtk-resize-child-frames 'hide)))))
@@ -991,8 +998,7 @@ upstream."
   (defun __company-box-doc-hide--with-local-judge
       (orig-func &rest orig-args)
     (unless __local-company-box-doc-hided
-      (let ((rtn
-             (apply orig-func orig-args)))
+      (let ((rtn (apply orig-func orig-args)))
         (setq __local-company-box-doc-hided t)
         rtn)))
   (advice-add 'company-box-doc--hide

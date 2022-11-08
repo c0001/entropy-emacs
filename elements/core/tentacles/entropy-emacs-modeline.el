@@ -318,23 +318,42 @@ return nil"
 
 (defvar entropy/emacs-modeline--simple-mode-line-format)
 (defvar entropy/emacs-modeline--simple-mode-line-rhs-fmt
-  (list
-   ;; > Union informations
-   '("" mode-line-misc-info " ")
-   '("" mode-line-process   " ")
-   '(:eval
+  `(
+    ;; > Union informations
+    ("" mode-line-misc-info " ")
+    ("" mode-line-process   " ")
+    (:eval
      ;; > VCS
      (when vc-mode
        (entropy/emacs-modeline--origin-mdl-use-icon-or-plain
         (format " %s%s " (all-the-icons-octicon "git-branch" :v-adjust 0.01 :face 'all-the-icons-red)
                 vc-mode)
         (format "%s " (entropy/emacs-modeline--origin-mdl-propertize-face vc-mode 'warning)))))
-   ;; > Buffer position
-   '(:eval
+    ;; > Buffer position
+    (:eval
      (entropy/emacs-modeline--origin-mdl-use-icon-or-plain
       (concat (all-the-icons-faicon "pencil-square-o" :face 'all-the-icons-yellow :v-adjust -0.1) " ")
       " "))
-   '("" mode-line-position)))
+    ,@(if (< emacs-major-version 29)
+          (list '("" mode-line-position))
+        ;; FIXME: emacs-29's `mode-line-position' will make emacs
+        ;; unusable by causing of circular list error `(circular-list
+        ;; (("29.0.50") . #2))'. So we decide to use use self
+        ;; implemented one instead.
+        ;;
+        ;; see eemacs bug h:c5b6bd90-0662-4daa-877f-5be88c04ce2a
+        (list
+         '(10 "%p of %I") " "
+         `(10
+           (-10
+            (:eval
+             (funcall
+              #',(lambda nil
+                   (format
+                    "(%d, %d)"
+                    (line-number-at-pos)
+                    (- (point) (line-beginning-position))))))))))
+    ))
 
 (entropy/emacs-setf-by-body entropy/emacs-modeline--simple-mode-line-format
   `("%e"
