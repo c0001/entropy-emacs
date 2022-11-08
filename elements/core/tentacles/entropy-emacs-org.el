@@ -104,6 +104,10 @@
    ;; Patch org-mode first customized invoking procedure with more
    ;; prompts for reducing nervous motion
    (entropy/emacs-run-hooks-with-prompt
+    ;; FIXME: emacs-29 invoke `org-indent' face which must require
+    ;; this before init the mode since its defined there, but why it
+    ;; not loaded internally?
+    (require 'org-indent)
     ;; require all ob-* features
     ;; FIXME: use org API `org-babel-do-load-languages' instead?
     (dolist (feature entropy/emacs-org-babel-featurs)
