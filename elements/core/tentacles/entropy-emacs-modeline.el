@@ -316,6 +316,14 @@ return nil"
         'entropy/emacs-defface-simple-color-face-yellow-bold
       'success))))
 
+(let (cache)
+  (defun entropy/emacs-modeline--origin-mdl-seg/pos-info ()
+    "The cached mode-line buffer position segment for eemacs origin
+type which reduce performance issue."
+    (if entropy/emacs-current-session-is-idle-p
+        (setq cache (format-mode-line "%l:%C"))
+      (or cache "......"))))
+
 (defvar entropy/emacs-modeline--simple-mode-line-format)
 (defvar entropy/emacs-modeline--simple-mode-line-rhs-fmt
   `(
@@ -344,16 +352,11 @@ return nil"
         ;; see eemacs bug h:c5b6bd90-0662-4daa-877f-5be88c04ce2a
         (list
          '(10 "%p of %I") " "
-         `(10
-           (-10
-            (:eval
-             (funcall
-              #',(lambda nil
-                   (format
-                    "(%d, %d)"
-                    (line-number-at-pos)
-                    (- (point) (line-beginning-position))))))))))
-    ))
+         '(10 (-10 (:eval (entropy/emacs-modeline--origin-mdl-seg/pos-info))))
+         ;; the real-time flushed type but with more performance issued
+         ;;
+         ;; '(10 "%l:%c")
+         ))))
 
 (entropy/emacs-setf-by-body entropy/emacs-modeline--simple-mode-line-format
   `("%e"
@@ -388,9 +391,8 @@ return nil"
     (:eval
      (entropy/emacs-make-space-align-to-modeline-rest
       entropy/emacs-modeline--simple-mode-line-rhs-fmt
-      ;; FIXME: leave enough space for tail increase since its align
-      ;; fixed pos is not always enough and why?
-      (if (display-graphic-p) 5 2)))
+      ;; NOTE: icon width commonly not fixed
+      (if (display-graphic-p) 1)))
     ;; ---------- lhs ----------
     ,@entropy/emacs-modeline--simple-mode-line-rhs-fmt))
 
