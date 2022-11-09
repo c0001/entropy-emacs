@@ -1315,7 +1315,7 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
          major-mode
          '(emacs-lisp-mode lisp-interaction-mode lisp-mode))
         (with-current-buffer
-            (entropy/emacs-elisp-toggle-outline-struct-style t 'modern)
+            (entropy/emacs-lisp-toggle-lisp-outline-struct-style t 'modern)
           (funcall orig-func))
       (funcall orig-func)))
 

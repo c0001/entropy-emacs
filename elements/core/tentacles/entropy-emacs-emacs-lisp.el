@@ -39,36 +39,31 @@
 
 ;; ** library
 ;; *** Toggle context structer style
-(defun entropy/emacs-elisp-toggle-outline-struct-style (&optional prefix silent)
-  "Toggle outline regexp style in elisp source file, ';;;+' as
-old-school type, ';; *+' as the mordern one.
+(defun entropy/emacs-lisp-toggle-lisp-outline-struct-style (&optional prefix silent)
+  "Toggle outline regexp style in lisp source file, \";;;+\" as old-school
+type, \";; *+\" as the mordern one.
 
 PREFIX if non-nil for create new file copy of current buffer to
 transformation.
 
-Optional arg: SILENT was a symbol for 'modern' or 'oldschool' for
+Optional arg: SILENT was a symbol for `modern' or `oldschool' for
 indicating style type without style type chosen interactively.
 
 For lisp coding aim, always return the transfered buffer.
 "
   (interactive "P")
   (let* ((type '("old style" "mordern style"))
-         (choice (or (and silent
-                          (if (eq silent 'modern)
-                              t
-                            nil))
+         (choice (or (and silent (eq silent 'modern))
                      (and (null silent)
-                          (if (string= (completing-read "Choose style: " type nil t) "old style")
-                              nil t))))
+                          (null (string= (completing-read "Choose style: " type nil t)
+                                         "old style")))))
          (path default-directory)
          (file (format "lisp-toggle-file.[%s].el"
                        (format-time-string "%Y%m%d%H%M%S")))
          (file-create
           (lambda ()
             (with-current-buffer (current-buffer)
-              (write-region (point-min) (point-max)
-               (expand-file-name
-                file path)))))
+              (write-region (point-min) (point-max) (expand-file-name file path)))))
          (buffer (if prefix (progn (funcall file-create) (find-file-noselect file))
                    (current-buffer)))
          (enable-mode (with-current-buffer buffer major-mode)))
@@ -84,17 +79,15 @@ For lisp coding aim, always return the transfered buffer.
                                       (dotimes (_ level)
                                         (setq rtn (concat rtn (if choice "*" ";"))))
                                       (concat rtn " ")))))
-              (replace-match
-               rep-str))))
-        (when (buffer-file-name)
-          (save-buffer))
+              (replace-match rep-str))))
+        (when (buffer-file-name) (save-buffer))
         (funcall enable-mode)
         (if (called-interactively-p 'any)
             (let ((judge
                    (yes-or-no-p
-                    (format "Create toggled buffer '%s'\nSwitch-To? " buffer))))
-              (when judge
-                (switch-to-buffer buffer)))
+                    (format "Transform to buffer '%s' done,\nSwitch-To? "
+                            buffer))))
+              (if judge (switch-to-buffer buffer)))
           buffer)))))
 
 ;; ** main
