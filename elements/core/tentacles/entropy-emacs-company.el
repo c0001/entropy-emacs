@@ -332,6 +332,8 @@ eemacs specifications"
   (defvar entropy/emacs-company--company-special-keys
     '(
       ;; TODO: common navigation hints
+      right-char
+      left-char
       next-line
       previous-line
       scroll-up-command
@@ -374,20 +376,34 @@ eemacs specifications"
       ;; company internal fake set
       company-idle-begin
       ))
+  ;; Use symbol property instead of using `memq' to reduce lag
+  (dolist (cmd entropy/emacs-company--company-special-keys)
+    (put cmd 'eemacs-company-special-key t))
 
   ;; EEMACS_MAINTENANCE: follow upstream updates
   (defvar-local __ya/company-post-command/current-point nil)
+  (defvar       __ya/company-post-command/current-buffer nil)
   (defvar-local __ya/company-post-command/previous-point nil)
   (defvar-local __ya/company-post-command/idle-cancel-p nil)
+
+  (defvar __ya/company-post-command/orig-func (symbol-function 'company-post-command))
+  (entropy/emacs-define-idle-function __ya/company-post-command/idle-port 0.12
+    (entropy/emacs-when-let*-firstn 2
+        (((eq __ya/company-post-command/current-buffer (current-buffer)))
+         ((not __ya/company-post-command/idle-cancel-p))
+         (this-command entropy/emacs-current-session-this-command-before-idle)
+         (last-command entropy/emacs-current-session-last-command-before-idle))
+      (funcall __ya/company-post-command/orig-func)))
   (defun __ya/company-post-command (orig-func &rest orig-args)
-    "Yet another `company-post-command' which run with
-`entropy/emacs-run-at-idle-immediately' so that the sequentially
-fast hints not laggy by `candidates' re-calculation."
+    "Yet another `company-post-command' which run with idle timer so
+that the sequentially fast hints not laggy by `candidates'
+re-calculation."
     (setq __ya/company-post-command/previous-point __ya/company-post-command/current-point
           __ya/company-post-command/current-point (point)
+          __ya/company-post-command/current-buffer (current-buffer)
           __ya/company-post-command/idle-cancel-p nil)
-    (if (or (current-idle-time)
-            (memq this-command entropy/emacs-company--company-special-keys)
+    (if (or (not company-candidates) (current-idle-time)
+            (get this-command 'eemacs-company-special-key)
             ;; FIXME: if we using idle in `delete' char cases, company
             ;; will not working properly and may cause emacs hang?
             (and __ya/company-post-command/previous-point
@@ -395,26 +411,12 @@ fast hints not laggy by `candidates' re-calculation."
                     __ya/company-post-command/previous-point)))
         (progn (apply orig-func orig-args)
                (setq __ya/company-post-command/idle-cancel-p t))
-      (let ((curbuff (current-buffer)))
-        (entropy/emacs-run-at-idle-immediately
-         __idle/company-post-command
-         :which-hook 0.12
-         (entropy/emacs-when-let*-firstn 2
-             (((eq curbuff (current-buffer)))
-              ((not __ya/company-post-command/idle-cancel-p))
-              (this-command
-               (if (bound-and-true-p entropy/emacs-current-session-is-idle-p)
-                   entropy/emacs-current-session-this-command-before-idle
-                 this-command))
-              (last-command
-               (if (bound-and-true-p entropy/emacs-current-session-is-idle-p)
-                   entropy/emacs-current-session-last-command-before-idle
-                 last-command)))
-           (apply orig-func orig-args))))
-      ;; EEMACS_MAINTENANCE&TODO: ensure no duplicate for above idle
-      ;; progress but seemes company has its own preventing condition
-      ;; wrapped already.
-      (company-install-map)))
+      (progn
+        (funcall __ya/company-post-command/idle-port)
+        ;; EEMACS_MAINTENANCE&TODO: ensure no duplicate for above idle
+        ;; progress but seemes company has its own preventing condition
+        ;; wrapped already.
+        (company-install-map))))
 
   (advice-add 'company-post-command :around #'__ya/company-post-command)
 

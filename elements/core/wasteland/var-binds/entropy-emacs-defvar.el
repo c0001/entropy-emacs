@@ -530,7 +530,7 @@ remove the oldest one and then injecting new one.
 NOTE: this macro must expanded in an `lexical-binding' enabled
 context."
   (when which-hook
-    (unless (>= which-hook entropy/emacs-safe-idle-minimal-secs)
+    (unless (> which-hook entropy/emacs-safe-idle-minimal-secs)
       (error "[%s] idle seconds is less than the safe value %s"
              name entropy/emacs-safe-idle-minimal-secs)))
   (let* ((hook
@@ -626,6 +626,89 @@ context."
                   ,hook-idle-sec
                   t ',hook-timer-func)))
          ))))
+
+(defmacro entropy/emacs-define-idle-function
+    (&rest args)
+  "Define a function named NAME with BODY and prepare to used it as a
+idle procedure which just ran while current emacs session is in idle
+occasion (i.e. `entropy/emacs-current-session-is-idle-p' is
+non-nil). NAME is also a name for a interned dynamic varaible which
+store a name of NAME's handler function HANDLE, which perform NAME in
+that occasion when invoked. NAME var is `intern'ed into `obarray'.
+
+WHICH-HOOK is Number(can be float) of seconds of to indicate how many
+idle seconds should be waiting before handling NAME . (must larger(or
+equal) than `entropy/emacs-safe-idle-minimal-secs') and The set should
+be exactly did since this macro use it to found referred context.
+
+Unless `entropy/emacs-session-idle-trigger-debug' is non-nil, then
+BODY run with errors ignored.
+
+\(fn NAME WHICH-HOOK [DOCSTRING] BODY...)"
+  (declare (indent defun) (doc-string 3))
+  (let* ((name (car args)) (which-hook (cadr args))
+         (docstring (if (stringp (nth 2 args)) (nth 2 args)))
+         (body (if docstring (nthcdr 3 args) (cddr args)))
+         (name-1 (intern (format "%s/main-handler" name)))
+         (_
+          (when which-hook
+            (unless (> which-hook entropy/emacs-safe-idle-minimal-secs)
+              (error "[%s] idle seconds is less than the safe value %s"
+                     name entropy/emacs-safe-idle-minimal-secs))))
+         (hook
+          (if which-hook
+              (__eemacs--get-idle-hook-refer-symbol-name
+               'hook-trigger-hook-name which-hook)
+            'entropy/emacs-session-idle-trigger-hook))
+         (hook-idle-sec
+          (if which-hook
+              which-hook
+            entropy/emacs-session-idle-trigger-timer--init-delay-sec))
+         (hook-error-list
+          (if which-hook
+              (__eemacs--get-idle-hook-refer-symbol-name
+               'hook-trigger-error-list which-hook)
+            'entropy/emacs-session-idle-trigger-hook-error-list))
+         (hook-timer-func
+          (if which-hook
+              (__eemacs--get-idle-hook-refer-symbol-name
+               'hook-trigger-func which-hook)
+            'entropy/emacs--set-idle-signal))
+         (hook-timer-varname
+          (if which-hook
+              (__eemacs--get-idle-hook-refer-symbol-name
+               'hook-trigger-timer-name which-hook)
+            'entropy/emacs-session-idle-trigger-timer)))
+    ;; define context before macro expanding for bypass byte-compile warning.
+    (entropy/emacs-def-idle-hook-refer-context hook-idle-sec)
+    `(progn
+       (defalias ',name
+         (lambda nil
+           (entropy/emacs-session-idle--run-body-simple
+             ,name ,hook-error-list ,@body)) ,docstring)
+
+       (defalias ',name-1
+         (lambda nil
+           ;; intitial the context when not defined
+           (unless (fboundp ',hook-timer-func)
+             (entropy/emacs-def-idle-hook-refer-context
+              ,hook-idle-sec))
+           ;; remove all NAME in hooks
+           (entropy/emacs-idle-session-trigger-hooks-prunning ',name)
+           ;; We should append the hook to the tail since follow the time
+           ;; order.
+           (entropy/emacs-nconc-with-setvar-use-rest ,hook (list ',name))
+           ;; Intial the trigger timer when not bound
+           (unless (bound-and-true-p ,hook-timer-varname)
+             (setq ,hook-timer-varname
+                   (run-with-idle-timer ,hook-idle-sec t ',hook-timer-func)))
+           ;; return t as did successfully
+           t)
+         (format "The handler for eemacs idle function `%s'." ',name))
+       (defvar ,name ',name-1
+         ,(format "Var stores name of idle handler `%s' which handling eemacs idle function `%s'."
+                  name-1 name))
+       ',name-1)))
 
 ;; ** eemacs top keymap refer
 (defvar entropy/emacs-top-keymap (make-sparse-keymap)

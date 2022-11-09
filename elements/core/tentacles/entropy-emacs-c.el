@@ -43,35 +43,27 @@
   :ensure nil
   :preface
   (defvar-local entropy/emacs/c-mode/change-iterate 0)
-  (defun entropy/emacs/c-mode/after-change-func
-      (&rest _)
+  (defvar-local entropy/emacs/c-mode/current-point 1)
+  (defvar       entropy/emacs/c-mode/current-buffer nil)
+  (entropy/emacs-define-idle-function
+    entropy/emacs/c-mode/after-change-func/idle-port 0.5
+    "Fontify the buffer context round at `current-point' with idle style."
+    (when (and entropy/emacs/c-mode/current-buffer
+               (buffer-live-p entropy/emacs/c-mode/current-buffer))
+      (ignore-errors
+        (with-current-buffer entropy/emacs/c-mode/current-buffer
+          (save-excursion
+            (cond ((< entropy/emacs/c-mode/change-iterate 10)
+                   (c-font-lock-fontify-region (line-beginning-position) (point)))
+                  (t
+                   (c-font-lock-fontify-region
+                    (save-excursion (forward-line -20) (point))
+                    (save-excursion (forward-line 20) (point)))
+                   (setq entropy/emacs/c-mode/change-iterate 0))))))))
+  (defun entropy/emacs/c-mode/after-change-func (&rest _)
     (cl-incf entropy/emacs/c-mode/change-iterate)
-    ;; fontify the buffer context round at `current-point' with idle
-    ;; style
-    (let (;; (curpt (point))
-          (curiter entropy/emacs/c-mode/change-iterate)
-          (curbuff (current-buffer)))
-      (entropy/emacs-run-at-idle-immediately
-       idle-fontify-c-type-buffer
-       :which-hook 0.5
-       :current-buffer t
-       (let (;; (cur-pos curpt)
-             ;; (cur-line (string-to-number (format-mode-line "%l")))
-             (buff curbuff)
-             )
-         (ignore-errors
-           (with-current-buffer buff
-             (save-excursion
-               (cond ((< curiter 10)
-                      ;; (c-font-lock-fontify-region
-                      ;;  (line-beginning-position)
-                      ;;  cur-pos)
-                      )
-                     (t
-                      (c-font-lock-fontify-region
-                       (save-excursion (forward-line -20) (point))
-                       (save-excursion (forward-line 20) (point)))
-                      (setq entropy/emacs/c-mode/change-iterate 0))))))))))
+    (setq entropy/emacs/c-mode/current-buffer (current-buffer))
+    (funcall entropy/emacs/c-mode/after-change-func/idle-port))
 
   (defun entropy/emacs-c-cc-mode-common-set ()
     (c-set-style "bsd")

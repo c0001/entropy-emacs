@@ -225,6 +225,38 @@ upstream and may be make risky follow the ivy updates.
 
   (defvar-local __idle/ivy-queue-exhited-done nil)
   ;; EEMACS_MAINTENANCE: patching follow upstream please!
+  (entropy/emacs-define-idle-function __ya/ivy--queue-exhibit/idle-func 0.12
+    (when (minibufferp nil t)
+      (let* ((func/ivy-done-like-p
+              (lambda (command)
+                (memq command
+                      '(ivy-alt-done
+                        ivy-mouse-done
+                        ivy-immediate-done
+                        ivy-done
+                        ivy-partial-or-done
+                        ivy-mouse-dispatching-done
+                        ivy-dispatching-done
+                        ))))
+             ;; binding `this-command' to the
+             ;; `entropy/emacs-current-session-this-command-before-idle'
+             ;; since `this-command' is nil while idle time but
+             ;; ivy subroutine need it to set.
+             (this-command
+              ;; bind to `self-insert-command' while `ivy-done' like trigger
+              ;; since its an user messy.
+              (if (funcall
+                   func/ivy-done-like-p
+                   entropy/emacs-current-session-this-command-before-idle)
+                  (if (funcall
+                       func/ivy-done-like-p
+                       entropy/emacs-current-session-last-command-before-idle)
+                      'self-insert-command
+                    entropy/emacs-current-session-last-command-before-idle)
+                entropy/emacs-current-session-this-command-before-idle)))
+        (ivy--exhibit))
+      (setq __idle/ivy-queue-exhited-done t)))
+
   (defun __ya/ivy--queue-exhibit ()
     "The override advice for `ivy--queue-exhibit' to exhibit the
 canidates idle after input event done by 0.2 seconds."
@@ -233,7 +265,7 @@ canidates idle after input event done by 0.2 seconds."
              (not (entropy/emacs-ivy-patch/inhibit-dynamic-exhibit-p))
              (ivy-state-dynamic-collection ivy-last))
         (progn
-          (when ivy--exhibit-timer (cancel-timer ivy--exhibit-timer))
+          (entropy/emacs-cancel-timer-var ivy--exhibit-timer)
           (setq ivy--exhibit-timer
                 (run-with-timer
                  (/ ivy-dynamic-exhibit-delay-ms 1000.0)
@@ -242,9 +274,8 @@ canidates idle after input event done by 0.2 seconds."
                    "timer idle show ivy candis and set the the
 queue done flag exposed to `ivy-done' idle trigger judger."
                    (ivy--exhibit)
-                   (setq __idle/ivy-queue-exhited-done
-                               t)))))
-      (if (and (member this-command '(self-insert-command
+                   (setq __idle/ivy-queue-exhited-done t)))))
+      (if (and (memq   this-command '(self-insert-command
                                       ivy-backward-delete-char
                                       ivy-backward-kill-word
                                       ivy-forward-char
@@ -258,45 +289,11 @@ queue done flag exposed to `ivy-done' idle trigger judger."
                (not (ivy-state-dynamic-collection ivy-last))
                ;; TODO: more conditions here
                )
-          (entropy/emacs-run-at-idle-immediately
-           __idle/ivy--queue-exhibit
-           :which-hook 0.1
-           :when (minibufferp)
-           (let* ((func/ivy-done-like-p
-                   (lambda (command)
-                     (member command
-                             '(ivy-alt-done
-                               ivy-mouse-done
-                               ivy-immediate-done
-                               ivy-done
-                               ivy-partial-or-done
-                               ivy-mouse-dispatching-done
-                               ivy-dispatching-done
-                               ))))
-                  ;; binding `this-command' to the
-                  ;; `entropy/emacs-current-session-this-command-before-idle'
-                  ;; since `this-command' is nil while idle time but
-                  ;; ivy subroutine need it to set.
-                  (this-command
-                   ;; bind to `self-insert-command' while `ivy-done' like trigger
-                   ;; since its an user messy.
-                   (if (funcall
-                        func/ivy-done-like-p
-                        entropy/emacs-current-session-this-command-before-idle)
-                       (if (funcall
-                            func/ivy-done-like-p
-                            entropy/emacs-current-session-last-command-before-idle)
-                           'self-insert-command
-                         entropy/emacs-current-session-last-command-before-idle)
-                     entropy/emacs-current-session-this-command-before-idle)))
-             (ivy--exhibit))
-           (setq __idle/ivy-queue-exhited-done t))
+          (funcall __ya/ivy--queue-exhibit/idle-func)
         (ivy--exhibit)
         (setq __idle/ivy-queue-exhited-done t))))
 
-  (advice-add 'ivy--queue-exhibit
-              :override
-              #'__ya/ivy--queue-exhibit)
+  (advice-add 'ivy--queue-exhibit :override #'__ya/ivy--queue-exhibit)
 
   (defun __adv/around/ivy-done/for-idle-trigger (orig-func &rest orig-args)
     "prompts for waiting for `ivy--exhibit' done while trigger
@@ -307,9 +304,7 @@ queue done flag exposed to `ivy-done' idle trigger judger."
         (let ((prompt-str " (waiting for exhibit done)"))
           (setq ivy--prompt-extra
                 prompt-str)))))
-  (advice-add 'ivy-done
-              :around
-              #'__adv/around/ivy-done/for-idle-trigger)
+  (advice-add 'ivy-done :around #'__adv/around/ivy-done/for-idle-trigger)
 
   (defun __ya/ivy-backward-kill-word (arg)
     "Alternative for `ivy-bakward-kill-word' but not trigger
@@ -318,9 +313,7 @@ queue done flag exposed to `ivy-done' idle trigger judger."
     (delete-region
      (point)
      (progn (forward-word (- arg)) (point))))
-  (advice-add 'ivy-backward-kill-word
-              :override
-              #'__ya/ivy-backward-kill-word)
+  (advice-add 'ivy-backward-kill-word :override #'__ya/ivy-backward-kill-word)
 
 ;; **** fix bug of `ivy-reverse-i-search'
 
