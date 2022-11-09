@@ -116,13 +116,13 @@
               (setq ivy-add-newline-after-prompt nil)
               (setq ivy-height 6)))
          (hack-func
-          (lambda ()
-            (if (display-graphic-p)
-                (funcall with-nl-func)
-              ;; Disable newline for terminal mode emacs session
-              ;; while in emacs 28 or higher version, since it can
-              ;; not be fully displayed in minibuffer prompt area.
-              (funcall without-nl-func)))))
+          #'(lambda ()
+              (if (display-graphic-p)
+                  (funcall with-nl-func)
+                ;; Disable newline for terminal mode emacs session
+                ;; while in emacs 28 or higher version, since it can
+                ;; not be fully displayed in minibuffer prompt area.
+                (funcall without-nl-func)))))
     (if (version< emacs-version "28")
         (funcall with-nl-func)
       (if (daemonp)
@@ -302,17 +302,14 @@ queue done flag exposed to `ivy-done' idle trigger judger."
       (if __idle/ivy-queue-exhited-done
           (apply orig-func orig-args)
         (let ((prompt-str " (waiting for exhibit done)"))
-          (setq ivy--prompt-extra
-                prompt-str)))))
+          (setq ivy--prompt-extra prompt-str)))))
   (advice-add 'ivy-done :around #'__adv/around/ivy-done/for-idle-trigger)
 
   (defun __ya/ivy-backward-kill-word (arg)
     "Alternative for `ivy-bakward-kill-word' but not trigger
 `ivy--exhibit'."
     (interactive "p")
-    (delete-region
-     (point)
-     (progn (forward-word (- arg)) (point))))
+    (delete-region (point) (progn (forward-word (- arg)) (point))))
   (advice-add 'ivy-backward-kill-word :override #'__ya/ivy-backward-kill-word)
 
 ;; **** fix bug of `ivy-reverse-i-search'
@@ -458,7 +455,8 @@ and bug fix."
                        " Swiper-isearch-thing-at-pt: ")
                     (concat
                      ivy-count-format
-                     " Swiper-isearch-thing-at-pt (with 'C-u' and invoking again to insert boundary): ")))
+                     " Swiper-isearch-thing-at-pt (with 'C-u' and invoking again to insert boundary): "
+                     )))
             (with-ivy-window
               (setq bnd
                     (if (setq regionp (region-active-p))
@@ -480,8 +478,7 @@ and bug fix."
                 ;; boundary is used to restrict without part match
                 ;; like match 'abc' not match '0-abc-1' when boundary
                 ;; added through `swiper--re-builder'
-                (when current-prefix-arg
-                  (ivy--insert-symbol-boundaries)))))
+                (if current-prefix-arg (ivy--insert-symbol-boundaries)))))
         (let (thing)
           (if (use-region-p)
               (progn
@@ -490,8 +487,7 @@ and bug fix."
                 (goto-char (region-beginning))
                 (deactivate-mark))
             (let ((bnd (bounds-of-thing-at-point 'symbol)))
-              (when bnd
-                (goto-char (car bnd)))
+              (if bnd (goto-char (car bnd)))
               (setq thing (ivy-thing-at-point))))
           (swiper-isearch thing)))))
   (advice-add 'swiper-isearch-thing-at-point
@@ -507,28 +503,30 @@ and bug fix."
   (defvar __swiper-all-current-restrictions nil)
   (defvar __swiper-all-eemacs-spec-filters
     ;; each function must return t for buffer need to select
-    '((:name "mode restrictions"
-             :no-qurey nil
-             :func
-             (lambda ()
-               (let* ((buff-list __swiper-all-current-all-buffers)
-                      (modes-get (delete-dups
-                                  (delete
-                                   nil
-                                   (mapcar
-                                    (lambda (x)
-                                      (unless (minibufferp x)
-                                        (with-current-buffer x
-                                          major-mode)))
-                                    buff-list))))
-                      mode)
-                 (setq mode
-                       (completing-read "Which mode to swipr all?: "
-                                        modes-get nil t)
-                       mode (intern mode))
-                 `(lambda (buff)
-                    (with-current-buffer buff
-                      (eq major-mode ',mode))))))))
+    `((:name
+       "mode restrictions"
+       :no-qurey nil
+       :func
+       ,(lambda ()
+          (let* ((buff-list __swiper-all-current-all-buffers)
+                 (modes-get
+                  (delete-dups
+                   (delete
+                    nil
+                    (mapcar
+                     (lambda (x)
+                       (unless (minibufferp x)
+                         (with-current-buffer x
+                           major-mode)))
+                     buff-list))))
+                 mode)
+            (entropy/emacs-setf-by-body mode
+              (completing-read "Which mode to swipr all?: "
+                               modes-get nil t)
+              mode (intern mode))
+            (lambda (buff)
+              (with-current-buffer buff
+                (eq major-mode mode))))))))
 
   (defun __swiper-all-call-eemacs-spec-filters ()
     (setq __swiper-all-current-all-buffers (buffer-list))
@@ -578,8 +576,7 @@ and bug fix."
                  (t
                   orig-judge))
            ;; eemacs union filters
-           (if (not __swiper-all-current-restrictions)
-               t
+           (if (not __swiper-all-current-restrictions) t
              (catch :exit
                (dolist (func __swiper-all-current-restrictions)
                  (unless (funcall func buffer)
