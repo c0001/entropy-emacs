@@ -165,6 +165,11 @@ and `$' dedicated."
   ;; disbale `eval-last-sexp' in `ctl-x-map' for reducing mistakes
   (define-key ctl-x-map "\C-e" nil)
 
+  ;; remove internal annoyed default keybindings
+  (dolist (kb '("C-M-x" "C-M-q"
+                "C-c C-e" "C-c C-f" "C-c C-b"))
+    (define-key emacs-lisp-mode-map (kbd kb) nil))
+
   (eval-and-compile
     (cl-defmacro entropy/emacs-lisp--elisp-inct-eval-safaty-wrap
         (type &rest body
