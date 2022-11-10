@@ -1309,6 +1309,11 @@ code of ~make_lispy_position~ which is the primitive subroutine of
 has some temporarily fixing snippet that may not be robust for
 release.
 
+- [2022-11-10 Thu 13:23:58]
+
+  This bug may caused by =company='s internal candidates grabing
+  procedure since its multi-backends merging functional.
+
 * COMMENT Local Varaibles
 :PROPERTIES:
 :CUSTOM_ID: h-550f1e2d-23da-47d3-98e1-cd8be05baa7d

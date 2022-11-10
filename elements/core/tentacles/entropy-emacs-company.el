@@ -80,7 +80,12 @@
 (defvar company-dabbrev-char-regexp)
 
 (defvar entropy/emacs-company-top-initial-backends
-  '(company-files company-capf :separate company-en-words)
+  '(company-yasnippet
+    company-capf
+    :separate
+    company-dabbrev
+    company-files
+    company-en-words)
   "Basic top company-backend for all situations.")
 
 (defvar entropy/emacs-company-internal-pseudo-frontends
@@ -92,23 +97,19 @@
 NOTE: update with `company' upstream.")
 
 (entropy/emacs-lazy-load-simple 'company
-  (setq-default company-backends
-                (append (list entropy/emacs-company-top-initial-backends)
-                        company-backends)))
+  (setq-default
+   company-backends
+   (list (copy-sequence entropy/emacs-company-top-initial-backends))))
 
 ;; ** libraries
-;; *** yas load
-(defun entropy/emacs-company-use-yasnippet (backend &optional reverse)
-  (if (and (listp backend) (member 'company-yasnippet backend))
-      backend
-    (if reverse
-        (append
-         '(company-yasnippet) '(:separate)
-         (if (consp backend) backend (list backend)))
-      (append
-       (if (consp backend) backend (list backend))
-       '(:separate company-yasnippet)))))
 
+(defun entropy/emacs-company--set-backends (&rest backends)
+  (setq-local
+   company-backends
+   (mapcar #'(lambda (x) (if (consp x) (copy-sequence x) x))
+           backends)))
+
+;; *** yas load
 (defun entropy/emacs-company-start-with-yas (&rest _)
   (unless (bound-and-true-p yas-minor-mode)
     (entropy/emacs-require-only-once 'yasnippet)
@@ -119,24 +120,24 @@ NOTE: update with `company' upstream.")
 (defun entropy/emacs-company-privilege-yas-for-docs ()
   "Make `company-backends' suitable for documents edits with
 yasnippet support *locally*."
-  (make-local-variable 'company-backends)
-  (add-to-list 'company-backends
-               '(company-files company-yasnippet company-dabbrev
-                               :separate company-en-words)))
+  (entropy/emacs-company--set-backends
+   '(company-yasnippet
+     company-dabbrev
+     :separate
+     company-files
+     company-en-words)))
 
 (defun entropy/emacs-company-yas-for-docs-init ()
-  (let (macros)
+  (let (funcs)
     (dolist (el '((org-mode . org-mode-hook)
                   (mardown-mode . markdown-mode-hook)
                   (text-mode . text-mode-hook)))
-      (cl-pushnew
-       `(lambda ()
-          (with-eval-after-load ',(car el)
-            (add-hook ',(cdr el)
-                      #'entropy/emacs-company-privilege-yas-for-docs)))
-       macros))
-    (dolist (macro macros)
-      (funcall macro))))
+      (push
+       (lambda ()
+         (with-eval-after-load (car el)
+           (add-hook (cdr el) #'entropy/emacs-company-privilege-yas-for-docs)))
+       funcs))
+    (dolist (func funcs) (funcall func))))
 
 ;; *** prunning `company-frontends'
 
@@ -1200,13 +1201,10 @@ completion when calling: 'execute-extended-command' or
                           #'lisp-completion-at-point)
                         t))
 
-      (setq-local company-backends
-                  (cond ((eq entropy/emacs-company--minibuffer-command 'execute-extended-command)
-                         '(entropy/emacs-company-elisp-minibuffer))
-                        (t
-                         '((entropy/emacs-company-elisp-minibuffer
-                            company-dabbrev
-                            )))))
+      (entropy/emacs-company--set-backends
+       (cond ((eq entropy/emacs-company--minibuffer-command 'execute-extended-command)
+              '(entropy/emacs-company-elisp-minibuffer))
+             (t '(entropy/emacs-company-elisp-minibuffer company-dabbrev))))
       (setq-local company-tooltip-limit 6)
       (company-mode 1)
 
@@ -1239,35 +1237,27 @@ completion when calling: 'execute-extended-command' or
                 #'entropy/emacs-company-add-lsp-backend)))
 
 (defun entropy/emacs-company-add-lsp-backend (&rest _)
-  (make-local-variable 'company-backends)
-  (setq-local company-backends
-              ;; remove the obsolte `company-lsp' backends since
-              ;; `lsp-mode' and `eglog' using emacs internal `capf'
-              ;; resource for mordern unified set.
-              (remove 'company-lsp company-backends)
-              completion-ignore-case t
-              completion-styles '(basic partial-completion emacs22))
-  (add-to-list 'company-backends
-               '(company-files
-                 company-capf
-                 :separate company-dabbrev-code company-keywords
-                 :with company-yasnippet)))
+  (setq-local completion-ignore-case t
+              completion-styles (list 'basic 'partial-completion 'emacs22))
+  (entropy/emacs-company--set-backends
+   '(company-files
+     company-capf
+     :separate company-dabbrev-code company-keywords
+     :with company-yasnippet)))
 
 ;; ** Individual backends
 (defun entropy/emacs-company--default-traditional-backends-generator
     (stick-backends)
-  (make-local-variable 'company-backends)
-  (setq-local
-   company-backends
-   `((company-files
-      ,@stick-backends
-      :separate
-      company-dabbrev-code
-      company-gtags
-      company-etags
-      company-keywords
-      :with company-yasnippet
-      ))))
+  (entropy/emacs-company--set-backends
+   `(company-files
+     ,@stick-backends
+     :separate
+     company-dabbrev-code
+     company-gtags
+     company-etags
+     company-keywords
+     :with company-yasnippet
+     )))
 
 ;; *** miscelloneous
 ;; **** englishs dict quick completion
@@ -1464,9 +1454,8 @@ entropy-emacs."
   (add-hook 'slime-repl-mode-hook
             #'entropy/emacs-company-slime-add-company-slime-backend)
   (defun entropy/emacs-company-slime-add-company-slime-backend ()
-    (make-local-variable 'company-backends)
-    (cl-pushnew (entropy/emacs-company-use-yasnippet 'company-slime)
-                company-backends)))
+    (entropy/emacs-company--set-backends
+     (cons 'company-slime entropy/emacs-company-top-initial-backends))))
 
 ;; * provide
 (provide 'entropy-emacs-company)

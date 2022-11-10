@@ -92,7 +92,7 @@
      (let ((word (car arg))
            (prop (cdr arg)))
        (propertize word
-                   'prop
+                   'en-words-simple-prop
                    prop)))
    (trie-complete
     company-en-words/lib--en-words-trie-obj
@@ -126,12 +126,12 @@
      ;; show annotation just when `company-prefix' length larger/equal
      ;; 2 in which case do not map thousands of candis to reduce
      ;; lagging.
-     (unless (and company-prefix
-                  (< (length company-prefix) 2))
+     (unless (or (null arg)
+                 (and company-prefix
+                      (< (length company-prefix) 2)))
        (let ((props
               ;; ignore errors while arg may be nil
-              (ignore-errors
-                (get-text-property 0 'prop arg))))
+              (get-text-property 0 'en-words-simple-prop arg)))
          (format "%s"
                  (or props " ")))))
     (doc-buffer
