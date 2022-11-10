@@ -1033,7 +1033,7 @@ directly identified the input regexp string which do not be with
 
   (ivy-add-actions 'counsel-company
                    '(("M-h" entropy/emacs-ivy--counsel-company-show-doc-action
-                      "Show docment if available")))
+                      "Show document for current selection if available")))
 
 ;; **** counsel-locate
   (when (and sys/win32p entropy/emacs-microsoft-windows-unix-emulator-enable)
