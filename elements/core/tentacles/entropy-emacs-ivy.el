@@ -223,21 +223,23 @@ upstream and may be make risky follow the ivy updates.
 
 ;; **** idle post for `ivy--queue-exhibit'
 
+  (defvar __idle/ivy-queue-exhited-ivy-done-like-cmds
+    '(ivy-alt-done
+      ivy-mouse-done
+      ivy-immediate-done
+      ivy-done
+      ivy-partial-or-done
+      ivy-mouse-dispatching-done
+      ivy-dispatching-done
+      ))
+  (dolist (cmd __idle/ivy-queue-exhited-ivy-done-like-cmds)
+    (put cmd '__eemacs-ivy-done-like-cmd-p t))
+
   (defvar-local __idle/ivy-queue-exhited-done nil)
   ;; EEMACS_MAINTENANCE: patching follow upstream please!
   (entropy/emacs-define-idle-function __ya/ivy--queue-exhibit/idle-func 0.12
     (when (minibufferp nil t)
-      (let* ((func/ivy-done-like-p
-              (lambda (command)
-                (memq command
-                      '(ivy-alt-done
-                        ivy-mouse-done
-                        ivy-immediate-done
-                        ivy-done
-                        ivy-partial-or-done
-                        ivy-mouse-dispatching-done
-                        ivy-dispatching-done
-                        ))))
+      (let* (
              ;; binding `this-command' to the
              ;; `entropy/emacs-current-session-this-command-before-idle'
              ;; since `this-command' is nil while idle time but
@@ -245,12 +247,12 @@ upstream and may be make risky follow the ivy updates.
              (this-command
               ;; bind to `self-insert-command' while `ivy-done' like trigger
               ;; since its an user messy.
-              (if (funcall
-                   func/ivy-done-like-p
-                   entropy/emacs-current-session-this-command-before-idle)
-                  (if (funcall
-                       func/ivy-done-like-p
-                       entropy/emacs-current-session-last-command-before-idle)
+              (if (get
+                   entropy/emacs-current-session-this-command-before-idle
+                   '__eemacs-ivy-done-like-cmd-p)
+                  (if (get
+                       entropy/emacs-current-session-last-command-before-idle
+                       '__eemacs-ivy-done-like-cmd-p)
                       'self-insert-command
                     entropy/emacs-current-session-last-command-before-idle)
                 entropy/emacs-current-session-this-command-before-idle)))

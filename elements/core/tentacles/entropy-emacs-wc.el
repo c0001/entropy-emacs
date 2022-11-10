@@ -1115,6 +1115,7 @@ saved by
         winner-boring-buffers-regexp
         (rx (or
              "*eemacs-"
+             "*eemacs eval with byte-compile*"
              "*entropy/"
              (regexp "\\*Async Shell Command\\*.+" )
              (regexp "^*Man.+*$")

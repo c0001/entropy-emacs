@@ -107,6 +107,7 @@ For lisp coding aim, always return the transfered buffer.
        entropy/emacs-with-lambda
        entropy/emacs-funcall-with-lambda
        entropy/emacs-add-hook-with-lambda
+       entropy/emacs-define-idle-function
        )
     "List of eemacs's lambda wrapper cars used for as those specified
 form indicator.")
@@ -183,7 +184,8 @@ byte-code into a popup buffer.
             (body (entropy/emacs-get-plist-body body)))
         `(let (,rtn-sym
                ,msg-core-sym
-               (,bytecmp-type-sym ,use-byte-compile))
+               (,bytecmp-type-sym ,use-byte-compile)
+               defun-sym pre-byte-func-sym double-bytecmp-p)
            (when (or ,(if (null body) t) ,without-confirm
                      (yes-or-no-p (format "Really eval %s" ',type)))
              ,(if body
@@ -247,12 +249,19 @@ byte-code into a popup buffer.
                            ;; evalulation in which case judging to use
                            ;; lexical or dynamic interpretation.
                            (with-current-buffer orig-buff
-                             (if (and (memq (car eval-form) '(defun cl-defun))
+                             (if (and (memq (setq defun-sym (car eval-form))
+                                            '(defun cl-defun entropy/emacs-define-idle-function))
+                                      (setq pre-byte-func-sym (cadr eval-form))
                                       (yes-or-no-p
                                        (format "It's seemes like a function defination form \
 for function '%s', eval and compile its defination instead?"
-                                               (cadr eval-form))))
-                                 (let ((orig-form eval-form))
+                                               pre-byte-func-sym)))
+                                 (cond
+                                  ((eq defun-sym 'entropy/emacs-define-idle-function)
+                                   (setq eval-form (eval eval-form lexical-binding)
+                                         double-bytecmp-p pre-byte-func-sym
+                                         confirm-p t))
+                                  (t
                                    ;; we must obey the
                                    ;; `lexical-binding' as in origin
                                    ;; buffer, otherwise messy will be
@@ -260,10 +269,11 @@ for function '%s', eval and compile its defination instead?"
                                    (setq eval-form (eval eval-form lexical-binding)
                                          confirm-p t)
                                    (unless (and (symbolp eval-form)
-                                                (eq eval-form (cadr orig-form)))
-                                     (error "[internal error] emacs `defun' api changed.")))
+                                                (eq eval-form pre-byte-func-sym))
+                                     (error "[internal error] emacs `defun' api changed."))))
                                (setq confirm-p
-                                     (yes-or-no-p "Really byte-compile above form?")))))
+                                     (yes-or-no-p "Really byte-compile above form?")
+                                     defun-sym nil))))
                        (unless confirm-p
                          (kill-buffer buff) (and (windowp win) (window-live-p win)
                                                  (delete-window win))
@@ -272,7 +282,19 @@ for function '%s', eval and compile its defination instead?"
                    (entropy/emacs-message-simple-progress-message
                     (format "%s" ,msg-core-sym)
                     (with-current-buffer orig-buff
-                      (setq bytecmp-result (byte-compile eval-form)))
+                      (setq bytecmp-result (byte-compile eval-form))
+                      (if double-bytecmp-p
+                          (setq bytecmp-result
+                                (list
+                                 'multi
+                                 (format ";; 1st:%s"
+                                         (if (symbolp eval-form) (format " `%S'" eval-form) ""))
+                                 bytecmp-result
+                                 (format ";; 2nd:%s"
+                                         (if (symbolp eval-form) (format " `%S'" double-bytecmp-p)
+                                           ""))
+                                 (byte-compile double-bytecmp-p)))
+                        (setq bytecmp-result (list 'single bytecmp-result))))
                     (with-current-buffer buff
                       (let ((inhibit-read-only t)
                             (print-level nil)
@@ -280,7 +302,13 @@ for function '%s', eval and compile its defination instead?"
                             (print-escape-nonascii t)
                             (print-circle t))
                         (erase-buffer)
-                        (prin1 bytecmp-result buff)
+                        (cl-case (car bytecmp-result)
+                          (single (prin1 (cadr bytecmp-result) buff))
+                          (multi
+                           (dolist (el (cdr bytecmp-result))
+                             (if (stringp el) (insert el) (prin1 el buff))
+                             (insert "\n\n")))
+                          (t (error "eemacs byte compile form internal error")))
                         (toggle-truncate-lines -1)
                         (goto-char (point-min))))))))
              ;; return
