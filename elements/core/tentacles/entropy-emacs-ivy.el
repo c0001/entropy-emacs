@@ -51,6 +51,7 @@
 (defvar company-prefix)
 (defvar company-selection)
 (defvar company-candidates)
+(defvar company-candidates-cache)
 (defvar company-candidates-length)
 (defvar company-search-string)
 
