@@ -348,8 +348,8 @@ With prefix argument binds, jump to the previous mark place."
 
   (if (not sys/is-win-group)
       ;; because of windows dired list is too long so just let it in linux
-      (setq dired-listing-switches "-alh --group-directories-first")
-    (setq dired-listing-switches "-alh"))
+      (setq dired-listing-switches "-alh --group-directories-first --sort=time")
+    (setq dired-listing-switches "-alh --sort=time"))
 
 ;; ******* Hide details defautly
   (add-hook 'dired-mode-hook #'dired-hide-details-mode)
