@@ -924,6 +924,7 @@ directly identified the input regexp string which do not be with
 ;; **** enhance counsel company
 
   (defvar entropy/emacs-ivy--counsel-company-candidates nil)
+  (defvar entropy/emacs-ivy--counsel-company-candidates-cache nil)
   (defvar entropy/emacs-ivy--counsel-company-candidates-length nil)
   (defvar entropy/emacs-ivy--counsel-company-backend nil)
   (defvar entropy/emacs-ivy--counsel-company-common nil)
@@ -944,6 +945,8 @@ directly identified the input regexp string which do not be with
         (progn
           (setq entropy/emacs-ivy--counsel-company-candidates
                 company-candidates
+                entropy/emacs-ivy--counsel-company-candidates-cache
+                company-candidates-cache
                 entropy/emacs-ivy--counsel-company-backend
                 company-backend
                 entropy/emacs-ivy--counsel-company-candidates-length
@@ -989,54 +992,44 @@ directly identified the input regexp string which do not be with
 
   (defun entropy/emacs-ivy--counsel-company-show-doc-action (candi)
     (let* ((selection candi))
-      (cond ((and (member major-mode '(emacs-lisp-mode lisp-interaction-mode))
-                  (not (eq entropy/emacs-ivy--counsel-company-backend
-                           'company-en-words)))
-             (with-current-buffer entropy/emacs-ivy--counsel-orig-buff
-               (company-abort))
-             (let ((sym (intern selection)))
-               (when sym
-                 (cond ((fboundp sym) (describe-function sym))
-                       ((featurep sym) (find-library selection))
-                       ((facep sym) (describe-face sym))
-                       ((boundp sym) (describe-variable sym))
-                       ((symbolp sym) (user-error "Interned symbol '%s'" sym))
-                       (t . nil)))))
-            (t
-             (with-current-buffer entropy/emacs-ivy--counsel-orig-buff
-               (company-abort)
-               (let* ((company-candidates entropy/emacs-ivy--counsel-company-candidates)
-                      (company-candidates-length entropy/emacs-ivy--counsel-company-candidates-length)
-                      (company-backend entropy/emacs-ivy--counsel-company-backend)
-                      (company-point entropy/emacs-ivy--counsel-company-point)
-                      (company-search-string entropy/emacs-ivy--counsel-company-search-string)
-                      (company-prefix entropy/emacs-ivy--counsel-company-prefix)
-                      (company-common entropy/emacs-ivy--counsel-company-common)
-                      (company-point entropy/emacs-ivy--counsel-company-point)
-                      (company-selection
-                       (or
-                        (- (length company-candidates)
-                           (length (member selection company-candidates)))
-                        (error "can not caculate the `company-selection'"))))
-                 ;; caculate the candidates cache
-                 (let (prefix)
-                   (cl-dolist (backend (list company-backend))
-                     (setq prefix
-                           (if (or (symbolp backend)
-                                   (functionp backend))
-                               (let ((company-backend backend))
-                                 (company-call-backend 'prefix))
-                             (company--multi-backend-adapter
-                              backend 'prefix)))
-                     (when prefix
-                       (when (company--good-prefix-p prefix)
-                         (let* ((ignore-case (company-call-backend 'ignore-case))
-                                (company-prefix (company--prefix-str prefix))
-                                (company-backend backend))
-                           (company-calculate-candidates
-                            company-prefix ignore-case))))))
-                 ;; show doc buffer using native api
-                 (company-show-doc-buffer)))))))
+      (with-current-buffer entropy/emacs-ivy--counsel-orig-buff
+        (company-abort)
+        (let* ((company-candidates entropy/emacs-ivy--counsel-company-candidates)
+               (company-candidates-cache entropy/emacs-ivy--counsel-company-candidates-cache)
+               (company-candidates-length entropy/emacs-ivy--counsel-company-candidates-length)
+               (company-backend entropy/emacs-ivy--counsel-company-backend)
+               (company-point entropy/emacs-ivy--counsel-company-point)
+               (company-search-string entropy/emacs-ivy--counsel-company-search-string)
+               (company-prefix entropy/emacs-ivy--counsel-company-prefix)
+               (company-common entropy/emacs-ivy--counsel-company-common)
+               (company-point entropy/emacs-ivy--counsel-company-point)
+               (company-selection
+                (- (length company-candidates)
+                   (length (member selection company-candidates)))))
+          ;; caculate the candidates cache
+          ;;
+          ;; FIXME: why we should do this even we have restored `company-candidates-cache'.
+          ;;
+          ;; FIXME: does this change the company selection we've
+          ;; chosen to describe about? In other words, does the new
+          ;; `company-candidates-cache' can really used for that case
+          ;; since we assume that the new grabbed context is same as
+          ;; the old.
+          (let (prefix)
+            (cl-dolist (backend (list company-backend))
+              (setq prefix
+                    (if (or (symbolp backend) (functionp backend))
+                        (let ((company-backend backend))
+                          (company-call-backend 'prefix))
+                      (company--multi-backend-adapter backend 'prefix)))
+              (when prefix
+                (when (company--good-prefix-p prefix)
+                  (let* ((ignore-case (company-call-backend 'ignore-case))
+                         (company-prefix (company--prefix-str prefix))
+                         (company-backend backend))
+                    (company-calculate-candidates company-prefix ignore-case))))))
+          ;; show doc buffer using native api
+          (company-show-doc-buffer)))))
 
   (ivy-add-actions 'counsel-company
                    '(("M-h" entropy/emacs-ivy--counsel-company-show-doc-action
