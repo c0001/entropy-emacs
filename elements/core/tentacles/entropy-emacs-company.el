@@ -403,7 +403,11 @@ re-calculation."
           __ya/company-post-command/current-point (point)
           __ya/company-post-command/current-buffer (current-buffer)
           __ya/company-post-command/idle-cancel-p nil)
-    (if (or (not company-candidates) (current-idle-time)
+    ;; FIXME: prevent duplicated timer delay show since it may cause
+    ;; eemacs bug h:c5b6bd90-0662-4daa-877f-5be88c04ce2a.
+    (entropy/emacs-cancel-timer-var company-timer)
+    (if (or (or entropy/emacs-current-session-is-idle-p (current-idle-time))
+            (not company-candidates)
             (get this-command 'eemacs-company-special-key)
             ;; FIXME: if we using idle in `delete' char cases, company
             ;; will not working properly and may cause emacs hang?
@@ -412,7 +416,7 @@ re-calculation."
                     __ya/company-post-command/previous-point)))
         (progn (apply orig-func orig-args)
                (setq __ya/company-post-command/idle-cancel-p t))
-      (progn
+      (unless (or entropy/emacs-current-session-is-idle-p (current-idle-time))
         (funcall __ya/company-post-command/idle-port)
         ;; EEMACS_MAINTENANCE&TODO: ensure no duplicate for above idle
         ;; progress but seemes company has its own preventing condition

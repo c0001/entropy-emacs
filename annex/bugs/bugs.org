@@ -1314,6 +1314,11 @@ release.
   This bug may caused by =company='s internal candidates grabing
   procedure since its multi-backends merging functional.
 
+- [2022-11-10 Thu 19:15:26]
+
+  This bug may caused by duplicated company frontend perfoming
+  invocation.
+
 * COMMENT Local Varaibles
 :PROPERTIES:
 :CUSTOM_ID: h-550f1e2d-23da-47d3-98e1-cd8be05baa7d

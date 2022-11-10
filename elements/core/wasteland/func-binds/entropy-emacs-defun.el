@@ -695,7 +695,7 @@ the value of VAR but also set VAR to nil after the canceling
 succeed.
 
 Value should be a variable name or a `setf' place."
-  `(when (timerp ,var) (cancel-timer ,var) (setf ,var nil)))
+  `(when (and ,var (timerp ,var)) (cancel-timer ,var) (setf ,var nil)))
 
 ;; **** Apis with when wrapper
 (cl-defmacro entropy/emacs-when-defun (&rest args)
