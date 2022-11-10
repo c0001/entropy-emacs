@@ -993,42 +993,9 @@ directly identified the input regexp string which do not be with
   (defun entropy/emacs-ivy--counsel-company-show-doc-action (candi)
     (let* ((selection candi))
       (with-current-buffer entropy/emacs-ivy--counsel-orig-buff
-        (company-abort)
-        (let* ((company-candidates entropy/emacs-ivy--counsel-company-candidates)
-               (company-candidates-cache entropy/emacs-ivy--counsel-company-candidates-cache)
-               (company-candidates-length entropy/emacs-ivy--counsel-company-candidates-length)
-               (company-backend entropy/emacs-ivy--counsel-company-backend)
-               (company-point entropy/emacs-ivy--counsel-company-point)
-               (company-search-string entropy/emacs-ivy--counsel-company-search-string)
-               (company-prefix entropy/emacs-ivy--counsel-company-prefix)
-               (company-common entropy/emacs-ivy--counsel-company-common)
-               (company-point entropy/emacs-ivy--counsel-company-point)
-               (company-selection
+        (let* ((company-selection
                 (- (length company-candidates)
                    (length (member selection company-candidates)))))
-          ;; caculate the candidates cache
-          ;;
-          ;; FIXME: why we should do this even we have restored `company-candidates-cache'.
-          ;;
-          ;; FIXME: does this change the company selection we've
-          ;; chosen to describe about? In other words, does the new
-          ;; `company-candidates-cache' can really used for that case
-          ;; since we assume that the new grabbed context is same as
-          ;; the old.
-          (let (prefix)
-            (cl-dolist (backend (list company-backend))
-              (setq prefix
-                    (if (or (symbolp backend) (functionp backend))
-                        (let ((company-backend backend))
-                          (company-call-backend 'prefix))
-                      (company--multi-backend-adapter backend 'prefix)))
-              (when prefix
-                (when (company--good-prefix-p prefix)
-                  (let* ((ignore-case (company-call-backend 'ignore-case))
-                         (company-prefix (company--prefix-str prefix))
-                         (company-backend backend))
-                    (company-calculate-candidates company-prefix ignore-case))))))
-          ;; show doc buffer using native api
           (company-show-doc-buffer)))))
 
   (ivy-add-actions 'counsel-company

@@ -586,13 +586,15 @@ with `shackle'."
                                 (buffer-substring (point-min) (point-max)))))
            (doc-buffer-new (get-buffer-create "*eemacs-company-doc*")))
 
-      ;; abort the origin window buffer company-status when used
+      ;; NOTE: abort the origin window buffer company-status when used
+      ;; since its emulation keymap is still activated.
       (with-selected-window orig-win
         (when (bound-and-true-p company-mode)
           (company-abort)))
       ;; show the eemacs specified doc buffer
       (with-current-buffer doc-buffer-new
         (let ((inhibit-read-only t))
+          (erase-buffer)
           (insert doc-contents)
           (goto-char (point-min))
           (setq buffer-read-only t)
