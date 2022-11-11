@@ -440,7 +440,10 @@ activated status. Default time during set is less than 70ms."
         (and
          (equal (cadr time-now) (cadr time-old))
          (< duration
-            entropy/emacs-company-delete-char-on-the-fly-duration)))))
+            ;; 1ms = 1000 substract of nth 3 of `current-time' between
+            ;; before and after
+            (* entropy/emacs-company-delete-char-on-the-fly-duration
+               1000))))))
   (defun __company-delete-char (orig-func &rest orig-args)
     (let (rtn)
       (when (and (bound-and-true-p company-mode)
@@ -460,7 +463,11 @@ activated status. Default time during set is less than 70ms."
             __company-delc-time-host
             (current-time))
       rtn))
-  (advice-add 'delete-char :around #'__company-delete-char)
+  ;; FIXME: usually adviced for `backward-delete-char-untabify' is
+  ;; enough since it's the subroutine for most of backspace commands
+  ;; binding for major-modes but shall we build a list commands that
+  ;; we can cover them all?
+  (advice-add 'backward-delete-char-untabify :around #'__company-delete-char)
 
 ;; ***** pseudo tooltip optimization
 ;; ****** remove annotation perform on pseudo frontend
