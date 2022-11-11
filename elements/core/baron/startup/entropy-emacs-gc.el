@@ -67,20 +67,6 @@
                    :gc-cons-percentage gc-cons-percentage)
              entropy/emacs-gc-records))))
 
-(defun entropy/emacs-gc-wrapper (orig-func &rest orig-args)
-  (let ((msg "[gc]: Garbage-collecting"))
-    (entropy/emacs-message-simple-progress-message
-     (if entropy/emacs-garbage-collection-message-p
-         msg)
-     :with-temp-message t
-     :ignore-current-messages (lambda (x) (string-match-p (regexp-quote msg) x))
-     (entropy/emacs-gc--with-record
-       (apply orig-func orig-args)))))
-
-(advice-add 'garbage-collect
-            :around
-            #'entropy/emacs-gc-wrapper)
-
 (defmacro __ya/gc-threshold_setq (symbol value)
   "yet another `setq' but spec for garbage collection referred
 variable with newvar set while the VALUE is not equal to the
@@ -119,27 +105,24 @@ origin, since each set to the `gc-threshold' or
           (* 100 1024 1024)))))
 
 (defun entropy/emacs-gc--init-idle-gc (&optional sec)
+  (entropy/emacs-cancel-timer-var entropy/emacs-garbage-collect-idle-timer)
   (setq entropy/emacs-garbage-collect-idle-timer
         (run-with-idle-timer (if sec sec entropy/emacs-garbage-collection-delay)
                              t #'entropy/emacs-gc--idle-time-recovery)))
 
 (defun entropy/emacs-gc--idle-time-recovery ()
-  (garbage-collect)
   (setq gc-cons-threshold
         entropy/emacs-gc-threshold-basic
         gc-cons-percentage
         entropy/emacs-gc-percentage-basic)
-  ;; remove duplicate timemr when detected
-  (let (duplicate-timerp)
-    (dolist (timer timer-idle-list)
-      (let ((timer-func (aref timer 5)))
-        (when (eq timer-func 'entropy/emacs-gc--idle-time-recovery)
-          (push timer duplicate-timerp))))
-    (when (and duplicate-timerp
-               (> (length duplicate-timerp) 1))
-      (dolist (timer duplicate-timerp)
-        (cancel-timer timer))
-      (entropy/emacs-gc--init-idle-gc))))
+  (let ((msg "[gc]: Garbage-collecting")
+        ;; disable gc message temporarily since we use self spec one
+        (garbage-collection-messages nil))
+    (entropy/emacs-message-simple-progress-message
+     msg
+     :with-temp-message t
+     :ignore-current-messages (lambda (x) (string-match-p (regexp-quote msg) x))
+     (entropy/emacs-gc--with-record (garbage-collect)))))
 
 (defun entropy/emacs-gc-set-idle-gc (secs)
   "Re-set the garbage collecton timer
@@ -151,12 +134,8 @@ delay seconds SECS."
                    (<= read-delay 0))
                (error "Input idle delay not valid!")
              read-delay))))
-  (when (timerp entropy/emacs-garbage-collect-idle-timer)
-    (cancel-timer entropy/emacs-garbage-collect-idle-timer)
-    (setq entropy/emacs-garbage-collect-idle-timer nil))
   (setq entropy/emacs-garbage-collection-delay secs)
-  (entropy/emacs-gc--init-idle-gc
-   entropy/emacs-garbage-collection-delay))
+  (entropy/emacs-gc--init-idle-gc))
 
 
 ;; --------------------------------------------------
@@ -166,7 +145,7 @@ delay seconds SECS."
  "eemacs-gc-optimization" "eemacs-gc-optimization"
  :prompt-type 'prompt-echo
  :pdumper-no-end t
- (setq garbage-collection-messages nil)
+ (setq garbage-collection-messages entropy/emacs-garbage-collection-message-p)
  (add-hook 'pre-command-hook #'entropy/emacs-gc--adjust-cons-threshold 100)
  (entropy/emacs-gc--init-idle-gc)
  (setq read-process-output-max (* 1024 1024)))
