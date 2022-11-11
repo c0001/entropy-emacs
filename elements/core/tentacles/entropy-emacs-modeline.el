@@ -342,7 +342,10 @@ type which reduce performance issue."
      (entropy/emacs-modeline--origin-mdl-use-icon-or-plain
       (concat (all-the-icons-faicon "pencil-square-o" :face 'all-the-icons-yellow :v-adjust -0.1) " ")
       " "))
-    ,@(if (< emacs-major-version 29)
+    ,@(if
+          ;; NOTE: we should use the self-create binds for all emacs
+          ;; version since its performance saving well
+          nil ;; (< emacs-major-version 29)
           (list '("" mode-line-position))
         ;; FIXME: emacs-29's `mode-line-position' will make emacs
         ;; unusable by causing of circular list error `(circular-list
