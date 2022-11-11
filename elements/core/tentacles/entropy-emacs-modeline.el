@@ -897,10 +897,9 @@ function name has been changed, please update internal hack of \
                       (format "doom-modeline-format--%s"
                               fmt-func-suffix))))
         (when (fboundp func)
-          (advice-add
-           func
-           :around
-           #'__adv/around/doom-modeline-format-just-in-selected-window)))))
+          (advice-add func
+                      :around
+                      #'__adv/around/doom-modeline-format-just-in-selected-window)))))
 
 ;; ****** common spec
 

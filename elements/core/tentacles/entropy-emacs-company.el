@@ -501,10 +501,8 @@ EEMACS_MAINTENANCE: stick to upstream udpate"
       (add-face-text-property 0 width 'company-tooltip t line)
       line))
 
-  (advice-add
-   'company-fill-propertize
-   :override
-   #'__ya/company-fill-propertize)
+  (advice-add 'company-fill-propertize
+              :override #'__ya/company-fill-propertize)
 
 ;; ******* optimization the internal substring routine
   (defun __ya/company-safe-substring (orig-func &rest orig-args)
@@ -550,10 +548,9 @@ efficiently way."
         (cl-decf col (+ 2 (line-number-display-width))))
       (cons (+ col (window-hscroll)) row)))
 
-  (advice-add
-   'company--posn-col-row
-   :override
-   #'__ya/company--posn-col-row)
+  (advice-add 'company--posn-col-row
+              :override
+              #'__ya/company--posn-col-row)
 
 ;; ***** `company-show-doc-buffer' conflicts hack
 

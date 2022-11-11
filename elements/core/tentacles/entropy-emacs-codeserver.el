@@ -901,10 +901,9 @@ shutdown since it is managed by the customize variable
 
   (dolist (func '(lsp-deferred lsp))
     (let (_)
-      (advice-add
-       func
-       :around
-       #'entropy/emacs-codeserver--codeserver-union-startjudge-filter-advice-form
+      (advice-add func
+                  :around
+                  #'entropy/emacs-codeserver--codeserver-union-startjudge-filter-advice-form
        )))
 
 ;; ********* lsp idle hook specifications
@@ -1461,10 +1460,9 @@ to enable the lsp server for this major-mode supported by `lsp-mode'.
           (add-hook hook #'entropy/emacs-codeserver--eglot-non-support-prompt)
         (add-hook
          hook #'eglot-ensure)))))
-  (advice-add
-   'eglot-ensure
-   :around
-   #'entropy/emacs-codeserver--codeserver-union-startjudge-filter-advice-form)
+  (advice-add 'eglot-ensure
+              :around
+              #'entropy/emacs-codeserver--codeserver-union-startjudge-filter-advice-form)
 
   ;; Disable `eldoc-mode' after eglot start
   ;; NOTE: since `eglot--connect' is the only one subroutine coverred

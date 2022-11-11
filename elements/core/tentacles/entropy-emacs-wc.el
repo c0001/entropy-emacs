@@ -1162,10 +1162,9 @@ issue."
                      (setq entropy/emacs-basic-winner---winner-save-old-config-idler-timer
                            nil))))))
        (t (apply orig-func orig-args)))))
-  (advice-add
-   'winner-save-old-configurations
-   :around
-   #'entropy/emacs-wc-winner--winner-save-old-configurations/run-with-idle)
+  (advice-add 'winner-save-old-configurations
+              :around
+              #'entropy/emacs-wc-winner--winner-save-old-configurations/run-with-idle)
 
   (defun entropy/emacs-wc-winner-undo ()
     "eemacs spec `winner-undo' command."

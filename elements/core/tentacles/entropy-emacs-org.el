@@ -670,10 +670,9 @@ some LANGs if `web-mode' is featured."
           (setq init-func 'web-mode)))
       (apply orig-func datum name init-func rest)))
   (entropy/emacs-lazy-load-simple 'org-src
-    (advice-add
-     'org-src--edit-element
-     :around
-     #'entropy/emacs-org--patch-org-src-edit-element-for-web-mode))
+    (advice-add 'org-src--edit-element
+                :around
+                #'entropy/emacs-org--patch-org-src-edit-element-for-web-mode))
 
 ;; **** ___end___
 

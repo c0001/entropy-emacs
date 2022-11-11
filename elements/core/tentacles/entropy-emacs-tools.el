@@ -962,9 +962,8 @@ based on `entropy/emacs-google-translate-using-proxy-p'."
            orig-func orig-args))
   (dolist (func '(google-translate-backend-retrieve
                   google-translate-listen-translation))
-    (advice-add
-     func :around
-     #'entropy/emacs-tools--advice-for-google-translate-with-http-proxy))
+    (advice-add func :around
+                #'entropy/emacs-tools--advice-for-google-translate-with-http-proxy))
 
   ;; HACK
   ;; EEMACS_MAINTENANCE: follow upstream updates
@@ -1275,10 +1274,9 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
   (dolist (func '(entropy/code2org-export-cur-to-README
                   entropy/code2org-export-cur-to-html-file
                   entropy/code2org-export-cur-to-org-file))
-    (advice-add
-     func
-     :around
-     #'entropy/emacs-tools--before-advice-for-code2org)))
+    (advice-add func
+                :around
+                #'entropy/emacs-tools--before-advice-for-code2org)))
 
 
 ;; ****  require by el2org for generate source to readme which be with the github style md file
