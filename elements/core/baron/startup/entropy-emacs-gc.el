@@ -74,10 +74,13 @@ origin, since each set to the `gc-threshold' or
 `gc-cons-percentage' will make gc subrotine analysis(?)"
   `(let ((newval ,value))
      (unless (= ,symbol newval)
-       (setq ,symbol newval)
-       (when garbage-collection-messages
-         (message "[%s] current gc-cons-threshold is: %s"
-                  this-command gc-cons-threshold)))))
+       (let ((gcval gc-cons-threshold))
+         (setq ,symbol newval)
+         (when (and garbage-collection-messages
+                    (not (= gcval gc-cons-threshold)))
+           (message
+            "[%s] gc-cons-threshold change from %s to %s"
+            this-command gcval gc-cons-threshold))))))
 
 (defun entropy/emacs-gc--adjust-cons-threshold ()
   (cond (
