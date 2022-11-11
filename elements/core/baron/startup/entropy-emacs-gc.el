@@ -76,8 +76,8 @@ origin, since each set to the `gc-threshold' or
      (unless (= ,symbol newval)
        (setq ,symbol newval)
        (when garbage-collection-messages
-         (message "current gc-cons-threshold is: %s"
-                  gc-cons-threshold)))))
+         (message "[%s] current gc-cons-threshold is: %s"
+                  this-command gc-cons-threshold)))))
 
 (defun entropy/emacs-gc--adjust-cons-threshold ()
   (cond (
