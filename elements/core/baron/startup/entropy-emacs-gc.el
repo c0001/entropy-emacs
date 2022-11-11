@@ -106,15 +106,7 @@ origin, since each set to the `gc-threshold' or
 
           ;; we hope all procedure during `eval-expression' are gc
           ;; restricted
-          (or (member
-               this-command
-               `(eval-last-sexp
-                 eval-region
-                 eval-defun
-                 eval-expression
-                 eval-print-last-sexp
-                 eval-buffer
-                 ,@entropy/emacs-garbage-collect-restrict-commands)))
+          (get this-command 'eemacs-gc-special-cmd-p)
           )
          ;; restrict the gc threshold when matching above condidtions
          (__ya/gc-threshold_setq

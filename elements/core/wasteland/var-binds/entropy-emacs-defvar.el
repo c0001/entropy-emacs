@@ -1398,10 +1398,26 @@ with the base file name of FILE to speedup in most of cases."
 (defvar entropy/emacs-garbage-collect-idle-timer nil
   "The garbage collection idle timer for entropy-emacs.")
 
-(defvar entropy/emacs-garbage-collect-restrict-commands nil
+(defvar entropy/emacs-garbage-collect-restrict-commands
+  '(eval-last-sexp
+    eval-region
+    eval-defun
+    eval-expression
+    eval-print-last-sexp
+    eval-buffer)
   "List of commands (i.e. interactive functions) that need to
 restrict their runtime `gc-cons-threshold' while invoked in any
 keymap.")
+
+(defun __eemacs-gc-spec-cmds/var-guard
+    (var-sym nval op _wh)
+  (when (and nval (eq op 'set)
+             (not (equal nval (symbol-value var-sym))))
+    (dolist (sym nval)
+      (put sym 'eemacs-gc-special-cmd-p t))))
+(add-variable-watcher
+ 'entropy/emacs-garbage-collect-restrict-commands
+ #'__eemacs-gc-spec-cmds/var-guard)
 
 ;; ** theme refer
 
