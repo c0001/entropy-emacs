@@ -739,7 +739,9 @@ value as optional interaction while `PREFIX' is non-nil."
            (string-to-number
             (read-string
              "Input bg trransparent var (75-95): "))))
-        (real-alpha-supported-p (version< "29" emacs-version))
+        (real-alpha-supported-p
+         (or (bound-and-true-p eemacs-emacs-built-with-support-true-alpha-background-p)
+             (version< "29" emacs-version)))
         key)
     (setq key (if real-alpha-supported-p 'alpha-background 'alpha))
     ;; Restrict transparent integer value be between 75 to 95 where is
