@@ -185,7 +185,7 @@ delay seconds SECS."
        ;; NOTE: do not use `most-positive-fixnum' here since its may make emacs hang
        (let ((emtn-p (= emacs-major-version 29)))
          ;; FIXME: [2022-10-30 Sun 06:11:57] emacs-29.0.50's gc is so
-         ;; frequently than 28, so I find a sweet poin for thus.
+         ;; frequently than 28, so I find a sweet point for thus.
          (setq gc-cons-threshold (* (if emtn-p 50 100) (expt 1024 2)))
          ;; FIXME: [2022-10-30 Sun 06:11:57] emacs-29.0.50's gc
          ;; percentage is suggested to 1.0?
