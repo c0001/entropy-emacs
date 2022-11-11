@@ -430,8 +430,11 @@ progress."
            (t
             nil)))))
 
-      (add-hook 'entropy/emacs-daemon-server-after-make-frame-hook
-                #'entropy/emacs-themes--load-theme-for-daemon-client-new)
+      (entropy/emacs-with-daemon-make-frame-done 'eemacs-load-theme-for-daemon-client
+        nil "Reload theme after daemon create new client properly."
+        (unless (or noninteractive (frame-parent))
+          (funcall 'entropy/emacs-themes--load-theme-for-daemon-client-new)))
+
       )))
 
 ;; * provide
