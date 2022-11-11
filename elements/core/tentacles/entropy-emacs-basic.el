@@ -5048,6 +5048,54 @@ successfully both of situation of read persisit of create an new."
   (setq bookmark-save-flag 1))
 
 ;; **** Description | Help mode improvement
+
+(use-package help-fns
+  :ensure nil
+  :eemacs-indhc
+  (((:enable
+     t
+     :defer
+     (:data
+      (:adfors
+       (after-change-major-mode-hook)
+       :adtype hook
+       :pdumper-no-end t)))
+    (describe-help-fns))
+   ("Describe emacs local status"
+    (("C-h M-m" describe-mode "Describe current major-mode and minor-modes"
+      :enable t :exit t :global-bind t)
+     ("C-h M-k" describe-bindings "Describe current keymap bindings"
+      :enable t :exit t :global-bind t)
+     ("C-h M-c" describe-categories
+      "Describe the category specifications in the current category table"
+      :enable t :exit t :global-bind t)
+     ("C-h M-p" describe-text-properties
+      "Describe widgets, buttons, overlays, and text properties at POS."
+      :enable t :exit t :global-bind t)
+     ("C-h M-C" describe-character-set
+      "Display information about built-in character set CHARSET."
+      :enable t :exit t :global-bind t)
+     ("C-h M-w" describe-widget
+      "Display a buffer with information about a widget."
+      :enable t :exit t :global-bind t)
+     )))
+  :eemacs-tpha
+  (((:enable
+     t
+     :defer
+     (:data
+      (:adfors
+       (after-change-major-mode-hook)
+       :adtype hook
+       :pdumper-no-end t))))
+   ("Basic"
+    (("b d"
+      (:eval
+       (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+        'describe-help-fns))
+      "Describe emacs local status"
+      :enable t)))))
+
 ;; ***** EEMACS_MAINTENANCE - Bug fix
 
 (entropy/emacs--api-restriction-uniform 'describe-key/bug/xterm-paste/advice-patch

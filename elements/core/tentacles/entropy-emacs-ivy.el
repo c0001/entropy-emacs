@@ -707,6 +707,7 @@ This is for use in `ivy-re-builders-alist'."
          ("C-x d"   . counsel-dired)
          ("C-x C-f" . counsel-find-file)
          ("C-h a"   . counsel-apropos)
+         ("C-h b"   . counsel-descbinds)
          ("C-h P"   . counsel-package)
          ("C-h v"   . counsel-describe-variable)
          ("C-h f"   . counsel-describe-function)
