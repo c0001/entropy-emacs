@@ -998,9 +998,142 @@ in `entropy/emacs-company-frontend-sticker'."
                 :override
                 #'entropy/emacs-company--company-box-icons-elisp))
 
-;; ***** company box doc hide when fly on editing
+;; ***** advices
+;; ****** make `company-box--set-mode' proper
 
-  (defvar-local __local-company-box-doc-hided nil)
+  ;; EEMACS_MAINTENANCE: should follow upstream updates
+  (defun __ya/company-box--set-mode (&optional frame)
+    (cond
+     ((and (bound-and-true-p company-box-mode) (not (display-graphic-p frame)))
+      (company-box-mode -1))
+     ((bound-and-true-p company-box-mode)
+      (company-box--tweak-external-packages)
+      (remove-hook 'after-make-frame-functions 'company-box--set-mode t)
+      (add-hook 'delete-frame-functions 'company-box--kill-buffer)
+      (add-hook 'buffer-list-update-hook 'company-box--handle-window-changes t)
+      (make-local-variable 'company-frontends)
+      ;; HACK: Make `company-frontends' removed all internal frontends
+      ;; since origin procedure doesn't enum the all internal
+      ;; frontends.
+      (mapc (lambda (x) (setq company-frontends
+                              (delete x company-frontends)))
+            entropy/emacs-company-internal-pseudo-frontends)
+      (add-to-list 'company-frontends 'company-box-frontend)
+      (unless (assq 'company-box-frame frameset-filter-alist)
+        (push '(company-box-doc-frame . :never) frameset-filter-alist)
+        (push '(company-box-frame . :never) frameset-filter-alist)))
+     ((memq 'company-box-frontend company-frontends)
+      (setq company-frontends (delq 'company-box-frontend company-frontends))
+      ;; HACK: eemacs should support only one candi show even if use
+      ;; internal frontend.
+      (add-to-list 'company-frontends 'company-pseudo-tooltip-frontend))))
+
+  (advice-add 'company-box--set-mode
+              :override
+              #'__ya/company-box--set-mode)
+
+;; ****** company-box child-frame patch
+
+;; ******* bug fix
+  (defun __ya/company-box--get-frame
+      (orig-func &rest orig-args)
+    "Like `company-box--get-frame' but we should guarantee the
+returned FRAME is lived since we can not do anything in a dead
+frame as that will cause error."
+    (let ((frame (apply orig-func orig-args)))
+      (when (and (framep frame) (frame-live-p frame))
+        frame)))
+  (advice-add 'company-box--get-frame
+              :around
+              #'__ya/company-box--get-frame)
+
+;; ******* core patch
+;; ******** unified core patch
+
+  (defvar-local __local-company-box-doc-hided nil
+    "indicator for whether is company-box-doc frame hiden.")
+
+;; ********* set child frame indicator
+  (defun __company-box-make-child-frame-with-frame-indicator
+      (orig-func &rest orig-args)
+    "Let `company-box--make-frame' be explicitly with frame indicator
+as its `frame-parameter'."
+    (let ((company-box-frame-parameters
+           (append company-box-frame-parameters
+                   `((this-company-box-frame-p . t)))))
+      (apply orig-func orig-args)))
+  (advice-add 'company-box--make-frame
+              :around
+              #'__company-box-make-child-frame-with-frame-indicator)
+
+  (defun __company-box-doc-make-frame-with-frame-indicator
+      (orig-func &rest orig-args)
+    "Let `company-box-doc--make-frame' be explicitly with frame
+indicator as its `frame-parameter'."
+    (let ((company-box-doc-frame-parameters
+           (append company-box-doc-frame-parameters
+                   `((this-company-box-frame-p . t)
+                     (this-company-box-doc-frame-p . t)))))
+      (apply orig-func orig-args)))
+  (advice-add 'company-box-doc--make-frame
+              :around
+              #'__company-box-doc-make-frame-with-frame-indicator)
+
+;; ********* delete company box frames
+
+  (defun entropy/emacs-company--cmpbox-del-frames nil
+    (dolist (frame (frame-list))
+      (when (frame-parameter frame 'this-company-box-frame-p)
+        (delete-frame frame t)))
+    (let ((main-frame (frame-local-getq company-box-frame))
+          (doc-frame (frame-local-getq company-box-doc-frame)))
+      (and (framep main-frame)
+           (frame-live-p main-frame)
+           (delete-frame main-frame t))
+      (and (framep doc-frame)
+           (frame-live-p doc-frame)
+           (delete-frame doc-frame t)))
+    (setq __local-company-box-doc-hided nil)
+    (frame-local-setq company-box-frame nil)
+    (frame-local-setq company-box-doc-frame nil))
+
+;; ********* frame font spec
+  (defun __company-box-make-child-frame-with-fontspec
+      (orig-func &rest orig-args)
+    "Let `company-box--make-frame' use same font from its parent
+frame."
+    (let ((company-box-frame-parameters
+           (append company-box-frame-parameters
+                   `((font . ,(frame-parameter nil 'font))))))
+      (apply orig-func orig-args)))
+  (advice-add 'company-box--make-frame
+              :around #'__company-box-make-child-frame-with-fontspec)
+
+  (defun __company-box-make-doc-child-frame-with-fontspec
+      (orig-func &rest orig-args)
+    "Let `company-box-doc--make-frame' use same font from its parent
+frame."
+    (let ((company-box-doc-frame-parameters
+           (append company-box-doc-frame-parameters
+                   `((font . ,(frame-parameter nil 'font))))))
+      (apply orig-func orig-args)))
+  (advice-add 'company-box-doc--make-frame
+              :around #'__company-box-make-doc-child-frame-with-fontspec)
+
+;; ********* recreate child frame after theme load
+  (defun __company-box-remove-child-frame/before-load-theme ()
+    "Remove company-box's frame before load a new theme since the we
+don't set a proper method to let preserved old frame use the new
+theme face spces."
+    (when (bound-and-true-p company-candidates)
+      (company-abort))
+    (entropy/emacs-company--cmpbox-del-frames))
+  (add-hook 'entropy/emacs-theme-load-before-hook
+            #'__company-box-remove-child-frame/before-load-theme)
+
+;; ******** company box doc core patch
+;; ********* company box doc hide when fly on editing
+
   (defun __company-box-doc-show-timer-func (selection frame)
     "`company-box-doc' delay show core subroutine.
 
@@ -1074,96 +1207,8 @@ while in `company-box-mode'."
   (add-hook 'company-box-mode-hook
             #'entropy/emacs-company-box-hide-on-the-fly)
 
-;; ***** advices
-;; ****** make `company-box--set-mode' proper
-
-  ;; EEMACS_MAINTENANCE: should follow upstream updates
-  (defun __ya/company-box--set-mode (&optional frame)
-    (cond
-     ((and (bound-and-true-p company-box-mode) (not (display-graphic-p frame)))
-      (company-box-mode -1))
-     ((bound-and-true-p company-box-mode)
-      (company-box--tweak-external-packages)
-      (remove-hook 'after-make-frame-functions 'company-box--set-mode t)
-      (add-hook 'delete-frame-functions 'company-box--kill-buffer)
-      (add-hook 'buffer-list-update-hook 'company-box--handle-window-changes t)
-      (make-local-variable 'company-frontends)
-      ;; HACK: Make `company-frontends' removed all internal frontends
-      ;; since origin procedure doesn't enum the all internal
-      ;; frontends.
-      (mapc (lambda (x) (setq company-frontends
-                              (delete x company-frontends)))
-            entropy/emacs-company-internal-pseudo-frontends)
-      (add-to-list 'company-frontends 'company-box-frontend)
-      (unless (assq 'company-box-frame frameset-filter-alist)
-        (push '(company-box-doc-frame . :never) frameset-filter-alist)
-        (push '(company-box-frame . :never) frameset-filter-alist)))
-     ((memq 'company-box-frontend company-frontends)
-      (setq company-frontends (delq 'company-box-frontend company-frontends))
-      ;; HACK: eemacs should support only one candi show even if use
-      ;; internal frontend.
-      (add-to-list 'company-frontends 'company-pseudo-tooltip-frontend))))
-
-  (advice-add 'company-box--set-mode
-              :override
-              #'__ya/company-box--set-mode)
-
-;; ****** company-box child-frame patch
-
-;; ******* bug fix
-  (defun __ya/company-box--get-frame
-      (orig-func &rest orig-args)
-    "Like `company-box--get-frame' but we should guarantee the
-returned FRAME is lived since we can not do anything in a dead
-frame as that will cause error."
-    (let ((frame (apply orig-func orig-args)))
-      (when (and (framep frame) (frame-live-p frame))
-        frame)))
-  (advice-add 'company-box--get-frame
-              :around
-              #'__ya/company-box--get-frame)
-
-;; ******* core patch
-;; ******** recreate child frame after theme load
-  (defun __company-box-remove-child-frame/before-load-theme ()
-    "Remove company-box's frame before load a new theme since the we
-don't set a proper method to let preserved old frame use the new
-theme face spces."
-    (let ((frame (company-box--get-frame)))
-      (when (frame-live-p frame)
-        (when (bound-and-true-p company-candidates)
-          (company-abort))
-        (delete-frame frame)
-        (frame-local-setq company-box-frame nil))))
-  (add-hook 'entropy/emacs-theme-load-before-hook
-            #'__company-box-remove-child-frame/before-load-theme)
-
-;; ******** set child frame indicator
-  (defun __company-box-make-child-frame-with-frame-indicator
-      (orig-func &rest orig-args)
-    "Let `company-box--make-frame' be explicitly with frame indicator
-as its `frame-parameter'."
-    (let ((company-box-frame-parameters
-           (append company-box-frame-parameters
-                   `((this-company-box-frame-p . t)))))
-      (apply orig-func orig-args)))
-  (advice-add 'company-box--make-frame
-              :around
-              #'__company-box-make-child-frame-with-frame-indicator)
-
-;; ******** frame font spec
-  (defun __company-box-make-child-frame-with-fontspec
-      (orig-func &rest orig-args)
-    "Let `company-box--make-frame' use same font from its parent
-frame."
-    (let ((company-box-frame-parameters
-           (append company-box-frame-parameters
-                   `((font . ,(frame-parameter nil 'font))))))
-      (apply orig-func orig-args)))
-  (advice-add 'company-box--make-frame
-              :around #'__company-box-make-child-frame-with-fontspec)
-
-;; ******** frame hide/show robust
+;; ******** company box main core patch
+;; ******* frame hide/show robust
 
   (defun __ya/company-box-hide-or-show/robust (orig-func &rest orig-args)
     (let ((inhibit-quit t))
@@ -1183,15 +1228,15 @@ frame."
                (let ((buff (company-box--get-buffer)))
                  (with-current-buffer buff
                    (setq company-box--last-start nil)))))
-           (dolist (frame (frame-list))
-             (when (frame-parameter frame 'this-company-box-frame-p)
-               (delete-frame frame t)))
+           (entropy/emacs-company--cmpbox-del-frames)
            (company-abort)
            (user-error "[company-box hide/show] error: %S" err))))))
   (dolist (func '(company-box-hide
                   company-box-show
                   company-box--update
-                  company-box--move-selection))
+                  company-box--move-selection
+                  company-box-doc--show
+                  company-box-doc--hide))
     (advice-add func
                 :around #'__ya/company-box-hide-or-show/robust))
 
@@ -1200,16 +1245,7 @@ frame."
       (&optional _arg)
     "[Debug only] Delete all company-box child frames."
     (interactive "P")
-    (let ((frame-list (frame-list)))
-      (dolist (frame frame-list)
-        (when (and (frame-live-p frame)
-                   (frame-parameter
-                    frame
-                    'this-company-box-frame-p))
-          (entropy/emacs-message-do-message
-           "Deleting company-box child-frame <%s> ..."
-           (yellow frame))
-          (delete-frame frame t)))))
+    (entropy/emacs-company--cmpbox-del-frames))
 
 ;; ***** loading patch
 

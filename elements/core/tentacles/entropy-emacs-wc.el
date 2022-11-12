@@ -1128,7 +1128,7 @@ saved by
               "^magit[-]?\\([a-z]+\\)?:"))))
 
   :config
-  (defvar entropy/emacs-basic-winner---winner-save-old-config-run-orig-func-p nil)
+  (defvar entropy/emacs-basic-winner--winner-save-old-config-should-run-orig-func-p nil)
   (defvar entropy/emacs-basic-winner---winner-save-old-config-idler-timer nil)
   (defun entropy/emacs-basic-winner---winner-save-old-config-run-with-idle-type ()
     (cond
@@ -1144,7 +1144,7 @@ saved by
 issue."
     (let (idle-delay)
       (cond
-       (entropy/emacs-basic-winner---winner-save-old-config-run-orig-func-p
+       (entropy/emacs-basic-winner--winner-save-old-config-should-run-orig-func-p
         (apply orig-func orig-args))
        ((and
          (not (timerp entropy/emacs-basic-winner---winner-save-old-config-idler-timer))
@@ -1158,10 +1158,15 @@ issue."
               (run-with-idle-timer
                idle-delay nil
                #'(lambda nil
-                   (unwind-protect
-                       (apply orig-func orig-args)
-                     (setq entropy/emacs-basic-winner---winner-save-old-config-idler-timer
-                           nil))))))
+                   ;; we should take the idle procedure in
+                   ;; `condition-case' since we can not guarantee the
+                   ;; patch is always worked.
+                   (condition-case err
+                       (unwind-protect
+                           (apply orig-func orig-args)
+                         (setq entropy/emacs-basic-winner---winner-save-old-config-idler-timer
+                               nil))
+                     (error (message "[winner idle save] %S" err)))))))
        (t (apply orig-func orig-args)))))
   (advice-add 'winner-save-old-configurations
               :around
@@ -1173,12 +1178,11 @@ issue."
     (progn
       (setq this-command 'winner-undo)
       (if (bound-and-true-p winner-mode)
-          (let ((entropy/emacs-basic-winner---winner-save-old-config-run-orig-func-p
+          (let ((entropy/emacs-basic-winner--winner-save-old-config-should-run-orig-func-p
                  t)
                 (inhibit-quit t))
-            (when (timerp entropy/emacs-basic-winner---winner-save-old-config-idler-timer)
-              (cancel-timer entropy/emacs-basic-winner---winner-save-old-config-idler-timer)
-              (setq entropy/emacs-basic-winner---winner-save-old-config-idler-timer nil))
+            (entropy/emacs-cancel-timer-var
+             entropy/emacs-basic-winner---winner-save-old-config-idler-timer)
             (winner-save-old-configurations)
             (winner-undo))
         (user-error "winner-mode not enabled"))))
