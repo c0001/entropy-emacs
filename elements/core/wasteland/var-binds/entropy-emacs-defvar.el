@@ -1934,14 +1934,20 @@ entropy-emacs.
             (cancel-timer timer)))
       (cancel-timer timer))))
 
+(defvar entropy/emacs-daemon--client-initialize-main-register nil)
 (defun entropy/emacs-daemon--client-initialize-main (&rest _)
   (let ((var-sym (make-symbol "__timer_var__"))
-        (inhibit-quit t))
-    (set var-sym
-         (run-with-idle-timer
-          0.001 t
-          #'entropy/emacs-daemon--client-initialize
-          (selected-frame) var-sym))))
+        (inhibit-quit t)
+        (frame (selected-frame)))
+    ;; FIXME: why there's multi timer for same frame?
+    (unless (assoc frame entropy/emacs-daemon--client-initialize-main-register)
+      (set var-sym
+           (run-with-idle-timer
+            0.001 t
+            #'entropy/emacs-daemon--client-initialize
+            frame var-sym))
+      (push (cons frame (symbol-value var-sym))
+            entropy/emacs-daemon--client-initialize-main-register))))
 
 (when (daemonp)
   (add-hook 'server-after-make-frame-hook
