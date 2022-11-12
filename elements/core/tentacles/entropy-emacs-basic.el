@@ -4742,13 +4742,14 @@ successfully both of situation of read persisit of create an new."
 ;; ***** remove redundant kill-ring save operation
 
 (defun __ya/backward-kill-word (arg)
-    "Alternative for `backward-kill-word' but not trigger
+  "Alternative for `backward-kill-word' but not trigger
 `kill-ring-save'."
-    (declare (interactive-only t))
-    (interactive "p")
+  (declare (interactive-only t))
+  (interactive "p")
+  (unless buffer-read-only
     (delete-region
      (point)
-     (progn (forward-word (- arg)) (point))))
+     (progn (forward-word (- arg)) (point)))))
 
 (global-set-key [remap backward-kill-word]
                 #'__ya/backward-kill-word)

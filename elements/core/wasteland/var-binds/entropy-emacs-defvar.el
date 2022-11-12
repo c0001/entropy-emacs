@@ -229,6 +229,9 @@ for `last-command'.
 `entropy/emacs-current-session-is-idle-p' which indicates that any
 specified timer function which would run with condition of thus
 must setted with SECS larger than or equal of this value.")
+(defvar entropy/emacs-company-idle-delay-internal
+  (max (+ 0.1 entropy/emacs-safe-idle-minimal-secs)
+       entropy/emacs-company-idle-delay-default))
 (defvar entropy/emacs-idle-session-trigger-delay-clusters nil)
 
 (defun entropy/emacs-get-idle-hook-refer-symbol-name-with-idle-second
@@ -629,9 +632,9 @@ context."
 
 (defmacro entropy/emacs-define-idle-function
     (&rest args)
-  "Define a function named NAME with BODY and prepare to used it as a
-idle procedure which just ran while current emacs session is in idle
-occasion (i.e. `entropy/emacs-current-session-is-idle-p' is
+  "Define a function IDLE-FUNC named NAME with BODY and prepare to used
+it as a idle procedure which just ran while current emacs session is
+in idle occasion (i.e. `entropy/emacs-current-session-is-idle-p' is
 non-nil). NAME is also a name for a interned dynamic varaible which
 store a name of NAME's handler function HANDLE, which perform NAME in
 that occasion when invoked. NAME var is `intern'ed into `obarray'.
@@ -643,6 +646,9 @@ be exactly did since this macro use it to found referred context.
 
 Unless `entropy/emacs-session-idle-trigger-debug' is non-nil, then
 BODY run with errors ignored.
+
+IDLE-FUNC always return nil unless corresponding WHICH-HOOK is reached
+in which case return BODY's final return.
 
 \(fn NAME WHICH-HOOK [DOCSTRING] BODY...)"
   (declare (indent defun) (doc-string 3))
@@ -685,7 +691,11 @@ BODY run with errors ignored.
        (defalias ',name
          (lambda nil
            (entropy/emacs-session-idle--run-body-simple
-             ,name ,hook-error-list ,@body)) ,docstring)
+             ,name ,hook-error-list
+             (if ,(__eemacs--get-idle-hook-refer-symbol-name
+                   'hook-trigger-start-var hook-idle-sec)
+                 ,(entropy/emacs-macroexp-progn body))))
+         ,docstring)
 
        (defalias ',name-1
          (lambda nil
@@ -705,9 +715,10 @@ BODY run with errors ignored.
            ;; return t as did successfully
            t)
          (format "The handler for eemacs idle function `%s'." ',name))
-       (defvar ,name ',name-1
+       (defvar ,name nil
          ,(format "Var stores name of idle handler `%s' which handling eemacs idle function `%s'."
                   name-1 name))
+       (setq ,name ',name-1)
        ',name-1)))
 
 ;; ** eemacs top keymap refer

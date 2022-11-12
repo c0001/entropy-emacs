@@ -1134,7 +1134,8 @@ saved by
     (cond
      (buffer-read-only 0.2)
      ((entropy/emacs-operation-status/running-auto-completion-op-p)
-      (+ 1 (entropy/emacs-operation-status/auto-completion-idle-delay)))
+      (+ 1 (or (entropy/emacs-operation-status/auto-completion-idle-delay)
+               0)))
      (t 0.4)))
   (defun entropy/emacs-wc-winner--winner-save-old-configurations/run-with-idle
       (orig-func &rest orig-args)

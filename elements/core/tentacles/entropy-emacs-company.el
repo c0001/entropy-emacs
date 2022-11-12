@@ -162,40 +162,11 @@ yasnippet support *locally*."
   :commands (global-company-mode
              company-mode
              company-complete
-             company-files)
+             company-files
+             entropy/emacs-company-toggle-idledelay)
 
 ;; *** preface
   :preface
-
-  (defun entropy/emacs-company-toggle-idledelay (&optional prefix)
-    "Toggle `company-idle-delay' on/off.
-
-When PREFIX, set the specfied idle delay seconds for as or use
-`entropy/emacs-company-idle-delay-default' as default."
-    (interactive "P")
-    (let ((def-safe-idle-secs
-            (max (+ 0.1 entropy/emacs-safe-idle-minimal-secs)
-                 entropy/emacs-company-idle-delay-default)))
-      (if (and (not prefix)
-               (bound-and-true-p company-idle-delay))
-          (progn (setq company-idle-delay nil)
-                 (message "turn off `company-idle-delay'"))
-        (setq company-idle-delay
-              (if prefix
-                  (let ((secs (string-to-number
-                               (read-string "Input Company delay secs: "))))
-                    (if (and (numberp secs)
-                             (> secs entropy/emacs-safe-idle-minimal-secs))
-                        secs
-                      (message "Invalid company-delay secs '%s'" secs)
-                      def-safe-idle-secs))
-                def-safe-idle-secs))
-        (let ((entropy/emacs-message-non-popup t))
-          (entropy/emacs-message-do-message
-           "%s '%s' to '%s'"
-           (blue "Set")
-           (yellow (symbol-name 'company-idle-delay))
-           (red (number-to-string company-idle-delay)))))))
 
   (defun entropy/emacs-company-files (command)
     "Like `company-files' but using as individual eemacs command with
@@ -296,7 +267,6 @@ eemacs specifications"
    company-tooltip-minimum-width 20
    company-tooltip-align-annotations t
    company-tooltip-offset-display nil   ;reducing selection fast hints laggy
-   company-idle-delay entropy/emacs-company-idle-delay-default
    company-dabbrev-code-everywhere t    ;NOTE: this may make emacs lag
    company-dabbrev-ignore-case t
    company-minimum-prefix-length 2
@@ -376,6 +346,10 @@ eemacs specifications"
       company-search-printing-char
       ;; company internal fake set
       company-idle-begin
+      company-complete-common
+      company-complete-selection
+      company-complete
+      company-abort
       ))
   ;; Use symbol property instead of using `memq' to reduce lag
   (dolist (cmd entropy/emacs-company--company-special-keys)
@@ -387,16 +361,78 @@ eemacs specifications"
   (defvar-local __ya/company-post-command/previous-point nil)
   (defvar-local __ya/company-post-command/idle-cancel-p nil)
 
-  (defvar __ya/company-post-command/orig-func (symbol-function 'company-post-command))
-  (entropy/emacs-define-idle-function __ya/company-post-command/idle-port 0.12
-    (entropy/emacs-when-let*-firstn 2
-        (((eq __ya/company-post-command/current-buffer (current-buffer)))
-         ((not __ya/company-post-command/idle-cancel-p))
-         (this-command entropy/emacs-current-session-this-command-before-idle)
-         (last-command entropy/emacs-current-session-last-command-before-idle))
-      (unless (or (eq this-command 'company-abort)
-                  (eq this-command 'company-complete))
-        (funcall __ya/company-post-command/orig-func))))
+  (defvar __ya/company-post-command/orig-func (symbol-function 'company-post-command)
+    "The origin function defination of `company-post-command'.")
+
+  (defvar __ya/company-post-command/idle-port)
+  (defun entropy/emacs-company--define-idle-post-command ()
+    (progn
+      (setq company-idle-delay 0)
+      (if (not entropy/emacs-company-idle-delay-internal)
+          (setq __ya/company-post-command/idle-port
+                __ya/company-post-command/orig-func)
+        (entropy/emacs-eval-with-lexical
+         `(entropy/emacs-define-idle-function __ya/company-post-command/idle-port
+            ,entropy/emacs-company-idle-delay-internal
+            "The idle port of `company-post-command' obeyed `company''s origin
+mechanism.
+
+This function is useless unless emacs idle reached
+`entropy/emacs-company-idle-delay-internal'."
+            (entropy/emacs-when-let*-firstn 2
+                (((eq __ya/company-post-command/current-buffer (current-buffer)))
+                 ((not __ya/company-post-command/idle-cancel-p))
+                 (this-command entropy/emacs-current-session-this-command-before-idle)
+                 (last-command entropy/emacs-current-session-last-command-before-idle))
+              (unless (or (eq this-command 'company-abort)
+                          (eq this-command 'company-complete))
+                (funcall __ya/company-post-command/orig-func)))))
+        (when (eq __ya/company-post-command/orig-func
+                  __ya/company-post-command/idle-port)
+          (error "eemacs company inernal error: byte-compile origin post command defination"))
+        (byte-compile __ya/company-post-command/idle-port)
+        (byte-compile '__ya/company-post-command/idle-port))))
+  (entropy/emacs-company--define-idle-post-command)
+
+  (defun entropy/emacs-company--company-idle-delay-reset-guard
+      (varsym newval op wh)
+    "We should always ensure that `company-idle-delay' is zero since
+we use eemacs specified idle trigger mechanism."
+    (if (eq op 'set) (set varsym 0)))
+  (add-variable-watcher 'company-idle-delay
+                        #'entropy/emacs-company--company-idle-delay-reset-guard)
+
+  (defun entropy/emacs-company-toggle-idledelay (&optional prefix)
+    "Toggle `entropy/emacs-company-idle-delay-internal' on/off.
+
+When PREFIX, set the specfied idle delay seconds for as or use
+`entropy/emacs-company-idle-delay-default' as default."
+    (interactive "P")
+    (let ((def-safe-idle-secs
+            (max (+ 0.1 entropy/emacs-safe-idle-minimal-secs)
+                 entropy/emacs-company-idle-delay-default)))
+      (if (and (not prefix)
+               (bound-and-true-p entropy/emacs-company-idle-delay-internal))
+          (progn (setq entropy/emacs-company-idle-delay-internal nil)
+                 (entropy/emacs-company--define-idle-post-command)
+                 (message "turn off `entropy/emacs-company-idle-delay-internal'"))
+        (setq entropy/emacs-company-idle-delay-internal
+              (if prefix
+                  (let ((secs (string-to-number
+                               (read-string "Input Company delay secs: "))))
+                    (if (and (numberp secs)
+                             (> secs entropy/emacs-safe-idle-minimal-secs))
+                        secs
+                      (user-error "Invalid company-delay secs '%s'" secs)))
+                def-safe-idle-secs))
+        (entropy/emacs-company--define-idle-post-command)
+        (let ((entropy/emacs-message-non-popup t))
+          (entropy/emacs-message-do-message
+           "%s '%s' to '%s'"
+           (blue "Set")
+           (yellow (symbol-name 'entropy/emacs-company-idle-delay-internal))
+           (red (number-to-string entropy/emacs-company-idle-delay-internal)))))))
+
   (defun __ya/company-post-command (orig-func &rest orig-args)
     "Yet another `company-post-command' which run with idle timer so
 that the sequentially fast hints not laggy by `candidates'
@@ -408,22 +444,26 @@ re-calculation."
     ;; FIXME: prevent duplicated timer delay show since it may cause
     ;; eemacs bug h:c5b6bd90-0662-4daa-877f-5be88c04ce2a.
     (entropy/emacs-cancel-timer-var company-timer)
-    (if (or (or entropy/emacs-current-session-is-idle-p (current-idle-time))
+    (if (or entropy/emacs-current-session-is-idle-p
             (not company-candidates)
             (get this-command 'eemacs-company-special-key)
+            (get last-command 'eemacs-company-special-key)
+            (get real-this-command 'eemacs-company-special-key)
+            (get real-last-command 'eemacs-company-special-key)
+            (current-idle-time)
             ;; FIXME: if we using idle in `delete' char cases, company
             ;; will not working properly and may cause emacs hang?
             (and __ya/company-post-command/previous-point
                  (< __ya/company-post-command/current-point
                     __ya/company-post-command/previous-point)))
-        (progn (apply orig-func orig-args)
-               (setq __ya/company-post-command/idle-cancel-p t))
-      (unless (or entropy/emacs-current-session-is-idle-p (current-idle-time))
-        (funcall __ya/company-post-command/idle-port)
-        ;; EEMACS_MAINTENANCE&TODO: ensure no duplicate for above idle
-        ;; progress but seemes company has its own preventing condition
-        ;; wrapped already.
-        (company-install-map))))
+        (let ((company-idle-delay entropy/emacs-company-idle-delay-internal))
+          (apply orig-func orig-args)
+          (setq __ya/company-post-command/idle-cancel-p t))
+      (funcall __ya/company-post-command/idle-port)
+      ;; EEMACS_MAINTENANCE&TODO: ensure no duplicate for above idle
+      ;; progress but seemes company has its own preventing condition
+      ;; wrapped already.
+      (company-install-map)))
 
   (advice-add 'company-post-command :around #'__ya/company-post-command)
 

@@ -10389,14 +10389,14 @@ company with auto completion."
 
 (defun entropy/emacs-operation-status/auto-completion-idle-delay ()
   "Return current idle delay number for eemacs auto-completion
-operation."
+operation or nil indicate no idle exists for."
   (cond
    ((eq entropy/emacs-auto-completion-use-backend-as 'company)
-    (or (and (bound-and-true-p company-idle-delay)
-             company-idle-delay)
-        (and (or (numberp entropy/emacs-company-idle-delay-default)
-                 (error "`entropy/emacs-company-idle-delay-default' is not an number"))
-             entropy/emacs-company-idle-delay-default)))
+    (and (or (numberp entropy/emacs-company-idle-delay-internal)
+             (null entropy/emacs-company-idle-delay-internal)
+             (error "`entropy/emacs-company-idle-delay-internal' %s not nil or a number"
+                    entropy/emacs-company-idle-delay-internal))
+         entropy/emacs-company-idle-delay-internal))
    (t
     (error "wrong type of eemacs auto-completion type '%s'"
            entropy/emacs-auto-completion-use-backend-as))))
