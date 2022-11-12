@@ -1166,11 +1166,19 @@ issue."
                            (apply orig-func orig-args)
                          (setq entropy/emacs-basic-winner---winner-save-old-config-idler-timer
                                nil))
-                     (error (message "[winner idle save] %S" err)))))))
+                     (error (message "[winner idle save] error: %S" err)))))))
        (t (apply orig-func orig-args)))))
   (advice-add 'winner-save-old-configurations
               :around
               #'entropy/emacs-wc-winner--winner-save-old-configurations/run-with-idle)
+  (advice-add 'winner-save-old-configurations
+              :around
+              ;; FIXME: winner's post command has bug for handling
+              ;; dead frame properly.
+              (entropy/emacs-defalias '__winner-post-ignore-errors
+                (lambda (orig-func &rest orig-args)
+                  (condition-case err (apply orig-func orig-args)
+                    (error (message "[winner post command] error: %S" err))))))
 
   (defun entropy/emacs-wc-winner-undo ()
     "eemacs spec `winner-undo' command."
