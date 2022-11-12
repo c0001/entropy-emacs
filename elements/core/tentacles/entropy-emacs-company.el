@@ -395,7 +395,7 @@ This function is useless unless emacs idle reached
   (entropy/emacs-company--define-idle-post-command)
 
   (defun entropy/emacs-company--company-idle-delay-reset-guard
-      (varsym _newval _op _wh)
+      (varsym _newval op _wh)
     "We should always ensure that `company-idle-delay' is zero since
 we use eemacs specified idle trigger mechanism."
     (if (eq op 'set) (set varsym 0)))
