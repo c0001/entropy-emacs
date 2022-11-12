@@ -394,7 +394,8 @@ eemacs specifications"
          ((not __ya/company-post-command/idle-cancel-p))
          (this-command entropy/emacs-current-session-this-command-before-idle)
          (last-command entropy/emacs-current-session-last-command-before-idle))
-      (unless (eq this-command 'company-abort)
+      (unless (or (eq this-command 'company-abort)
+                  (eq this-command 'company-complete))
         (funcall __ya/company-post-command/orig-func))))
   (defun __ya/company-post-command (orig-func &rest orig-args)
     "Yet another `company-post-command' which run with idle timer so
