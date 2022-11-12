@@ -1596,10 +1596,14 @@ rich enhanced purpose there are one another option:
           (const :tag "Rich-hence (company-box)" company-box))
   :group 'entropy/emacs-customize-group-for-company-mode)
 
-(defcustom entropy/emacs-company-idle-delay-default 0.45
+(defcustom entropy/emacs-company-idle-delay-default 0.65
   "Default eemacs specified set for `company-idle-delay`.
 
-NOTE: must set larger than `entropy/emacs-safe-idle-minimal-secs'."
+NOTE: must set larger than `entropy/emacs-safe-idle-minimal-secs'.
+
+Commonly each company calculation is perfomance lag on, so we should
+always get it larger than the human typing repeating speed, so that we
+can not feeling that lag."
   :type 'number
   :group 'entropy/emacs-customize-group-for-company-mode)
 
