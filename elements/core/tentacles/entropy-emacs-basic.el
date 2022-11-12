@@ -5408,6 +5408,23 @@ operation system"
 
 (setq password-cache-expiry (* 30 60))
 
+;; ***** alternative `C-x C-c'
+
+(defun entropy/emacs-basic-quit-emacs (&optional do-kill)
+  "Alternative `C-x C-c' which prevnt `kill-emacs' directly unless
+DO-KILL applied while prefix hinted."
+  (declare (interactive-only t))
+  (interactive "P")
+  (cond
+   (do-kill (save-buffers-kill-terminal))
+   ((daemonp) (delete-frame))
+   ((not (eq entropy/emacs-main-frame (selected-frame)))
+    (delete-frame))
+   ((eq entropy/emacs-main-frame (selected-frame))
+    (message "Iconifying emacs ...")
+    (iconify-or-deiconify-frame))))
+(global-set-key (kbd "C-x C-c") #'entropy/emacs-basic-quit-emacs)
+
 ;; *** Emacs core patches
 
 ;; **** `insert-for-yank' patch
