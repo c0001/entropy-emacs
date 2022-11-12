@@ -5411,7 +5411,7 @@ operation system"
 ;; ***** alternative `C-x C-c'
 
 (defun entropy/emacs-basic-quit-emacs (&optional do-kill)
-  "Alternative `C-x C-c' which prevnt `kill-emacs' directly unless
+  "Alternative `C-x C-c' which prevent `kill-emacs' directly unless
 DO-KILL applied while prefix hinted."
   (declare (interactive-only t))
   (interactive "P")
