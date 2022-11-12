@@ -394,7 +394,8 @@ eemacs specifications"
          ((not __ya/company-post-command/idle-cancel-p))
          (this-command entropy/emacs-current-session-this-command-before-idle)
          (last-command entropy/emacs-current-session-last-command-before-idle))
-      (funcall __ya/company-post-command/orig-func)))
+      (unless (eq this-command 'company-abort)
+        (funcall __ya/company-post-command/orig-func))))
   (defun __ya/company-post-command (orig-func &rest orig-args)
     "Yet another `company-post-command' which run with idle timer so
 that the sequentially fast hints not laggy by `candidates'
@@ -1082,7 +1083,6 @@ frame as that will cause error."
               #'__ya/company-box--get-frame)
 
 ;; ******* core patch
-
 ;; ******** recreate child frame after theme load
   (defun __company-box-remove-child-frame/before-load-theme ()
     "Remove company-box's frame before load a new theme since the we
@@ -1121,6 +1121,38 @@ frame."
       (apply orig-func orig-args)))
   (advice-add 'company-box--make-frame
               :around #'__company-box-make-child-frame-with-fontspec)
+
+;; ******** frame hide/show robust
+
+  (defun __ya/company-box-hide-or-show/robust (orig-func &rest orig-args)
+    (let ((inhibit-quit t))
+      (condition-case err
+          (apply orig-func orig-args)
+        (error
+         (let ((inhibit-quit t))
+           ;; EEMACS_MAINTENANCE: follow upstream updates
+           (remove-hook 'window-scroll-functions 'company-box--handle-scroll-parent t)
+           (setq company-box--bottom nil
+                 company-box--x nil
+                 company-box--prefix-pos nil
+                 company-box--last-start nil
+                 company-box--edges nil)
+           (ignore-errors
+             (when (fboundp 'company-box--get-buffer)
+               (let ((buff (company-box--get-buffer)))
+                 (with-current-buffer buff
+                   (setq company-box--last-start nil)))))
+           (dolist (frame (frame-list))
+             (when (frame-parameter frame 'this-company-box-frame-p)
+               (delete-frame frame t)))
+           (company-abort)
+           (user-error "[company-box hide/show] error: %S" err))))))
+  (dolist (func '(company-box-hide
+                  company-box-show
+                  company-box--update
+                  company-box--move-selection))
+    (advice-add func
+                :around #'__ya/company-box-hide-or-show/robust))
 
 ;; ******* Debug
   (defun entropy/emacs-company-box-delete-all-child-frames
