@@ -10924,12 +10924,13 @@ invoked after."
                        (or
                         (bound-and-true-p entropy/emacs-startup-done)
                         (and (not ,always-lzl-p-sym)
-                             ;; but in pdumper dump session we want it to run
-                             entropy/emacs-fall-love-with-pdumper
-                             ;; but in non-lazy enable mode we want it run
-                             (not (bound-and-true-p entropy/emacs-custom-enable-lazy-load))
-                             ;; but in daemon load session we want it run
-                             (daemonp))))
+                             (or
+                              ;; but in pdumper dump session we want it to run
+                              entropy/emacs-fall-love-with-pdumper
+                              ;; but in non-lazy enable mode we want it run
+                              (not (bound-and-true-p entropy/emacs-custom-enable-lazy-load))
+                              ;; but in daemon load session we want it run
+                              (daemonp)))))
               (let* ((inhibit-quit t)
                      (head-time (time-to-seconds))
                      (entropy/emacs-message-non-popup
