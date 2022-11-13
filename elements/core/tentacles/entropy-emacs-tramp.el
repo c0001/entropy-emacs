@@ -208,6 +208,8 @@ This func divided this string into the return list as:
     entropy/emacs-sudoedit-current-path-maybe
     tramp-cleanup-connection tramp-cleanup-this-connection)
   "entropy-emacs-tramp-methods-patch" "entropy-emacs-tramp-methods-patch"
+  ;; we should alway lazy load for this since the patch for
+  ;; `tramp-methods' maybe covered.
   :always-lazy-load t
   :prompt-type 'prompt-echo
   (require 'tramp)
