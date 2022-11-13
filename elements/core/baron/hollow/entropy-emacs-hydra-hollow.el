@@ -1169,8 +1169,9 @@ the internally subroutines of this macro, they are:
           (setq depth (- depth 1))
           (setq multi-p (not (= depth init-depth)))
           (if (or (not multi-p)
-                  (string-match-p entropy/emacs-hydra-hollow-pretty-hydra-category-name-regexp
-                                  (symbol-name last-command))
+                  (and (symbolp last-command)
+                       (string-match-p entropy/emacs-hydra-hollow-pretty-hydra-category-name-regexp
+                                       (symbol-name last-command)))
                   (null current-prefix-arg))
               (apply orig-func orig-args)
             (let ((cnt init-depth)

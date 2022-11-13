@@ -668,9 +668,9 @@ with `shackle'."
           (entropy/emacs-local-set-key
            (kbd "q")
            ;; using quote to disable closure binding
-           '(lambda ()
-              (interactive)
-              (kill-buffer-and-window)))))
+           (lambda ()
+             (interactive)
+             (kill-buffer-and-window)))))
       (display-buffer doc-buffer-new)))
   (advice-add 'company-show-doc-buffer
               :override
