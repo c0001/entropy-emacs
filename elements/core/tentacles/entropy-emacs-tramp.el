@@ -208,6 +208,7 @@ This func divided this string into the return list as:
     entropy/emacs-sudoedit-current-path-maybe
     tramp-cleanup-connection tramp-cleanup-this-connection)
   "entropy-emacs-tramp-methods-patch" "entropy-emacs-tramp-methods-patch"
+  :always-lazy-load t
   :prompt-type 'prompt-echo
   (require 'tramp)
   ;; preload the tramp sh pkg to generate the `tramp-methods' completely

@@ -10802,6 +10802,7 @@ automatically self-`fmakunbound' when loaded done."
      adder-type adder-flag
      abbrev-name prompt-type
      pdumper-no-end
+     always-lazy-load
      &allow-other-keys)
   "Generate a form whose functional is to wrap some forms into a
 GENED-FUNTION who named with ABBREV-NAME and INITIAL-SUFFIX-NAME
@@ -10826,9 +10827,11 @@ There's two tricks:
 
 1. Directly add GENED-FUNCTION into the
    =entropy-emacs-startup-trail-hook= when
-   `entropy/emacs-custom-enable-lazy-load' is non-nil. (if
+   `entropy/emacs-custom-enable-lazy-load' is non-nil (if
    PDUMPER-NO-END is non-nil we also set the optional arg
-   PDUMPER-NO-END of `entropy/emacs-select-trail-hook')
+   PDUMPER-NO-END of `entropy/emacs-select-trail-hook'). But unless
+   ALWAYS-LAZY-LOAD is set and return non-nil which is as the other
+   trick.
 
 2. Using LIST-VAR and consider each element of it is a hook (when
    the ADDER-FLAG is nil) or a function (when ADDER-TYPE is
@@ -10869,6 +10872,7 @@ invoked after."
         (func-body-lambda-sym (make-symbol "func-body-lamba-var"))
         (func-sym (make-symbol "func"))
         (var-sym (make-symbol "var"))
+        (always-lzl-p-sym (make-symbol "always-lazy-load-p"))
         (adder-type-sym (make-symbol "the-adder-type"))
         (adder-flag-sym (make-symbol "the-adder-flag"))
         (initial-func-suffix-name-sym (make-symbol "the-initial-func-suffix-name"))
@@ -10885,6 +10889,7 @@ invoked after."
             (,adder-flag-sym ,adder-flag)
             (,prompt-type-sym ,prompt-type)
             (,func-body-lambda-sym (lambda (&rest _advice-orig-args) ,@func-body))
+            (,always-lzl-p-sym ,always-lazy-load)
             ,func-lambda-sym
             )
        (unless (member ,adder-type-sym '(add-hook advice-add))
@@ -10917,12 +10922,13 @@ invoked after."
                        ;; done to speedup eemacs startup.
                        (or
                         (bound-and-true-p entropy/emacs-startup-done)
-                        ;; but in pdumper dump session we want it to run
-                        entropy/emacs-fall-love-with-pdumper
-                        ;; but in non-lazy enable mode we want it run
-                        (not (bound-and-true-p entropy/emacs-custom-enable-lazy-load))
-                        ;; but in daemon load session we want it run
-                        (daemonp)))
+                        (and (not ,always-lzl-p-sym)
+                             ;; but in pdumper dump session we want it to run
+                             entropy/emacs-fall-love-with-pdumper
+                             ;; but in non-lazy enable mode we want it run
+                             (not (bound-and-true-p entropy/emacs-custom-enable-lazy-load))
+                             ;; but in daemon load session we want it run
+                             (daemonp))))
               (let* ((inhibit-quit t)
                      (head-time (time-to-seconds))
                      (entropy/emacs-message-non-popup
@@ -10979,9 +10985,9 @@ automatically self-unbound when loaded done."
                    ,initial-func-suffix-name-sym))
 
          ;; injection
-         (let (_)
+         (let ()
            (cond
-            ((not entropy/emacs-custom-enable-lazy-load)
+            ((and (not ,always-lzl-p-sym) (not entropy/emacs-custom-enable-lazy-load))
              (let ((hook (entropy/emacs-select-trail-hook
                           ,pdumper-no-end)))
                (set hook (append (symbol-value hook) (list ,func-sym)))))
@@ -10995,7 +11001,7 @@ automatically self-unbound when loaded done."
 (cl-defmacro entropy/emacs-lazy-initial-for-hook
     (hooks initial-func-suffix-name initial-var-suffix-name
            &rest body
-           &key pdumper-no-end prompt-type
+           &key pdumper-no-end prompt-type always-lazy-load
            &allow-other-keys)
   "Wrap forms collection BODY into a auto-gened function named
 suffixed by INITIAL-FUNC-SUFFIX-NAME and then add it into a list
@@ -11017,6 +11023,7 @@ while pdumper procedure.
     (macroexpand-1
      `(entropy/emacs-lazy-initial-form
        ,hooks ,initial-func-suffix-name ,initial-var-suffix-name
+       :always-lazy-load ,always-lazy-load
        :abbrev-name "entropy/emacs--hook-first-enable-for"
        :prompt-type ,prompt-type
        :adder-type 'add-hook
@@ -11026,7 +11033,7 @@ while pdumper procedure.
 (cl-defmacro entropy/emacs-lazy-initial-advice-before
     (advice-fors initial-func-suffix-name initial-var-suffix-name
                  &rest body
-                 &key pdumper-no-end prompt-type
+                 &key pdumper-no-end prompt-type always-lazy-load
                  &allow-other-keys)
   "Wrap forms collection BODY into a auto-gened function named
 suffixed by INITIAL-FUNC-SUFFIX-NAME and then advice it to a list
@@ -11048,6 +11055,7 @@ while pdumper procedure.
     (macroexpand-1
      `(entropy/emacs-lazy-initial-form
        ,advice-fors ,initial-func-suffix-name ,initial-var-suffix-name
+       :always-lazy-load ,always-lazy-load
        :abbrev-name "entropy/emacs--BeforeADV-fisrt-enable-for"
        :prompt-type ,prompt-type
        :adder-type 'advice-add
@@ -11058,13 +11066,14 @@ while pdumper procedure.
 (cl-defmacro entropy/emacs-lazy-initial-advice-after
     (advice-fors initial-func-suffix-name initial-var-suffix-name
                  &rest body
-                 &key pdumper-no-end prompt-type
+                 &key pdumper-no-end prompt-type always-lazy-load
                  &allow-other-keys)
   "Like `entropy/emacs-lazy-initial-advice-before' but for :after place."
   (let ((body-wrap (entropy/emacs-get-plist-body body)))
     (macroexpand-1
      `(entropy/emacs-lazy-initial-form
        ,advice-fors ,initial-func-suffix-name ,initial-var-suffix-name
+       :always-lazy-load ,always-lazy-load
        :abbrev-name "entropy/emacs--AfterADV-fisrt-enable-for"
        :prompt-type ,prompt-type
        :adder-type 'advice-add
