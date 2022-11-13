@@ -10910,6 +10910,7 @@ invoked after."
             (list
              (cons ',func-sym ,func-sym)
              (cons ',var-sym ,var-sym)
+             (cons ',always-lzl-p-sym ,always-lzl-p-sym)
              (cons ',list-var-sym ,list-var-sym)
              (cons ',adder-type-sym ,adder-type-sym)
              (cons ',adder-flag-sym ,adder-flag-sym)
