@@ -248,10 +248,10 @@ upstream and may be make risky follow the ivy updates.
              (this-command
               ;; bind to `self-insert-command' while `ivy-done' like trigger
               ;; since its an user messy.
-              (if (get
+              (if (entropy/emacs-get-symbol-prop
                    entropy/emacs-current-session-this-command-before-idle
                    '__eemacs-ivy-done-like-cmd-p)
-                  (if (get
+                  (if (entropy/emacs-get-symbol-prop
                        entropy/emacs-current-session-last-command-before-idle
                        '__eemacs-ivy-done-like-cmd-p)
                       'self-insert-command

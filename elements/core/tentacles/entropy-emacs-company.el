@@ -446,10 +446,10 @@ re-calculation."
     (entropy/emacs-cancel-timer-var company-timer)
     (if (or entropy/emacs-current-session-is-idle-p
             (not company-candidates)
-            (get this-command 'eemacs-company-special-key)
-            (get last-command 'eemacs-company-special-key)
-            (get real-this-command 'eemacs-company-special-key)
-            (get real-last-command 'eemacs-company-special-key)
+            (entropy/emacs-get-symbol-prop this-command 'eemacs-company-special-key)
+            (entropy/emacs-get-symbol-prop last-command 'eemacs-company-special-key)
+            (entropy/emacs-get-symbol-prop real-this-command 'eemacs-company-special-key)
+            (entropy/emacs-get-symbol-prop real-last-command 'eemacs-company-special-key)
             (current-idle-time)
             ;; FIXME: if we using idle in `delete' char cases, company
             ;; will not working properly and may cause emacs hang?

@@ -1581,7 +1581,7 @@ backend instead of `pretty-hydra-define+'."
           (when (fboundp hydra)
             (call-interactively hydra)
             (throw 'done t)))
-        (setq rec-mode (get rec-mode 'derived-mode-parent)))
+        (setq rec-mode (entropy/emacs-get-symbol-prop rec-mode 'derived-mode-parent)))
       (user-error "Major mode hydra not found for %s or its parent modes" orig-mode))))
 
 (entropy/emacs-!set-key (kbd "m")

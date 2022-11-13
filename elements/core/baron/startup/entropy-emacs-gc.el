@@ -95,7 +95,7 @@ origin, since each set to the `gc-threshold' or
 
           ;; we hope all procedure during `eval-expression' are gc
           ;; restricted
-          (get this-command 'eemacs-gc-special-cmd-p)
+          (entropy/emacs-get-symbol-prop this-command 'eemacs-gc-special-cmd-p)
           )
          ;; restrict the gc threshold when matching above condidtions
          (__ya/gc-threshold_setq

@@ -1107,7 +1107,8 @@ when the last form of CONNDITIONS evaluated return non-nil."
 
 (defun entropy/emacs-get-symbol-defcustom-value (symbol)
   "Get SYMBOL standard value setted by `defcustom'."
-  (entropy/emacs-eval-with-lexical (car (get symbol 'standard-value))))
+  (entropy/emacs-eval-with-lexical
+   (car (entropy/emacs-get-symbol-prop symbol 'standard-value))))
 
 ;; *** List manipulation
 ;; **** Basics
@@ -9213,7 +9214,7 @@ the color inherited as what `face-attribute' did."
 (defun entropy/emacs-get-theme-face (theme face)
   "Get a face from a specified theme THEME if it's enabled
 i.e. membered in `custom-enabled-themes'."
-  (let ((theme-settings (get theme 'theme-settings)))
+  (let ((theme-settings (entropy/emacs-get-symbol-prop theme 'theme-settings)))
     (catch :exit
       (dolist (theme-setting theme-settings)
         (when (and (eq 'theme-face (car theme-setting))

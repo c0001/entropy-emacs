@@ -180,6 +180,16 @@ until it returns nil."
 and cond2 are both of non-nil or nil."
   (not (xor cond1 cond2)))
 
+(defsubst entropy/emacs-get-symbol-prop (maybe-sym prop)
+  "Like `get' but always return nil when MAYBE-SYM is not a
+`symbolp' symbol.
+
+This function exists since user usually use `get' for
+`this-command' which is not always a symbol as it declared that
+its value is a COMMAND."
+  (if (symbolp maybe-sym)
+      (get maybe-sym prop)))
+
 (defun entropy/emacs-child-frame-p (&optional frame)
   "Return FRAME's parent frame if it is a child-frame (See Info node
 `(elisp) Child Frames' for what is child-frame), nil if it is not
