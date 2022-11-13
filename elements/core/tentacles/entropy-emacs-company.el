@@ -320,6 +320,9 @@ native-compiled subr."
       forward-word
       backward-char
       backward-word
+      ;; FIXME: why backward kill can not trigger the eemacs idle port correctly
+      __ya/backward-kill-word
+      backward-kill-word
       ;; `company-active-map' hints
       company-abort
       company-select-next
@@ -461,7 +464,11 @@ re-calculation."
             ;; will not working properly and may cause emacs hang?
             (and __ya/company-post-command/previous-point
                  (< __ya/company-post-command/current-point
-                    __ya/company-post-command/previous-point)))
+                    __ya/company-post-command/previous-point)
+                 ;; trigger origin func when delete more with human typing habits
+                 (> (- __ya/company-post-command/previous-point
+                       __ya/company-post-command/current-point)
+                    3)))
         (let ((company-idle-delay entropy/emacs-company-idle-delay-internal))
           (apply orig-func orig-args)
           (setq __ya/company-post-command/idle-cancel-p t))
