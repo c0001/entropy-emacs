@@ -1317,6 +1317,8 @@ used for `entropy/emacs-window-center-mode' internally only.")
   "Center buffer window init with raito of
 `entropy/emacs-window-center-integer'."
   :init-value nil
+  ;; FIXME: nox session not autoload mwheel?
+  (unless (featurep 'mwheel) (require 'mwheel))
   (let* ((this-buff (current-buffer))
          (buff-lp (and this-buff (buffer-live-p this-buff)))
          (buff-win (and buff-lp (get-buffer-window this-buff)))
@@ -1418,6 +1420,9 @@ used for `entropy/emacs-window-center-mode' internally only.")
 
 (use-package olivetti
   :if (eq entropy/emacs-window-center-mode-use-backend 'olivetti)
+  ;; compatible for nox session where no `mwheel' preloaded.
+  :no-require t
+  :defines (olivetti-minimum-body-width)
   :commands
   (olivetti-mode
    olivetti-set-width

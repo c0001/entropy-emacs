@@ -112,6 +112,7 @@
 ;; TODO: accomplete this hook
 (defun entropy/emacs-themes-set-margin/fringe-width/style
     (&rest _)
+  (unless (fboundp 'set-fringe-style) (require 'fringe))
   ;; reset the fringe style to default
   (set-fringe-style))
 
@@ -354,23 +355,24 @@ by `entropy/emacs-startup-done'.")
     (theme &optional no-confirm no-enable)
   "Load theme as `load-theme' but strictly using special theme
 for tui emacs session."
-  (let ((theme theme))
-    (unless (display-graphic-p)
-      (setq theme 'ujelly))
+  (let (_)
+    ;; fall back to tui friendly eemacs default theme
+    (unless (display-graphic-p) (setq theme 'ujelly))
     (load-theme theme no-confirm no-enable)))
 
 (defun entropy/emacs-themes-init-setup-user-theme ()
   "Load theme `entropy/emacs-theme-options' in emacs initial
 progress."
   (mapc #'disable-theme custom-enabled-themes)
-  (condition-case nil
+  (condition-case err
       (progn
         (entropy/emacs-themes-strictly-load-theme
          entropy/emacs-theme-options t)
         ;; this redisplay is indeed needed
         (redisplay t))
     (t
-     (error "Problem loading theme %s" entropy/emacs-theme-options)))
+     (error "Problem loading theme %s with error %S"
+            entropy/emacs-theme-options err)))
   (when (and (fboundp 'powerline-reset)
              (string-match-p
               "space\\|powerline"

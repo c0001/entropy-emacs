@@ -111,6 +111,11 @@ it.
        (format "%s\n%s" entropy/emacs-font-set--warn prompt)))
     judge))
 
+(eval-when-compile
+  ;; nox missing this var
+  (unless (boundp 'use-default-font-for-symbols)
+    (defvar use-default-font-for-symbols)))
+
 (defun entropy/emacs-font-set-setfont-core (&optional frame)
   (interactive)
   (let ((after-do (and entropy/emacs-font-setting-enable

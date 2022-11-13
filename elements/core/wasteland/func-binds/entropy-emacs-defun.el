@@ -8960,6 +8960,7 @@ string. Return `color-values' of it if thus, or nil otherwise.
       (color-values color-hex-str-maybe))))
 
 (defvar shr-color-html-colors-alist)
+(eval-when-compile (unless (boundp 'x-colors) (defvar x-colors)))
 (defun entropy/emacs-color-string-p
     (object &optional use-shr-color-also do-error)
   "Return non-nil when OBJECT is a emacs valid color string
@@ -8987,7 +8988,8 @@ string."
           tmpvar)
       (or (and hex-str-p (cons 'hex object))
           (and (or (assoc object tty-defined-color-alist)
-                   (member object x-colors))
+                   (and (bound-and-true-p x-colors)
+                        (member object x-colors)))
                (cons 'name object))
           (and use-shr-color-also
                (progn (entropy/emacs-require-only-once 'shr-color) t)
