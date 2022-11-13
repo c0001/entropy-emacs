@@ -5423,8 +5423,14 @@ DO-KILL applied while prefix hinted."
   (cond
    (do-kill (save-buffers-kill-terminal))
    ((daemonp) (delete-frame))
+   ;; in non daemon tui session defaults to suspend session in which
+   ;; case user can use `fg' to recover the job.
+   ((not (display-graphic-p)) (suspend-emacs))
+   ;; as fallback status, a non-eemacs-main frame should use
+   ;; `delete-frame'.
    ((not (eq entropy/emacs-main-frame (selected-frame)))
     (delete-frame))
+   ;; default as main frame which should be iconified it without kill
    ((eq entropy/emacs-main-frame (selected-frame))
     (message "Iconifying emacs ...")
     (iconify-or-deiconify-frame))))
