@@ -5415,6 +5415,11 @@ operation system"
 DO-KILL applied while prefix hinted."
   (declare (interactive-only t))
   (interactive "P")
+  ;; FIXME: according to
+  ;; https://www.reddit.com/r/emacs/comments/jm3sgt/comment/ghrwtpq/?utm_source=share&utm_medium=web2x&context=3
+  ;; daemon run with `debug-on-error' may cause daemon crashed when no
+  ;; client displayed.
+  (if (daemonp) (setq debug-on-error nil))
   (cond
    (do-kill (save-buffers-kill-terminal))
    ((daemonp) (delete-frame))
