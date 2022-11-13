@@ -1384,14 +1384,20 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
               #'__adv/around/memory-usage-with-exploer-buffer)
   (defun __adv/around/memory-usage-with-Buffer-Details-buffer
       (orig-func &rest orig-args)
-    (let ((inhibit-read-only t))
-      (with-current-buffer
-          (get-buffer-create "*Buffer Details*")
+    (let ((inhibit-read-only t)
+          (buff (get-buffer-create "*Buffer Details*")))
+      (with-current-buffer buff
         (entropy/emacs-local-set-key (kbd "q") 'quit-window)
         (setq buffer-read-only t)
         (entropy/emacs-message-simple-progress-message
          "Memory general overview"
-         (apply orig-func orig-args)))))
+         (prog1
+             (apply orig-func orig-args)
+           (with-current-buffer buff
+             (goto-char (point-min))
+             ;; goto the total summary line
+             (when (re-search-forward "^Total in lisp objects:" nil t)
+               (forward-line 0))))))))
   (advice-add 'memory-usage
               :around
               #'__adv/around/memory-usage-with-Buffer-Details-buffer))
