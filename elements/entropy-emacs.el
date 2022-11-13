@@ -189,6 +189,25 @@ This function exists since user usually use `get' for
 its value is a COMMAND."
   (if (symbolp maybe-sym) (get maybe-sym prop)))
 
+(defun entropy/emacs-func-is-native-comp-p (func)
+  "Return non-nil when function FUNC is a native-compiled function,
+nil otherwise."
+  (when (and (fboundp 'subr-native-elisp-p) (functionp func))
+    (cond ((symbolp func) (setq func (symbol-function func)))
+          ;; FIXME: enough?
+          (t nil))
+    (subr-native-elisp-p func)))
+
+(defun entropy/emacs-get-func-origin-def (func)
+  "Return function FUNC's origin defination which is out of any
+`nadvice' patched."
+  (let* ((advised
+          (and (symbolp func)
+	       (advice--p (advice--symbol-function func)))))
+    (or (and advised
+             (advice--cd*r (advice--symbol-function func)))
+	func)))
+
 (defun entropy/emacs-child-frame-p (&optional frame)
   "Return FRAME's parent frame if it is a child-frame (See Info node
 `(elisp) Child Frames' for what is child-frame), nil if it is not

@@ -181,6 +181,12 @@ eemacs specifications"
         (company-mode))
       (company-files command)))
 
+  (defun entropy/emacs-company--core-subr-is-nacomp-p nil
+    "return non-nil when current use company package with
+native-compiled subr."
+    (entropy/emacs-func-is-native-comp-p
+     (entropy/emacs-get-func-origin-def 'company-call-backend)))
+
 ;; *** bind-key
   :bind (:map company-active-map
          ("C-p" . company-select-previous)
@@ -528,9 +534,12 @@ canididates which makes emacs laggy for each post-command while
              (memq (car company-frontends)
                    entropy/emacs-company-internal-pseudo-frontends))
       (apply orig-func orig-args)))
-  (advice-add 'company-call-backend
-              :around
-              #'entropy/emacs-company--pseudo-no-annotation)
+  ;; we just escape annotation for not native compiled origin def
+  ;; since the letter is performance satisfied.
+  (unless (entropy/emacs-company--core-subr-is-nacomp-p)
+    (advice-add 'company-call-backend
+                :around
+                #'entropy/emacs-company--pseudo-no-annotation))
 
 ;; ****** pseudo frontend subroutine performance optimization
 ;; ******* simplify the pseudo candi line overlay generator
@@ -549,9 +558,9 @@ EEMACS_MAINTENANCE: stick to upstream udpate"
         (add-face-text-property 0 width 'company-tooltip-selection t line))
       (add-face-text-property 0 width 'company-tooltip t line)
       line))
-
-  (advice-add 'company-fill-propertize
-              :override #'__ya/company-fill-propertize)
+  (unless (entropy/emacs-company--core-subr-is-nacomp-p)
+    (advice-add 'company-fill-propertize
+                :override #'__ya/company-fill-propertize))
 
 ;; ******* optimization the internal substring routine
   (defun __ya/company-safe-substring (orig-func &rest orig-args)
@@ -808,6 +817,11 @@ in `entropy/emacs-company-frontend-sticker'."
            'company-pseudo-tooltip-frontend
            (when (display-graphic-p)
              (list 'company-quickhelp-frontend)))
+    (if (entropy/emacs-company--core-subr-is-nacomp-p)
+        (entropy/emacs-setf-by-body company-format-margin-function
+          (cond ((display-graphic-p) 'company-vscode-dark-icons-margin)
+                (t 'company-text-icons-margin)))
+      (setq company-format-margin-function nil))
     (cond ((display-graphic-p)
            (company-quickhelp-mode 1)
            (entropy/emacs-set-key-without-remap
