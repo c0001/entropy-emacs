@@ -84,7 +84,6 @@
     company-capf
     :separate
     company-dabbrev
-    company-files
     company-en-words)
   "Basic top company-backend for all situations.")
 
@@ -124,7 +123,6 @@ yasnippet support *locally*."
    '(company-yasnippet
      company-dabbrev
      :separate
-     company-files
      company-en-words)))
 
 (defun entropy/emacs-company-yas-for-docs-init ()
@@ -1393,8 +1391,7 @@ completion when calling: 'execute-extended-command' or
   (setq-local completion-ignore-case t
               completion-styles (list 'basic 'partial-completion 'emacs22))
   (entropy/emacs-company--set-backends
-   '(company-files
-     company-capf
+   '(company-capf
      :separate company-dabbrev-code company-keywords
      :with company-yasnippet)))
 
@@ -1402,7 +1399,7 @@ completion when calling: 'execute-extended-command' or
 (defun entropy/emacs-company--default-traditional-backends-generator
     (stick-backends)
   (entropy/emacs-company--set-backends
-   `(company-files
+   `(company-capf
      ,@stick-backends
      :separate
      company-dabbrev-code
