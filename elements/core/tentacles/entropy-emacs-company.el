@@ -202,7 +202,7 @@ native-compiled subr."
     (("M-/" company-complete
       "Insert the common part of all candidates or the current selection"
       :enable t :global-bind t :exit t)
-     ("M-\\" company-dabbrev "dabbrev-like 'company-mode' completion backend"
+     ("M-\\" entropy/emacs-company-dabbrev "dabbrev-like 'company-mode' completion backend"
       :enable t :global-bind t :exit t)
      ("C-c C-y" company-yasnippet "'company-mode' backend for 'yasnippet'"
       :enable t :global-bind t :exit t)
@@ -281,19 +281,9 @@ native-compiled subr."
    company-tooltip-minimum-width 20
    company-tooltip-align-annotations t
    company-tooltip-offset-display nil   ;reducing selection fast hints laggy
-   company-dabbrev-code-everywhere t    ;NOTE: this may make emacs lag
-   company-dabbrev-ignore-case t
    company-minimum-prefix-length 2
    company-require-match nil
-   company-dabbrev-ignore-case nil
-   company-dabbrev-downcase nil
    )
-
-  ;; FIXME: related to bug of h-f551b679-908f-4b64-b08e-e7074d17581e
-  ;; NOTE: Do not set this var too complicated which will make emacs
-  ;; lag since `company-dabbrev' use `looking-back' to search
-  ;; matching.
-  (setq company-dabbrev-char-regexp "[-_/a-zA-Z0-9.><]")
 
   ;; disable common command before which the company begun to run
   ;; EEMACS_MAINTENANCE: the variable `company--bein-inhibit-commands'
@@ -688,7 +678,42 @@ with `shackle'."
   )
 
 ;; ** company components function autoload
-(use-package company-dabbrev   :ensure nil :after company :commands company-dabbrev)
+
+(use-package company-dabbrev
+  :ensure nil :after company
+  :commands (company-dabbrev entropy/emacs-company-dabbrev)
+  :init
+  (setq
+   ;; performance restrict
+   company-dabbrev-code-everywhere nil
+   company-dabbrev-code-other-buffers nil
+   ;; tiny small search time suppied for prevent lag
+   company-dabbrev-code-time-limit 0.01
+   company-dabbrev-ignore-case t
+   company-dabbrev-downcase nil
+   ;; simplify the regexp search for reduce lag
+   company-dabbrev-char-regexp "\\sw")
+
+  :config
+  (defun entropy/emacs-company-dabbrev
+      (command &optional arg &rest ignored)
+    "Same as `company-dabbrev' but enlarge its restriction since this
+command is used interactively only (i.e. not a
+`company-backends') in which case no need to restrict its
+performance."
+    (declare (interactive-only t))
+    (interactive (list 'interactive))
+    (let (;; TODO: enlarge company-dabbrev limitations
+          (company-dabbrev-code-everywhere t)
+          (company-dabbrev-code-other-buffers t)
+          (company-dabbrev-code-time-limit 0.5)
+          ;; FIXME: related to bug of h-f551b679-908f-4b64-b08e-e7074d17581e
+          ;; NOTE: Do not set this var too complicated which will make emacs
+          ;; lag since `company-dabbrev' use `looking-back' to search
+          ;; matching.
+          (company-dabbrev-char-regexp "[-_/a-zA-Z0-9.><]"))
+      (apply 'company-dabbrev command arg ignored))))
+
 (use-package company-files     :ensure nil :after company :commands company-files)
 (use-package company-yasnippet :ensure nil :after company :commands company-yasnippet)
 
