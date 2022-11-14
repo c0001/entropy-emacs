@@ -198,16 +198,17 @@ COMMAND can also ba a list of COMMANDs, in which case only and
 immediately return non-nil when one of theme is matching as above
 said."
   (let ((ctime (current-time))
-        the-cmd)
+        the-item the-cmd the-time)
     (condition-case err
         (when (>= (ring-length entropy/emacs-current-commands-ring)
                   len)
           (catch :exit
             (dotimes (iter len)
-              (setq the-cmd
-                    (ring-ref
-                     entropy/emacs-current-commands-ring
-                     iter))
+              (setq the-item (ring-ref
+                              entropy/emacs-current-commands-ring
+                              iter)
+                    the-cmd (car the-item)
+                    the-time (cdr the-item))
               (unless
                   (cond
                    ((consp command)
@@ -223,9 +224,8 @@ said."
                 ;; quit via first match failed
                 (throw :exit nil)))
             ;; test duration whether matched
-            (< (float-time (time-subtract
-                            ctime __eemacs-cur-acs-cmds-ring-create-time))
-               time-duration-limit)))
+            (<= (float-time (time-subtract ctime the-time))
+                time-duration-limit)))
       (error (message "[eemacs-cmds-seq-p] error: %S" err)))))
 
 (defvar entropy/emacs-session-idle-trigger-debug
@@ -370,7 +370,7 @@ wrong type of type: %s"
                 __eemacs-cur-acs-cmds-ring-create-time (current-time)))
       (error (message "[entropy/emacs--reset-idle-signal] error: %S" err))))
   (ring-insert entropy/emacs-current-commands-ring
-               this-command)
+               (cons this-command (current-time)))
   (when entropy/emacs-current-session-is-idle-p
     (let (
           ;; NOTE: protect as atomic manupulation
