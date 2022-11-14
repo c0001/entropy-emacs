@@ -151,6 +151,50 @@ NOTE: this variable is useful to patch with some high performance
 required function when concurrency ocation to reduce system lag
 e.g. the modeline position indicator fresh function.")
 
+(defvar entropy/emacs-current-session-is-active-p nil
+  "Non-nil as an TIME (as what `current-time' returns) indicate when and
+whether current emacs session is actived as busy. Return nil
+otherwise.
+
+TIME indicate the *first* time emacs waked up from the last idle
+status.")
+
+(defvar entropy/emacs-current-activate-session-commands-ring-size 10
+  "The max size of `entropy/emacs-current-activate-session-commands-ring'.")
+(defvar entropy/emacs-current-activate-session-commands-ring
+  (make-ring entropy/emacs-current-activate-session-commands-ring-size)
+  "A ring that maintained \"this\" (or \"last\" when in idle status)
+activated session's sequence of `this-command's, those typed before
+any `pre-command-hook' running that as real. The newest `this-command'
+is the newset element of this ring.
+
+The max size of this ring is charged by
+`entropy/emacs-current-activate-session-commands-ring-size'.
+
+This ring is always recreated via each time
+`entropy/emacs-current-session-is-active-p' updated as new TIME.
+
+See also `entropy/emacs-current-activate-session-commands-seq-p'.")
+(defun entropy/emacs-current-activate-session-commands-seq-p
+    (command len time-duration-limit)
+  "Return non-nil when in a period (seconds specfied by
+TIME-DURATION-LIMIT), number LEN of commands hinted are all `eq'
+to COMMAND. Return nil otherwise.
+
+LEN is max to `entropy/emacs-current-activate-session-commands-ring-size'."
+  (let ((ctime (current-time)))
+    (condition-case err
+        (catch :exit
+          (dotimes (iter len)
+            (unless (eq (ring-ref
+                         entropy/emacs-current-activate-session-commands-ring
+                         iter)
+                        command)
+              (throw :exit nil)))
+          (< (float-time (time-subtract ctime entropy/emacs-current-session-is-active-p))
+             time-duration-limit))
+      (error (message "[eemacs-cmds-seq-p] error: %S" err)))))
+
 (defvar entropy/emacs-session-idle-trigger-debug
   entropy/emacs-startup-with-Debug-p
   "Debug mode ran `entropy/emacs-session-idle-trigger-hook'."
@@ -270,6 +314,14 @@ wrong type of type: %s"
   'entropy/emacs-get-idle-hook-refer-symbol-name-with-idle-second)
 
 (defun entropy/emacs--reset-idle-signal ()
+  ;; handle command ring firstly.
+  (unless entropy/emacs-current-session-is-active-p
+    (setq entropy/emacs-current-session-is-active-p (current-time))
+    ;; create a new command ring via waking up from idle
+    (setq entropy/emacs-current-activate-session-commands-ring
+          (make-ring entropy/emacs-current-activate-session-commands-ring-size)))
+  (ring-insert entropy/emacs-current-activate-session-commands-ring
+               this-command)
   (when entropy/emacs-current-session-is-idle-p
     (let (
           ;; NOTE: protect as atomic manupulation
@@ -307,6 +359,7 @@ wrong type of type: %s"
        (defalias ',idle-func-name
          (lambda (&rest _)
            (let ((inhibit-quit t))
+             (setq entropy/emacs-current-session-is-active-p nil)
              (setq ,idle-p-indc-var-name t)
              (if entropy/emacs-session-idle-trigger-debug
                  (unwind-protect (run-hooks ',idle-hook-name)
