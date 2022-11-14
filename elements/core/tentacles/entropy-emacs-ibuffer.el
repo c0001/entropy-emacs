@@ -81,15 +81,19 @@
    :pdumper-no-end nil
    (if (null (daemonp))
        (when (entropy/emacs-icons-displayable-p)
-         (all-the-icons-ibuffer-mode 1))
+         (add-hook 'ibuffer-mode-hook #'all-the-icons-ibuffer-mode))
      (entropy/emacs-with-daemon-make-frame-done
        'all-the-icons-ibuffer (&rest _)
        :when-tui
-       (when (bound-and-true-p all-the-icons-ibuffer-mode)
-         (all-the-icons-ibuffer-mode 0))
+       (progn
+         (remove-hook 'ibuffer-mode-hook #'all-the-icons-ibuffer-mode)
+         (dolist (buff (buffer-list))
+           (with-current-buffer buff
+             (if (and (eq major-mode 'ibuffer-mode)
+                      (bound-and-true-p all-the-icons-ibuffer-mode))
+                 (all-the-icons-ibuffer-mode 0)))))
        :when-gui
-       (when (entropy/emacs-icons-displayable-p)
-         (all-the-icons-ibuffer-mode 1))))))
+       (add-hook 'ibuffer-mode-hook #'all-the-icons-ibuffer-mode)))))
 
 ;; ** ibuffer-projectitle display
 (use-package ibuffer-projectile
