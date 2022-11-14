@@ -156,7 +156,7 @@
 
 (add-hook 'ibuffer-hook #'entropy/emacs-ibuffer--init-common
           ;; NOTE: should be at very first
-          100)
+          -100)
 
 ;; * provide
 (provide 'entropy-emacs-ibuffer)
