@@ -681,6 +681,13 @@ with `shackle'."
 
 (use-package company-dabbrev
   :ensure nil :after company
+  :defines
+  (company-dabbrev-code-everywhere
+   company-dabbrev-code-other-buffers
+   company-dabbrev-code-time-limit
+   company-dabbrev-ignore-case
+   company-dabbrev-downcase
+   company-dabbrev-char-regexp)
   :commands (company-dabbrev entropy/emacs-company-dabbrev)
   :init
   (setq
