@@ -4749,10 +4749,18 @@ successfully both of situation of read persisit of create an new."
   (unless buffer-read-only
     (delete-region
      (point)
-     (progn (forward-word (- arg)) (point)))))
+     (progn (forward-word (- arg)) (point)))
+    ;; Abort continous company back query since performance enlarge as
+    ;; that the prefix is reducing at each time where cause the
+    ;; `company-candidates' larger than before.
+    (when (and (entropy/emacs-operation-status/running-auto-completion-op-p)
+               (entropy/emacs-current-commands-continuous-p
+                this-command 2 0.5))
+      (company-abort))))
 
-(global-set-key [remap backward-kill-word]
-                #'__ya/backward-kill-word)
+;; FIXME: shall we need to remap those for those modes who has its own
+;; implementation.
+(global-set-key [remap backward-kill-word] #'__ya/backward-kill-word)
 
 ;; **** Delete file to trash
 (if entropy/emacs-dired-enable-trash
