@@ -4755,7 +4755,12 @@ successfully both of situation of read persisit of create an new."
     ;; `company-candidates' larger than before.
     (when (and (entropy/emacs-operation-status/running-auto-completion-op-p)
                (entropy/emacs-current-commands-continuous-p
-                this-command 2 0.5))
+                this-command 2
+                ;; small eemacs company idle delay will cause the
+                ;; interval enlarge since its backends computation
+                ;; heavy.
+                (if (< entropy/emacs-company-idle-delay-internal 0.5)
+                    1 0.5)))
       (company-abort))))
 
 ;; FIXME: shall we need to remap those for those modes who has its own
