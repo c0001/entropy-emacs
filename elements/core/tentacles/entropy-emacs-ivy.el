@@ -1272,12 +1272,14 @@ display icon or empty string while
   (when (eq entropy/emacs-ivy-rich-type 'ivy-rich-mode)
     ;; Setting tab size to 1, to insert tabs as delimiters
     (add-hook 'minibuffer-setup-hook
-              (lambda ()
-                (setq tab-width
-                      (or (and (bound-and-true-p ivy-rich-mode)
-                               1)
-                          (entropy/emacs-get-symbol-defcustom-value
-                           'tab-width)))))
+              (entropy/emacs-defalias '__eemacs-minibuffer-tab-with-set-for-ivy
+                (lambda nil
+                  (when (and (eq entropy/emacs-command-completion-use-style 'ivy)
+                             (bound-and-true-p ivy-mode))
+                    (setq tab-width
+                          (or (and (bound-and-true-p ivy-rich-mode) 1)
+                              (entropy/emacs-get-symbol-defcustom-value 'tab-width)))))
+                "Set minibuffer `tab-width' proprly with `ivy-mode' customization."))
     (add-hook 'ivy-rich-mode-hook
               (lambda (&rest _)
                 (setq ivy-virtual-abbreviate

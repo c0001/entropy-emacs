@@ -249,7 +249,20 @@ native-compiled subr."
    :pdumper-no-end nil
    (entropy/emacs-company-global-init))
   (entropy/emacs-lazy-load-simple '(company counsel)
-    (define-key company-active-map (kbd "M-o") 'counsel-company))
+    (define-key company-active-map (kbd "M-o") 'counsel-company)
+    (entropy/emacs-add-hook-with-lambda
+      (cons t '__eemacs-abort-company-when-enter-in-minibuffer) nil
+      "Abort company status when entering minibuffer since the
+`company-active-map' will influence the minibuffer keymap."
+      :use-hook 'minibuffer-setup-hook
+      (when-let*
+          ((inhibit-quit t)
+           ((not (eq real-this-command 'counsel-company)))
+           (orig-win (minibuffer-selected-window))
+           (orig-buff (window-buffer orig-win)))
+        (with-current-buffer orig-buff
+          (when (bound-and-true-p company-candidates)
+            (company-abort))))))
 
 ;; *** config for after-load
   :config
