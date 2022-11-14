@@ -128,7 +128,7 @@
         ("*Paradox Report*"            :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
 
         ;; Diff
-        ("*Diff*"                      :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
+        ("*Diff*"                      :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
 
         ;; List
         ("*Colors*"                    :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
