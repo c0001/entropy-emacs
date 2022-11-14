@@ -531,11 +531,11 @@ activated status. Default time during set is less than 70ms."
             __company-delc-time-host
             (current-time))
       rtn))
-  ;; FIXME: usually adviced for `backward-delete-char-untabify' is
-  ;; enough since it's the subroutine for most of backspace commands
-  ;; binding for major-modes but shall we build a list commands that
-  ;; we can cover them all?
-  (advice-add 'backward-delete-char-untabify :around #'__company-delete-char)
+  ;; FIXME: usually adviced for `delete-backward-char' is enough since
+  ;; it's the subroutine for most of backspace commands binding for
+  ;; major-modes but shall we build a list commands that we can cover
+  ;; them all?
+  (advice-add 'delete-backward-char :around #'__company-delete-char)
 
 ;; ***** pseudo tooltip optimization
 ;; ****** remove annotation perform on pseudo frontend
