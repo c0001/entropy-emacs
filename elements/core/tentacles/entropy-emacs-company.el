@@ -109,10 +109,11 @@ NOTE: update with `company' upstream.")
            backends)))
 
 ;; *** yas load
-(defun entropy/emacs-company-start-with-yas (&rest _)
-  (unless (bound-and-true-p yas-minor-mode)
-    (entropy/emacs-require-only-once 'yasnippet)
-    (yas-minor-mode 1)))
+(defun entropy/emacs-company-start-with-yas (&optional force)
+  (when (or force (bound-and-true-p company-mode))
+    (unless (bound-and-true-p yas-minor-mode)
+      (entropy/emacs-require-only-once 'yasnippet)
+      (yas-minor-mode 1))))
 
 ;; *** company for docs modes
 
@@ -229,11 +230,7 @@ native-compiled subr."
     (global-company-mode t)
     ;;reduce lagging on increase company echo idle delay
     (setq company-echo-delay 1)
-    (entropy/emacs-lazy-initial-advice-before
-     '(company-idle-begin company-complete)
-     "eemacs-company-with-yas-init" "eemacs-company-with-yas-init"
-     :pdumper-no-end t :prompt-type 'prompt-echo
-     (entropy/emacs-company-start-with-yas))
+    (add-hook 'company-mode-hook #'entropy/emacs-company-start-with-yas)
     (entropy/emacs-company-yas-for-docs-init)
     (entropy/emacs-company-toggle-frontend
      entropy/emacs-company-tooltip-use-type))
