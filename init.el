@@ -228,6 +228,9 @@ renderred after init this.)"
   ;; load eemacs config
   (defun __init_eemacs__ (&rest _)
     "entropy-emacs loader"
+    ;; require package before any procedure as top initialization
+    ;; requirement.
+    (require 'package)
     (let ((eemacs-top-init-file
            (cons 'entropy-emacs
                  (expand-file-name

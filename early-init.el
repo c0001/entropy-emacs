@@ -103,12 +103,6 @@
 ;; DONE [20220921]: this bug has been fix in emacs-28.2
 (setq tramp-archive-enabled nil)
 
-
-;;; emacs pacakge system require
-;; We should put package system requirement here to speedup eemacs
-;; init time.
-(require 'package)
-
 ;;; early-init.el loaded done indicator
 
 (defvar entropy/emacs-early-init-done t
