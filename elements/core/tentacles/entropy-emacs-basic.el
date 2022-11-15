@@ -2730,7 +2730,7 @@ Valid TYPE are 'mark' 'flag' and 'unmark' and 'toggle'."
         (save-mark-and-excursion
           (let ((inhibit-read-only t))
             (with-silent-modifications
-              (cond ((member type '(mark flag))
+              (cond ((memq type '(mark flag))
                      (add-face-text-property
                       (point) (1+ (point))
                       'image-dired-thumb-mark))
@@ -2818,7 +2818,7 @@ point."
           t)
         (cond
          ;; user specified dwim type
-         ((member ,original-size '(2 3))
+         ((memq ,original-size '(2 3))
           ;; then we update the history dwim type
           (setq __ya/image-dired-display-image-stick-fit-type
                 ,original-size)
@@ -3532,7 +3532,7 @@ specified."
     (orig-func &rest orig-args)
   "Filters for `display-line-numbers-mode' to press it for some
 occasions. "
-  (unless (or (member major-mode
+  (unless (or (memq   major-mode
                       '(vterm-mode
                         shell-mode
                         eshell-mode
@@ -3572,7 +3572,7 @@ buffer, in that case any conditions don't match the filter then
 `hl-line-mode' will be enabled."
   (unless (or
            ;; special modes and buffers
-           (member major-mode
+           (memq   major-mode
                    '(vterm-mode
                      shell-mode
                      eshell-mode
