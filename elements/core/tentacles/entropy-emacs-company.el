@@ -108,6 +108,37 @@ NOTE: update with `company' upstream.")
    (mapcar #'(lambda (x) (if (consp x) (copy-sequence x) x))
            backends)))
 
+(eval-and-compile
+  (defmacro entropy/emacs-company--make-auto-handy-backend
+      (backend-name)
+    "Let a interactively defined `company-backend' abort current
+company status when it is invoked while handy hint
+i.e. interactvely.
+
+This is useful for user decide to begin a backend manually when
+current auto began listed `company-candidates' is not proper for
+using."
+    (declare (indent defun))
+    (let ((name (intern (format "__ya/%s/as-auto-handy-company-backend"
+                                backend-name))))
+      `(progn
+         (defalias ',name
+           (lambda (orig-func &rest orig-args)
+             (if (and (eq this-command ',backend-name)
+                      ;; only for interatively backend call
+                      (called-interactively-p 'interactive)
+                      (entropy/emacs-operation-status/running-auto-completion-op-p))
+                 (progn (company-abort)
+                        (call-interactively #',backend-name)))
+             (apply orig-func orig-args))
+           (format "The handy began advice for the company-backend `%s'.
+
+Created by `entropy/emacs-company--make-auto-handy-backend'."
+                   ',backend-name))
+         (unless (compiled-function-p (indirect-function ',name))
+           (byte-compile ',name))
+         (advice-add ',backend-name :around #',name)))))
+
 ;; *** yas load
 (defun entropy/emacs-company-start-with-yas (&optional force)
   (when (or force (bound-and-true-p company-mode))
@@ -179,6 +210,8 @@ eemacs specifications"
       (unless (bound-and-true-p company-mode)
         (company-mode))
       (company-files command)))
+  (entropy/emacs-company--make-auto-handy-backend
+    entropy/emacs-company-files)
 
   (defun entropy/emacs-company--core-subr-is-nacomp-p nil
     "return non-nil when current use company package with
@@ -721,7 +754,9 @@ performance."
           ;; lag since `company-dabbrev' use `looking-back' to search
           ;; matching.
           (company-dabbrev-char-regexp "[-_/a-zA-Z0-9.><]"))
-      (apply 'company-dabbrev command arg ignored))))
+      (apply 'company-dabbrev command arg ignored)))
+  (entropy/emacs-company--make-auto-handy-backend
+    entropy/emacs-company-dabbrev))
 
 (use-package company-files     :ensure nil :after company :commands company-files)
 (use-package company-yasnippet :ensure nil :after company :commands company-yasnippet)
@@ -1559,7 +1594,10 @@ that for en-words candi recognized "
                    (:background "gray" :foreground "black")
                    :annotation
                    (:foreground "yellow")))
-    ))
+    )
+  :config
+  (entropy/emacs-company--make-auto-handy-backend
+    company-en-words))
 
 ;; *** shell
 (use-package company-shell
