@@ -79,6 +79,10 @@ It's a version string which can be used for `version<' and
 for preventing unregular loading procedure by modification of
 emacs upstream")
 
+;; We should sync `user-emacs-directory' with eemacs specification so
+;; that all emacs internal behaviour is compatible with eemacs
+(setq user-emacs-directory entropy/emacs-user-emacs-directory)
+
 ;; early init file
 (defconst entropy/emacs-early-init-file
   (expand-file-name
