@@ -3818,17 +3818,18 @@ NOTE: this is a advice wrapper for any function."
 ;; **** Buffer operations
 ;; ***** Initiative operations
 ;; ****** Input time into buffer
-(defun entropy/emacs-basic-now ()
-  "Insert string for the current time formatted like '2:34 PM'."
+(defun entropy/emacs-basic-insert-now ()
+  "Insert time string in `current-buffer' for the current time
+formatted like \"[2022-11-15 Tue 18:16:32]\"."
   (declare (interactive-only t))
-  (interactive)                 ; permit invocation in minibuffer
+  (interactive)
   (insert (format-time-string "[%Y-%m-%d %a %H:%M:%S]")))
 
-(defun entropy/emacs-basic-today ()
-  "Insert string for today's date nicely formatted in American style,
- e.g. Sunday, September 17, 2000."
+(defun entropy/emacs-basic-insert-today ()
+  "Insert time string in `current-buffer' for today's date nicely
+formatted in American style, e.g. Tuesday, November 15, 2022."
   (declare (interactive-only t))
-  (interactive)                 ; permit invocation in minibuffer
+  (interactive)
   (insert (format-time-string "%A, %B %e, %Y")))
 
 ;; ****** Undo and Redo
