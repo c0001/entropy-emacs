@@ -4741,15 +4741,12 @@ successfully both of situation of read persisit of create an new."
 
 ;; ***** remove redundant kill-ring save operation
 
-(defun __ya/backward-kill-word (arg)
+(defun entropy/emacs-basic-backward-kill-word (arg)
   "Alternative for `backward-kill-word' but not trigger
 `kill-ring-save'."
   (declare (interactive-only t))
   (interactive "p")
   (unless buffer-read-only
-    (delete-region
-     (point)
-     (progn (forward-word (- arg)) (point)))
     ;; Abort continous company back query since performance enlarge as
     ;; that the prefix is reducing at each time where cause the
     ;; `company-candidates' larger than before.
@@ -4761,11 +4758,17 @@ successfully both of situation of read persisit of create an new."
                 ;; heavy.
                 (if (< entropy/emacs-company-idle-delay-internal 0.5)
                     1 0.5)))
-      (company-abort))))
+      (company-abort))
+    ;; NOTE: we should do the deletion after each pre-operatios since
+    ;; we can not guarantee the behaviour for each subroutines refer
+    ;; to `delete-region'.
+    (delete-region
+     (point)
+     (progn (forward-word (- arg)) (point)))))
 
 ;; FIXME: shall we need to remap those for those modes who has its own
 ;; implementation.
-(global-set-key [remap backward-kill-word] #'__ya/backward-kill-word)
+(global-set-key [remap backward-kill-word] #'entropy/emacs-basic-backward-kill-word)
 
 ;; **** Delete file to trash
 (if entropy/emacs-dired-enable-trash
