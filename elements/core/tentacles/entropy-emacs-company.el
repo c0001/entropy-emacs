@@ -405,10 +405,9 @@ This function is useless unless emacs idle reached
       (varsym newval op _wh)
     "We should always ensure that `company-idle-delay' is zero since
 we use eemacs specified idle trigger mechanism."
-    (if (and (eq op 'set)
-             ;; NOTE: prevent looping guard
-             (not (= 0 newval)))
-        (set varsym 0)))
+    (when (and (eq op 'set) (not (eq 0 newval)))
+      (user-error "Should not manually modifie `company-idle-delay' to %s"
+                  newval)))
   (add-variable-watcher 'company-idle-delay
                         #'entropy/emacs-company--company-idle-delay-reset-guard)
 
