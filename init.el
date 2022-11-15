@@ -231,6 +231,9 @@ renderred after init this.)"
     ;; require package before any procedure as top initialization
     ;; requirement.
     (require 'package)
+    ;; we should reset `package-quickstart-file' since we've modified
+    ;; `user-emacs-directory'
+    (setq package-quickstart-file (locate-user-emacs-file "package-quickstart.el"))
     (let ((eemacs-top-init-file
            (cons 'entropy-emacs
                  (expand-file-name
