@@ -109,5 +109,19 @@
 ;; init time.
 (require 'package)
 
+;;; early-init.el loaded done indicator
+
+(defvar entropy/emacs-early-init-done t
+  "Indicator for showing up that eemacs has loaded its \"early-init.el\".
+
+This variable exists since emacs just load that file in normal startup
+procedure, thus it has no effects on batch mode. Thus we manually load
+it in \"init.el\" when this variable is not detected for non-nil.
+
+When the value is `t', then indicating that \"early-init.el\" is loaded
+by emacs automatically, otherwise as `manually' then indicating that
+\"early-init.el\" is loaded by \"init.el\" context in which case emacs not
+load it automatically.")
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; early-init.el ends here

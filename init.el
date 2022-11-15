@@ -72,6 +72,39 @@ It's a version string which can be used for `version<' and
 
 ;; ** Eemacs top declares
 
+;; top eemacs host
+(defconst entropy/emacs-user-emacs-directory
+  (file-name-directory load-file-name)
+  "Top eemacs host directory replaced of `user-emacs-directory'
+for preventing unregular loading procedure by modification of
+emacs upstream")
+
+;; early init file
+(defconst entropy/emacs-early-init-file
+  (expand-file-name
+   "early-init.el"
+   entropy/emacs-user-emacs-directory)
+  "The `early-init-file' file specified for =entropy-emacs=.")
+
+;; load early init file in batch mode
+(unless (bound-and-true-p entropy/emacs-early-init-done)
+  (load entropy/emacs-early-init-file)
+  ;; indicate its load in this context
+  (setq entropy/emacs-early-init-done 'manually))
+
+;; load custom file
+(defconst entropy/emacs-custom-common-file-template
+  (expand-file-name
+   "custom-example.el"
+   entropy/emacs-user-emacs-directory)
+  "The `custom-file' template specified for =entropy-emacs=.")
+
+(defconst entropy/emacs-custom-common-file
+  (expand-file-name
+   "custom.el"
+   entropy/emacs-user-emacs-directory)
+  "The value for `custom-file' but specified for =entropy-emacs=.")
+
 (defgroup entropy-emacs-customize-top-group nil
   "Eemacs customizable variables top group."
   :group 'extensions)
@@ -174,26 +207,6 @@ renderred after init this.)"
   (defun entropy/emacs-get-after-init-time (&rest _)
     (or entropy/emacs-run-startup-afterinit-timestamp
         after-init-time))
-
-  ;; top eemacs host
-  (defvar entropy/emacs-user-emacs-directory
-    (file-name-directory load-file-name)
-    "Top eemacs host directory replaced of `user-emacs-directory'
-for preventing unregular loading procedure by modification of
-emacs upstream")
-
-  ;; load custom file
-  (defconst entropy/emacs-custom-common-file-template
-    (expand-file-name
-     "custom-example.el"
-     entropy/emacs-user-emacs-directory)
-    "The `custom-file' template specified for =entropy-emacs=.")
-
-  (defconst entropy/emacs-custom-common-file
-    (expand-file-name
-     "custom.el"
-     entropy/emacs-user-emacs-directory)
-    "The value for `custom-file' but specified for =entropy-emacs=.")
 
   (let ((cus entropy/emacs-custom-common-file))
     (unless (entropy/emacs-env-init-with-pure-eemacs-env-p)
