@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2022-10-15 Sat 21:59 -->
+<!-- 2022-11-16 Wed 05:49 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>entropy emacs introduction</title>
@@ -1181,7 +1181,7 @@ img
 <li><a href="#h-85139937-9a4e-4f3b-b951-181051b2d454">9.1.3. Chinse input method</a>
 <ul>
 <li><a href="#h-16601981-5d7c-4c07-8d5d-2ea92d57e99d">9.1.3.1. PYIM</a></li>
-<li><a href="#h-c309fd9b-7788-4e02-a70a-8c99c0fa1c17">9.1.3.2. <span class="todo TODO">TODO</span> EMACS-RIME</a></li>
+<li><a href="#h-c309fd9b-7788-4e02-a70a-8c99c0fa1c17">9.1.3.2. EMACS-RIME</a></li>
 </ul>
 </li>
 <li><a href="#h-7783929d-6dbd-4e40-bc32-f7d1247be222">9.1.4. Globally readonly mode</a></li>
@@ -1205,7 +1205,7 @@ img
 <li><a href="#h-7440e6e0-2ec1-4f33-9db0-38ef17a020f6">9.3.1. Ivy and Helm</a></li>
 <li><a href="#h-cfb1027d-8d50-4b33-be13-427d937130e3">9.3.2. Emacs-W3m</a></li>
 <li><a href="#h-58b8abfe-6b1f-401e-a673-43b5450678d3">9.3.3. Elfeed</a></li>
-<li><a href="#h-67b22622-81ed-4c2b-8f21-838b83e21769">9.3.4. Gnus</a></li>
+<li><a href="#h-67b22622-81ed-4c2b-8f21-838b83e21769">9.3.4. <span class="todo TODO">TODO</span> Gnus</a></li>
 </ul>
 </li>
 <li><a href="#h-098f1399-8e79-4027-88a6-395f80a528d4">9.4. Emacs on windows</a>
@@ -1222,7 +1222,7 @@ img
 </div>
 </div>
 
-<div id="orge370261" class="figure">
+<div id="org4154636" class="figure">
 <p><img src="../annex/img/logo.png" alt="logo.png" width="300px" />
 </p>
 </div>
@@ -1244,7 +1244,7 @@ with sets of mordern emacs extension tracking on.
 
 <p>
 But with the time when <code>entropy-emacs</code> grown up after one year, it's
-seems like it can be sharing for some newbie falling with emacs as be
+seems like it can be sharing for some newbies falling with emacs as be
 aimed to brought up the easiest way of using or working based on
 emacs. Along the way, I came for built it with thus on.
 </p>
@@ -1261,24 +1261,19 @@ dir struct used by myself.
 </p>
 
 <p>
-In the root node, it be with three folder:
+In the root node, it be with three folder: annex, stuff, elements.
 </p>
-<ol class="org-ol">
-<li>org</li>
-<li>annex</li>
-<li>elements</li>
-</ol>
 
 <p>
 This three folder has their own meaning respectively, all of them was
-created as the parts of one normal project I used, thus for:
+created as the part of one normal project I used/created, thus for:
 </p>
 
 <ul class="org-ul">
-<li><b>org:</b> contained the all docs of this project.</li>
+<li><b>annex:</b> stored auxiliaries used by <code>entropy-emacs</code>.</li>
 
-<li><b>annex:</b> stored annex fragments as the stuffs be used for docs
-like images or other references based on.</li>
+<li><b>stuff</b>: stored logs and temporarily stuffs produced by
+<code>entropy-emacs</code> or where redirecting emacs builtin stuffs into.</li>
 
 <li><b>elements:</b> the main elements (elements consists of
 <code>entropy-emacs</code>) stored location.</li>
@@ -1290,9 +1285,9 @@ like images or other references based on.</li>
 </p>
 
 <p>
-This struct design were just use these three based rule without any of
-other restriction which show that arbitray layouts adding was
-permitted.
+This repo dir struct designation was just use these three based rules
+without any of other restriction which show that arbitray layouts
+adding was permitted.
 </p>
 </div>
 </div>
@@ -1302,14 +1297,14 @@ permitted.
 <div class="outline-text-2" id="text-h-badd8396-e6da-45a3-8176-901a5110f898">
 <p>
 <code>entropy-emacs</code> host configs file divided into four categories within
-ordered priority, i.e. the initial level <b>Initial</b>, the core apis
+ordered priority, i.e. the initial level <b>Initial</b>, the core APIs
 collection <b>Wasteland</b> , the dispatcher level <b>Baron</b> and the
 functional recipes <b>Tentacles</b>.
 </p>
 
 <p>
-The <b>Initial</b> category served for intial all customizable
-specifications, and provide sets of essential apis for the rest
+The <b>Initial</b> category served for initializing all customizable
+specifications, and provide sets of essential APIs for the rest
 levels.
 </p>
 
@@ -1324,7 +1319,7 @@ creates.
 The <b>Baron</b> category served as a bridge between the <b>Initial</b> category
 level and the follow <b>Tentacles</b> category level. It used <b>Initial</b>
 part's customization to invoking the tentacles under the user
-specification initialize choice and creates the basic unified
+specified initialization choice and creates the basic unified
 platforms for those rest parts to implement the instances.
 </p>
 
@@ -1334,9 +1329,9 @@ platforms for those rest parts to implement the instances.
 
 <ol class="org-ol">
 <li><p>
-<b>utils</b> : The basic third-party apis provision. These apis are
+<b>utils</b> : The basic third-party APIs provision. These APIs are
 internally required for the rest part and obtained from others
-packages mainly getted from some opensource communities.
+packages mainly getted from some open-source communities.
 </p>
 
 <p>
@@ -1388,8 +1383,8 @@ Files:
 </table></li>
 
 <li><p>
-<b>startup</b> : The <code>entropy-emacs</code> specified emacs ui, enviroment
-initialize processors.
+<b>startup</b> : The <code>entropy-emacs</code> specified emacs UI, emacs session
+enviroment initialization processors.
 </p>
 
 <p>
@@ -1464,6 +1459,11 @@ adding their own seeds.
 <td class="org-left"><code>entropy-emacs-hydra-hollow.el</code></td>
 <td class="org-left">the pretty hydra platform</td>
 </tr>
+
+<tr>
+<td class="org-left"><code>entropy-emacs-window-parameter-memory.el</code></td>
+<td class="org-left">the window parameter persist platform</td>
+</tr>
 </tbody>
 </table></li>
 </ol>
@@ -1487,23 +1487,26 @@ follow four files:
 <li><code>entropy-emacs-defun.el</code> : All pre-defined functions, macros, and frameworks.</li>
 <li><code>entropy-emacs-message.el</code> : The <code>entropy-emacs</code> basic echoing
 functional parts, it provides the unified interaction and
-non-interaction <i>message</i> apis.</li>
+non-interaction <i>message</i> APIs.</li>
+<li><code>entropy-emacs-syntax</code> : The <code>entropy-emacs</code> basic emacs syntax
+parser APIs. Used emacs underline primitives as subroutines and
+extended them.</li>
 </ol></li>
 </ol>
 
 <p>
 For file named convention, <code>entropy-emacs-xxx.el</code> files are named with
 'xxx' as the suffix for distinguishing with each other, for
-convenience, suffix of them were point to their config direction
+convenience, suffix of them were point to their configuration aiming
 directly, such as <code>entropy-emacs-org.el</code>'s suffix <code>org</code> was implicit
 it's the config file for feature <code>org-mode</code>, and so as on for others
 config files.
 </p>
 
 <p>
-The last, <b>Tentacles</b> category served for implement individual aims
-that the following table illustrates those tentacles and their
-description:
+The last, <b>Tentacles</b> category served for implementing individual
+aimings that the following table illustrates those tentacles and their
+descriptions:
 </p>
 
 <table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
@@ -1564,8 +1567,8 @@ description:
 
 <tr>
 <td class="org-left">window conigurations</td>
-<td class="org-left">entropy-emacs-popup.el</td>
-<td class="org-left">The popuped window procedure defination</td>
+<td class="org-left">entropy-emacs-popwin.el</td>
+<td class="org-left">The popuped window procedure implementation</td>
 </tr>
 
 <tr>
@@ -1609,7 +1612,7 @@ description:
 <tr>
 <td class="org-left">&#xa0;</td>
 <td class="org-left">entropy-emacs-lisp.el</td>
-<td class="org-left">emacs lisp mode configs</td>
+<td class="org-left">Emacs Lisp configs</td>
 </tr>
 
 <tr>
@@ -1621,31 +1624,31 @@ description:
 <tr>
 <td class="org-left">&#xa0;</td>
 <td class="org-left">entropy-emacs-python.el</td>
-<td class="org-left">python mode config</td>
+<td class="org-left">Python lang config</td>
 </tr>
 
 <tr>
 <td class="org-left">&#xa0;</td>
 <td class="org-left">entropy-emacs-lua.el</td>
-<td class="org-left">lua mode configs</td>
+<td class="org-left">Lua lang configs</td>
 </tr>
 
 <tr>
 <td class="org-left">&#xa0;</td>
 <td class="org-left">entropy-emacs-rust.el</td>
-<td class="org-left">rust mode configs</td>
+<td class="org-left">Rust lang configs</td>
 </tr>
 
 <tr>
 <td class="org-left">&#xa0;</td>
 <td class="org-left">entropy-emacs-go.el</td>
-<td class="org-left">go mode configs</td>
+<td class="org-left">Go lang configs</td>
 </tr>
 
 <tr>
 <td class="org-left">&#xa0;</td>
 <td class="org-left">entropy-emacs-yaml.el</td>
-<td class="org-left">yaml mode configs</td>
+<td class="org-left">Yaml lang configs</td>
 </tr>
 </tbody>
 <tbody>
@@ -1871,7 +1874,7 @@ hint <code>entropy/emacs-top-key</code> , that example <code>[eprefix] w</code> 
 <h2 id="h-71c58a60-0826-4dc5-914e-fcb7ba183884"><span class="section-number-2">6.</span> Eemacs hdyra hollow</h2>
 <div class="outline-text-2" id="text-h-71c58a60-0826-4dc5-914e-fcb7ba183884">
 <p>
-<code>entropy-emacs</code> using <b>hydra-hollow</b> platform to manage hundreds
+<code>entropy-emacs</code> using <b>hydra-hollow</b> platform to manage hundreds of
 key-bindings so that the user can found them easily and can always get
 a properly way to remember the road-map for specific key-binding, let
 it be obviously and clearly.
@@ -1886,16 +1889,17 @@ The <b>hydra-hollow</b> platform built on the elpa <a href="https://github.com/a
 <code>hdyra</code> was a package whcih provide apis to solve the pain of emacs
 keybinding searching, it gives a interaction popup buffer which showed
 a collection of key-bindings, and the popup buffer way is a function,
-whcih can inject into the global-map, that's all, specially that those
-collection of key-bindings do not pollute any exists keymap, they are
-hosted on a transient map i.e. a hydra keymap, and those key-bindings
-called hydra-heads, and that's why it is named as <b>hydra</b>.
+which can inject into the global-map, that's all, specially that those
+collection of key-bindings does not pollute any available keymap, they
+are hosted on a transient map i.e. a hydra keymap, and those
+key-bindings called <span class="underline">hydra-heads</span>, and that's why it is named as
+<b>hydra</b>.
 </p>
 
 <p>
 <code>pretty-hydra</code> was a secondary encapsulation for <code>hydra</code>, it make the
-hydra-heads into groups, with more beautiful title patching ability
-and annotation mechanism.
+hydra-heads into groups, with more benefits for building bunch of
+hydra-heads.
 </p>
 
 <p>
@@ -1909,16 +1913,17 @@ up above briefly introduction only is enough.
 
 <p>
 Since there's sets of major-modes that user encounterred everyday
-within developments in emacs, and each major-modes has its own key
-map, sets of keybindings hosted on the key-map, you saw that? we must
-remember each keybinding we needed in each major-modes! It's pain!
-Even that we do not calculates any minor modes' key-maps, and the
-extensions counts growing up in our own emacs configuration.
+within developments in emacs, and each major-mode has its own key map,
+sets of keybindings hosted on its key map, you saw that? we must
+remember each keybinding we needed in each major-mode! It's pain!
+Even for that we haven't counted any minor mode's key-map's
+keybindings.
 </p>
 
 <p>
-We hope to find a way to approach a command in one step or 2 more
-limitted under 4, also with categorized prompts with those commands we
+We hope to find a way to find a command's key binding in one or two
+steps even for more steps that try to be limitted under four strokes
+in possibilities, also with categorized prompts with those commands we
 needed in any occurrence. And that's what <b>hdyra-hollow</b> do, 'hollow'
 means its a unified platform, a framework or a system.
 </p>
@@ -1927,7 +1932,7 @@ means its a unified platform, a framework or a system.
 <b>Hydra-Hollow UI:</b>
 </p>
 
-<pre class="example" id="orgbf25632">
+<pre class="example" id="org7713528">
 +---------------------------------------------------------------------------------------------------------------------+
 | [page indicator] eemacs top dispacher [up]: previous page [down]: next page                                         |
 |                                                                                                                     |
@@ -1946,7 +1951,6 @@ means its a unified platform, a framework or a system.
 | b t : Slide Filesystem Tree                 M-1 : [e]Buffer open with portable apps                                 |
 | b v : Show entropy-emacs version            i l : Center buffer line                                                |
 | b o : Dict search with sets of backends     C-x M-1 : [g]Split the single window to two windows with different size |
-| b h : Open HOME Directory                                                                                           |
 |                                                                                                                     |
 +---------------------------------------------------------------------------------------------------------------------+
 
@@ -1957,22 +1961,22 @@ Above illustrator gives a simple <b>hydr-hollow</b> instance UI
 overlay. The title of current page is inserted at the top of the popup
 buffer, title consists of the page order indicator, the main title
 information, and the page navigation prompts. The rest part is the
-cabinet content of current page, for example here, there's two drawers
-i.e. the <i>basic</i> and <i>win&amp;buff</i>.
+cabinet contents of current page, for the example in here, there's two
+drawers i.e. the <i>basic</i> and <i>win&amp;buff</i>.
 </p>
 
 <p>
-We called such the page is a hydra-hollow category, and the rest part
-contained thus drawers is the hydra-hollow category cabinet. A
+We called such the page is a <span class="underline">hydra-hollow category</span>, and the rest
+part contained thus drawers is the hydra-hollow category's cabinet. A
 hydr-hollow category also is a node of a chained hydra-hollow
-categories, those categories who concatenating siblings to a chain
+categories, those categories who concatenating siblings to be a chain
 that how the navigation pages implemented. In that categories chain,
-you can using &lt;UP&gt; or &lt;DOWN&gt; key stroking to navigate to previous or
-next category respectively.
+you can using &lt;UP&gt; or &lt;DOWN&gt; key to navigate to previous or next
+category respectively.
 </p>
 
 <p>
-Each key-binding in the hydra-hollow canbinet also can be hydra-hollow
+Each key-binding in a hydra-hollow canbinet also can be hydra-hollow
 category, this makes the category be cross-referrence, which build a
 hierarchical key-map navigation system, and we called the origin
 category the <b>baron</b> category. When you stroke a key through a baron
@@ -1982,11 +1986,12 @@ category to a sub-category, you can stroke &lt;UP&gt; key to return back.
 <p>
 In some hydr-hollow category chain may has large counts of categories
 that may have pain to navigate one by one from the top category to the
-aim one. In that case, you can stroke the <code>universal-argument</code>
-i.e. <code>C-u</code> before invoking the specific category chain, and thus it
-will be auto completion system poped out with all categories'
-description as candidates for you to choose and after the choice, you
-will directly go to the aim node.
+target. In that case, you can stroke the <code>universal-argument</code>
+i.e. <code>C-u</code> before invoking the specific category chain, and then a
+category name querying interface will be poped out by emacs auto
+completion system with all categories' description as candidates for
+you to choose, and after the choice you will directly go to the target
+category.
 </p>
 
 <p>
@@ -2003,7 +2008,7 @@ global-map injected. You can invoke it by tap <code>[eprefix] h</code>.
 <p>
 For major-modes spec, <code>entropy-emacs</code> build individual hydra-hollow
 category chain for them but with a unified key-binding to invoking
-them, the <code>[eprefix] m</code>.
+them, the <code>[eprefix] m</code> which is bound for each major-mode.
 </p>
 
 <p>
@@ -2011,22 +2016,24 @@ them, the <code>[eprefix] m</code>.
 </p>
 
 <p>
-Although its beneficial to group all keybindings into a hydra-hollow
-instance, but we do not want to give out of the emacs native
-keybinding mapping methods (i.e. reset them to nil state),
-<code>entropy-emacs</code> did a hydra map injecting tunnel to solve that
-problem. As the expample in the hydra-hollow UI introduction, there's
-some keybinding's brief description prefixed by a flag 'e' or 'g',
-they are the indicator to prompt user that this keybinding is inject
-into <code>entropy/emacs-top-keymap</code> or 'global-map' as well, so you can
+Although it's beneficial to group all keybindings into a hydra-hollow
+instance, but we do not want to give out of the emacs native key
+bindings sets (i.e. stand alone with that), <code>entropy-emacs</code> use a
+hydra map injecting tunnel to solve that problem. As the expample in
+the hydra-hollow UI introduction, there's some keybinding's brief
+description prefixed by a flag 'e' or 'g', they are the indicator to
+prompt user that this keybinding is inject into
+<code>entropy/emacs-top-keymap</code> or 'global-map' as well, so you can
 directly stroke the same key to call that command without calling on
-such hydra-hollow category.
+such hydra-hollow category. Thus of, we try to keep bunch of emacs
+native keybindings sets no changed via this mechanism.
 </p>
 
 <p>
 There's also a 'm' flag for a major-mode hydra-hollow category's
 heads, that say this keybinding is injected into current
-'major-mode-map' already.
+'major-mode-map' in which case as the 'liked' meaning as 'e' or 'g'
+but for a major-mode.
 </p>
 </div>
 </div>
@@ -2035,18 +2042,18 @@ heads, that say this keybinding is injected into current
 <h2 id="h-14aff6b0-41e5-4d32-a86d-43d4f0bb4737"><span class="section-number-2">7.</span> Custom <code>entropy-emacs</code></h2>
 <div class="outline-text-2" id="text-h-14aff6b0-41e5-4d32-a86d-43d4f0bb4737">
 <p>
-<code>entropy-emacs</code> has lots of custom-variables be defined
-acquiescently. For each feature in main config files
-<code>entropy-emacs-xxx.el</code> or in self built extensions, <code>entropy-emacs</code>
-custom-variables provides the wild freedom customized ability to
-specific config actually to referred using experience.
+<code>entropy-emacs</code> has lots of custom-variables be defined acquiescently
+to influence each feature in main config files <code>entropy-emacs-xxx.el</code>
+or in self built extensions. Those custom-variables provides the wild
+freedom customized ability for use-end to choose how to use eemacs.
 </p>
 
 <p>
-Since emacs using <code>custom.el</code> for stored all customized setting
-temporarily entries, <code>entropy-emacs</code> also allow user to setting custom
-variable of <code>entropy-emacs</code> to that place and this is the default
-order.
+Since emacs using <code>custom.el</code> which is used by its canonical
+customization toolkit to remember all customized settings,
+<code>entropy-emacs</code> is obeyed that convention for providing a top
+customization group <code>entropy-emacs-customize-top-group</code> which
+contained all of those custom-variables mentioned formerly.
 </p>
 
 <p>
@@ -2054,7 +2061,8 @@ When the first time you using <code>entropy-emacs</code>, you may want to create
 the <code>custom.el</code> file in root of <code>entropy-emacs</code> used by emacs initial
 with, as the well, <code>entropy-emacs</code> gives the template custom file
 located in same place which named <code>custom-example.el</code>, you can copy it
-as custom file for convenience.
+and rename to <code>custom.el</code> as reference for modifications or using it
+as defaults.
 </p>
 </div>
 </div>
@@ -2063,48 +2071,52 @@ as custom file for convenience.
 <h2 id="h-b1f9c62b-ddd7-40a3-92cb-a398de5aa2c5"><span class="section-number-2">8.</span> Hacking for <code>entropy-emacs</code></h2>
 <div class="outline-text-2" id="text-h-b1f9c62b-ddd7-40a3-92cb-a398de5aa2c5">
 <p>
-<code>entropy-emacs</code> allow user to modified internal config files but this
-is not suggested by. Sets of <code>entropy-emacs</code> was corresponding to each
-other frequencly which shown as that if you modified one code snippet
-while you are not familiar with details logic designation of
-<code>entropy-emacs</code>, you will get mess with the functional in some place.
+<code>entropy-emacs</code> allow user to modified its internals but this is not
+suggested unless you are a developer or debugger of eemacs. Sets of
+internals of <code>entropy-emacs</code> was corresponding to each other tightly
+which shown as that if you modified one code snippet while you are not
+familiar with details logic designation of <code>entropy-emacs</code>, you will
+get mess with the functional in some place.
 </p>
 
 <p>
-But, if you want to hacking for some code snippet you can adding
-<code>advice</code> for them and stored in your own config
-folder. <code>entropy-emacs</code> providing one navigation detector feature for
-loading you own config files, this extern config loading detector was
-<code>elisp</code> func which stored in <code>CUSTOM-DIY.el</code> under root of
-<code>entropy-emacs</code>, this file were not exist by default, you should
-create it by yourself.
+But, if you want to hacking for some code snippets, you can adding
+advices for them using functional provided by emacs's <code>nadvice.el</code>
+<b>before</b> init eemacs, in which case add such advices into <code>custom.el</code>.
 </p>
 
 <p>
-<code>CUSTOM-DIY.el</code> can be stored elisp codes arbitrarily, which means
-that you could write the func modifiction all adding new config
-features in that file, but the recommended way for using this file was
-stored the extern config files load function to it, i.e. some thing
-like below:
+<code>custom.el</code> is also used to stored arbitrary elisp codes, which means
+that you could write features or loading extra self-defined
+configuration files in that file which see as:
 </p>
 <div class="org-src-container">
-<pre class="src src-emacs-lisp"><span style="color: #888888; font-style: italic;">;; </span><span style="color: #888888; font-style: italic;">load "my_entropy-emacs_extern.el" after loading "custom.el" .</span>
+<pre class="src src-emacs-lisp"><span style="color: #888888; font-style: italic;">;; </span><span style="color: #888888; font-style: italic;">this is the start of custom.el</span>
+(<span style="color: #8197bf;">setq</span> foo bar)
+
+<span style="color: #888888; font-style: italic;">;; </span><span style="color: #888888; font-style: italic;">other eemas customizations</span>
+...
+
+<span style="color: #888888; font-style: italic;">;; </span><span style="color: #888888; font-style: italic;">advices</span>
+(advice-add 'entropy/emas-xxx <span style="color: #8fbfdc;">:after</span> #'(<span style="color: #8197bf;">lambda</span> (<span style="color: #8fbfdc;">&amp;rest</span> args) ...))
+...
+
+<span style="color: #888888; font-style: italic;">;; </span><span style="color: #888888; font-style: italic;">my functions</span>
+
+(<span style="color: #8197bf;">defun</span> <span style="color: #fad07a;">myfunction-0</span> nil xxx)
+...
+
+<span style="color: #888888; font-style: italic;">;; </span><span style="color: #888888; font-style: italic;">in the end, load "my_entropy-emacs_extern.el" in "custom.el".</span>
 (<span style="color: #8197bf;">let</span> ((file (file-exists-p <span style="color: #99ad6a;">"/xxx/xxxx/.../my_entropy-emacs_extern.el"</span>)))
   (<span style="color: #8197bf;">when</span> (file-exists-p file)
     (load-file file)))
 </pre>
 </div>
 
-
 <p>
-Thus, the file <code>my_entropy-emacs_extern.el</code> will be loaded after emacs
-custom file loaded, that as the same step before other <code>entropy-emacs</code>
-files be interpreted.
-</p>
-
-<p>
-The conceptual for thus, file <code>my_entropy-emacs_extern.el</code> can be
-secondary <code>init.el</code> or the secodary emacs config repo main thing.
+Thus, the file <code>my_entropy-emacs_extern.el</code> will be loaded when
+evaluating emacs custom file and after any eemacs specifications set
+done, before <code>entropy-emacs</code> be initing.
 </p>
 </div>
 </div>
@@ -2116,36 +2128,37 @@ secondary <code>init.el</code> or the secodary emacs config repo main thing.
 This chapter introducts the main config features of <code>entropy-emacs</code>,
 each part of below sections pointing one feature category which was
 the collection sets description and feature specified core sets, you
-may want to select refer things you'd metioned or care about for
-jumping with the sequence as the section it self, but I recommended
-for reading sections one by one instead of jumping where while you are
-fisrt using <code>entropy-emacs</code>.
+may want to select refer things you'd been mentioned or caring about
+for, from jumping with the sequence as the section it self. But I
+recommended for reading sections one by one from first to the end,
+instead of jumping randomly while you are fisrt using <code>entropy-emacs</code>.
 </p>
 
 <p>
-Each feature required the basic emacs using experience for or has
-been, which means if you are the newbie of emacs, you must reading the
-emacs internal tutorial first and then doing thus.
+Each feature required the basic emacs using experience has been got,
+which means if you are the newbie of emacs, you must reading the emacs
+internal tutorial first and then doing thus.
 </p>
 
 <p>
-For WINDOWS specification section, only suggested reading task for
-someone using emacs on windows, that section was the sets of
-experiences by me as using emacs on windows, I often using emacs on
-WINDOWS as one portable programming encapsulation environment, that
-portable work-around for daily using of me.
+For WINDOWS specification section, only suggested to read for someone
+using emacs on windows, that section was the sets of experiences by me
+for using emacs on windows, I often using emacs on WINDOWS with one
+portable programming encapsulation environment and that is designed
+for this.
 </p>
 
 <p>
 For chinese emacs user, when you want to input chinese and showing CJK
-fonts well (without lagging or other crash problem as emacs with cjk
-status), you can obtain the minor skills from 'Font specific' section.
+fonts well (without lagging or other crash problem when using emacs
+with cjk occasions), you can obtain the minor skills from 'Font
+specific' section.
 </p>
 
 <p>
 Latest, all of below section can be the taste of <code>entropy-emacs</code> for
 understanding the difference between this to the default emacs using
-sensing, happy hacking with <code>entropy-emacs</code>.
+experience, happy hacking with <code>entropy-emacs</code>.
 </p>
 </div>
 
@@ -2161,7 +2174,7 @@ work-around, for enhancing the basic emacs using experience.
 Basic config of <code>entropy-emacs</code> can be splitting into seven nodes:
 </p>
 <ul class="org-ul">
-<li>workspace</li>
+<li>workspace (window configuration) toggle/create</li>
 <li>modeline specific</li>
 <li>global buffer lock</li>
 <li>input method of chinese refer</li>
@@ -2171,7 +2184,7 @@ Basic config of <code>entropy-emacs</code> can be splitting into seven nodes:
 </ul>
 
 <p>
-All of these seven parts consists the basic core of <code>entropy-emacs</code>
+These seven parts consist the basic core of <code>entropy-emacs</code>
 config. They are oriented respectively for their individual direction,
 and was necessary be the part of core of this.
 </p>
@@ -2182,33 +2195,33 @@ and was necessary be the part of core of this.
 <div class="outline-text-4" id="text-h-cba6d0f3-2f63-4c83-990d-55b8a38e5104">
 <p>
 Emacs using <b>buffer</b>, <b>window</b>, <b>frame</b> to recoganize the current
-editting space and recorde it's state, it's the basic func for elisp
-programmer for built editting space extension for as more convenience
-to create, move, toggle each layouts editting space, we call 'editting
-sapce' as <b>workspace</b>.
+editting space and recorde it's state, they are the basic conceptions
+for elisp programmer for built editting aspect extensions for as more
+convenience to create, move, toggle the editting space, we call such a
+'editting space' is a <b>workspace</b>.
 </p>
 
 <p>
 Workspace managements consists of two parts:
 </p>
 <ol class="org-ol">
-<li>layout toggle</li>
+<li>workspace/layout/window configurations toggle</li>
 <li>window toggle</li>
 </ol>
 
 <p>
-A workspace was one layout consists with several windows internal of
-it, thus layout toggle can be used with different workspace switching
-or creating sets of workspace who have different working purpose. This
-is useful for who doing different thing at the same time or as the
-relaxing and working state toggle button during the day.
+A workspace was one layout consists with several displayed windows
+where that layout is in term of <b>window-configuration</b> in emacs.
+Layout toggle is used as switching different workspace, creating
+layouts with different working purposes. This is useful for who
+marking different tasks at the same time.
 </p>
 
 <p>
-Thus, as the layout toggle, the basic thing as you facing to emac
-using was to chaning the cusor point with sets of buffers, as buffer
-stored in window, cusor switching upon different buffers on the
-different windows was called window toggle.
+Thus, as the layout toggle, the basic thing when you facing to emacs
+using was to jump the cusor point with sets of windows, for editting
+buffers stored in those windows, cusor switching upon different
+windows was called window toggle.
 </p>
 </div>
 
@@ -2216,9 +2229,9 @@ different windows was called window toggle.
 <h5 id="h-cb219a9b-12d6-4c3d-aa25-1db95537b1eb"><span class="section-number-5">9.1.1.1.</span> Eyebrowse</h5>
 <div class="outline-text-5" id="text-h-cb219a9b-12d6-4c3d-aa25-1db95537b1eb">
 <p>
-<code>entropy-emacs</code> workspace creating, toggle, and defination using
-<code>eyebrowse</code> melpa extension, it is settle out with solid done. You can
-find it on <a href="https://github.com/wasamasa/eyebrowse">github</a>.
+<code>entropy-emacs</code> workspace creating, toggling, and defination using
+<code>eyebrowse</code>, a melpa extension settled out with robust functional. You
+can find it on <a href="https://github.com/wasamasa/eyebrowse">github</a>.
 </p>
 
 <p>
@@ -2235,33 +2248,21 @@ other emacs intern toolchain.
 </p>
 
 <ol class="org-ol">
-<li><code>tag</code>: indicated layout defination name.</li>
-<li><code>slot</code>: the numberic identification of respective layouts</li>
+<li><code>tag</code>: a name string indicated layout usage purpose.</li>
+<li><code>slot</code>: the numberic identification of corresponding layout.</li>
 </ol>
 
 <p>
-Which means shown above, eyebrowse exhibits each workspace through
-the way for display the layout tag-name and it's numberic slot.
+As the meanings shown above, eyebrowse exhibits each workspace
+through the way for display the layout's tag-name and it's numberic
+slot.
 </p>
 
 <p>
 In <code>entropy-emacs</code> , the tag-name and slot number was displayed on
 the left of modeline which like as:
 </p>
-
-<p>
-Commonly, the display format of thus was formula as
-<code>slot-number:tag-name</code>, and the face was usually came as yellow
-forground covered on black background.
-</p>
-
-<p>
-Layout switching was through the way of query prompt within
-minibuffer and enhanced with candidates showing list powered by <a href="https://github.com/abo-abo/swiper">ivy</a>,
-each candidate was one unique slot number with workspace name:
-</p>
-
-<pre class="example" id="orgeef37e9">
+<pre class="example" id="org158d87b">
 +--------------------------------------------------------------------------------+
 |  * 169 U(Unix) *scratch*      Lisp Interactioin Orgstruct&gt;&gt;      &lt;&lt; 4: 23 ALL  |
 +--------------------------------------------------------------------------------+
@@ -2275,15 +2276,27 @@ each candidate was one unique slot number with workspace name:
 </pre>
 
 <p>
-But the easist way for doing like this was using the shortcuts
-prefix <code>[eprefix] w</code> with the workspace slots number
-limited within decimal based digit as '1~9', thus if you active key
-stick <code>[eprefix] w 2</code> , you will toggle workspace to slot
-'2'. By default, <code>eyerbrowse</code> supports toggle to none exists slot
-which creates it while then but without tag inputting prompt, or you
-can create new slot by sticking <code>[eprefix] w C-c</code> which
-will create one new slot with tag inputting demands prompting hacked
-adding by <code>entropy-emacs</code>.
+Commonly, the display format of thus is formed as
+<code>slot-number:tag-name</code>, and the face was usually came as yellow
+forground covered on black background.
+</p>
+
+<p>
+Layout switching was through the way of using emacs completion
+framework that shown in minibuffer with candidates named as
+corresponding layout's tag name and its unique slot id.
+</p>
+
+<p>
+But the quickest way for choosing a often used layout was using the
+shortcuts prefix <code>[eprefix] C-c w</code> with the workspace slots number
+limited within decimal based digit as '1~9', for example you can
+active key binding <code>[eprefix] C-c w 2</code> to toggle workspace to slot
+'2'. By default, <code>eyerbrowse</code> supports toggle to none exists slot by
+creating it first before switching but without tag setting prompts,
+or you can create new slot by sticking <code>[eprefix] C-c w C-c</code> which
+will create one new slot with tag set prompting which is a feature
+adding by <code>entropy-emacs</code> by hacking it.
 </p></li>
 
 <li><p>
@@ -2291,21 +2304,21 @@ adding by <code>entropy-emacs</code>.
 </p>
 
 <p>
-By default each workspace provided by eyerbowse layout managements
-was independently by each other on the conceptual aspect, which
-means that eyerbowse recognizes layouts by one-dimension that
-[1,2,3,4,&#x2026;] one by one without any sub-group concept.
+By default each workspace provided by eyerbowse layout management
+system was independently by each other on the conceptual aspect,
+which means that eyerbowse recognizes layouts by one-dimension that
+[1,2,3,4,&#x2026;] one by one without any sub-workspace concepts.
 </p>
 
 <p>
-In many cases if your workspace was too complicated as what that
-sets of buffer opened in your single screen hardware actually, this
-will cause the disaster for your eye-visual focus moving and
-laggning the way when be with your poor eyesight.(also seen as your
-screen was low dimessions as traditional '1366x768'.)
+Thought about a scene that if the single workspace has too many
+windows opened, this will cause the disaster for your eye-visual
+experience that moving around from each window uppon on your poor
+eyesight. (also thought about this happened when your screen
+produced with low dimessions as traditional '1366x768qqq'.)
 </p>
 
-<pre class="example" id="org95d3c16">
+<pre class="example" id="org65ba804">
 
 
 +---------------+-------+--------------------------+
@@ -2340,8 +2353,8 @@ Do you worried about this single screen layout measured your mind?
 Or you can create one new workspace to exchange partitial of current
 state to that new slot, but how you organize the association between
 these two slots? By memory of your mind?  God bless, it's just
-compat for that state where you just have one slot doing as this, if
-further &#x2026; how imagination what will happening?
+compat for that state where you just have two slots doing as this,
+if further &#x2026; how imagined that what will happening?
 </p>
 
 <p>
@@ -2359,10 +2372,10 @@ Main slot can be understanding as the origin one while slot has been
 created, in that case you haven't given the try or have demands for
 several buffer splitted in one screen which will cause occurance as
 above description. Derived slot will be created when you doing for
-arbitray reason for that.
+arbitrary reason for that.
 </p>
 
-<pre class="example" id="org9d281d5">
+<pre class="example" id="orgc4464c7">
 
 +------------+ +------------+ +------------+
 | main slot 1| | main slot 2| |main slot 3 |
@@ -2393,24 +2406,21 @@ arbitray reason for that.
 
 <p>
 To create one derived slot can be implemented as call func
-<code>entropy/emacs-basic-eyebrowse-create-derived</code> or with it's
+<code>entropy/emacs-basic-eyebrowse-create-derived</code> or with its
 keybinding <code>C-c v</code>, after then, you will be required to create the
 derived workspace tag name and the last you will get the workspace
 as displayed with slot and tag name format as
 </p>
 
 <pre class="example">
-main-slot.derived_number:⛓main-slot:"main workspace tagname"☛derived name
+main-slot.derived_number: derived name
 </pre>
 
 
 <p>
-<span class="underline">Above demos show the face and the instant display format of derived
-slot derived from the main slot '1:temp'.</span>
-</p>
-
-<p>
-For toggle the derived slot, keybinding <code>C-c M-v</code> as so.
+For toggle the derived slot, using function
+<code>entropy/emacs-basic-eyebrowse-switch-derived</code>'s keybinding <code>C-c
+  M-v</code>.
 </p>
 
 <p>
@@ -2428,16 +2438,10 @@ number or backing with calling
 
 <p>
 Now, for the designation purpose, <code>entropy-emacs</code> just giving each
-main slot nine derived slots for deriving by, this because of that
-each derived slot was numberic as the one digit float number, it's
-hard to expand more with thus with float number floor sorting func
-designing.
-</p>
-
-<p>
-For using case, 9 derived workspaces was enough for what I may
-thought, it's no reason to build various of derived one which will
-cause the difficulties managements, for what as known:
+main slot nine derived slots for deriving by since for using case, 9
+derived workspaces was enough for what I may thought, it's no reason
+to build various of derived one which will cause the difficulties
+managements, for what be as known:
 </p>
 <blockquote>
 <p>
@@ -2453,27 +2457,24 @@ less is more
 <h5 id="h-355d7f4b-95d4-49fe-bee3-63274a0a57b1"><span class="section-number-5">9.1.1.2.</span> Buffer or Window switching</h5>
 <div class="outline-text-5" id="text-h-355d7f4b-95d4-49fe-bee3-63274a0a57b1">
 <p>
-The conceptual of window configuration under the workspace was buffer
-and window switching , thought about the scene that if you want to
-jumping with several buffer or window internal of one workspace, the
-way for solving that problem was what it is.
+The common operations of living under the workspace was buffer and
+window switching , thought about the scene that if you want to jumping
+with many and many buffers or windows within one workspace, it must
+has a beneficently way for handling thus.
 </p>
 
 <p>
-<code>entropy-emacs</code> three ways for filling this conceptual:
+<code>entropy-emacs</code> provide three ways for filling this conceptual:
 </p>
 <ol class="org-ol">
 <li>buffer jumping</li>
 <li>window exchange</li>
 <li>window size adjusting</li>
-</ol>
 
-
-<ul class="org-ul">
 <li><p>
-<b>Frame place jumping:</b><br />
+<b>Demo workspace layout:</b><br />
 </p>
-<pre class="example" id="orgb638e58">
+<pre class="example" id="orgf543de9">
 
 +-------------+-----------------------------+
 |             |                             |
@@ -2492,29 +2493,44 @@ way for solving that problem was what it is.
 </pre>
 
 <p>
-Assumption on example emacs frame demo, your cursor are on buffer-4
-currently and the place you want to jumping to was buffer-1. If you
-use emacs internal primitive func <code>other-window</code> , it's hard to do
-as buffers counts larger than 2.
+Assumption on above demo, your cursor are on buffer-4 currently and
+the place you want to jumping to was buffer-1. If you use emacs
+internal primitive func <code>other-window</code> , it's hard to do as buffers
+counts larger than 2.
 </p>
 
 <p>
-<code>entropy-emacs</code> using melpa package <code>window-number</code> for enhance it
-be as the morden query prompt for all buffers in current frame
-state, it using func <code>(window-number-switch)</code> for be the subtitude
-to func <code>(other-window)</code> emacs internal default window switching
-func.
+<code>entropy-emacs</code> using melpa package <code>ace-window</code> for enhancing it to
+have morden query prompts for all buffers/windows in current
+workspace, it using function <code>(ace-window)</code> which is globally bind
+to <code>C-x M-o</code>. When you invoke that keybinding, a temporarily keymap
+is used to switch buffers/windows on with numberic overlays
+displayed in each window of current workspace and the chosen for
+jumping is hinting corresponding numberic key as illustrating the
+visual feedback of below demo:
 </p>
 
-<p>
-It stick window number on modeline, and binding func
-<code>(window-number-switch)</code> to the origin keybinding for
-<code>(other-window)</code> as <code>C-x o</code>, if window sibling as above frame
-session example, it will query prompt for choose window with
-candidates shown listed in minibuffer, which provide you the ability
-to selected window number by input window number directly or with
-the selecting up and down within the candidates list.
-</p>
+<pre class="example" id="org913d0d2">
++------------------------------+-------------------+---------------------+
+|1                             | 4                 |  8                  |
+|                              |                   |                     |
+|                              |                   |                     |
+|                              +-------------------+                     |
+|                              | 5                 |                     |
++----------------+-------------+                   |                     |
+| 2              | 3           |                   |                     |
+|                |             |                   |                     |
+|                |             |                   |                     |
+|                |             |                   +---------------------+
+|                |             +--------+----------+ 9                   |
+|                |             | 6      | 7        |                     |
+|                |             |        |          |                     |
+|                |             |        |          |                     |
+|                |             |        |          |                     |
++----------------+-------------+--------+----------+---------------------+
+| u:@** &lt;&gt; lisp-interaction-mode *scratch*          Top of 1.1k (20,100) |
++------------------------------------------------------------------------+
+</pre>
 
 <p>
 Another bennifit window jumping method was using us self-built func:
@@ -2531,7 +2547,7 @@ The raw func obtained from
 </p>
 
 <p>
-They binding to <code>C-x up/down/right/left</code>. That means you could
+They are binding to <code>C-x up/down/right/left</code>. That means you could
 jumping cycle round for sibling window quickly with your instincts
 visual sensitive.
 </p></li>
@@ -2541,7 +2557,7 @@ visual sensitive.
 </p>
 
 <p>
-By the default, any dividing behaviour in emacs was width 'half'
+By the default, any dividing behaviour in emacs was half width
 sibling state, but the occurence when you want to get the specififc
 window dividing width, may rely on the external extension power.
 </p>
@@ -2579,7 +2595,7 @@ frequently, emacs internal func <code>buf-move-up/down/right/left</code> gives
 the try as thus. We binding them to <code>C-c C-up/down/right/left</code>
 respectively.
 </p></li>
-</ul>
+</ol>
 </div>
 </div>
 </div>
@@ -2637,9 +2653,10 @@ respectively.
 
 
 <p>
-Each of them are combined specific for be fit for <code>entropy-emacs</code>. You
-can set the custom-variable <code>entropy/emacs-modeline-style</code> with the
-tag symbole shown from above table:
+Each of them are combined with specifics for be fit for
+<code>entropy-emacs</code>. You can set the custom-variable
+<code>entropy/emacs-modeline-style</code> with the tag symbole shown from above
+table:
 </p>
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span style="color: #888888; font-style: italic;">;; </span><span style="color: #888888; font-style: italic;">demo modeline setting code snippets of entropy-emacs</span>
@@ -2650,15 +2667,14 @@ tag symbole shown from above table:
 </div>
 
 <p>
-The default modeline style are 'doom-modeline' and 'origin', which has
-been initialed with eyebrowse workspace indication segment built with
-derived logic widget(see <a href="#h-cb219a9b-12d6-4c3d-aa25-1db95537b1eb">entropy-emacs eyebrowse introduction</a>). These
-default setting was aimed with keeping balance with emacs performance
-and visualization experience.
+The default modeline style is'origin', whose default setting was aimed
+with keeping balance with emacs performance and visualization
+experience. It's built by eemacs internally and is presented for
+trying to did as more as close to emacs's native <code>mode-line-format</code>.
 </p>
 
 <p>
-Spaceline was the wild used modeline of other users's custom emacs
+<a href="https://github.com/TheBB/spaceline">Spaceline</a> was the wild used modeline of other users's custom emacs
 config, but in <code>entropy-emacs</code>, it is not recommended for using this
 as the default modeline style, because it lagging with huge process
 garbage collection idle slate during commonly emacs using
@@ -2672,10 +2688,20 @@ required were installed corrently).
 </p>
 
 <p>
-Thus, if you want to use spaceline, I recommend to use powerline
-instead because spaceline was extension from it and powerline origin
-segment corresponding was pure and simple which may be without lagging
+Thus, if you want to use spaceline, I recommend to use <a href="https://github.com/milkypostman/powerline">powerline</a>
+instead because it's the core of spaceline and powerline's origin
+segment corresponding was pure and simple which may be without lag
 performance as what gets into spaceline.
+</p>
+
+<p>
+<a href="https://github.com/seagle0128/doom-modeline">Doom-modeline</a> was the newest wild used <code>mode-line-format</code> other than
+spaceline and with nice performance optimization and more segements
+out of box, but its internal using lots of advices for emacs <code>subr</code> or
+primitives to get its own aim for implementing some specified features
+it must be used as. Thus, using doom-modeline may cause emacs native
+unreliable since those /redefine/s, but commonly there's no need to
+worry about for.
 </p>
 
 <p>
@@ -2692,11 +2718,6 @@ Toggle to powerline modeline style.</li>
 <li><code>entropy/emacs-modeline-mdl-spaceline</code> :<br />
 Toggle to spaceline modeline style.</li>
 </ul>
-
-
-<p>
-Defaulty, we use <a href="https://github.com/seagle0128/doom-modeline">doom-modeline</a> as the default modeline type.
-</p>
 </div>
 </div>
 
@@ -2704,10 +2725,10 @@ Defaulty, we use <a href="https://github.com/seagle0128/doom-modeline">doom-mode
 <h4 id="h-85139937-9a4e-4f3b-b951-181051b2d454"><span class="section-number-4">9.1.3.</span> Chinse input method</h4>
 <div class="outline-text-4" id="text-h-85139937-9a4e-4f3b-b951-181051b2d454">
 <p>
-For emacs inputing with CJK chars experience, the default chosen for
-you was to used system default input tool-chain which was external out
-of emacs's controlling. And then the second for that was to using the
-emacs interanl chinese input methods as the list below:
+For emacs typing with chinese experience, the default chosen for you
+was to used operation system's default input tool-chain which was sat
+as out of box. And then the second for that was to using the emacs
+interanl chinese input methods as the list below:
 </p>
 
 <ul class="org-ul">
@@ -2741,16 +2762,17 @@ emacs interanl chinese input methods as the list below:
 <p>
 You don't have to know the each knowledge about them, but the most
 popular used one was <code>chinese-py</code> which was aslo the most popular
-method for chinese people for using as the default chinese hans char
-input method.
+method for chinese people using as well kown as CHINESE PINYIN (汉语拼音).
 </p>
 
 <p>
 Although <code>chinese-py</code> input method was pure and powerful for basic
-using, if onece you get it on your scatter doing, you will find it was
-really simple and crude which can not be used as the daily tool for
-thus. As the result, <code>entropy-emacs</code> usig the most powerful and
-comprehensive 'pinyin' support melpa extentioin <a href="https://github.com/tumashu/pyim">pyim</a> and <a href="https://github.com/DogLooksGood/emacs-rime">emacs-rime</a>:
+using, if once you get it on your scatter task, you will find it was
+really simple and crude which can not be used as the daily used one,
+as generally say that its painfullly for choosing typing candidates
+since it doesn't has its own comprehensively dict database. As the
+result, <code>entropy-emacs</code> usig the most powerful and comprehensive
+'pinyin' support melpa extentioin <a href="https://github.com/tumashu/pyim">pyim</a> and <a href="https://github.com/DogLooksGood/emacs-rime">emacs-rime</a>:
 </p>
 </div>
 
@@ -2767,7 +2789,7 @@ PYIM 是一个 Emacs 中文输入法，支持全拼，双拼，五笔，仓颉 �
 </p>
 </blockquote>
 
-<pre class="example" id="org0ce72e6">
+<pre class="example" id="orgc8866d7">
 这是一段中文说明，你好shijie
                       ^
                       |
@@ -2778,9 +2800,9 @@ PYIM 是一个 Emacs 中文输入法，支持全拼，双拼，五笔，仓颉 �
 
 <p>
 Above demo shows the fully process for input chinese using
-pyim. pinyin candidates shown within the tooltip widget <code>posframe</code>
+pyim. pinyin candidates shown within the tooltip widget <a href="https://github.com/tumashu/posframe">posframe</a>
 created by the author same as pyim be, there's other candidates
-widgets for chosen:
+exhibition widgets for chosen:
 </p>
 <ol class="org-ol">
 <li><p>
@@ -2790,7 +2812,7 @@ minibuffer
 <p>
 Using minibuffer be the widget as:
 </p>
-<pre class="example" id="orgcb51f8a">
+<pre class="example" id="org986eb8a">
 +----------------------------+
 |                            |
 | xxx|                       |
@@ -2807,37 +2829,32 @@ popup:
 </p>
 
 <p>
-Similarity with posframe but using old emacs buffer frame api which
-may lagging of performance that based with it's design logical, as
-the opposite, <code>posframe</code> using the new <code>child-frame</code> emacs feature
-which just contained in emacs version on 26.1 and above.
-</p>
-
-<p>
-So as that, <code>entropy-emacs</code> using 'popup' to pyim config for emacs
-version below 26.1 and the oppsite using 'posframe'.
+Similarity with posframe but using old emacs's overlay mechianism
+which may have lag of performance that based with it's design
+logical, as the opposite, <code>posframe</code> using the new <code>child-frame</code>
+emacs feature which just contained in emacs version on 26.1 and
+uppers. It is also the only supported popup widget for a terminal
+display emacs session since emacs can not handle <i>child-frame</i> for
+that display type.
 </p></li>
-</ol>
 
-
-<ul class="org-ul">
 <li><p>
-<b>Pyim dicts:</b> <a id="orgcabe07d"></a>
+<b>Pyim dicts:</b> <a id="orge0dd3fa"></a>
 </p>
 
 <p>
 Although <code>pyim</code> was one emacs extension written by <a href="(info%20"elisp")">elisp</a>, it was
-also one comprehensive chinese input programe which as the same sets
-of products rely on operation system e.g. <code>fcitx-pinyin</code>, <code>rime</code> or
-<code>ibus-pinyin</code>, it relies on emacs internal input method frame work
-the comprehensive input frame work built with emacs. Thus pyim need
-extra char dicts for driven for candidates completion.
+also one comprehensive chinese input programe which has the same
+sets of products rely on operation system e.g. <code>fcitx-pinyin</code>,
+<code>rime</code> or <code>ibus-pinyin</code>, it relies on emacs internal input method
+framework. Thus pyim need extra words dict for driven for candidates
+completion.
 </p>
 
 <p>
 <code>pyim</code> extra dict was plain text format as:
 </p>
-<pre class="example" id="orgf33f4c5">
+<pre class="example" id="org8b0b945">
 ni-hao 你好
 shi-jie 世界
 </pre>
@@ -2856,21 +2873,20 @@ there's two dicts:
 </ol>
 
 <p>
-Each of them are extract from other open source permitted input
-method, as you do not worry about the copyright with legal
-complication.
+There two dicts was enough for me to daily using , names of them are
+meaned as the loading sequence or dict collection categories belong
+to them individually. <code>Core.pyim</code> was extract from rime's internal
+dict, containes 816321 entries, reached the normal proper dicts size
+as suggested from pyim author, <code>extra.pyim</code> contained extra popular
+vocabularies and animal, stars, psycology or other sets of scienece
+subjects vocabulary collection, it's size about 0.8 million entries.
 </p>
 
 <p>
-There two dicts was enough for daily using as well as me, names of
-them are meaned as the loading sequence or dict collection
-categories belong to them individually. <code>Core.pyim</code> was extract from
-rime's internal dict, containes 816321 entries, reached the normal
-proper dicts size as suggested from pyim author, <code>extra.pyim</code> was
-the collection from several none copyright obselete dicts, it
-contained extra popular vocabularies and animal, stars, psycology or
-other sets of scienece subjects vocabulary collection, it's size
-about 0.8 million entries.
+The <code>extra.pyim</code> extracted or converted from some <b>proprietary
+softwares</b>, so that they are not free to use that just using as
+<b>learning way</b> as the examples for building your own dicts or <span class="underline">used
+just as personal way without business purposes</span>.
 </p></li>
 
 <li><p>
@@ -2886,10 +2902,10 @@ steps are easily and thus as:
 
 <ol class="org-ol">
 <li>given the rime schemes host in operation system for variable
-<code>entropy/emacs-pyim-liberime-scheme-data</code>.</li>
+<code>entropy/emacs-internal-ime-rime-system-share-data-host-path</code>.</li>
 <li>Setting the specific rime scheme selected</li>
 <li>Optionally give the rime cache dir value to
-<code>entropy/emacs-pyim-liberime-cache-dir</code>.</li>
+<code>entropy/emacs-internal-ime-rime-user-data-host-path</code>.</li>
 </ol></li>
 
 <li><p>
@@ -2898,78 +2914,22 @@ steps are easily and thus as:
 
 <p>
 The turn-off custom variable controlling whether enable pyim when
-emacs startup finished i.e. <code>entropy/emacs-enable-pyim</code>, you can
-active it in your <code>custom.el</code> file, then the next time you start up
-or open new session of emacs , pyim will automatically startup using
-the default dicts specific by <code>entropy-emacs</code> as introduction form
-<a href="#orgcabe07d">pyim dicts section</a>, or if you want to enable dicts specified by
-yourself, you can setting up custom-variable
-<code>entropy/emacs-pyim-dicts</code>, the variable information and value
-format can be shown by touching <code>C-h v entropy/emacs-pyim-dicts
-  RET</code>.
+emacs startup finished i.e. set
+<code>entropy/emacs-internal-ime-use-backend</code> as <code>pyim</code>, you can active
+it in your <code>custom.el</code> file, then the next time you start up or open
+new session of emacs , pyim will automatically startup using the
+default dicts specific by <code>entropy-emacs</code> as introduced from <a href="#orge0dd3fa">pyim
+dicts section</a>, or if you want to enable dicts specified by yourself,
+you can setting up custom-variable <code>entropy/emacs-pyim-dicts</code>, the
+variable information and value format can be shown by hinting <code>C-h v
+  entropy/emacs-pyim-dicts RET</code>.
 </p></li>
-
-<li><p>
-<b>pyim conversion between simple chinese with traditional chinese:</b>
-</p>
-
-<p>
-Chinese hans char has been redesigned for simplification for daily
-using in CHINA, but be remained the old version shape of char for
-people in CHINA taiwan province and HongKong or others chinese
-language based countries. As for the first char shape named <code>simple
-  chinese</code> and the rest was called as <code>traditional chinese</code>.
-</p>
-
-<p>
-<code>entropy-emacs</code> supported both of them for inputting choice, but
-initial based inputting was <code>simple chinese</code>, you can call func
-<code>(entropy/emacs-basic-toggle-pyim-s2t)</code> to toggle it to
-<code>traditional-chinese</code> as the final presentation on screen.
-</p>
-
-<blockquote>
-<p>
-Original pyim not support the feature of conversation between
-them, but it provide one feature <code>pyim-magic-converter</code> whose
-description as below:
-</p>
-
-<p>
-&gt; 将 “待选词条” 在 “上屏” 之前自动转换为其他字符串. 这个功能可以实现“简转繁”，“输入中文得到英文”之类的功能。
-</p>
-
-<p>
-<code>entropy-emacs</code> create the self func
-<code>entropy/emacs-basic-toggle-pyim-s2t</code> for using this detector
-feature for reaching the aim of thus.  This core was provided by
-package <a href="https://github.com/c0001/entropy-s2t">entropy-s2t</a> which list the hash table <code>entropy/s2t-table</code>
-pointed each simple chinese char to the corresponding traditional
-chinese char.
-</p>
-
-<p>
-So as on the inputting prompt candidates will still be the
-simple chinese char shape style.
-</p>
-</blockquote></li>
-
-<li><p>
-<b>Half or full width punctuation:</b>
-</p>
-
-<p>
-Pyim allows user to toggle punctuation standard widths withs both of
-<code>half</code> and <code>full</code> style with keybinding <code>C-1</code> while you are in pyim
-input session, this may be useful when you are editting the list or
-table in org mode.
-</p></li>
-</ul>
+</ol>
 </div>
 </div>
 
 <div id="outline-container-h-c309fd9b-7788-4e02-a70a-8c99c0fa1c17" class="outline-5">
-<h5 id="h-c309fd9b-7788-4e02-a70a-8c99c0fa1c17"><span class="section-number-5">9.1.3.2.</span> <span class="todo TODO">TODO</span> EMACS-RIME</h5>
+<h5 id="h-c309fd9b-7788-4e02-a70a-8c99c0fa1c17"><span class="section-number-5">9.1.3.2.</span> EMACS-RIME</h5>
 <div class="outline-text-5" id="text-h-c309fd9b-7788-4e02-a70a-8c99c0fa1c17">
 <p>
 Emacs-rime was an frontend of <a href="https://github.com/rime">rime</a> opensource input method for emacs
@@ -2983,6 +2943,22 @@ handle all typing through <code>rime</code>.
 <code>entropy-emacs</code> has fully configured <code>emacs-rime</code> to let user use it
 out-of-box.
 </p>
+
+<ul class="org-ul">
+<li><p>
+<b>enable emacs-rime with <code>entropy-emacs</code>:</b>
+</p>
+
+<p>
+The turn-off custom variable controlling whether enable emacs-rime
+when emacs startup finished i.e. set
+<code>entropy/emacs-internal-ime-use-backend</code> as <code>rime</code>, you can active
+it in your <code>custom.el</code> file, then the next time you start up or open
+new session of emacs , emacs-rime will automatically startup using
+the eemacs unified rime schema and cache configuration as described
+in section [BROKEN LINK: using liberime as rime backend for pyim].
+</p></li>
+</ul>
 </div>
 </div>
 </div>
@@ -2991,13 +2967,13 @@ out-of-box.
 <h4 id="h-7783929d-6dbd-4e40-bc32-f7d1247be222"><span class="section-number-4">9.1.4.</span> Globally readonly mode</h4>
 <div class="outline-text-4" id="text-h-7783929d-6dbd-4e40-bc32-f7d1247be222">
 <p>
-Emacs open all common buffers with editted state by default all. It be
+Emacs open all common buffers with editted state by default. It's
 convenience with the state for usually sights which allow user to
 quickly read or write sth into file.
 </p>
 
 <p>
-But with the buffer counts increasing for one emacs sessin, this
+But with the buffer counts increasing for one emacs session, this
 feature was annoying with the worriers for that we can not keep
 careful for all buffers modification state when you take the mistake
 modification little bit inadvertently.
@@ -3011,7 +2987,7 @@ but not to write.
 </p>
 
 <p>
-<code>entropy-emacs</code>'s self built extension <a href="https://github.com/c0001/entropy-global-read-only-mode">global-readonly-mode</a> give the
+<code>entropy-emacs</code>'s self built extension <code>global-readonly-mode</code> give the
 anwser.
 </p>
 
@@ -3065,82 +3041,46 @@ custom file:
 The suggested mode choice was <code>all</code>, which injecting read-only feature
 into <code>(find-file)</code> function, after sets this value, any buffer opened
 with lock state excluding the buffer name exception list
-<code>entropy/grom-find-file-except-bfregexp-list</code>, the value of this list
-was regexp string matched before <code>find-file</code> opens file.  Til now this
-list shown as blow:
+<code>entropy/grom-customizable-special-buffer-name-regexp-list</code>, the value
+of this list was regexp string matched the file name before
+<code>find-file</code> opens that file.
 </p>
-<div class="org-src-container">
-<pre class="src src-emacs-lisp">'(<span style="color: #99ad6a;">"autoloads\\.el"</span>
-  <span style="color: #99ad6a;">"\\*Compile-.*\\*"</span>
-  <span style="color: #99ad6a;">"loaddefs\\.el"</span>
-  <span style="color: #99ad6a;">"COMMIT_EDITMSG"</span>
-  <span style="color: #99ad6a;">"_archive"</span>
-  <span style="color: #99ad6a;">"^ *\\*.*?\\* *$"</span>)
-</pre>
-</div>
 
 <p>
-Regexp strings contained intern of it now excepting package compliging
-refer file or buffer, magit committing buffer, buffer name paired with
-<code>*</code> (special buffer) and some miscellaneous nameing rule buffer.
+Internally, eemacs has some pre-defined buffer name regexp filter to
+guarantee there's no conflicts with vanilla emacs and eemacs
+environment. For those buffers who are temporally and miscellaneous
+ones are also filtered out as default.
 </p>
 
 <p>
 Due to the mechanism of emacs defualt setting used by other extension
-built intern or from melpa/elpa, global-readonly-mode will cause some
-coordination problem with other package extension function call,
-because by the default some func doesn't judge the buffer read only
-state before executing processing, in other words, they does with the
-buffer state by editted default and only to as. Org-mode was the
-typically one who required the refer buffers it will be did with must
-be editted state, in which case, <code>entropy-emacs</code> adding sets of
-advicing funcs for the Org-mode widgets and modified with redefined
-some apis for patching with adding buffer read only state detecting
-snippet. The patching for Org-mode districts are:
-</p>
-
-<ol class="org-ol">
-<li>org agenda</li>
-<li>org capture</li>
-</ol>
-
-
-<p>
-Agenda buffer's func offering: note-add, task todo state changing, all
-need to patched before func process proceeding, <code>entropy-emacs</code> using
-adviced func <code>(entropy/grom-agenda-unlock-current-entry)</code> for
-enhancing the each agenda entry behaviour with global-readonly-mode
-for be the advice before <code>org-agenda-add-note</code> , <code>org-add-log-note</code> ,
-<code>org-store-log-note</code>. <code>entropy-emacs</code> also create the manully func
-<code>entropy/grom-unlock-agenda-files</code> to unlock all agenda files defined
-in custom variable <code>org-agenda-files</code> which be opened with, if you
-want to do so , calling it.
+built internally or from melpa/elpa, global-readonly-mode will cause
+some coordination problem with other package's functional, since by
+the default that some func doesn't judge the buffer read only state
+before executing processing, in other words, they does with the buffer
+state by editted default and only did as in that case. Org-mode was
+the typically one who required the refer buffers it will be did with
+must be editted state, in which case, <code>entropy-emacs</code> adding sets of
+advicing funcs for the Org-mode widgets and modified through
+redefining some apis for patching with adding buffer read only state
+detecting snippet.
 </p>
 
 <p>
-Capture patching redefining func <code>org-capture-place-template</code> and the
-Org-mode internal unit <code>org-datetree--find-create</code>, both patching for
-them are minor just with adding <code>(setq buffer-read-only nil)</code> to the key coding
-region.
-</p>
-
-<p>
-Rest modes of global-readonly-mode was the optionally not suggested
-for who are having the perfects thoughts for this, if you are just one
-to make the buffer open limitation while using dired open or major
-modes specifiction type, try them, dired refer was forcing withou any
-custom variable setting, for major modes specification, custom
-variable <code>entropy/grom-mode-list</code> are the motorized key for thus, you
-can check it with <code>C-h v entropy/grom-mode-list</code> for see the default
-major modes be locked with.
+The "modes" type of global-readonly-mode was another way for handling
+the read-only filter with this package when you are just want to make
+the buffer opened with limitation while using specified major mode(s),
+custom variable <code>entropy/grom-mode-list</code> are the motorized
+specification tunnel for thus, you can check it with <code>C-h v
+entropy/grom-mode-list</code> for see the default major modes be locked
+with.
 </p>
 
 <p>
 Remeber, you can cancel or disable global-readonly-mode whenever you
 want to do so with interactive func <code>entropy-grom-mode</code> , it will
-remove all the hook and cancel all the advising hooks for feature
-refer when done of calling for it, oppiste as it will enable
-gloal-readonly-mode again.
+remove all the hook and cancel all the advisors this package maked in.
 </p>
 </div>
 </div>
@@ -3149,12 +3089,12 @@ gloal-readonly-mode again.
 <h4 id="h-2263f98f-eba0-4248-8dcd-03928af7978c"><span class="section-number-4">9.1.5.</span> Org-mode</h4>
 <div class="outline-text-4" id="text-h-2263f98f-eba0-4248-8dcd-03928af7978c">
 <p>
-Org mode was the structor plain text doc type combined with emacs
-closely, which obtained the admiration with various emacs user. This
-section was implicitly for the user who understand with the basic
-Org-mode knowledgebase and had used it for a while, and rest
-introduction was the specification of <code>entropy-emacs</code>'s Org-mode
-config for kinds of aspects of it.
+Org mode was the structure plain text document editting system
+combined with emacs closely, which obtained the admiration with
+various emacs users. This section was implicitly for the user who
+understand with the basic Org-mode knowledgebase and had used it for a
+while, and the rest introduction was the specification of
+<code>entropy-emacs</code>'s internal Org-mode configuration specifications.
 </p>
 
 <ul class="org-ul">
@@ -3163,13 +3103,9 @@ config for kinds of aspects of it.
 </p>
 
 <p>
-Each headline in Org-mode doc with the defautl visual style inserts
-with dozen of <code>*</code> chars. special tyle support can be hacks for
-adding. Emacs melpa package <a href="https://github.com/sabof/org-bullets">org-bullets</a> provides such the feature
-like as but have've been stopped maintained for about 5 years. But
-no matter the way thus, it's core mechnism was solid and has enough
-flexibility for keeping track with new emacs version for the
-furtuer.
+Each headline in Org-mode buffer with the defautl visual style
+inserts with dozen of <code>*</code> chars. More visualized style can be hacks
+by emacs melpa package <a href="https://github.com/sabof/org-bullets">org-bullets</a>, who provides such the feature.
 </p>
 
 <p>
@@ -3182,21 +3118,22 @@ style upon for creating two style:
 </ol>
 
 <p>
-Both of them displayed for showing the sequence number refer the
-heading level instead of the asterisk counts visualized.
+Both of them displayed for showing the sequence number for the
+heading level instead of the asterisk counts visualized one which is
+org-mode's default sets.
 </p>
 
 <p>
 <code>roman</code> type displayed as the sequence list as:
 </p>
-<pre class="example" id="orgbeae449">
+<pre class="example" id="org6184f36">
 "●" "Ⅱ" "Ⅲ" "Ⅳ" "Ⅴ" "Ⅵ" "Ⅶ" "Ⅷ" "Ⅸ" "Ⅹ" "Ⅺ" "Ⅻ"
 </pre>
 
 <p>
 The instance for this is:
 </p>
-<pre class="example" id="orgb0c4fce">
+<pre class="example" id="orge26a18f">
 ● heading 1
   Ⅱ heading 2
     Ⅲ heading 3
@@ -3210,7 +3147,7 @@ The instance for this is:
 <p>
 Same sytle show for circle numberic:
 </p>
-<pre class="example" id="org4b5db89">
+<pre class="example" id="orga68bd97">
 "⓪" "①" "②" "③" "④" "⑤" "⑥" "⑦"
 "⑧" "⑨" "⑩" "⑪" "⑫" "⑬" "⑭" "⑮"
 "⑯" "⑰" "⑱" "⑲" "⑳"
@@ -3231,9 +3168,9 @@ your way. follow config codes snippet for doing thus:
 
 <p>
 Headline level influenced headline face of Org-mode visulized style
-corresponding each emacs theme specification. Some customized theme
-package from melpa given the try to enlarge the heading font size by
-default as shown with the sensible heading level case.
+corresponding to each emacs theme specification. Some customized
+theme package from melpa given the try to enlarge the heading font
+size by default as showing with the sensible heading level case.
 </p>
 
 <p>
@@ -3250,8 +3187,10 @@ place follow codes snippet into your custom file"
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(<span style="color: #8197bf;">setq</span> entropy/emacs-disable-org-heading-scale nil)
 
-<span style="color: #888888; font-style: italic;">;; </span><span style="color: #888888; font-style: italic;">Reload major-mode for current to trigger the hook</span>
-(funcall major-mode)
+<span style="color: #888888; font-style: italic;">;; </span><span style="color: #888888; font-style: italic;">Reload major-mode for current to trigger the hook if enabled that</span>
+<span style="color: #888888; font-style: italic;">;; </span><span style="color: #888888; font-style: italic;">in a running session yet</span>
+<span style="color: #888888; font-style: italic;">;;</span>
+<span style="color: #888888; font-style: italic;">;; </span><span style="color: #888888; font-style: italic;">(funcall major-mode)</span>
 </pre>
 </div></li>
 
@@ -3260,11 +3199,12 @@ place follow codes snippet into your custom file"
 </p>
 
 <p>
-Org mode have the function for open link in a buffer with 'org-mode'
-major mode, each file were recognized for their file type judged by
-it's file name suffix e.g. ("\\.pdf", "\\.docx", "\\.cpp"). In org
-mode, file identifier can be more than the file name suffis rule
-recognizing, custom variabl <code>org-file-apps</code> controlling thus.
+Org mode have the functional for open link in a buffer with
+'org-mode' as major mode, each file were recognized for their file
+type judged by it's file name suffix e.g. ("\\.pdf", "\\.docx",
+"\\.cpp"). In org mode, file identifier can be more than the file
+name suffixes rule recognizing, custom variabl <code>org-file-apps</code>
+controlling thus.
 </p>
 
 <p>
@@ -3279,16 +3219,16 @@ size cover 'kb' to 'Mb'. However, when the size larger than several
 'Mb', emacs will lagging seriously for a long time to display the
 animation before analyzing it's fram counts, because emacs display
 gif files through the way splitting the picture into the frame list
-and then render them one by one, this was low effective compared
+and then render them one by one, this was low effectively compared
 with other picture viewers. Therefore, <code>entropy-emacs</code> set all the
 gif file links of org file to be opened with external system picture
 viewer.
 </p>
 
 <p>
-Pdf file render for emacs was frame stacks in turn as the way for
-display gifs, thus viewing pdf within emacs was not a good idea,
-thus using system application referred it as well.
+Pdf files were rendered in emacs with frame stacks in turn as the
+way for display gifs, thus viewing pdf within emacs was not a good
+idea, thus using system application referred it as well.
 </p></li>
 
 <li><p>
@@ -3306,11 +3246,11 @@ the default sets.
 
 <p>
 <code>entropy-emacs</code> comes with the self built packge
-<code>entropy-org-export-theme-toggle</code> for providing the theme toggle
-quickly way so. Although this self package was not indicated just
-for org html exporting style toggle functional but also for latex
-and other org exporting backends using, as now [2018-11-24 Sat
-19:58:26] I just implemented the way for html exports backend.
+<code>entropy-org-export-theme-toggle</code> for providing the theme
+switches. Although this self package was not indicated just for org
+html exporting style toggle functional but also for latex and other
+org exporting backends using, as now <span class="timestamp-wrapper"><span class="timestamp">[2018-11-24 Sat 19:58] </span></span> I
+just implemented the way for html exports backend.
 </p>
 
 <p>
@@ -3318,7 +3258,8 @@ and other org exporting backends using, as now [2018-11-24 Sat
 exporting themes i.e. <code>Worg</code>, <code>read-the-org</code>, <code>Bigblow</code>, and
 <code>red-snapper</code>. First three are collected form other's customize org
 html exports style and the last was designed by me for be the
-default org html exporting style as for the furture.
+default org html exporting style as what this file's html variant
+used.
 </p></li>
 
 <li><p>
@@ -3327,16 +3268,16 @@ default org html exporting style as for the furture.
 
 <p>
 As well known that org mode was designed for literally programming
-suits, code block embedded within the doc was merited as thus, in
-org mode, that's code blocks called bable, as the broken for god's
-dividing language curse for preventing humans' intention of building
-the bable through across the sky.  Thus org bable to do so.
+suits, code block embedded within the doc was merited in its
+declaration. In org mode, that's code blocks called <b>bable</b>, as the
+broken for god's dividing language curse for preventing humans'
+intention of building the <span class="underline">bable</span> through across the sky.
 </p>
 
 <p>
 Each bable block identified with one programming language source
 viewer, as thus, evaluation for codes was demands for insert the
-code snippet result into context of doc currents.
+code snippet result into context of current org buffer.
 </p>
 
 <p>
@@ -3350,24 +3291,24 @@ block indicated that this block's evaluating will be confirmed.
 <p>
 As thus, <code>entropy-emacs</code> gives the try for patching the export funcs
 for obtaining the origin confirmation process during the babel
-evaluating. Function <code>org-babel-confirm-evaluate</code> was the main point
-for patching with, <code>entropy-emacs</code> forcing setting the local
-variable <code>org-confirm-babel-evaluate</code> to t in the process of this
-func, because that in state of export this variable will cleaned to
-null before calling <code>org-babel-confirm-evaluate</code> without finding the
-mechanism for.
+evaluating. Function <code>org-babel-confirm-evaluate</code> was the main
+subroutine for patching with, <code>entropy-emacs</code> forcing setting the
+local variable <code>org-confirm-babel-evaluate</code> to t in the process of
+this function's running context, because that in state of export
+this variable will cleaned to null before calling
+<code>org-babel-confirm-evaluate</code> without finding the mechanism for.
 </p>
 
 <p>
-There's also the problem occured on evaluate inline abbreviated code
+It also coursed problem occured on evaluate inline abbreviated code
 snippet like point on <code>call_func()</code>. The issue was that the
 confirmation prompt string doesn't include the babel name. For
 resolving it, <code>entropy-emacs</code> declared one internal variable
 <code>entropy/emacs-org--src-info</code> for storing the info generated by func
 <code>org-babel-get-src-block-info</code> and <code>org-babel-exp-src-block</code>
-temporally for using for func <code>org-babel-confirm-evaluate</code>, the info
-getted thus will contain babel block name rathan the origin one
-generated within the process.
+temporally for using for function <code>org-babel-confirm-evaluate</code>, the
+info got thus will contain babel block name rather than the origin
+one generated within the process.
 </p></li>
 
 <li><p>
@@ -3396,20 +3337,20 @@ functions:
 The first one gives the forcing way for inserting <code>CUSTOM_ID</code> to
 each headline while one of them doesn't have one, and the second
 otherwise for the state just when the option comment string in place
-somewhere in current org file, i.e. '#+OPTIONS: auto-id:t'.
+somewhere in current org file, i.e. "#+OPTIONS: auto-id:t".
 </p>
 
 <p>
 Don't like the human readable id style, these two automatically func
-gives the id format as the numeric series with the prefix 'h-', this
+gives the id format as the numeric series with the prefix "h:", this
 mechanism reducing the possibility for conficting <code>CUSTOM_ID</code>
 occurence.
 </p>
 
 <p>
-<code>entropy-emacs</code> gives the auto way for automatically adding
-headlines ids before save the org file who contained <code>auto-id</code>
-option, it's useful for the convenience way.
+<code>entropy-emacs</code> gives the way for automatically adding headlines ids
+before save the org file who contained that "auto-id" option, it's
+useful for the convenience way.
 </p></li>
 
 <li><p>
@@ -3417,24 +3358,26 @@ option, it's useful for the convenience way.
 </p>
 
 <p>
-Org designed with headline tag for sortting or filter dealing with,
-each headline can has several tags sperated by colon, tag in current
-buffer can be cached in <code>org-file-tags</code> for query insertting, this
-feature can also be retreived as global org files with agenda files.
+Org's each headline can make with tag for sortting or filtering
+with, each headline can has several tags sperated by colon, tag in
+current buffer can be cached in <code>org-file-tags</code> for quickly querying
+and choosing for insertion, this feature can also be retreived as
+global org files includes agenda files.
 </p>
 
 <p>
-<code>entropy-emacs</code> using cousel extension for enhancing the using
-experience of insertting tags, the func <code>counsel-org-tag</code> provides
-the feature. By default, <code>entropy-emacs</code> restricted tag list
-collection scope via globle (with all agenda files), so that you can
-quickly query tags from all existed ones to prevent create the
-conflicts with messure spelling similarities of the same meaning.
+<code>entropy-emacs</code> using melpa extension counsel for enhancing the
+using experience of inserting tags, the func <code>counsel-org-tag</code>
+provides the feature. By default, <code>entropy-emacs</code> restricted tag
+list collection scope via globle (with all detected org files), so
+that you can quickly query tags from all existed ones to prevent
+create the conflicts with messure spelling similarities of the same
+tag.
 </p>
 
 <p>
-Call the feature by keybinding as same as the origin org tag
-insertting as for <code>C-c C-q</code>.
+Eemacs bind <code>counsel-org-tag</code> as same as the origin org tag
+insertion keybinding as for <code>C-c C-q</code>.
 </p></li>
 
 <li><p>
@@ -3442,12 +3385,12 @@ insertting as for <code>C-c C-q</code>.
 </p>
 
 <p>
-Org file as the simple rich txt file can be referred with images,
-files, or other file type, the default inserting way was using the
-manually type coding with the format as <code>[[link location][content
-  description]]</code>, or you can drop down the file with gui mounse refers
-as other gui application does, this feature provided by melpa
-package <a href="https://github.com/abo-abo/org-download">org-download</a> but just with image thing as.
+Org file as the simple rich txt file can display images, attach
+files and whatever file type, the default insertion way was using
+the manually type coding with the format as <code>[[link
+  location][content description]]</code>, or you can drop down the file with
+gui mouse as usually what other gui application does, this feature
+provided by melpa package <a href="https://github.com/abo-abo/org-download">org-download</a> but just with image thing as.
 </p>
 
 <ol class="org-ol">
@@ -3457,42 +3400,37 @@ package <a href="https://github.com/abo-abo/org-download">org-download</a> but j
 </ol>
 
 <p>
-Image drop and down for org buffer was handled by DND handle
+Image drop and down for org buffer was handled by DND handler
 <code>org-download-dnd</code>, you don't need to know the detailes sticking
-within this handle, here just to show the general process passing
+within this handler, here just to show the general process passing
 by. Onece you draging one image file from system filesystem manager
 e.g. Explorer(windows), Nautilus(linux gnome) &#x2026; , to emacs gui
 frame and pointed into the actived org buffer, <code>org-download-dnd</code>
-will insert the image link which redirected to the will placing
-image location.
+will insert the image link which redirected to that image location.
 </p>
 
 <p>
 The simple way for insert image source from other location was
 through the way by downloading url method, and this is the second
-feature of <code>org-download</code> to handle the image insertting action. The
-interactivation was simply just by calling interactive function
+feature of <code>org-download</code> to handle the image insertion action. The
+interactivation was simply just by calling the command
 <code>org-download-image</code> soon as.
 </p>
 
 <p>
 Depending on downloading way, <code>org-download</code> also gives the try for
-providing the image capture to insert func, this called
+providing the image capture insertion function, this called
 <code>org-download-screenshot</code>, literally meaning point to 'download' as
 the way of this operation was steps sequenced as:
 </p>
 
 <ol class="org-ol">
 <li>Calling external gui screenshot application tracked by emacs
-subprocess and waiting for return the image captured url.</li>
-<li>Using <code>org-download-image</code> to handle the reponse as the func it
-provision.</li>
+subprocess and waiting for returning the image captured url.</li>
+<li>Using <code>org-download-image</code> to handle the reponse using the
+functional it provision to download that captured screenshot
+image file.</li>
 </ol>
-
-<p>
-They are the three way of <code>org-download</code> providing for image quickly
-insertting.
-</p>
 
 <p style="font-size:1.2em">
 <span class="underline"><code>entropy-emacs</code>'s hacking on <code>org-download</code>:</span>
@@ -3505,9 +3443,9 @@ name:
 </p>
 
 <p>
-Origin <code>org-download-method</code> was 'directory and using the process
-snippet below to extracting the filename url to inserted into org
-file:
+Origin <code>org-download-method</code> was <code>'directory</code> and using the
+process snippet below to extracting the filename url to inserted
+into org file:
 </p>
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(org-download--fullname link ext)
@@ -3515,148 +3453,37 @@ file:
 </div>
 
 <p>
-While the argument link was combine with unicode file name, the
-link generated by it will contained the hexo chars for excaped
-the conflicated part of web url rule. Commonly it's useful and
-normally.
+While the argument <span class="underline">link</span> was combine with unicode file name, the
+link generated by it will contained the url-hexified chars for
+escape the conflicated part of web url rule. Commonly it's useful
+and normally.
 </p>
 
 <p>
-But with some url string having the cjk or other unicode string
-internally, hexo escape method was actually right for preventing
-link follow analyzing error for some external software but the
-human meaning reading available has for user of reading
-currently. Thus, I given the specified <code>org-download-method</code> for
+But for some url strings consisted of characters in humarn
+language script, hexify escape method was unexpected for readable
+meaning. Thus, I given the specified <code>org-download-method</code> for
 falling back with the as-it link string presentation while
 inserting the target image url string into org buffer's current
-point:
+point and it is constructed like:
 </p>
 
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(<span style="color: #8197bf;">defun</span> <span style="color: #fad07a;">custom-org-download-method</span> (link)
-        (org-download--fullname (org-link-unescape link)))
+  (org-download--fullname (org-link-unescape link)))
 (<span style="color: #8197bf;">setq</span> org-download-method 'custom-org-download-method)
 </pre>
-</div>
-
-<p>
-Which was the function replace the origin one 'directroy.
-</p></li>
+</div></li>
 
 <li><p>
-Fallback dnd process redefined:
-</p>
-
-<p>
-Org download will send the unused dnd action to the origin emacs
-internal dnd handle, as the image open will still opened in
-buffer while you using <code>C-g</code> key quiting current behaviour came
-from org-download, the image displaying effection will deliver to
-the emacs internal default dnd file handle, it's violating the
-user operation expection, as that I comment the fall back dnd
-handle process snippet in func <code>org-download-dnd-fallback</code>.
-</p></li>
-
-<li><p>
-Org capture windows port external application setting:
-</p>
-
-<p>
-When on w32 platform, org-download didn't give the capture image
-method effectively, the core for it was the problem for finding
-the screenshot (free liscense) application with cli interface as,
-<code>entropy-emacs</code> givies the try for windows internal public
-(non-free) screenshot tool <code>SnippingTool.exe</code> to using as it for.
-</p>
-
-<p>
-As the default keybinding for the screenshot with
-<code>org-download-screenshot</code> as <code>C-c p</code>.
-</p>
-
-<p>
-Althouth WIN10 will removing it soon as the promotion while start
-this minor tool now, but <code>entropy-emacs</code> will finding the other
-way for resolving this problem following Microsoft's developing
-policy as well. Of course, you can specific you own screenshot
-tool by specifying the custom-variable
-<code>entropy/emacs-win-org-download-screenshot-method</code> with the
-default temporally screenshot filename customed by
-<code>entropy/emacs-win-org-download-file-name</code>.
-</p></li>
-
-<li><p>
-Capture screenshot image in org capture temporally buffer:
-</p>
-
-<p>
-Commonly, the screenshot feature of org-download will working
-well in the buffer with the actual based file and the unique
-buffer name, unless for the buffer temporally which maked as org
-capture behaviour. That's means in org cature buffer, org
-download can not insert the image file-name correctly because of
-that it can not check the true <code>buffer-file-name</code> for calulating
-the relative path between image file location and the current
-buffer file.
-</p>
-
-<p>
-Origin org download link inserting func
-<code>org-download-insert-link</code>, using <code>(file-name-directory
-     (buffer-name))</code> for generate the buffer-file-name but this was
-not working on the temporally buffer, the whole relative link
-path return snippet process will not worked as well yet:
-</p>
-<div class="org-src-container">
-<pre class="src src-emacs-lisp">(<span style="color: #8197bf;">defun</span> <span style="color: #fad07a;">org-download-insert-link</span> (link filename)
-  (<span style="color: #8197bf;">if</span> (looking-back <span style="color: #99ad6a;">"^[ \t]+"</span> (line-beginning-position))
-      (delete-region (match-beginning 0) (match-end 0))
-    (newline))
-  (insert
-   (concat
-    (funcall org-download-annotate-function link)
-    <span style="color: #99ad6a;">"\n"</span>
-    (<span style="color: #8197bf;">if</span> (= org-download-image-html-width 0)
-        <span style="color: #99ad6a;">""</span>
-      (format <span style="color: #99ad6a;">"#+attr_html: :width %dpx\n"</span> org-download-image-html-width))
-    (<span style="color: #8197bf;">if</span> (= org-download-image-latex-width 0)
-        <span style="color: #99ad6a;">""</span>
-      (format <span style="color: #99ad6a;">"#+attr_latex: :width %dcm\n"</span> org-download-image-latex-width))
-    (format org-download-link-format (file-relative-name filename (file-name-directory (buffer-name))))))
-  (org-display-inline-images))
-</pre>
-</div>
-
-<p>
-You can see the last code snippt:
-</p>
-
-<pre class="example">
-(format org-download-link-format (file-relative-name filename (file-name-directory (buffer-name))))
-</pre>
-
-
-<p>
-It's will return the wrong path name when <code>file-name-directory</code>
-gives the nil return value.
-</p>
-
-<p>
-As on <code>entropy-emacs</code> gives the the patching for replacing
-<code>(buffer-name)</code> with the self defined func
-<code>entropy/emacs-org--odl-judgement-whether-capture-name</code> with the
-full process dealing with the messure capture-buffer name.
-</p></li>
-
-<li><p>
-Image link insert automatically adjusting insert position
+Image link insertion automatically adjusting start position
 feature:
 </p>
 
 <p>
-This feature provision of which judges the current cursor point
-looking at where it is and automatically doing the inserting
-position adjusting follow below rules:
+This feature looking at and thought about where the current
+cursor located is and automatically adjusting the insertion start
+point follow below rules:
 </p>
 
 <ul class="org-ul">
@@ -3685,7 +3512,7 @@ Insert the link under of current line with newline creating.
 </p></li>
 
 <li><p>
-<i>Point at partition case of none-empty line:</i>
+<i>Point at middle of none-empty line:</i>
 </p>
 
 <p>
@@ -3703,33 +3530,6 @@ in current org buffer, automatically indenting the link position
 after insert the link string by org-download.
 </p></li>
 </ol></li>
-
-<li><p>
-<b>Poporg (Edit docstring with org mode temperally):</b>
-</p>
-
-<p>
-In emacs commmonly working with, docstring editting for func or src
-context was commented editting operation and manually doing as
-default.
-</p>
-
-<p>
-<code>poporg</code> was one melpa package who provide the feature for
-automatically editting docstring by cut the region of docstring into
-the popup temporally buffer with org-mode actived. In this case you
-can save the docstring by the operation <code>save-buffer</code> or triggering
-it with it's keybinding <code>C-x C-s</code>, or discarding the editting with
-<code>kill-buffer</code> or keybinding <code>C-x k</code>.
-</p>
-
-<p>
-<code>poporg</code> was the minor tool used for conveniently did. It support
-lots of src content with the detectivation rely on the grammer
-analyzer as C using '<i>* *</i>' as the comments region flags as so,
-active <code>poporg</code> while current cursor point was between the src refer
-comment flags by keybinding <code>C-c "</code>.
-</p></li>
 </ul>
 </div>
 </div>
@@ -3738,19 +3538,18 @@ comment flags by keybinding <code>C-c "</code>.
 <h4 id="h-dd1be778-45a9-451c-938c-e325bfe7ed1d"><span class="section-number-4">9.1.6.</span> Miscellaneous emacs internal setting</h4>
 <div class="outline-text-4" id="text-h-dd1be778-45a9-451c-938c-e325bfe7ed1d">
 <p>
-Emacs consists of various modes and sets of basic tool chains, all of
-them are with the highly customizable with refer custom
-variables. Each custom variable gives the default value setting.
+Emacs brought with various modes and sets of basic tool chains, all of
+them are standing with various highly customizable features with
+referred customization variables. Each customization variable gave
+their default value which is considered can be defined as generally
+meaning by their authors.
 </p>
 
 <p>
-But, not each defautl custom variables value given was satisfied for
-all user, and some was not suit with <code>entropy-emacs</code>.
-</p>
-
-<p>
-And for with some minor enhancements or the minor tool adding was also
-the necessaries for <code>entropy-emacs</code>.
+But, not each default customization variable's value gave was suitabl
+for all user, and some was not proper or conflicted with
+<code>entropy-emacs</code>. Thussome minor enhancements and the advices adding
+was also the necessaries for the taste of <code>entropy-emacs</code>.
 </p>
 
 <p>
@@ -3764,49 +3563,6 @@ This section was the introduction for thus.
 
 <ul class="org-ul">
 <li><p>
-<b>Dired colorful visual style:</b>
-</p>
-
-<p>
-Dired was emacs internal filesystem viewer as the functioanl as w32
-explorer or the nautilus for gnome (gnu/linux desktop manager), the
-default visualization of it was ordered as the plain style.
-</p>
-
-<p>
-For giving the mordern UI for dired was powered by two melpa
-package:
-</p>
-
-<ol class="org-ol">
-<li><p>
-<code>dired-rainbow</code>:
-</p>
-
-<p>
-Extended file highlighting according to its type.
-</p></li>
-
-<li><p>
-<code>all-the-icons-dired</code>
-</p>
-
-<p>
-Extended file stick logo according to its type.
-</p></li>
-</ol>
-
-<p>
-You can chosen one of them by setting custom variable
-<code>entropy/emacs-dired-visual-type</code> with two value alternative:
-</p>
-
-<ul class="org-ul">
-<li>"simple-rainbow" : using ‘dired-rainbow’.</li>
-<li>"all-the-icons" : using ‘all-the-icons-dired’</li>
-</ul></li>
-
-<li><p>
 <b>Backup and auto-save config:</b>
 </p>
 
@@ -3819,9 +3575,12 @@ file was not necessary as the default setting.
 </p>
 
 <p>
-Otherwise, the feature auto saving file content was needed for
-preventing the accident for broken the current buffer editting when
-you haven't saved it immediately.
+Otherwise, the auto saving file content feature was needed for
+preventing the accidental that emacs corrupted where each non-saved
+modifications for buffers with files tiled will be lost. But it also
+disabled by default in eemacs since its timer injection commonly
+disturbing user inputs rhythm. You can invoke it manually by type
+<code>M-x auto-save-mode</code>.
 </p></li>
 
 <li><p>
@@ -3829,17 +3588,17 @@ you haven't saved it immediately.
 </p>
 
 <p>
-Buffer scrolling in emacs was usually along with page jumping, up to
-set the current line in the middle of the screen. This not suit with
-the user who get the habbits from other text editor which always
-scrolling the page along with the line jumping.
+Emacs default make the current visual line be in middle of the
+window when current scrolling point at the top or bottom of
+window. That's not the habit we commonly seen in other editors.
 </p>
 
 <p>
-<code>entropy-emacs</code> defined the func
-<code>entropy/emacs-basic-smooth-scrolling</code> for emulating the behaviour
-as so.  This func was interactive, you can active this feature by
-calling it by 'M-x'.
+<code>entropy-emacs</code> defined a minor mode
+<code>entropy/emacs-basic-smooth-scrolling-mode</code> for emulating the
+behaviour as so. There's also a global mode
+<code>entropy/emacs-basic-smooth-scrolling-global-mode</code> which used that
+in each displayed window.
 </p></li>
 
 <li><p>
@@ -3847,19 +3606,25 @@ calling it by 'M-x'.
 </p>
 
 <p>
-When using emacs on unix like OS, visiting or editting high
-permission required file will using emacs <a href="https://www.gnu.org/software/tramp/">tramp</a> feature, the
+When using emacs on unix like OS, visiting or editting privilege
+permission required files will using emacs <a href="https://www.gnu.org/software/tramp/">tramp</a> feature, the
 manually way for it will cost time for inputting the special file
-path link, <code>entropy-emacs</code> using melpa package <code>auto-sudoedit</code>
+path string, <code>entropy-emacs</code> using melpa package <a href="https://github.com/ncaq/auto-sudoedit">auto-sudoedit</a>
 giving the auto way as so.
 </p>
 
 <p>
-You don't need to active any func manually or given sets of setting,
-just using <code>find-file</code> or query and open permission needed file
-using dired or other emacs internal or file open extension cmd
-commonly, auto-sudoedit will auto detective the permission needed
-and prompt for executing the account accessable operation.
+You don't need to active using any commands manually or giving sets
+of setting, just using <code>find-file</code> or query and open privilege
+permission required files using dired or other emacs internals,
+<code>auto-sudoedit</code> will auto detective the permission needed and prompt
+for executing the account accessable operation.
+</p>
+
+<p>
+By default this feature is not enabled since there's safety problem
+around management of lots of root files, hint <code>M-x
+  auto-sudoedit-mode</code> manully if need.
 </p></li>
 
 <li><p>
@@ -3877,14 +3642,15 @@ initial step by <code>(epa-file-enable)</code>.
 </p>
 
 <p>
-Kill ring save the all yank strings into the circle list, emacs
-support paste the history yanking according to the circle turns.
+Kill ring save the all yank strings into the ring likeqd list, emacs
+support pasting the history yanking according to the ring's circular
+turns.
 </p>
 
 <p>
-Melpa package <code>browse-kill-ring</code> was the extension for it aimed to
+Melpa package <code>browse-kill-ring</code> was the extension which aimed to
 provide the feature for browsing kill ring history in explicit way
-with yanking choosing functional.
+with candidates choosing functional using emacs <code>completing-read</code>.
 </p></li>
 </ul>
 </div>
@@ -3895,16 +3661,17 @@ with yanking choosing functional.
 <div class="outline-text-4" id="text-h-9246b459-6586-4464-b978-e8eba56658a6">
 <p>
 Emacs support multibyte fonts setting and the rich features for each
-part of face refer. <code>entropy-emacs</code>'s initial config file
-<code>entropy-emacs-font-set.el</code> was the collection fonts config for as.
+part of emacs face rendering corresponding aspects. <code>entropy-emacs</code>'s
+initial config file <code>entropy-emacs-font-set.el</code> was used to provide
+more beneficial way for specifying emacs font configuration.
 </p>
 
 <p>
-Internally, emacs using a <code>fontset</code> data structure to represent its
+Internally, emacs using a <code>FONTSET</code> data structure to represent its
 font founding mechanism to support the multi-language support for a
 single lanuguage-environment. A FONTSET is a group of various font
 families of various lanuage scripts so that a FONTSET can decoding any
-charsets if setted properly with unlimited FONT-SPECs (i.e. the emacs
+charsets if set properly with unlimited FONT-SPECs (i.e. the emacs
 internal font representation data structure).
 </p>
 
@@ -3912,8 +3679,17 @@ internal font representation data structure).
 Thus for, <code>entropy-emacs</code> patch the emacs per-frame default FONTSET
 with sets of FONT-SPECs to support CJK, LATIN, SYMBOL
 simultaneously. We use the group font family data structer for
-representing thus patch, variable <code>entropy/emacs-font-setting-enable</code>
-(see its docstring for more details) did as that.
+implementing that feature, variable
+<code>entropy/emacs-font-setting-enable</code> (see its docstring for more
+details) did as that.
+</p>
+
+<p>
+If <code>entropy/emacs-font-setting-enable</code> is not used, you can set your
+own emacs font configuration in <code>custom.el</code>. But a variable
+<code>entropy/emacs-font-size-default</code> is always used in effective, it
+controls the eemacs global font height affected for all windows in the
+main frame whicn you focused on.
 </p>
 </div>
 </div>
@@ -3930,40 +3706,40 @@ experience.
 </p>
 
 <p>
-<code>entropy-emacs</code> using dozen melpa extensions to extending the
-presented major modes' feature for enhancing more and more modes
+<code>entropy-emacs</code> using dozen of melpa extensions to extending the
+presented major modes' features for enhancing more and more modes
 experience individually. The main extending purpose was sticking on
 the coding completion, based on <a href="http://company-mode.github.io/">company-mode</a> which was the coding
 completion framework for any scences. As well, eachs major modes
-extending were including the coding interactive sth refer, coding
-folding and expanding uppon the region or pair punctuations are adding
-so, even for debug tool-chains.
+extending were including the coding interaction cases such as context
+folding and expanding uppon the regions or parentheses, and even for
+debug tool-chains.
 </p>
 
 <p>
-<code>entropy-emacs</code> treats emacs as the IDE (i.e. integrated development
-environment), extended with third-party lanuage servers, with the
-quickly ripened opensource lanugue protocol <a href="https://github.com/microsoft/language-server-protocol">Microsoft language server</a>
-(LSP), we are trending to use the LSP as the IDE core component, its
-powerful with unified crossplatform protocol defination and ripened
-communitiy driven. But for those old IDE configuration
+<code>entropy-emacs</code> treats emacs as the lightweight IDE (i.e. integrated
+development environment), extended with third-party lanuage servers,
+with the quickly ripened opensource lanugue protocol <a href="https://github.com/microsoft/language-server-protocol">Microsoft
+language server</a> (LSP), we are trending to use the LSP as the IDE core
+component, its powerful with unified crossplatform protocol defination
+and ripened communitiy driven. But for those old IDE configuration
 (i.e. individually un-unified code sever) were remained in
-<code>entropy-emacs</code> and with full supported as before.
+<code>entropy-emacs</code> with just limited supplement.
 </p>
 
 <p>
-The switcher for <code>lsp</code> and the old IDE configuration is customized
-variable <code>entropy/emacs-use-ide-type-for-MAJOR-MODE</code> whose valid
-values are 'lsp or 'traditional, where the 'MAJOR-MODE' place is
+The switcher for <code>lsp</code> and the old IDE configuration is relying on
+customized variable <code>entropy/emacs-use-ide-type-for-MAJOR-MODE</code> whose
+valid values are 'lsp or 'traditional, where the 'MAJOR-MODE' place is
 wildcards like, which case that if you want to use a LSP ide type for
 major-mode <code>c-mode</code>, the corresponding customized variable is
 <code>entropy/emacs-use-ide-type-for-c-mode</code> and manually set it to
-'traditional'. By defaultly the, we use LSP as for all major-modes.
+'traditional'. By default, we use LSP for all occasions.
 </p>
 
 <p>
-Follow sections given the description for each major modes which have
-been enhanced the extending feature details.
+Follow sections given the description for each major mode which have
+been enhanced for those IDE features.
 </p>
 </div>
 
@@ -4025,7 +3801,7 @@ Use ide type customized variable: <code>entropy/emacs-use-ide-type-for-[c/c++]-m
 </p>
 
 <p>
-Common lsp-mode configuration.
+Common LSP configuration.
 </p></li>
 
 <li><p>
@@ -4045,7 +3821,7 @@ completions.</li>
 w32 platform within <code>entropy-emacs</code> (see project <a href="https://sourceforge.net/projects/entropy-emax64/">entropy-emax64</a> for
 details), but needed compiling manually on linux with dependencies
 installed e.g. cmake, clang &#x2026; (We do not packing the server binary
-on linux because for ths platform across conflicated, thus x86 and
+on linux because for its platform across conflicts , thus x86 and
 arm or other cpu platform can not using the same binary.)
 </p></li>
 </ul>
@@ -4102,7 +3878,7 @@ Use ide type customized variable: <code>entropy/emacs-use-ide-type-for-php-mode<
 </p>
 
 <p>
-Common lsp-mode instruction
+Common LSP instruction.
 </p>
 
 <p>
@@ -4110,17 +3886,16 @@ Common lsp-mode instruction
 </p>
 
 <p>
-Php mode was derived from C-mode, familiar syntax-table and grammer
-refer so that the syntax highlight was not needed to extend.
+Php mode was derived from C-mode, similar syntax-table and grammer
+styple so that the syntax highlight was not needed to extend.
 </p>
 
 <p>
 The main extending for was coding completion, we using <code>company-php</code>
-for giving thus. Binding with <code>M-p</code> for activation.
+for giving thus feature.
 </p>
 </div>
 </div>
-
 
 <div id="outline-container-h-90e8b37b-f8ef-41db-92fb-df349125f5da" class="outline-4">
 <h4 id="h-90e8b37b-f8ef-41db-92fb-df349125f5da"><span class="section-number-4">9.2.3.</span> Html and Css</h4>
@@ -4133,9 +3908,9 @@ Use ide type customized variable:
 
 <p>
 emacs internal default web front-end major modes html and css mode are
-user basically with simple func interactively support, we use melpa
-package <a href="http://web-mode.org">web-mode</a> for the enhancements for html group markup language
-but for css as.
+used as basically with simple function interactively support, we use
+melpa package <a href="http://web-mode.org">web-mode</a> for the enhancements for web technology coding
+context.
 </p>
 
 <p>
@@ -4151,10 +3926,11 @@ previewing as the way of quickly did.
 </p>
 
 <p>
-Both of html and css buffer can be tidy up with normally code style
-using <a href="https://github.com/yasuyk/web-beautify">web-beautify</a> package which required nodejs path searched and the
-npm refer packages installed or using the function <code>lsp-format-buffer</code>
-when use ide type of LSP for those major-modes.
+Both of html and css buffer can be tidied up with conventionally code
+style using <a href="https://github.com/yasuyk/web-beautify">web-beautify</a> package which required node-js can be
+searched in PATH and the npm referred packages installed or using the
+command <code>lsp-format-buffer</code> when use eemacs IDE type of LSP for those
+major-modes.
 </p>
 
 <table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
@@ -4212,10 +3988,9 @@ Use ide type customized variable: <code>entropy/emacs-use-ide-type-for-js2-mode<
 </p>
 
 <p>
-JS development IDE <a href="https://github.com/mooz/js2-mode/">js2-mode</a> was the one for given such as repl and
-syntax checking and morden syntax highlighting feature for js coding
-which used in <code>entropy-emacs</code> for be replaced with origin js major
-mode.
+JS development major-mode <a href="https://github.com/mooz/js2-mode/">js2-mode</a> was the one for given such as repl
+morden syntax highlighting feature for javascript coding which used in
+<code>entropy-emacs</code> for be replaced with origin <code>js-mode</code>.
 </p>
 
 <table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
@@ -4299,21 +4074,22 @@ external browser tracking the response.
 </blockquote>
 
 <p>
-Full process enable just using one func calling <code>run-skewer</code>,
-immediately then let your external browser directed to one page
-<a href="http://127.0.0.1:8080/skewer/demo">http://127.0.0.1:8080/skewer/demo</a> , this page was the one previewing
-all results generated by <code>skewer-mode</code>.
+Full process enable just hinting the command <code>run-skewer</code>,
+immediately then makeing your external browser open a newtab with
+address <a href="http://127.0.0.1:8080/skewer/demo">http://127.0.0.1:8080/skewer/demo</a> , this page was the one
+previewing all results generated by <code>skewer-mode</code>.
 </p>
 
 <p>
-<code>skewer-mode</code> support css well, for css html and javascript, it
-divided three minor-modes individually and functionally purpose as
-the list below:
+<code>skewer-mode</code> support css well, for css html and javascript, its
+functionals are divided into three minor-modes individually and they
+are list as below:
 </p>
 
-<pre class="example" id="org91ff96c">
-The keybindings for evaluating expressions in the browser are just
-like the Lisp modes. These are provided by the minor mode skewer-mode.
+<pre class="example" id="org551281b">
+The keybindings for evaluating expressions from emacs to the browser
+are just like did that for Lisp modes. These are provided by the minor
+mode skewer-mode.
 
 * C-x C-e: Evaluate the form before the point and display the result
  in the minibuffer. If given a prefix argument, insert the result into
@@ -4371,7 +4147,7 @@ same folder of css or html files along into the server.
 <p>
 When one folder structer list as:
 </p>
-<pre class="example" id="org3b1e4d2">
+<pre class="example" id="org0dfba4f">
 ~/:
  |____index.html
  |____index.css
@@ -4379,7 +4155,7 @@ When one folder structer list as:
 
 <p>
 Thus we can following few steps for previewing the <code>index.html</code> and
-it's css file by <code>impaitent-mode</code>, that's to say if you want the
+it's css file by <code>impatient-mode</code>, that's to say if you want the
 index html file be rendered with all the references as above, you
 need to manually adding them into server by call <code>impatient-mode</code>.
 </p>
@@ -4403,10 +4179,9 @@ html file as instead of css file at the same meaning.
 </p>
 
 <p>
-All the linkage file must under the same directory tree. Thus
-impatient-mode just the one for html design layout tool, otherwise
-for the meaning as just for the single file previewing as the css
-html js all in one embedding file as for.
+All the linkage file must be under the same directory tree. Thus
+<code>impatient-mode</code> is just the one for html designation layout
+developments, or for demo previewing.
 </p></li>
 </ul>
 </div>
@@ -4467,7 +4242,7 @@ We using emacs built-in major-mode <code>python-mode</code> for coding python co
 
 <p>
 By defautly, we using <code>python3</code> be the primary python shell, that it
-was the most recommendation for thus.
+was the most recommendation today.
 </p>
 </div>
 </div>
@@ -4482,15 +4257,15 @@ was the most recommendation for thus.
 <div class="outline-text-4" id="text-h-7440e6e0-2ec1-4f33-9db0-38ef17a020f6">
 <p>
 Ivy was emacs <code>M-x</code> enhancements tool framework, it provides the
-feature of listing candidates with extra operation given.
+feature of listing candidates with extra functional supplied.
 </p>
 
 <p>
-The internal <code>M-x</code> replacement is swiper, using the same keybinding as
-it but with the interactive interface visualized as:
+Ivy remap <code>M-x</code> with <code>swiper</code>, with the interactive interface
+visualized as:
 </p>
 
-<pre class="example" id="orge0332ea">
+<pre class="example" id="orgbfae97a">
 +-----------------------------------+
 | I                                 |
 |                                   |
@@ -4513,12 +4288,13 @@ it but with the interactive interface visualized as:
 <p>
 Aspect oriented for framework, ivy provides ability for building extra
 extension based the query promting listing sytle as upon , sets of
-presented feature going collection was <code>counsel</code>.
+presented extra functionas are collected in melpa package <code>counsel</code>.
 </p>
 
 <p>
 <code>counsel</code> including commonly used tool e.g. <code>counsel-find-file</code>
-replaced <code>find-file</code>.
+replaced <code>find-file</code>, and more of the often used commands are
+described as below.
 </p>
 
 <ul class="org-ul">
@@ -4528,31 +4304,32 @@ replaced <code>find-file</code>.
 <li><code>counsel-org group</code>
 
 <ol class="org-ol">
-<li><span class="underline">coiunsel-org-goto</span>: searching Org outlines, located quickly.</li>
+<li><span class="underline">counsel-org-goto</span>: searching Org outlines, located quickly.</li>
 
 <li><span class="underline">counsel-org-goto-all</span>: searching all org buffers listing
 under current emacs session.</li>
-<li><span class="underline">counsel-org-capture</span>: query selecting org capture templates.</li>
+<li><span class="underline">counsel-org-capture</span>: query for selecting org capture templates.</li>
 
-<li><span class="underline">counsel-org-entity</span>: query inserting entity char e.g. À ℘ δ π etc.</li>
+<li><span class="underline">counsel-org-entity</span>: query for inserting entity char e.g. À ℘ δ π etc.</li>
 </ol></li>
 
 <li><span class="underline">couinsel-yank-pop group</span>: similiar as <code>browse-kill-ring</code>.</li>
 
-<li><span class="underline">counsel-recentf</span>: show and query for recent files opened.</li>
+<li><span class="underline">counsel-recentf</span>: query for selecting recent opened files.</li>
 
-<li><span class="underline">counsel-ibuffer</span>: ibuffer using ivy interface.</li>
+<li><span class="underline">counsel-ibuffer</span>: <code>ibuffer</code> with ivy interface.</li>
 
-<li><span class="underline">counsel-bookmark</span>: bookmark chosen extended for
+<li><span class="underline">counsel-bookmark</span>: bookmark selecting extended with
 <code>bookmark-bmenu-list</code>, as it's quickly view port.</li>
 
 <li><span class="underline">counsel-mark-ring</span>: query selecting mark position.</li>
 
 <li><span class="underline">counsel-unicode-char</span>: query insert unicode char with name
-specification e.g. 00000C FORM FEED (FF)</li>
+charset point, convention name, display etc.
+(e.g. "00271D LATIN CROSS ✝")</li>
 </ol></li>
 
-<li><b>counsel system config:</b>
+<li><b>counsel emacs utilities:</b>
 
 <ol class="org-ol">
 <li><span class="underline">counsel-face</span>: face information query for filter.</li>
@@ -4569,17 +4346,8 @@ specification e.g. 00000C FORM FEED (FF)</li>
 
 <li><span class="underline">counsel-git-log</span>: query git log quickly.</li>
 
-<li><p>
-<span class="underline">counsel-company</span>: using ivy interface to show company backends
-candidates.
-</p>
-
-<blockquote>
-<p>
-Notice: bug that can not cancel company-mode origin tooltip
-when <code>C-g</code> for this command.
-</p>
-</blockquote></li>
+<li><span class="underline">counsel-company</span>: using ivy interface to show company backends
+candidates.</li>
 </ol></li>
 
 <li><p>
@@ -4602,7 +4370,7 @@ Internal ivy-read-action has them:
 </p>
 
 <p>
-Repeately selected candidates.
+Repeately selecting candidates (if the caller supports this feature).
 </p></li>
 
 <li><p>
@@ -4614,9 +4382,10 @@ Force executing operation with current input string.
 </p>
 
 <p>
-origin RET key will cover current inputs as instead of any
-matched candidate list with ivy interface, thus this action is
-feature as thus.
+origin RET key will cover current inputs with any matched
+candidate shown with face <code>ivy-current-match</code>, this command make
+the whatever inputted as the chosen (for some <code>require-match</code>
+specified caller, this command will be hinted with an warning).
 </p></li>
 
 <li><p>
@@ -4626,6 +4395,14 @@ feature as thus.
 <p>
 Collected all current candidate into the temporary buffer for be
 occurrence so.
+</p>
+
+<p>
+This command is useful for user to display all matched (or all
+candidates when no querying is happened) in one buffer with
+action binded (may not when the caller is not defined by <code>ivy</code> as
+it is purely using <code>completing-read</code>) in which case that we can
+read, query or save the results.
 </p></li>
 
 <li><p>
@@ -4633,13 +4410,13 @@ occurrence so.
 </p>
 
 <p>
-Expand listing other specific extra actions.
+Listing other specific extra actions.
 </p>
 
 <p>
-This action was the leader for other internal extra actions and
-user specifications did as, the defination former for thus can be
-using the demo as <code>counsel-describe-face</code>:
+This command was the dispatcher for caller specfied extra actions
+and user specified ones, the defination former for thus can be
+exhibited as one demo which <code>counsel-describe-face</code> coded for:
 </p>
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(ivy-set-actions
@@ -4648,38 +4425,39 @@ using the demo as <code>counsel-describe-face</code>:
    (<span style="color: #99ad6a;">"d"</span> counsel--find-symbol <span style="color: #99ad6a;">"definition"</span>)))
 </pre>
 </div></li>
+
+<li><p>
+<code>C-o</code>
+</p>
+
+<p>
+Show generally operation specifications of ivy for current
+caller. Which is a <code>ivy</code> defined <b>hydra</b> dispatcher used to
+charge the optional customizations for this ivy invocation.
+</p></li>
 </ol></li>
 </ul>
 
 
-
 <p>
-<a href="https://emacs-helm.github.io/helm/">Helm</a> was the another one extension similiar with ivy did, but with
-more powerful. We do not using it by default because it's heavy volumn
-as for. But we using other minor tool based on it e.g. <a href="https://github.com/syohex/emacs-helm-ag">helm-ag</a> which
-binded to <code>C-c j</code>.
+<a href="https://emacs-helm.github.io/helm/">Helm</a> was the another one extension similiar with what <code>ivy</code> did, but
+with more powerful. We do not using it by default because it's huge
+size of source code which indicates its complication just in my sense
+and most of new decades' emacsers. But we using other minor tool based
+on it e.g. <a href="https://github.com/syohex/emacs-helm-ag">helm-ag</a> which binded to <code>C-c j</code>.
 </p>
 </div>
 </div>
-
 
 
 <div id="outline-container-h-cfb1027d-8d50-4b33-be13-427d937130e3" class="outline-4">
 <h4 id="h-cfb1027d-8d50-4b33-be13-427d937130e3"><span class="section-number-4">9.3.2.</span> Emacs-W3m</h4>
 <div class="outline-text-4" id="text-h-cfb1027d-8d50-4b33-be13-427d937130e3">
 <p>
-Emacs internal browser eww was pure and enough for simple text web
-browing using as. we also combine <code>emacs-w3m</code> into <code>entropy-emacs</code> for
-providing full rich browsing experience for terminal or for keeping
-the using feeling constant full with emacs as well.
+Emacs internal browser <code>eww</code> was pure and enough for simple text web
+browing using as. we also combine <a href="https://github.com/emacs-w3m/emacs-w3m">emacs-w3m</a> into <code>entropy-emacs</code> for
+providing fully featured text based browser travelling experience.
 </p>
-
-<blockquote>
-<p>
-One reason for doing this was that emacs now can not retrieving https
-content using the external proxy.
-</p>
-</blockquote>
 
 <p>
 The origin keybindings and UI default setting for emacs-w3m was minor
@@ -4687,23 +4465,22 @@ strange as so, we hacking thus for:
 </p>
 
 <ul class="org-ul">
-<li>UI reconfig</li>
-<li>Adding external browser quickly going for by keybinding <code>B</code>.</li>
+<li>UI reconfiguration</li>
+<li>Quickly view current page with external browser by keybinding <code>B</code>.</li>
 <li>Automatically proxy with specific rule setting.(using feature powerd
 by <a href="https://github.com/c0001/entropy-proxy-url">entropy-proxy-url</a>)</li>
 </ul>
 
 <p>
-For using <code>emacs-w3m</code> you need the external cli programe w3m
-installed, see the w3m home page <a href="http://w3m.sourceforge.net/">http://w3m.sourceforge.net/</a>.
+For using <code>emacs-w3m</code> you need the external command line programe
+<code>w3m</code> installed, see the its home page <a href="http://w3m.sourceforge.net/">http://w3m.sourceforge.net/</a>.
 </p>
 
 <p>
-And onekey for open it with <code>M-x w3m</code>. Go go go &#x2026;
+Type <code>M-x w3m</code> to travelling for.
 </p>
 </div>
 </div>
-
 
 
 <div id="outline-container-h-58b8abfe-6b1f-401e-a673-43b5450678d3" class="outline-4">
@@ -4719,24 +4496,21 @@ do is calling <code>M-x elfeed</code> thus as.
 </p>
 
 <p>
-Elfeed was the rss feeds viewing, management program written of elisp,
-the only alternative external requirements is 'curl', which for push
-the feeds retrieving task for subprocess for reducing emacs self
-performance consumption.
+Elfeed was the rss feeds viewing, management program written by purely
+emacs lisp, the only alternative external dependence is <a href="https://github.com/curl/curl">curl</a>, which is
+used for pushing the feeds retrieving task for emacs subprocess for
+reducing emacs self performance consumption.
 </p>
 
 <p>
-origin elfeeds feeds naming string querying searching support was not
-support cjk unicode as, we given the try for hacking with by using
-self built func <code>entropy/emacs-tools-elfeed-filter-by-tag</code>, as more
-hacking see below:
+<code>entropy-emacs</code> hacking on <code>elfeed</code> for adding more conventional
+features.
 </p>
 
 <ul class="org-ul">
-<li>Feature adding of searching feed according to feed title
-name. Binding to <code>A</code>.</li>
+<li>Search feeds according to feed title and tags.</li>
 
-<li>Tag filter with query promting, binding to <code>B</code>.</li>
+<li>Filter feeds according to resources and tags.</li>
 
 <li><p>
 Auto rename feed-title with hyphenation '-'.
@@ -4744,33 +4518,12 @@ Auto rename feed-title with hyphenation '-'.
 
 <p>
 This is for fixing the problem by feed title name with space that
-can not be detective by origin internal funcs.
+can not be detective by origin internal mechanism.
 </p></li>
 
-<li>Repeatly removing feeds.</li>
+<li>Repeatly removing feeds. (using <code>ivy</code> interface)</li>
 
-<li><p>
-Update feeds using proxy.
-</p>
-
-<p>
-Through manually setting proxy config through custom variable
-<code>entropy/emacs-elfeed-proxyfeeds-regexp-list</code>. (with prompt for
-input as <a href="http://127.0.0.1:1080">http://127.0.0.1:1080</a>)
-</p>
-
-<p>
-Proxy updating with three methods:
-</p>
-
-<ol class="org-ol">
-<li>using manually feeds selecting by
-<code>entropy/emacs-tools-elfeed-update-proxy</code>.</li>
-<li>update feeds with regexp matching by
-<code>entropy/emacs-tools-elfeed-update-proxyfeeds-regexp-match</code>.</li>
-<li>upate all null feeds (without and entries obtained yet), using
-<code>entropy/emacs-tools-elfeed-proxy-update-all-nil-feeds</code>.</li>
-</ol></li>
+<li>Update feeds using proxy.</li>
 </ul>
 
 <p>
@@ -4780,13 +4533,12 @@ All the feeds filter can be reset with short cut <code>S</code>.
 </div>
 
 <div id="outline-container-h-67b22622-81ed-4c2b-8f21-838b83e21769" class="outline-4">
-<h4 id="h-67b22622-81ed-4c2b-8f21-838b83e21769"><span class="section-number-4">9.3.4.</span> Gnus</h4>
+<h4 id="h-67b22622-81ed-4c2b-8f21-838b83e21769"><span class="section-number-4">9.3.4.</span> <span class="todo TODO">TODO</span> Gnus</h4>
 <div class="outline-text-4" id="text-h-67b22622-81ed-4c2b-8f21-838b83e21769">
 <p>
-For now, we just given gnus simply try with the local file directory
-location config with one custom variable
-<code>entropy/emacs-gnus-init-config</code> try see coding snippet for the
-details.
+For now, we just given <a href="https://www.gnus.org/">gnus</a> a simply try with the local
+files/directories unified customization, by one custom variable
+<code>entropy/emacs-gnus-init-config</code>. See coding snippet for the details.
 </p>
 </div>
 </div>
@@ -4796,7 +4548,7 @@ details.
 <h3 id="h-098f1399-8e79-4027-88a6-395f80a528d4"><span class="section-number-3">9.4.</span> Emacs on windows</h3>
 <div class="outline-text-3" id="text-h-098f1399-8e79-4027-88a6-395f80a528d4">
 <p>
-Emacs was originally built for gnu/linux, compatible with UNIX-like
+Emacs was originally built for GNU/Linux, compatible with UNIX-like
 OS. Windows port was built for be as the reason by:
 </p>
 <blockquote>
@@ -4806,13 +4558,12 @@ this taste of freedom will inspire users to escape from them.
 </p>
 
 <p>
-excerpt from:
-<a href="https://www.gnu.org/software/emacs/manual/html_node/emacs/Microsoft-Windows.html#Microsoft-Windows">https://www.gnu.org/software/emacs/manual/html_node/emacs/Microsoft-Windows.html#Microsoft-Windows</a>
+excerpt from <a href="https://www.gnu.org/software/emacs/manual/html_node/emacs/Microsoft-Windows.html#Microsoft-Windows">here</a>.
 </p>
 </blockquote>
 
 <p>
-'Taste' notice for, but more than this prudent meaning.
+<b>Taste</b> notice for, but more than this prudent meaning.
 </p>
 
 <p>
@@ -4824,17 +4575,17 @@ mechnism was not full compat with the origin emacs design conceptual.
 
 <p>
 But, actually I am one emacser port on w32. Mine experience was fully
-sensitive acquiring the almost fully features covered as on linux,
-just with some explicit non-compatible feature which came from the OS
-feature forking on. One of them was shell interface bash intern and
-the rest was some feature's bug caused by the w32 api iteration.
+sensitive acquiring the almost features covered as on linux, just with
+some explicit non-compatible feature which came from the OS feature
+tied on. One of them was POSIX shell interaction and the rest was some
+feature's bug caused by the w32 api iteration.
 </p>
 
 <p>
 Although, the hacking for emulating the whole linux emacs using
-environment by us was not full featured as, but I thoughts following
-WINDOWS emacs using was enough for daily using just with minor trouble
-for.
+environment by us was hard and without robust guarantees, but I
+thoughts following WINDOWS emacs using was enough for daily using just
+with minor trouble for.
 </p>
 </div>
 
@@ -4871,7 +4622,7 @@ internally built which can auto re-set before emacs started.
 The portale of emacs config was depent on the config folder portable
 refer setting, i.e. HOME path portale specification. You can using
 those two variable to be the bridge to directed to the home path using
-the elisp code indicating:
+the elisp code illustrated as:
 </p>
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(<span style="color: #8197bf;">defvar</span> <span style="color: #cf6a4c;">device-root</span> (concat (substring invocation-directory 0 -11) <span style="color: #99ad6a;">"Msys2/"</span>))
@@ -4880,8 +4631,7 @@ the elisp code indicating:
 </div>
 
 <p>
-As so, this config demo can be extending for each portable path
-setting.
+As so, this demo can be extended for any portable path setting.
 </p>
 </div>
 </div>
@@ -4919,7 +4669,7 @@ this by touching <code>win</code> key again.
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: Entropy</p>
-<p class="date">Created: 2022-10-15 Sat 21:59</p>
+<p class="date">Created: 2022-11-16 Wed 05:49</p>
 <p class="validation"><a href="https://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>

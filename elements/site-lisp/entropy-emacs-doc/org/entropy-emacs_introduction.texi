@@ -102,7 +102,7 @@ with sets of mordern emacs extension tracking on.
 @end quotation
 
 But with the time when @samp{entropy-emacs} grown up after one year, it's
-seems like it can be sharing for some newbie falling with emacs as be
+seems like it can be sharing for some newbies falling with emacs as be
 aimed to brought up the easiest way of using or working based on
 emacs. Along the way, I came for built it with thus on.
 
@@ -113,26 +113,18 @@ emacs. Along the way, I came for built it with thus on.
 repo with the constant traditional repo style among with other project
 dir struct used by myself.
 
-In the root node, it be with three folder:
-@enumerate
-@item
-org
-@item
-annex
-@item
-elements
-@end enumerate
+In the root node, it be with three folder: annex, stuff, elements.
 
 This three folder has their own meaning respectively, all of them was
-created as the parts of one normal project I used, thus for:
+created as the part of one normal project I used/created, thus for:
 
 @itemize
 @item
-@strong{org:} contained the all docs of this project.
+@strong{annex:} stored auxiliaries used by @samp{entropy-emacs}.
 
 @item
-@strong{annex:} stored annex fragments as the stuffs be used for docs
-like images or other references based on.
+@strong{stuff}: stored logs and temporarily stuffs produced by
+@samp{entropy-emacs} or where redirecting emacs builtin stuffs into.
 
 @item
 @strong{elements:} the main elements (elements consists of
@@ -142,20 +134,20 @@ like images or other references based on.
 
 What for more?
 
-This struct design were just use these three based rule without any of
-other restriction which show that arbitray layouts adding was
-permitted.
+This repo dir struct designation was just use these three based rules
+without any of other restriction which show that arbitray layouts
+adding was permitted.
 
 @node Main config files
 @chapter Main config files
 
 @samp{entropy-emacs} host configs file divided into four categories within
-ordered priority, i.e. the initial level @strong{Initial}, the core apis
+ordered priority, i.e. the initial level @strong{Initial}, the core APIs
 collection @strong{Wasteland} , the dispatcher level @strong{Baron} and the
 functional recipes @strong{Tentacles}.
 
-The @strong{Initial} category served for intial all customizable
-specifications, and provide sets of essential apis for the rest
+The @strong{Initial} category served for initializing all customizable
+specifications, and provide sets of essential APIs for the rest
 levels.
 
 The @strong{Wasteland} category served for giving a basic apis i.e. native
@@ -166,16 +158,16 @@ creates.
 The @strong{Baron} category served as a bridge between the @strong{Initial} category
 level and the follow @strong{Tentacles} category level. It used @strong{Initial}
 part's customization to invoking the tentacles under the user
-specification initialize choice and creates the basic unified
+specified initialization choice and creates the basic unified
 platforms for those rest parts to implement the instances.
 
 @strong{Baron} category has five sub-categories that listed as:
 
 @enumerate
 @item
-@strong{utils} : The basic third-party apis provision. These apis are
+@strong{utils} : The basic third-party APIs provision. These APIs are
 internally required for the rest part and obtained from others
-packages mainly getted from some opensource communities.
+packages mainly getted from some open-source communities.
 
 File:  @samp{entropy-emacs-utils.el}
 
@@ -197,8 +189,8 @@ Files:
 @end multitable
 
 @item
-@strong{startup} : The @samp{entropy-emacs} specified emacs ui, enviroment
-initialize processors.
+@strong{startup} : The @samp{entropy-emacs} specified emacs UI, emacs session
+enviroment initialization processors.
 
 Files:
 @multitable {aaaaaaaaaaaaaaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}
@@ -224,11 +216,13 @@ Files:
 @strong{hollow} : The unified functional platform which needs tentacles to
 adding their own seeds.
 
-@multitable {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaa}
+@multitable {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}
 @headitem file
 @tab description
 @item @samp{entropy-emacs-hydra-hollow.el}
 @tab the pretty hydra platform
+@item @samp{entropy-emacs-window-parameter-memory.el}
+@tab the window parameter persist platform
 @end multitable
 @end enumerate
 
@@ -255,20 +249,24 @@ The basic functional binds
 @item
 @samp{entropy-emacs-message.el} : The @samp{entropy-emacs} basic echoing
 functional parts, it provides the unified interaction and
-non-interaction @emph{message} apis.
+non-interaction @emph{message} APIs.
+@item
+@samp{entropy-emacs-syntax} : The @samp{entropy-emacs} basic emacs syntax
+parser APIs. Used emacs underline primitives as subroutines and
+extended them.
 @end enumerate
 @end enumerate
 
 For file named convention, @samp{entropy-emacs-xxx.el} files are named with
 'xxx' as the suffix for distinguishing with each other, for
-convenience, suffix of them were point to their config direction
+convenience, suffix of them were point to their configuration aiming
 directly, such as @samp{entropy-emacs-org.el}'s suffix @samp{org} was implicit
 it's the config file for feature @samp{org-mode}, and so as on for others
 config files.
 
-The last, @strong{Tentacles} category served for implement individual aims
-that the following table illustrates those tentacles and their
-description:
+The last, @strong{Tentacles} category served for implementing individual
+aimings that the following table illustrates those tentacles and their
+descriptions:
 
 @multitable {aaaaaaaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}
 @headitem @strong{Category}
@@ -293,8 +291,8 @@ description:
 @tab entropy-emacs-wc.el
 @tab The emacs window moving and workaround emulator configuration
 @item window conigurations
-@tab entropy-emacs-popup.el
-@tab The popuped window procedure defination
+@tab entropy-emacs-popwin.el
+@tab The popuped window procedure implementation
 @item
 @tab
 @tab
@@ -315,25 +313,25 @@ description:
 @tab C/C++ mode configs
 @item
 @tab entropy-emacs-lisp.el
-@tab emacs lisp mode configs
+@tab Emacs Lisp configs
 @item major-modes
 @tab entropy-emacs-web.el
 @tab web mode (web front/back end) configs (inclues js css html php)
 @item
 @tab entropy-emacs-python.el
-@tab python mode config
+@tab Python lang config
 @item
 @tab entropy-emacs-lua.el
-@tab lua mode configs
+@tab Lua lang configs
 @item
 @tab entropy-emacs-rust.el
-@tab rust mode configs
+@tab Rust lang configs
 @item
 @tab entropy-emacs-go.el
-@tab go mode configs
+@tab Go lang configs
 @item
 @tab entropy-emacs-yaml.el
-@tab yaml mode configs
+@tab Yaml lang configs
 @item
 @tab entropy-emacs-codeserver.el
 @tab the dashboard for language server initialization
@@ -447,7 +445,7 @@ hint @samp{entropy/emacs-top-key} , that example @samp{[eprefix] w} means hint
 @node Eemacs hdyra hollow
 @chapter Eemacs hdyra hollow
 
-@samp{entropy-emacs} using @strong{hydra-hollow} platform to manage hundreds
+@samp{entropy-emacs} using @strong{hydra-hollow} platform to manage hundreds of
 key-bindings so that the user can found them easily and can always get
 a properly way to remember the road-map for specific key-binding, let
 it be obviously and clearly.
@@ -458,14 +456,15 @@ The @strong{hydra-hollow} platform built on the elpa @uref{https://github.com/ab
 @samp{hdyra} was a package whcih provide apis to solve the pain of emacs
 keybinding searching, it gives a interaction popup buffer which showed
 a collection of key-bindings, and the popup buffer way is a function,
-whcih can inject into the global-map, that's all, specially that those
-collection of key-bindings do not pollute any exists keymap, they are
-hosted on a transient map i.e. a hydra keymap, and those key-bindings
-called hydra-heads, and that's why it is named as @strong{hydra}.
+which can inject into the global-map, that's all, specially that those
+collection of key-bindings does not pollute any available keymap, they
+are hosted on a transient map i.e. a hydra keymap, and those
+key-bindings called hydra-heads, and that's why it is named as
+@strong{hydra}.
 
 @samp{pretty-hydra} was a secondary encapsulation for @samp{hydra}, it make the
-hydra-heads into groups, with more beautiful title patching ability
-and annotation mechanism.
+hydra-heads into groups, with more benefits for building bunch of
+hydra-heads.
 
 You do not need to know the underline of those package details, pick
 up above briefly introduction only is enough.
@@ -473,14 +472,15 @@ up above briefly introduction only is enough.
 @strong{What's hydra-hollow:}
 
 Since there's sets of major-modes that user encounterred everyday
-within developments in emacs, and each major-modes has its own key
-map, sets of keybindings hosted on the key-map, you saw that? we must
-remember each keybinding we needed in each major-modes! It's pain!
-Even that we do not calculates any minor modes' key-maps, and the
-extensions counts growing up in our own emacs configuration.
+within developments in emacs, and each major-mode has its own key map,
+sets of keybindings hosted on its key map, you saw that? we must
+remember each keybinding we needed in each major-mode! It's pain!
+Even for that we haven't counted any minor mode's key-map's
+keybindings.
 
-We hope to find a way to approach a command in one step or 2 more
-limitted under 4, also with categorized prompts with those commands we
+We hope to find a way to find a command's key binding in one or two
+steps even for more steps that try to be limitted under four strokes
+in possibilities, also with categorized prompts with those commands we
 needed in any occurrence. And that's what @strong{hdyra-hollow} do, 'hollow'
 means its a unified platform, a framework or a system.
 
@@ -505,7 +505,6 @@ means its a unified platform, a framework or a system.
 | b t : Slide Filesystem Tree                 M-1 : [e]Buffer open with portable apps                                 |
 | b v : Show entropy-emacs version            i l : Center buffer line                                                |
 | b o : Dict search with sets of backends     C-x M-1 : [g]Split the single window to two windows with different size |
-| b h : Open HOME Directory                                                                                           |
 |                                                                                                                     |
 +---------------------------------------------------------------------------------------------------------------------+
 
@@ -515,18 +514,18 @@ Above illustrator gives a simple @strong{hydr-hollow} instance UI
 overlay. The title of current page is inserted at the top of the popup
 buffer, title consists of the page order indicator, the main title
 information, and the page navigation prompts. The rest part is the
-cabinet content of current page, for example here, there's two drawers
-i.e. the @emph{basic} and @emph{win&buff}.
+cabinet contents of current page, for the example in here, there's two
+drawers i.e. the @emph{basic} and @emph{win&buff}.
 
-We called such the page is a hydra-hollow category, and the rest part
-contained thus drawers is the hydra-hollow category cabinet. A
+We called such the page is a hydra-hollow category, and the rest
+part contained thus drawers is the hydra-hollow category's cabinet. A
 hydr-hollow category also is a node of a chained hydra-hollow
-categories, those categories who concatenating siblings to a chain
+categories, those categories who concatenating siblings to be a chain
 that how the navigation pages implemented. In that categories chain,
-you can using <UP> or <DOWN> key stroking to navigate to previous or
-next category respectively.
+you can using <UP> or <DOWN> key to navigate to previous or next
+category respectively.
 
-Each key-binding in the hydra-hollow canbinet also can be hydra-hollow
+Each key-binding in a hydra-hollow canbinet also can be hydra-hollow
 category, this makes the category be cross-referrence, which build a
 hierarchical key-map navigation system, and we called the origin
 category the @strong{baron} category. When you stroke a key through a baron
@@ -534,11 +533,12 @@ category to a sub-category, you can stroke <UP> key to return back.
 
 In some hydr-hollow category chain may has large counts of categories
 that may have pain to navigate one by one from the top category to the
-aim one. In that case, you can stroke the @samp{universal-argument}
-i.e. @samp{C-u} before invoking the specific category chain, and thus it
-will be auto completion system poped out with all categories'
-description as candidates for you to choose and after the choice, you
-will directly go to the aim node.
+target. In that case, you can stroke the @samp{universal-argument}
+i.e. @samp{C-u} before invoking the specific category chain, and then a
+category name querying interface will be poped out by emacs auto
+completion system with all categories' description as candidates for
+you to choose, and after the choice you will directly go to the target
+category.
 
 @strong{Hydra-Hollow category categories in entropy-emacs:}
 
@@ -549,81 +549,90 @@ global-map injected. You can invoke it by tap @samp{[eprefix] h}.
 
 For major-modes spec, @samp{entropy-emacs} build individual hydra-hollow
 category chain for them but with a unified key-binding to invoking
-them, the @samp{[eprefix] m}.
+them, the @samp{[eprefix] m} which is bound for each major-mode.
 
 @strong{Hydra map injecting:}
 
-Although its beneficial to group all keybindings into a hydra-hollow
-instance, but we do not want to give out of the emacs native
-keybinding mapping methods (i.e. reset them to nil state),
-@samp{entropy-emacs} did a hydra map injecting tunnel to solve that
-problem. As the expample in the hydra-hollow UI introduction, there's
-some keybinding's brief description prefixed by a flag 'e' or 'g',
-they are the indicator to prompt user that this keybinding is inject
-into @samp{entropy/emacs-top-keymap} or 'global-map' as well, so you can
+Although it's beneficial to group all keybindings into a hydra-hollow
+instance, but we do not want to give out of the emacs native key
+bindings sets (i.e. stand alone with that), @samp{entropy-emacs} use a
+hydra map injecting tunnel to solve that problem. As the expample in
+the hydra-hollow UI introduction, there's some keybinding's brief
+description prefixed by a flag 'e' or 'g', they are the indicator to
+prompt user that this keybinding is inject into
+@samp{entropy/emacs-top-keymap} or 'global-map' as well, so you can
 directly stroke the same key to call that command without calling on
-such hydra-hollow category.
+such hydra-hollow category. Thus of, we try to keep bunch of emacs
+native keybindings sets no changed via this mechanism.
 
 There's also a 'm' flag for a major-mode hydra-hollow category's
 heads, that say this keybinding is injected into current
-'major-mode-map' already.
+'major-mode-map' in which case as the 'liked' meaning as 'e' or 'g'
+but for a major-mode.
 
 @node Custom @samp{entropy-emacs}
 @chapter Custom @samp{entropy-emacs}
 
-@samp{entropy-emacs} has lots of custom-variables be defined
-acquiescently. For each feature in main config files
-@samp{entropy-emacs-xxx.el} or in self built extensions, @samp{entropy-emacs}
-custom-variables provides the wild freedom customized ability to
-specific config actually to referred using experience.
+@samp{entropy-emacs} has lots of custom-variables be defined acquiescently
+to influence each feature in main config files @samp{entropy-emacs-xxx.el}
+or in self built extensions. Those custom-variables provides the wild
+freedom customized ability for use-end to choose how to use eemacs.
 
-Since emacs using @samp{custom.el} for stored all customized setting
-temporarily entries, @samp{entropy-emacs} also allow user to setting custom
-variable of @samp{entropy-emacs} to that place and this is the default
-order.
+Since emacs using @samp{custom.el} which is used by its canonical
+customization toolkit to remember all customized settings,
+@samp{entropy-emacs} is obeyed that convention for providing a top
+customization group @samp{entropy-emacs-customize-top-group} which
+contained all of those custom-variables mentioned formerly.
 
 When the first time you using @samp{entropy-emacs}, you may want to create
 the @samp{custom.el} file in root of @samp{entropy-emacs} used by emacs initial
 with, as the well, @samp{entropy-emacs} gives the template custom file
 located in same place which named @samp{custom-example.el}, you can copy it
-as custom file for convenience.
+and rename to @samp{custom.el} as reference for modifications or using it
+as defaults.
 
 @node Hacking for @samp{entropy-emacs}
 @chapter Hacking for @samp{entropy-emacs}
 
-@samp{entropy-emacs} allow user to modified internal config files but this
-is not suggested by. Sets of @samp{entropy-emacs} was corresponding to each
-other frequencly which shown as that if you modified one code snippet
-while you are not familiar with details logic designation of
-@samp{entropy-emacs}, you will get mess with the functional in some place.
+@samp{entropy-emacs} allow user to modified its internals but this is not
+suggested unless you are a developer or debugger of eemacs. Sets of
+internals of @samp{entropy-emacs} was corresponding to each other tightly
+which shown as that if you modified one code snippet while you are not
+familiar with details logic designation of @samp{entropy-emacs}, you will
+get mess with the functional in some place.
 
-But, if you want to hacking for some code snippet you can adding
-@samp{advice} for them and stored in your own config
-folder. @samp{entropy-emacs} providing one navigation detector feature for
-loading you own config files, this extern config loading detector was
-@samp{elisp} func which stored in @samp{CUSTOM-DIY.el} under root of
-@samp{entropy-emacs}, this file were not exist by default, you should
-create it by yourself.
+But, if you want to hacking for some code snippets, you can adding
+advices for them using functional provided by emacs's @samp{nadvice.el}
+@strong{before} init eemacs, in which case add such advices into @samp{custom.el}.
 
-@samp{CUSTOM-DIY.el} can be stored elisp codes arbitrarily, which means
-that you could write the func modifiction all adding new config
-features in that file, but the recommended way for using this file was
-stored the extern config files load function to it, i.e. some thing
-like below:
+@samp{custom.el} is also used to stored arbitrary elisp codes, which means
+that you could write features or loading extra self-defined
+configuration files in that file which see as:
 @lisp
-;; load "my_entropy-emacs_extern.el" after loading "custom.el" .
+;; this is the start of custom.el
+(setq foo bar)
+
+;; other eemas customizations
+...
+
+;; advices
+(advice-add 'entropy/emas-xxx :after #'(lambda (&rest args) ...))
+...
+
+;; my functions
+
+(defun myfunction-0 nil xxx)
+...
+
+;; in the end, load "my_entropy-emacs_extern.el" in "custom.el".
 (let ((file (file-exists-p "/xxx/xxxx/.../my_entropy-emacs_extern.el")))
   (when (file-exists-p file)
     (load-file file)))
 @end lisp
 
-
-Thus, the file @samp{my_entropy-emacs_extern.el} will be loaded after emacs
-custom file loaded, that as the same step before other @samp{entropy-emacs}
-files be interpreted.
-
-The conceptual for thus, file @samp{my_entropy-emacs_extern.el} can be
-secondary @samp{init.el} or the secodary emacs config repo main thing.
+Thus, the file @samp{my_entropy-emacs_extern.el} will be loaded when
+evaluating emacs custom file and after any eemacs specifications set
+done, before @samp{entropy-emacs} be initing.
 
 @node Config feature specifiction introduction
 @chapter Config feature specifiction introduction
@@ -631,28 +640,29 @@ secondary @samp{init.el} or the secodary emacs config repo main thing.
 This chapter introducts the main config features of @samp{entropy-emacs},
 each part of below sections pointing one feature category which was
 the collection sets description and feature specified core sets, you
-may want to select refer things you'd metioned or care about for
-jumping with the sequence as the section it self, but I recommended
-for reading sections one by one instead of jumping where while you are
-fisrt using @samp{entropy-emacs}.
+may want to select refer things you'd been mentioned or caring about
+for, from jumping with the sequence as the section it self. But I
+recommended for reading sections one by one from first to the end,
+instead of jumping randomly while you are fisrt using @samp{entropy-emacs}.
 
-Each feature required the basic emacs using experience for or has
-been, which means if you are the newbie of emacs, you must reading the
-emacs internal tutorial first and then doing thus.
+Each feature required the basic emacs using experience has been got,
+which means if you are the newbie of emacs, you must reading the emacs
+internal tutorial first and then doing thus.
 
-For WINDOWS specification section, only suggested reading task for
-someone using emacs on windows, that section was the sets of
-experiences by me as using emacs on windows, I often using emacs on
-WINDOWS as one portable programming encapsulation environment, that
-portable work-around for daily using of me.
+For WINDOWS specification section, only suggested to read for someone
+using emacs on windows, that section was the sets of experiences by me
+for using emacs on windows, I often using emacs on WINDOWS with one
+portable programming encapsulation environment and that is designed
+for this.
 
 For chinese emacs user, when you want to input chinese and showing CJK
-fonts well (without lagging or other crash problem as emacs with cjk
-status), you can obtain the minor skills from 'Font specific' section.
+fonts well (without lagging or other crash problem when using emacs
+with cjk occasions), you can obtain the minor skills from 'Font
+specific' section.
 
 Latest, all of below section can be the taste of @samp{entropy-emacs} for
 understanding the difference between this to the default emacs using
-sensing, happy hacking with @samp{entropy-emacs}.
+experience, happy hacking with @samp{entropy-emacs}.
 
 @menu
 * Internal basic setting specific::
@@ -670,7 +680,7 @@ work-around, for enhancing the basic emacs using experience.
 Basic config of @samp{entropy-emacs} can be splitting into seven nodes:
 @itemize
 @item
-workspace
+workspace (window configuration) toggle/create
 @item
 modeline specific
 @item
@@ -685,7 +695,7 @@ font specific
 miscellaneous config
 @end itemize
 
-All of these seven parts consists the basic core of @samp{entropy-emacs}
+These seven parts consist the basic core of @samp{entropy-emacs}
 config. They are oriented respectively for their individual direction,
 and was necessary be the part of core of this.
 
@@ -703,29 +713,29 @@ and was necessary be the part of core of this.
 @subsection Windows configuration and workspace defination
 
 Emacs using @strong{buffer}, @strong{window}, @strong{frame} to recoganize the current
-editting space and recorde it's state, it's the basic func for elisp
-programmer for built editting space extension for as more convenience
-to create, move, toggle each layouts editting space, we call 'editting
-sapce' as @strong{workspace}.
+editting space and recorde it's state, they are the basic conceptions
+for elisp programmer for built editting aspect extensions for as more
+convenience to create, move, toggle the editting space, we call such a
+'editting space' is a @strong{workspace}.
 
 Workspace managements consists of two parts:
 @enumerate
 @item
-layout toggle
+workspace/layout/window configurations toggle
 @item
 window toggle
 @end enumerate
 
-A workspace was one layout consists with several windows internal of
-it, thus layout toggle can be used with different workspace switching
-or creating sets of workspace who have different working purpose. This
-is useful for who doing different thing at the same time or as the
-relaxing and working state toggle button during the day.
+A workspace was one layout consists with several displayed windows
+where that layout is in term of @strong{window-configuration} in emacs.
+Layout toggle is used as switching different workspace, creating
+layouts with different working purposes. This is useful for who
+marking different tasks at the same time.
 
-Thus, as the layout toggle, the basic thing as you facing to emac
-using was to chaning the cusor point with sets of buffers, as buffer
-stored in window, cusor switching upon different buffers on the
-different windows was called window toggle.
+Thus, as the layout toggle, the basic thing when you facing to emacs
+using was to jump the cusor point with sets of windows, for editting
+buffers stored in those windows, cusor switching upon different
+windows was called window toggle.
 
 @menu
 * Eyebrowse::
@@ -735,9 +745,9 @@ different windows was called window toggle.
 @node Eyebrowse
 @subsubsection Eyebrowse
 
-@samp{entropy-emacs} workspace creating, toggle, and defination using
-@samp{eyebrowse} melpa extension, it is settle out with solid done. You can
-find it on @uref{https://github.com/wasamasa/eyebrowse, github}.
+@samp{entropy-emacs} workspace creating, toggling, and defination using
+@samp{eyebrowse}, a melpa extension settled out with robust functional. You
+can find it on @uref{https://github.com/wasamasa/eyebrowse, github}.
 
 In @samp{entropy-emacs}, @samp{eyebrowse} was acted as the workspace management
 host which provide layout toggle, creating, renaming or deletion
@@ -751,25 +761,17 @@ other emacs intern toolchain.
 
 @enumerate
 @item
-@samp{tag}: indicated layout defination name.
+@samp{tag}: a name string indicated layout usage purpose.
 @item
-@samp{slot}: the numberic identification of respective layouts
+@samp{slot}: the numberic identification of corresponding layout.
 @end enumerate
 
-Which means shown above, eyebrowse exhibits each workspace through
-the way for display the layout tag-name and it's numberic slot.
+As the meanings shown above, eyebrowse exhibits each workspace
+through the way for display the layout's tag-name and it's numberic
+slot.
 
 In @samp{entropy-emacs} , the tag-name and slot number was displayed on
 the left of modeline which like as:
-
-Commonly, the display format of thus was formula as
-@code{slot-number:tag-name}, and the face was usually came as yellow
-forground covered on black background.
-
-Layout switching was through the way of query prompt within
-minibuffer and enhanced with candidates showing list powered by @uref{https://github.com/abo-abo/swiper, ivy},
-each candidate was one unique slot number with workspace name:
-
 @example
 +--------------------------------------------------------------------------------+
 |  * 169 U(Unix) *scratch*      Lisp Interactioin Orgstruct>>      << 4: 23 ALL  |
@@ -783,29 +785,37 @@ each candidate was one unique slot number with workspace name:
       3: News reader
 @end example
 
-But the easist way for doing like this was using the shortcuts
-prefix @samp{[eprefix] w} with the workspace slots number
-limited within decimal based digit as '1~9', thus if you active key
-stick @samp{[eprefix] w 2} , you will toggle workspace to slot
-'2'. By default, @samp{eyerbrowse} supports toggle to none exists slot
-which creates it while then but without tag inputting prompt, or you
-can create new slot by sticking @samp{[eprefix] w C-c} which
-will create one new slot with tag inputting demands prompting hacked
-adding by @samp{entropy-emacs}.
+Commonly, the display format of thus is formed as
+@code{slot-number:tag-name}, and the face was usually came as yellow
+forground covered on black background.
+
+Layout switching was through the way of using emacs completion
+framework that shown in minibuffer with candidates named as
+corresponding layout's tag name and its unique slot id.
+
+But the quickest way for choosing a often used layout was using the
+shortcuts prefix @samp{[eprefix] C-c w} with the workspace slots number
+limited within decimal based digit as '1~9', for example you can
+active key binding @samp{[eprefix] C-c w 2} to toggle workspace to slot
+'2'. By default, @samp{eyerbrowse} supports toggle to none exists slot by
+creating it first before switching but without tag setting prompts,
+or you can create new slot by sticking @samp{[eprefix] C-c w C-c} which
+will create one new slot with tag set prompting which is a feature
+adding by @samp{entropy-emacs} by hacking it.
 
 @item
 @strong{Derived workspace:}
 
-By default each workspace provided by eyerbowse layout managements
-was independently by each other on the conceptual aspect, which
-means that eyerbowse recognizes layouts by one-dimension that
-[1,2,3,4,@dots{}] one by one without any sub-group concept.
+By default each workspace provided by eyerbowse layout management
+system was independently by each other on the conceptual aspect,
+which means that eyerbowse recognizes layouts by one-dimension that
+[1,2,3,4,@dots{}] one by one without any sub-workspace concepts.
 
-In many cases if your workspace was too complicated as what that
-sets of buffer opened in your single screen hardware actually, this
-will cause the disaster for your eye-visual focus moving and
-laggning the way when be with your poor eyesight.(also seen as your
-screen was low dimessions as traditional '1366x768'.)
+Thought about a scene that if the single workspace has too many
+windows opened, this will cause the disaster for your eye-visual
+experience that moving around from each window uppon on your poor
+eyesight. (also thought about this happened when your screen
+produced with low dimessions as traditional '1366x768qqq'.)
 
 @example
 
@@ -839,8 +849,8 @@ Do you worried about this single screen layout measured your mind?
 Or you can create one new workspace to exchange partitial of current
 state to that new slot, but how you organize the association between
 these two slots? By memory of your mind?  God bless, it's just
-compat for that state where you just have one slot doing as this, if
-further @dots{} how imagination what will happening?
+compat for that state where you just have two slots doing as this,
+if further @dots{} how imagined that what will happening?
 
 For resolving this problem, @samp{entropy-emacs} expands eyebrowse
 one-dimension workspace management logic to @strong{main-derived}
@@ -856,7 +866,7 @@ Main slot can be understanding as the origin one while slot has been
 created, in that case you haven't given the try or have demands for
 several buffer splitted in one screen which will cause occurance as
 above description. Derived slot will be created when you doing for
-arbitray reason for that.
+arbitrary reason for that.
 
 @example
 
@@ -887,20 +897,19 @@ arbitray reason for that.
 @strong{Derived slot create:}
 
 To create one derived slot can be implemented as call func
-@samp{entropy/emacs-basic-eyebrowse-create-derived} or with it's
+@samp{entropy/emacs-basic-eyebrowse-create-derived} or with its
 keybinding @samp{C-c v}, after then, you will be required to create the
 derived workspace tag name and the last you will get the workspace
 as displayed with slot and tag name format as
 
 @example
-main-slot.derived_number:⛓main-slot:"main workspace tagname"☛derived name
+main-slot.derived_number: derived name
 @end example
 
 
-Above demos show the face and the instant display format of derived
-slot derived from the main slot '1:temp'.
-
-For toggle the derived slot, keybinding @samp{C-c M-v} as so.
+For toggle the derived slot, using function
+@samp{entropy/emacs-basic-eyebrowse-switch-derived}'s keybinding @samp{C-c
+  M-v}.
 
 For backing to main slot, was hanged with keybinding @samp{[eprefix] w
   C-o} which call function @samp{entropy/emacs-basic-eyebrowse-switch-top},
@@ -913,14 +922,10 @@ number or backing with calling
 @strong{Derived slot limitation:}
 
 Now, for the designation purpose, @samp{entropy-emacs} just giving each
-main slot nine derived slots for deriving by, this because of that
-each derived slot was numberic as the one digit float number, it's
-hard to expand more with thus with float number floor sorting func
-designing.
-
-For using case, 9 derived workspaces was enough for what I may
-thought, it's no reason to build various of derived one which will
-cause the difficulties managements, for what as known:
+main slot nine derived slots for deriving by since for using case, 9
+derived workspaces was enough for what I may thought, it's no reason
+to build various of derived one which will cause the difficulties
+managements, for what be as known:
 @quotation
 less is more
          ---- xxxx
@@ -931,12 +936,12 @@ less is more
 @node Buffer or Window switching
 @subsubsection Buffer or Window switching
 
-The conceptual of window configuration under the workspace was buffer
-and window switching , thought about the scene that if you want to
-jumping with several buffer or window internal of one workspace, the
-way for solving that problem was what it is.
+The common operations of living under the workspace was buffer and
+window switching , thought about the scene that if you want to jumping
+with many and many buffers or windows within one workspace, it must
+has a beneficently way for handling thus.
 
-@samp{entropy-emacs} three ways for filling this conceptual:
+@samp{entropy-emacs} provide three ways for filling this conceptual:
 @enumerate
 @item
 buffer jumping
@@ -944,12 +949,9 @@ buffer jumping
 window exchange
 @item
 window size adjusting
-@end enumerate
 
-
-@itemize
 @item
-@strong{Frame place jumping:}@*
+@strong{Demo workspace layout:}@*
 @example
 
 +-------------+-----------------------------+
@@ -968,24 +970,41 @@ window size adjusting
 +-------------+-----------------------------+
 @end example
 
-Assumption on example emacs frame demo, your cursor are on buffer-4
-currently and the place you want to jumping to was buffer-1. If you
-use emacs internal primitive func @samp{other-window} , it's hard to do
-as buffers counts larger than 2.
+Assumption on above demo, your cursor are on buffer-4 currently and
+the place you want to jumping to was buffer-1. If you use emacs
+internal primitive func @samp{other-window} , it's hard to do as buffers
+counts larger than 2.
 
-@samp{entropy-emacs} using melpa package @samp{window-number} for enhance it
-be as the morden query prompt for all buffers in current frame
-state, it using func @code{(window-number-switch)} for be the subtitude
-to func @code{(other-window)} emacs internal default window switching
-func.
+@samp{entropy-emacs} using melpa package @samp{ace-window} for enhancing it to
+have morden query prompts for all buffers/windows in current
+workspace, it using function @code{(ace-window)} which is globally bind
+to @samp{C-x M-o}. When you invoke that keybinding, a temporarily keymap
+is used to switch buffers/windows on with numberic overlays
+displayed in each window of current workspace and the chosen for
+jumping is hinting corresponding numberic key as illustrating the
+visual feedback of below demo:
 
-It stick window number on modeline, and binding func
-@code{(window-number-switch)} to the origin keybinding for
-@code{(other-window)} as @samp{C-x o}, if window sibling as above frame
-session example, it will query prompt for choose window with
-candidates shown listed in minibuffer, which provide you the ability
-to selected window number by input window number directly or with
-the selecting up and down within the candidates list.
+@example
++------------------------------+-------------------+---------------------+
+|1                             | 4                 |  8                  |
+|                              |                   |                     |
+|                              |                   |                     |
+|                              +-------------------+                     |
+|                              | 5                 |                     |
++----------------+-------------+                   |                     |
+| 2              | 3           |                   |                     |
+|                |             |                   |                     |
+|                |             |                   |                     |
+|                |             |                   +---------------------+
+|                |             +--------+----------+ 9                   |
+|                |             | 6      | 7        |                     |
+|                |             |        |          |                     |
+|                |             |        |          |                     |
+|                |             |        |          |                     |
++----------------+-------------+--------+----------+---------------------+
+| u:@@** <> lisp-interaction-mode *scratch*          Top of 1.1k (20,100) |
++------------------------------------------------------------------------+
+@end example
 
 Another bennifit window jumping method was using us self-built func:
 
@@ -997,14 +1016,14 @@ entropy/emacs-basic-windmove-(up/down/right/left)-cycle
 The raw func obtained from
 @uref{https://github.com/troydm/emacs-stuff/blob/master/windcycle.el}.
 
-They binding to @samp{C-x up/down/right/left}. That means you could
+They are binding to @samp{C-x up/down/right/left}. That means you could
 jumping cycle round for sibling window quickly with your instincts
 visual sensitive.
 
 @item
 @strong{Window resize:}
 
-By the default, any dividing behaviour in emacs was width 'half'
+By the default, any dividing behaviour in emacs was half width
 sibling state, but the occurence when you want to get the specififc
 window dividing width, may rely on the external extension power.
 
@@ -1032,7 +1051,7 @@ down by dividing for, the occurence for exchanging window buffer was
 frequently, emacs internal func @code{buf-move-up/down/right/left} gives
 the try as thus. We binding them to @samp{C-c C-up/down/right/left}
 respectively.
-@end itemize
+@end enumerate
 
 @node Modeline themes toggle
 @subsection Modeline themes toggle
@@ -1058,9 +1077,10 @@ respectively.
 @end multitable
 
 
-Each of them are combined specific for be fit for @samp{entropy-emacs}. You
-can set the custom-variable @samp{entropy/emacs-modeline-style} with the
-tag symbole shown from above table:
+Each of them are combined with specifics for be fit for
+@samp{entropy-emacs}. You can set the custom-variable
+@samp{entropy/emacs-modeline-style} with the tag symbole shown from above
+table:
 @lisp
 ;; demo modeline setting code snippets of entropy-emacs
 (setq entropy/emacs-modeline-style 'powerline)
@@ -1068,13 +1088,12 @@ tag symbole shown from above table:
 ;; .... and so on
 @end lisp
 
-The default modeline style are 'doom-modeline' and 'origin', which has
-been initialed with eyebrowse workspace indication segment built with
-derived logic widget(see @ref{Eyebrowse, , entropy-emacs eyebrowse introduction}). These
-default setting was aimed with keeping balance with emacs performance
-and visualization experience.
+The default modeline style is'origin', whose default setting was aimed
+with keeping balance with emacs performance and visualization
+experience. It's built by eemacs internally and is presented for
+trying to did as more as close to emacs's native @samp{mode-line-format}.
 
-Spaceline was the wild used modeline of other users's custom emacs
+@uref{https://github.com/TheBB/spaceline, Spaceline} was the wild used modeline of other users's custom emacs
 config, but in @samp{entropy-emacs}, it is not recommended for using this
 as the default modeline style, because it lagging with huge process
 garbage collection idle slate during commonly emacs using
@@ -1086,10 +1105,18 @@ to use them out of box. (@samp{spaceline-icons} will not renderd nice on
 windows platform as well as linix platform even if the extra fonts it
 required were installed corrently).
 
-Thus, if you want to use spaceline, I recommend to use powerline
-instead because spaceline was extension from it and powerline origin
-segment corresponding was pure and simple which may be without lagging
+Thus, if you want to use spaceline, I recommend to use @uref{https://github.com/milkypostman/powerline, powerline}
+instead because it's the core of spaceline and powerline's origin
+segment corresponding was pure and simple which may be without lag
 performance as what gets into spaceline.
+
+@uref{https://github.com/seagle0128/doom-modeline, Doom-modeline} was the newest wild used @samp{mode-line-format} other than
+spaceline and with nice performance optimization and more segements
+out of box, but its internal using lots of advices for emacs @samp{subr} or
+primitives to get its own aim for implementing some specified features
+it must be used as. Thus, using doom-modeline may cause emacs native
+unreliable since those /redefine/s, but commonly there's no need to
+worry about for.
 
 The Toggle func for switching different modeline at real time was
 supported with bounds of func:
@@ -1108,16 +1135,13 @@ Toggle to powerline modeline style.
 Toggle to spaceline modeline style.
 @end itemize
 
-
-Defaulty, we use @uref{https://github.com/seagle0128/doom-modeline, doom-modeline} as the default modeline type.
-
 @node Chinse input method
 @subsection Chinse input method
 
-For emacs inputing with CJK chars experience, the default chosen for
-you was to used system default input tool-chain which was external out
-of emacs's controlling. And then the second for that was to using the
-emacs interanl chinese input methods as the list below:
+For emacs typing with chinese experience, the default chosen for you
+was to used operation system's default input tool-chain which was sat
+as out of box. And then the second for that was to using the emacs
+interanl chinese input methods as the list below:
 
 @itemize
 @item
@@ -1174,14 +1198,16 @@ emacs interanl chinese input methods as the list below:
 
 You don't have to know the each knowledge about them, but the most
 popular used one was @samp{chinese-py} which was aslo the most popular
-method for chinese people for using as the default chinese hans char
-input method.
+method for chinese people using as well kown as CHINESE PINYIN (汉语拼
+音).
 
 Although @samp{chinese-py} input method was pure and powerful for basic
-using, if onece you get it on your scatter doing, you will find it was
-really simple and crude which can not be used as the daily tool for
-thus. As the result, @samp{entropy-emacs} usig the most powerful and
-comprehensive 'pinyin' support melpa extentioin @uref{https://github.com/tumashu/pyim, pyim} and @uref{https://github.com/DogLooksGood/emacs-rime, emacs-rime}:
+using, if once you get it on your scatter task, you will find it was
+really simple and crude which can not be used as the daily used one,
+as generally say that its painfullly for choosing typing candidates
+since it doesn't has its own comprehensively dict database. As the
+result, @samp{entropy-emacs} usig the most powerful and comprehensive
+'pinyin' support melpa extentioin @uref{https://github.com/tumashu/pyim, pyim} and @uref{https://github.com/DogLooksGood/emacs-rime, emacs-rime}:
 
 @menu
 * PYIM::
@@ -1208,9 +1234,9 @@ PYIM 是一个 Emacs 中文输入法，支持全拼，双拼，五笔，仓颉 �
 @end example
 
 Above demo shows the fully process for input chinese using
-pyim. pinyin candidates shown within the tooltip widget @samp{posframe}
+pyim. pinyin candidates shown within the tooltip widget @uref{https://github.com/tumashu/posframe, posframe}
 created by the author same as pyim be, there's other candidates
-widgets for chosen:
+exhibition widgets for chosen:
 @enumerate
 @item
 minibuffer
@@ -1231,26 +1257,23 @@ Using minibuffer be the widget as:
 @item
 popup:
 
-Similarity with posframe but using old emacs buffer frame api which
-may lagging of performance that based with it's design logical, as
-the opposite, @samp{posframe} using the new @samp{child-frame} emacs feature
-which just contained in emacs version on 26.1 and above.
+Similarity with posframe but using old emacs's overlay mechianism
+which may have lag of performance that based with it's design
+logical, as the opposite, @samp{posframe} using the new @samp{child-frame}
+emacs feature which just contained in emacs version on 26.1 and
+uppers. It is also the only supported popup widget for a terminal
+display emacs session since emacs can not handle @emph{child-frame} for
+that display type.
 
-So as that, @samp{entropy-emacs} using 'popup' to pyim config for emacs
-version below 26.1 and the oppsite using 'posframe'.
-@end enumerate
-
-
-@itemize
 @item
 @strong{Pyim dicts:} @anchor{sectionpyim-dict}
 
 Although @samp{pyim} was one emacs extension written by @uref{(info%20"elisp"), elisp}, it was
-also one comprehensive chinese input programe which as the same sets
-of products rely on operation system e.g. @samp{fcitx-pinyin}, @samp{rime} or
-@samp{ibus-pinyin}, it relies on emacs internal input method frame work
-the comprehensive input frame work built with emacs. Thus pyim need
-extra char dicts for driven for candidates completion.
+also one comprehensive chinese input programe which has the same
+sets of products rely on operation system e.g. @samp{fcitx-pinyin},
+@samp{rime} or @samp{ibus-pinyin}, it relies on emacs internal input method
+framework. Thus pyim need extra words dict for driven for candidates
+completion.
 
 @samp{pyim} extra dict was plain text format as:
 @example
@@ -1269,19 +1292,18 @@ core.pyim
 extra.pyim
 @end enumerate
 
-Each of them are extract from other open source permitted input
-method, as you do not worry about the copyright with legal
-complication.
+There two dicts was enough for me to daily using , names of them are
+meaned as the loading sequence or dict collection categories belong
+to them individually. @samp{Core.pyim} was extract from rime's internal
+dict, containes 816321 entries, reached the normal proper dicts size
+as suggested from pyim author, @samp{extra.pyim} contained extra popular
+vocabularies and animal, stars, psycology or other sets of scienece
+subjects vocabulary collection, it's size about 0.8 million entries.
 
-There two dicts was enough for daily using as well as me, names of
-them are meaned as the loading sequence or dict collection
-categories belong to them individually. @samp{Core.pyim} was extract from
-rime's internal dict, containes 816321 entries, reached the normal
-proper dicts size as suggested from pyim author, @samp{extra.pyim} was
-the collection from several none copyright obselete dicts, it
-contained extra popular vocabularies and animal, stars, psycology or
-other sets of scienece subjects vocabulary collection, it's size
-about 0.8 million entries.
+The @samp{extra.pyim} extracted or converted from some @strong{proprietary
+softwares}, so that they are not free to use that just using as
+@strong{learning way} as the examples for building your own dicts or used
+just as personal way without business purposes.
 
 @item
 @strong{using liberime as rime backend for pyim}
@@ -1294,73 +1316,31 @@ steps are easily and thus as:
 @enumerate
 @item
 given the rime schemes host in operation system for variable
-@samp{entropy/emacs-pyim-liberime-scheme-data}.
+@samp{entropy/emacs-internal-ime-rime-system-share-data-host-path}.
 @item
 Setting the specific rime scheme selected
 @item
 Optionally give the rime cache dir value to
-@samp{entropy/emacs-pyim-liberime-cache-dir}.
+@samp{entropy/emacs-internal-ime-rime-user-data-host-path}.
 @end enumerate
 
 @item
 @strong{enable pyim with @samp{entropy-emacs}:}
 
 The turn-off custom variable controlling whether enable pyim when
-emacs startup finished i.e. @samp{entropy/emacs-enable-pyim}, you can
-active it in your @samp{custom.el} file, then the next time you start up
-or open new session of emacs , pyim will automatically startup using
-the default dicts specific by @samp{entropy-emacs} as introduction form
-@ref{sectionpyim-dict, , pyim dicts section}, or if you want to enable dicts specified by
-yourself, you can setting up custom-variable
-@samp{entropy/emacs-pyim-dicts}, the variable information and value
-format can be shown by touching @samp{C-h v entropy/emacs-pyim-dicts
-  RET}.
-
-@item
-@strong{pyim conversion between simple chinese with traditional chinese:}
-
-Chinese hans char has been redesigned for simplification for daily
-using in CHINA, but be remained the old version shape of char for
-people in CHINA taiwan province and HongKong or others chinese
-language based countries. As for the first char shape named @samp{simple
-  chinese} and the rest was called as @samp{traditional chinese}.
-
-@samp{entropy-emacs} supported both of them for inputting choice, but
-initial based inputting was @samp{simple chinese}, you can call func
-@code{(entropy/emacs-basic-toggle-pyim-s2t)} to toggle it to
-@samp{traditional-chinese} as the final presentation on screen.
-
-@quotation
-Original pyim not support the feature of conversation between
-them, but it provide one feature @samp{pyim-magic-converter} whose
-description as below:
-
-> 将 “待选词条” 在 “上屏” 之前自动转换为其他字符串. 这个功能可以
-实现“简转繁”，“输入中文得到英文”之类的功能。
-
-@samp{entropy-emacs} create the self func
-@samp{entropy/emacs-basic-toggle-pyim-s2t} for using this detector
-feature for reaching the aim of thus.  This core was provided by
-package @uref{https://github.com/c0001/entropy-s2t, entropy-s2t} which list the hash table @samp{entropy/s2t-table}
-pointed each simple chinese char to the corresponding traditional
-chinese char.
-
-So as on the inputting prompt candidates will still be the
-simple chinese char shape style.
-
-@end quotation
-
-@item
-@strong{Half or full width punctuation:}
-
-Pyim allows user to toggle punctuation standard widths withs both of
-@samp{half} and @samp{full} style with keybinding @samp{C-1} while you are in pyim
-input session, this may be useful when you are editting the list or
-table in org mode.
-@end itemize
+emacs startup finished i.e. set
+@samp{entropy/emacs-internal-ime-use-backend} as @samp{pyim}, you can active
+it in your @samp{custom.el} file, then the next time you start up or open
+new session of emacs , pyim will automatically startup using the
+default dicts specific by @samp{entropy-emacs} as introduced from @ref{sectionpyim-dict, , pyim
+dicts section}, or if you want to enable dicts specified by yourself,
+you can setting up custom-variable @samp{entropy/emacs-pyim-dicts}, the
+variable information and value format can be shown by hinting @samp{C-h v
+  entropy/emacs-pyim-dicts RET}.
+@end enumerate
 
 @node EMACS-RIME
-@subsubsection @strong{TODO} EMACS-RIME
+@subsubsection EMACS-RIME
 
 Emacs-rime was an frontend of @uref{https://github.com/rime, rime} opensource input method for emacs
 binding by @samp{emacs-lisp} with its own emacs's dynamic module. It's
@@ -1371,14 +1351,27 @@ handle all typing through @samp{rime}.
 @samp{entropy-emacs} has fully configured @samp{emacs-rime} to let user use it
 out-of-box.
 
+@itemize
+@item
+@strong{enable emacs-rime with @samp{entropy-emacs}:}
+
+The turn-off custom variable controlling whether enable emacs-rime
+when emacs startup finished i.e. set
+@samp{entropy/emacs-internal-ime-use-backend} as @samp{rime}, you can active
+it in your @samp{custom.el} file, then the next time you start up or open
+new session of emacs , emacs-rime will automatically startup using
+the eemacs unified rime schema and cache configuration as described
+in section [BROKEN LINK: using liberime as rime backend for pyim].
+@end itemize
+
 @node Globally readonly mode
 @subsection Globally readonly mode
 
-Emacs open all common buffers with editted state by default all. It be
+Emacs open all common buffers with editted state by default. It's
 convenience with the state for usually sights which allow user to
 quickly read or write sth into file.
 
-But with the buffer counts increasing for one emacs sessin, this
+But with the buffer counts increasing for one emacs session, this
 feature was annoying with the worriers for that we can not keep
 careful for all buffers modification state when you take the mistake
 modification little bit inadvertently.
@@ -1388,7 +1381,7 @@ lock all buffer as read-only (i.e. locked) state by the default for
 buffer opening, because most of occurrence we open one file is to read
 but not to write.
 
-@samp{entropy-emacs}'s self built extension @uref{https://github.com/c0001/entropy-global-read-only-mode, global-readonly-mode} give the
+@samp{entropy-emacs}'s self built extension @samp{global-readonly-mode} give the
 anwser.
 
 @samp{global-readonly-mode} provide three modes:
@@ -1414,93 +1407,56 @@ custom file:
 The suggested mode choice was @samp{all}, which injecting read-only feature
 into @code{(find-file)} function, after sets this value, any buffer opened
 with lock state excluding the buffer name exception list
-@samp{entropy/grom-find-file-except-bfregexp-list}, the value of this list
-was regexp string matched before @code{find-file} opens file.  Til now this
-list shown as blow:
-@lisp
-'("autoloads\\.el"
-  "\\*Compile-.*\\*"
-  "loaddefs\\.el"
-  "COMMIT_EDITMSG"
-  "_archive"
-  "^ *\\*.*?\\* *$")
-@end lisp
+@samp{entropy/grom-customizable-special-buffer-name-regexp-list}, the value
+of this list was regexp string matched the file name before
+@code{find-file} opens that file.
 
-Regexp strings contained intern of it now excepting package compliging
-refer file or buffer, magit committing buffer, buffer name paired with
-@samp{*} (special buffer) and some miscellaneous nameing rule buffer.
+Internally, eemacs has some pre-defined buffer name regexp filter to
+guarantee there's no conflicts with vanilla emacs and eemacs
+environment. For those buffers who are temporally and miscellaneous
+ones are also filtered out as default.
 
 Due to the mechanism of emacs defualt setting used by other extension
-built intern or from melpa/elpa, global-readonly-mode will cause some
-coordination problem with other package extension function call,
-because by the default some func doesn't judge the buffer read only
-state before executing processing, in other words, they does with the
-buffer state by editted default and only to as. Org-mode was the
-typically one who required the refer buffers it will be did with must
-be editted state, in which case, @samp{entropy-emacs} adding sets of
-advicing funcs for the Org-mode widgets and modified with redefined
-some apis for patching with adding buffer read only state detecting
-snippet. The patching for Org-mode districts are:
+built internally or from melpa/elpa, global-readonly-mode will cause
+some coordination problem with other package's functional, since by
+the default that some func doesn't judge the buffer read only state
+before executing processing, in other words, they does with the buffer
+state by editted default and only did as in that case. Org-mode was
+the typically one who required the refer buffers it will be did with
+must be editted state, in which case, @samp{entropy-emacs} adding sets of
+advicing funcs for the Org-mode widgets and modified through
+redefining some apis for patching with adding buffer read only state
+detecting snippet.
 
-@enumerate
-@item
-org agenda
-@item
-org capture
-@end enumerate
-
-
-Agenda buffer's func offering: note-add, task todo state changing, all
-need to patched before func process proceeding, @samp{entropy-emacs} using
-adviced func @code{(entropy/grom-agenda-unlock-current-entry)} for
-enhancing the each agenda entry behaviour with global-readonly-mode
-for be the advice before @code{org-agenda-add-note} , @code{org-add-log-note} ,
-@code{org-store-log-note}. @samp{entropy-emacs} also create the manully func
-@code{entropy/grom-unlock-agenda-files} to unlock all agenda files defined
-in custom variable @samp{org-agenda-files} which be opened with, if you
-want to do so , calling it.
-
-Capture patching redefining func @code{org-capture-place-template} and the
-Org-mode internal unit @code{org-datetree--find-create}, both patching for
-them are minor just with adding @code{(setq buffer-read-only nil)} to the key coding
-region.
-
-Rest modes of global-readonly-mode was the optionally not suggested
-for who are having the perfects thoughts for this, if you are just one
-to make the buffer open limitation while using dired open or major
-modes specifiction type, try them, dired refer was forcing withou any
-custom variable setting, for major modes specification, custom
-variable @samp{entropy/grom-mode-list} are the motorized key for thus, you
-can check it with @samp{C-h v entropy/grom-mode-list} for see the default
-major modes be locked with.
+The "modes" type of global-readonly-mode was another way for handling
+the read-only filter with this package when you are just want to make
+the buffer opened with limitation while using specified major mode(s),
+custom variable @samp{entropy/grom-mode-list} are the motorized
+specification tunnel for thus, you can check it with @samp{C-h v
+entropy/grom-mode-list} for see the default major modes be locked
+with.
 
 Remeber, you can cancel or disable global-readonly-mode whenever you
 want to do so with interactive func @samp{entropy-grom-mode} , it will
-remove all the hook and cancel all the advising hooks for feature
-refer when done of calling for it, oppiste as it will enable
-gloal-readonly-mode again.
+remove all the hook and cancel all the advisors this package maked in.
 
 @node Org-mode
 @subsection Org-mode
 
-Org mode was the structor plain text doc type combined with emacs
-closely, which obtained the admiration with various emacs user. This
-section was implicitly for the user who understand with the basic
-Org-mode knowledgebase and had used it for a while, and rest
-introduction was the specification of @samp{entropy-emacs}'s Org-mode
-config for kinds of aspects of it.
+Org mode was the structure plain text document editting system
+combined with emacs closely, which obtained the admiration with
+various emacs users. This section was implicitly for the user who
+understand with the basic Org-mode knowledgebase and had used it for a
+while, and the rest introduction was the specification of
+@samp{entropy-emacs}'s internal Org-mode configuration specifications.
 
 @itemize
 @item
 @strong{Item bullets style:}
 
-Each headline in Org-mode doc with the defautl visual style inserts
-with dozen of @samp{*} chars. special tyle support can be hacks for
-adding. Emacs melpa package @uref{https://github.com/sabof/org-bullets, org-bullets} provides such the feature
-like as but have've been stopped maintained for about 5 years. But
-no matter the way thus, it's core mechnism was solid and has enough
-flexibility for keeping track with new emacs version for the
-furtuer.
+Each headline in Org-mode buffer with the defautl visual style
+inserts with dozen of @samp{*} chars. More visualized style can be hacks
+by emacs melpa package @uref{https://github.com/sabof/org-bullets, org-bullets}, who provides such the feature.
 
 @samp{entropy-emacs} using @samp{org-bullets} for fancying up org item bullets
 style upon for creating two style:
@@ -1511,8 +1467,9 @@ roman
 circle numberic
 @end enumerate
 
-Both of them displayed for showing the sequence number refer the
-heading level instead of the asterisk counts visualized.
+Both of them displayed for showing the sequence number for the
+heading level instead of the asterisk counts visualized one which is
+org-mode's default sets.
 
 @samp{roman} type displayed as the sequence list as:
 @example
@@ -1548,9 +1505,9 @@ your way. follow config codes snippet for doing thus:
 @strong{Headline level face:}
 
 Headline level influenced headline face of Org-mode visulized style
-corresponding each emacs theme specification. Some customized theme
-package from melpa given the try to enlarge the heading font size by
-default as shown with the sensible heading level case.
+corresponding to each emacs theme specification. Some customized
+theme package from melpa given the try to enlarge the heading font
+size by default as showing with the sensible heading level case.
 
 In @samp{entropy-emacs}, this feature was all being disabled for the
 habits for me. Enlarge heading font will cause headline tag can not
@@ -1564,18 +1521,21 @@ place follow codes snippet into your custom file"
 @lisp
 (setq entropy/emacs-disable-org-heading-scale nil)
 
-;; Reload major-mode for current to trigger the hook
-(funcall major-mode)
+;; Reload major-mode for current to trigger the hook if enabled that
+;; in a running session yet
+;;
+;; (funcall major-mode)
 @end lisp
 
 @item
 @strong{Org file open associate application:}
 
-Org mode have the function for open link in a buffer with 'org-mode'
-major mode, each file were recognized for their file type judged by
-it's file name suffix e.g. ("\\.pdf", "\\.docx", "\\.cpp"). In org
-mode, file identifier can be more than the file name suffis rule
-recognizing, custom variabl @samp{org-file-apps} controlling thus.
+Org mode have the functional for open link in a buffer with
+'org-mode' as major mode, each file were recognized for their file
+type judged by it's file name suffix e.g. ("\\.pdf", "\\.docx",
+"\\.cpp"). In org mode, file identifier can be more than the file
+name suffixes rule recognizing, custom variabl @samp{org-file-apps}
+controlling thus.
 
 In @samp{entropy-emacs}, the value of @samp{org-file-apps} was minor setting
 with few entries be pdf and gif files.
@@ -1586,14 +1546,14 @@ size cover 'kb' to 'Mb'. However, when the size larger than several
 'Mb', emacs will lagging seriously for a long time to display the
 animation before analyzing it's fram counts, because emacs display
 gif files through the way splitting the picture into the frame list
-and then render them one by one, this was low effective compared
+and then render them one by one, this was low effectively compared
 with other picture viewers. Therefore, @samp{entropy-emacs} set all the
 gif file links of org file to be opened with external system picture
 viewer.
 
-Pdf file render for emacs was frame stacks in turn as the way for
-display gifs, thus viewing pdf within emacs was not a good idea,
-thus using system application referred it as well.
+Pdf files were rendered in emacs with frame stacks in turn as the
+way for display gifs, thus viewing pdf within emacs was not a good
+idea, thus using system application referred it as well.
 
 @item
 @strong{Org html exporting style:}
@@ -1606,30 +1566,31 @@ custom variable for users to specific the external css or override
 the default sets.
 
 @samp{entropy-emacs} comes with the self built packge
-@samp{entropy-org-export-theme-toggle} for providing the theme toggle
-quickly way so. Although this self package was not indicated just
-for org html exporting style toggle functional but also for latex
-and other org exporting backends using, as now [2018-11-24 Sat
-19:58:26] I just implemented the way for html exports backend.
+@samp{entropy-org-export-theme-toggle} for providing the theme
+switches. Although this self package was not indicated just for org
+html exporting style toggle functional but also for latex and other
+org exporting backends using, as now @emph{[2018-11-24 Sat 19:58] } I
+just implemented the way for html exports backend.
 
 @samp{entropy-org-export-theme-toggle} gives the four internal html
 exporting themes i.e. @samp{Worg}, @samp{read-the-org}, @samp{Bigblow}, and
 @samp{red-snapper}. First three are collected form other's customize org
 html exports style and the last was designed by me for be the
-default org html exporting style as for the furture.
+default org html exporting style as what this file's html variant
+used.
 
 @item
 @strong{Org bables comfirmation:}
 
 As well known that org mode was designed for literally programming
-suits, code block embedded within the doc was merited as thus, in
-org mode, that's code blocks called bable, as the broken for god's
-dividing language curse for preventing humans' intention of building
-the bable through across the sky.  Thus org bable to do so.
+suits, code block embedded within the doc was merited in its
+declaration. In org mode, that's code blocks called @strong{bable}, as the
+broken for god's dividing language curse for preventing humans'
+intention of building the bable through across the sky.
 
 Each bable block identified with one programming language source
 viewer, as thus, evaluation for codes was demands for insert the
-code snippet result into context of doc currents.
+code snippet result into context of current org buffer.
 
 By defaults, org-mode will confirm the operation decision before
 evaluating them, as well in exporting status. But in org version
@@ -1639,22 +1600,22 @@ block indicated that this block's evaluating will be confirmed.
 
 As thus, @samp{entropy-emacs} gives the try for patching the export funcs
 for obtaining the origin confirmation process during the babel
-evaluating. Function @code{org-babel-confirm-evaluate} was the main point
-for patching with, @samp{entropy-emacs} forcing setting the local
-variable @samp{org-confirm-babel-evaluate} to t in the process of this
-func, because that in state of export this variable will cleaned to
-null before calling @code{org-babel-confirm-evaluate} without finding the
-mechanism for.
+evaluating. Function @code{org-babel-confirm-evaluate} was the main
+subroutine for patching with, @samp{entropy-emacs} forcing setting the
+local variable @samp{org-confirm-babel-evaluate} to t in the process of
+this function's running context, because that in state of export
+this variable will cleaned to null before calling
+@code{org-babel-confirm-evaluate} without finding the mechanism for.
 
-There's also the problem occured on evaluate inline abbreviated code
+It also coursed problem occured on evaluate inline abbreviated code
 snippet like point on @samp{call_func()}. The issue was that the
 confirmation prompt string doesn't include the babel name. For
 resolving it, @samp{entropy-emacs} declared one internal variable
 @samp{entropy/emacs-org--src-info} for storing the info generated by func
 @code{org-babel-get-src-block-info} and @code{org-babel-exp-src-block}
-temporally for using for func @code{org-babel-confirm-evaluate}, the info
-getted thus will contain babel block name rathan the origin one
-generated within the process.
+temporally for using for function @code{org-babel-confirm-evaluate}, the
+info got thus will contain babel block name rather than the origin
+one generated within the process.
 
 @item
 @strong{Org auto insert custom id:}
@@ -1678,44 +1639,46 @@ functions:
 The first one gives the forcing way for inserting @samp{CUSTOM_ID} to
 each headline while one of them doesn't have one, and the second
 otherwise for the state just when the option comment string in place
-somewhere in current org file, i.e. '#+OPTIONS: auto-id:t'.
+somewhere in current org file, i.e. "#+OPTIONS: auto-id:t".
 
 Don't like the human readable id style, these two automatically func
-gives the id format as the numeric series with the prefix 'h-', this
+gives the id format as the numeric series with the prefix "h:", this
 mechanism reducing the possibility for conficting @samp{CUSTOM_ID}
 occurence.
 
-@samp{entropy-emacs} gives the auto way for automatically adding
-headlines ids before save the org file who contained @samp{auto-id}
-option, it's useful for the convenience way.
+@samp{entropy-emacs} gives the way for automatically adding headlines ids
+before save the org file who contained that "auto-id" option, it's
+useful for the convenience way.
 
 @item
 @strong{Org tag inserting:}
 
-Org designed with headline tag for sortting or filter dealing with,
-each headline can has several tags sperated by colon, tag in current
-buffer can be cached in @samp{org-file-tags} for query insertting, this
-feature can also be retreived as global org files with agenda files.
+Org's each headline can make with tag for sortting or filtering
+with, each headline can has several tags sperated by colon, tag in
+current buffer can be cached in @samp{org-file-tags} for quickly querying
+and choosing for insertion, this feature can also be retreived as
+global org files includes agenda files.
 
-@samp{entropy-emacs} using cousel extension for enhancing the using
-experience of insertting tags, the func @code{counsel-org-tag} provides
-the feature. By default, @samp{entropy-emacs} restricted tag list
-collection scope via globle (with all agenda files), so that you can
-quickly query tags from all existed ones to prevent create the
-conflicts with messure spelling similarities of the same meaning.
+@samp{entropy-emacs} using melpa extension counsel for enhancing the
+using experience of inserting tags, the func @code{counsel-org-tag}
+provides the feature. By default, @samp{entropy-emacs} restricted tag
+list collection scope via globle (with all detected org files), so
+that you can quickly query tags from all existed ones to prevent
+create the conflicts with messure spelling similarities of the same
+tag.
 
-Call the feature by keybinding as same as the origin org tag
-insertting as for @samp{C-c C-q}.
+Eemacs bind @code{counsel-org-tag} as same as the origin org tag
+insertion keybinding as for @samp{C-c C-q}.
 
 @item
 @strong{Org image drop and down:}
 
-Org file as the simple rich txt file can be referred with images,
-files, or other file type, the default inserting way was using the
-manually type coding with the format as @samp{[[link location][content
-  description]]}, or you can drop down the file with gui mounse refers
-as other gui application does, this feature provided by melpa
-package @uref{https://github.com/abo-abo/org-download, org-download} but just with image thing as.
+Org file as the simple rich txt file can display images, attach
+files and whatever file type, the default insertion way was using
+the manually type coding with the format as @samp{[[link
+  location][content description]]}, or you can drop down the file with
+gui mouse as usually what other gui application does, this feature
+provided by melpa package @uref{https://github.com/abo-abo/org-download, org-download} but just with image thing as.
 
 @enumerate
 @item
@@ -1726,37 +1689,34 @@ image download from url
 capture screenshot with external tools
 @end enumerate
 
-Image drop and down for org buffer was handled by DND handle
+Image drop and down for org buffer was handled by DND handler
 @samp{org-download-dnd}, you don't need to know the detailes sticking
-within this handle, here just to show the general process passing
+within this handler, here just to show the general process passing
 by. Onece you draging one image file from system filesystem manager
 e.g. Explorer(windows), Nautilus(linux gnome) @dots{} , to emacs gui
 frame and pointed into the actived org buffer, @code{org-download-dnd}
-will insert the image link which redirected to the will placing
-image location.
+will insert the image link which redirected to that image location.
 
 The simple way for insert image source from other location was
 through the way by downloading url method, and this is the second
-feature of @samp{org-download} to handle the image insertting action. The
-interactivation was simply just by calling interactive function
+feature of @samp{org-download} to handle the image insertion action. The
+interactivation was simply just by calling the command
 @code{org-download-image} soon as.
 
 Depending on downloading way, @samp{org-download} also gives the try for
-providing the image capture to insert func, this called
+providing the image capture insertion function, this called
 @code{org-download-screenshot}, literally meaning point to 'download' as
 the way of this operation was steps sequenced as:
 
 @enumerate
 @item
 Calling external gui screenshot application tracked by emacs
-subprocess and waiting for return the image captured url.
+subprocess and waiting for returning the image captured url.
 @item
-Using @code{org-download-image} to handle the reponse as the func it
-provision.
+Using @code{org-download-image} to handle the reponse using the
+functional it provision to download that captured screenshot
+image file.
 @end enumerate
-
-They are the three way of @samp{org-download} providing for image quickly
-insertting.
 
 @samp{entropy-emacs}'s hacking on @samp{org-download}:
 
@@ -1765,125 +1725,38 @@ insertting.
 Patching org download inserting process support unicode file
 name:
 
-Origin @samp{org-download-method} was 'directory and using the process
-snippet below to extracting the filename url to inserted into org
-file:
+Origin @samp{org-download-method} was @samp{'directory} and using the
+process snippet below to extracting the filename url to inserted
+into org file:
 @lisp
 (org-download--fullname link ext)
 @end lisp
 
 While the argument link was combine with unicode file name, the
-link generated by it will contained the hexo chars for excaped
-the conflicated part of web url rule. Commonly it's useful and
-normally.
+link generated by it will contained the url-hexified chars for
+escape the conflicated part of web url rule. Commonly it's useful
+and normally.
 
-But with some url string having the cjk or other unicode string
-internally, hexo escape method was actually right for preventing
-link follow analyzing error for some external software but the
-human meaning reading available has for user of reading
-currently. Thus, I given the specified @samp{org-download-method} for
+But for some url strings consisted of characters in humarn
+language script, hexify escape method was unexpected for readable
+meaning. Thus, I given the specified @samp{org-download-method} for
 falling back with the as-it link string presentation while
 inserting the target image url string into org buffer's current
-point:
+point and it is constructed like:
 
 @lisp
 (defun custom-org-download-method (link)
-        (org-download--fullname (org-link-unescape link)))
+  (org-download--fullname (org-link-unescape link)))
 (setq org-download-method 'custom-org-download-method)
 @end lisp
 
-Which was the function replace the origin one 'directroy.
-
 @item
-Fallback dnd process redefined:
-
-Org download will send the unused dnd action to the origin emacs
-internal dnd handle, as the image open will still opened in
-buffer while you using @samp{C-g} key quiting current behaviour came
-from org-download, the image displaying effection will deliver to
-the emacs internal default dnd file handle, it's violating the
-user operation expection, as that I comment the fall back dnd
-handle process snippet in func @code{org-download-dnd-fallback}.
-
-@item
-Org capture windows port external application setting:
-
-When on w32 platform, org-download didn't give the capture image
-method effectively, the core for it was the problem for finding
-the screenshot (free liscense) application with cli interface as,
-@samp{entropy-emacs} givies the try for windows internal public
-(non-free) screenshot tool @samp{SnippingTool.exe} to using as it for.
-
-As the default keybinding for the screenshot with
-@samp{org-download-screenshot} as @samp{C-c p}.
-
-Althouth WIN10 will removing it soon as the promotion while start
-this minor tool now, but @samp{entropy-emacs} will finding the other
-way for resolving this problem following Microsoft's developing
-policy as well. Of course, you can specific you own screenshot
-tool by specifying the custom-variable
-@samp{entropy/emacs-win-org-download-screenshot-method} with the
-default temporally screenshot filename customed by
-@samp{entropy/emacs-win-org-download-file-name}.
-
-@item
-Capture screenshot image in org capture temporally buffer:
-
-Commonly, the screenshot feature of org-download will working
-well in the buffer with the actual based file and the unique
-buffer name, unless for the buffer temporally which maked as org
-capture behaviour. That's means in org cature buffer, org
-download can not insert the image file-name correctly because of
-that it can not check the true @samp{buffer-file-name} for calulating
-the relative path between image file location and the current
-buffer file.
-
-Origin org download link inserting func
-@code{org-download-insert-link}, using @code{(file-name-directory
-     (buffer-name))} for generate the buffer-file-name but this was
-not working on the temporally buffer, the whole relative link
-path return snippet process will not worked as well yet:
-@lisp
-(defun org-download-insert-link (link filename)
-  (if (looking-back "^[ \t]+" (line-beginning-position))
-      (delete-region (match-beginning 0) (match-end 0))
-    (newline))
-  (insert
-   (concat
-    (funcall org-download-annotate-function link)
-    "\n"
-    (if (= org-download-image-html-width 0)
-        ""
-      (format "#+attr_html: :width %dpx\n" org-download-image-html-width))
-    (if (= org-download-image-latex-width 0)
-        ""
-      (format "#+attr_latex: :width %dcm\n" org-download-image-latex-width))
-    (format org-download-link-format (file-relative-name filename (file-name-directory (buffer-name))))))
-  (org-display-inline-images))
-@end lisp
-
-You can see the last code snippt:
-
-@example
-(format org-download-link-format (file-relative-name filename (file-name-directory (buffer-name))))
-@end example
-
-
-It's will return the wrong path name when @samp{file-name-directory}
-gives the nil return value.
-
-As on @samp{entropy-emacs} gives the the patching for replacing
-@code{(buffer-name)} with the self defined func
-@code{entropy/emacs-org--odl-judgement-whether-capture-name} with the
-full process dealing with the messure capture-buffer name.
-
-@item
-Image link insert automatically adjusting insert position
+Image link insertion automatically adjusting start position
 feature:
 
-This feature provision of which judges the current cursor point
-looking at where it is and automatically doing the inserting
-position adjusting follow below rules:
+This feature looking at and thought about where the current
+cursor located is and automatically adjusting the insertion start
+point follow below rules:
 
 @itemize
 @item
@@ -1902,7 +1775,7 @@ Insert link in current point.
 Insert the link under of current line with newline creating.
 
 @item
-@emph{Point at partition case of none-empty line:}
+@emph{Point at middle of none-empty line:}
 
 Insert the link under of current line with newline creating.
 @end itemize
@@ -1914,40 +1787,21 @@ When the customize variable @samp{org-adapt-indentation} was enabled
 in current org buffer, automatically indenting the link position
 after insert the link string by org-download.
 @end enumerate
-
-@item
-@strong{Poporg (Edit docstring with org mode temperally):}
-
-In emacs commmonly working with, docstring editting for func or src
-context was commented editting operation and manually doing as
-default.
-
-@samp{poporg} was one melpa package who provide the feature for
-automatically editting docstring by cut the region of docstring into
-the popup temporally buffer with org-mode actived. In this case you
-can save the docstring by the operation @code{save-buffer} or triggering
-it with it's keybinding @samp{C-x C-s}, or discarding the editting with
-@code{kill-buffer} or keybinding @samp{C-x k}.
-
-@samp{poporg} was the minor tool used for conveniently did. It support
-lots of src content with the detectivation rely on the grammer
-analyzer as C using '@emph{* *}' as the comments region flags as so,
-active @samp{poporg} while current cursor point was between the src refer
-comment flags by keybinding @samp{C-c "}.
 @end itemize
 
 @node Miscellaneous emacs internal setting
 @subsection Miscellaneous emacs internal setting
 
-Emacs consists of various modes and sets of basic tool chains, all of
-them are with the highly customizable with refer custom
-variables. Each custom variable gives the default value setting.
+Emacs brought with various modes and sets of basic tool chains, all of
+them are standing with various highly customizable features with
+referred customization variables. Each customization variable gave
+their default value which is considered can be defined as generally
+meaning by their authors.
 
-But, not each defautl custom variables value given was satisfied for
-all user, and some was not suit with @samp{entropy-emacs}.
-
-And for with some minor enhancements or the minor tool adding was also
-the necessaries for @samp{entropy-emacs}.
+But, not each default customization variable's value gave was suitabl
+for all user, and some was not proper or conflicted with
+@samp{entropy-emacs}. Thussome minor enhancements and the advices adding
+was also the necessaries for the taste of @samp{entropy-emacs}.
 
 Thus, both the default setting modification and the other minor sets
 did by @samp{entropy-emacs} are mischellaneous setting for as.
@@ -1955,38 +1809,6 @@ did by @samp{entropy-emacs} are mischellaneous setting for as.
 This section was the introduction for thus.
 
 @itemize
-@item
-@strong{Dired colorful visual style:}
-
-Dired was emacs internal filesystem viewer as the functioanl as w32
-explorer or the nautilus for gnome (gnu/linux desktop manager), the
-default visualization of it was ordered as the plain style.
-
-For giving the mordern UI for dired was powered by two melpa
-package:
-
-@enumerate
-@item
-@samp{dired-rainbow}:
-
-Extended file highlighting according to its type.
-
-@item
-@samp{all-the-icons-dired}
-
-Extended file stick logo according to its type.
-@end enumerate
-
-You can chosen one of them by setting custom variable
-@samp{entropy/emacs-dired-visual-type} with two value alternative:
-
-@itemize
-@item
-"simple-rainbow" : using ‘dired-rainbow’.
-@item
-"all-the-icons" : using ‘all-the-icons-dired’
-@end itemize
-
 @item
 @strong{Backup and auto-save config:}
 
@@ -1996,37 +1818,44 @@ applied to it. Most of people using git or other vcs (version
 control system) to manage the file version, thus the backup for the
 file was not necessary as the default setting.
 
-Otherwise, the feature auto saving file content was needed for
-preventing the accident for broken the current buffer editting when
-you haven't saved it immediately.
+Otherwise, the auto saving file content feature was needed for
+preventing the accidental that emacs corrupted where each non-saved
+modifications for buffers with files tiled will be lost. But it also
+disabled by default in eemacs since its timer injection commonly
+disturbing user inputs rhythm. You can invoke it manually by type
+@samp{M-x auto-save-mode}.
 
 @item
 @strong{Smooth scrolling buffer:}
 
-Buffer scrolling in emacs was usually along with page jumping, up to
-set the current line in the middle of the screen. This not suit with
-the user who get the habbits from other text editor which always
-scrolling the page along with the line jumping.
+Emacs default make the current visual line be in middle of the
+window when current scrolling point at the top or bottom of
+window. That's not the habit we commonly seen in other editors.
 
-@samp{entropy-emacs} defined the func
-@code{entropy/emacs-basic-smooth-scrolling} for emulating the behaviour
-as so.  This func was interactive, you can active this feature by
-calling it by 'M-x'.
+@samp{entropy-emacs} defined a minor mode
+@code{entropy/emacs-basic-smooth-scrolling-mode} for emulating the
+behaviour as so. There's also a global mode
+@code{entropy/emacs-basic-smooth-scrolling-global-mode} which used that
+in each displayed window.
 
 @item
 @strong{Auto sudo editting:}
 
-When using emacs on unix like OS, visiting or editting high
-permission required file will using emacs @uref{https://www.gnu.org/software/tramp/, tramp} feature, the
+When using emacs on unix like OS, visiting or editting privilege
+permission required files will using emacs @uref{https://www.gnu.org/software/tramp/, tramp} feature, the
 manually way for it will cost time for inputting the special file
-path link, @samp{entropy-emacs} using melpa package @samp{auto-sudoedit}
+path string, @samp{entropy-emacs} using melpa package @uref{https://github.com/ncaq/auto-sudoedit, auto-sudoedit}
 giving the auto way as so.
 
-You don't need to active any func manually or given sets of setting,
-just using @code{find-file} or query and open permission needed file
-using dired or other emacs internal or file open extension cmd
-commonly, auto-sudoedit will auto detective the permission needed
-and prompt for executing the account accessable operation.
+You don't need to active using any commands manually or giving sets
+of setting, just using @code{find-file} or query and open privilege
+permission required files using dired or other emacs internals,
+@samp{auto-sudoedit} will auto detective the permission needed and prompt
+for executing the account accessable operation.
+
+By default this feature is not enabled since there's safety problem
+around management of lots of root files, hint @samp{M-x
+  auto-sudoedit-mode} manully if need.
 
 @item
 @strong{Epa enabled by default:}
@@ -2038,33 +1867,42 @@ initial step by @code{(epa-file-enable)}.
 @item
 @strong{Kill ring browsing:}
 
-Kill ring save the all yank strings into the circle list, emacs
-support paste the history yanking according to the circle turns.
+Kill ring save the all yank strings into the ring likeqd list, emacs
+support pasting the history yanking according to the ring's circular
+turns.
 
-Melpa package @samp{browse-kill-ring} was the extension for it aimed to
+Melpa package @samp{browse-kill-ring} was the extension which aimed to
 provide the feature for browsing kill ring history in explicit way
-with yanking choosing functional.
+with candidates choosing functional using emacs @code{completing-read}.
 @end itemize
 
 @node Font specific
 @subsection Font specific
 
 Emacs support multibyte fonts setting and the rich features for each
-part of face refer. @samp{entropy-emacs}'s initial config file
-@samp{entropy-emacs-font-set.el} was the collection fonts config for as.
+part of emacs face rendering corresponding aspects. @samp{entropy-emacs}'s
+initial config file @samp{entropy-emacs-font-set.el} was used to provide
+more beneficial way for specifying emacs font configuration.
 
-Internally, emacs using a @samp{fontset} data structure to represent its
+Internally, emacs using a @samp{FONTSET} data structure to represent its
 font founding mechanism to support the multi-language support for a
 single lanuguage-environment. A FONTSET is a group of various font
 families of various lanuage scripts so that a FONTSET can decoding any
-charsets if setted properly with unlimited FONT-SPECs (i.e. the emacs
+charsets if set properly with unlimited FONT-SPECs (i.e. the emacs
 internal font representation data structure).
 
 Thus for, @samp{entropy-emacs} patch the emacs per-frame default FONTSET
 with sets of FONT-SPECs to support CJK, LATIN, SYMBOL
 simultaneously. We use the group font family data structer for
-representing thus patch, variable @samp{entropy/emacs-font-setting-enable}
-(see its docstring for more details) did as that.
+implementing that feature, variable
+@samp{entropy/emacs-font-setting-enable} (see its docstring for more
+details) did as that.
+
+If @samp{entropy/emacs-font-setting-enable} is not used, you can set your
+own emacs font configuration in @samp{custom.el}. But a variable
+@samp{entropy/emacs-font-size-default} is always used in effective, it
+controls the eemacs global font height affected for all windows in the
+main frame whicn you focused on.
 
 @node Major modes for programming
 @section Major modes for programming
@@ -2074,34 +1912,34 @@ highlight and the 'xref' code defination jumping functional. Although
 it's the basic which doesn't upper to full sensitively cheerful user
 experience.
 
-@samp{entropy-emacs} using dozen melpa extensions to extending the
-presented major modes' feature for enhancing more and more modes
+@samp{entropy-emacs} using dozen of melpa extensions to extending the
+presented major modes' features for enhancing more and more modes
 experience individually. The main extending purpose was sticking on
 the coding completion, based on @uref{http://company-mode.github.io/, company-mode} which was the coding
 completion framework for any scences. As well, eachs major modes
-extending were including the coding interactive sth refer, coding
-folding and expanding uppon the region or pair punctuations are adding
-so, even for debug tool-chains.
+extending were including the coding interaction cases such as context
+folding and expanding uppon the regions or parentheses, and even for
+debug tool-chains.
 
-@samp{entropy-emacs} treats emacs as the IDE (i.e. integrated development
-environment), extended with third-party lanuage servers, with the
-quickly ripened opensource lanugue protocol @uref{https://github.com/microsoft/language-server-protocol, Microsoft language server}
-(LSP), we are trending to use the LSP as the IDE core component, its
-powerful with unified crossplatform protocol defination and ripened
-communitiy driven. But for those old IDE configuration
+@samp{entropy-emacs} treats emacs as the lightweight IDE (i.e. integrated
+development environment), extended with third-party lanuage servers,
+with the quickly ripened opensource lanugue protocol @uref{https://github.com/microsoft/language-server-protocol, Microsoft
+language server} (LSP), we are trending to use the LSP as the IDE core
+component, its powerful with unified crossplatform protocol defination
+and ripened communitiy driven. But for those old IDE configuration
 (i.e. individually un-unified code sever) were remained in
-@samp{entropy-emacs} and with full supported as before.
+@samp{entropy-emacs} with just limited supplement.
 
-The switcher for @samp{lsp} and the old IDE configuration is customized
-variable @samp{entropy/emacs-use-ide-type-for-MAJOR-MODE} whose valid
-values are 'lsp or 'traditional, where the 'MAJOR-MODE' place is
+The switcher for @samp{lsp} and the old IDE configuration is relying on
+customized variable @samp{entropy/emacs-use-ide-type-for-MAJOR-MODE} whose
+valid values are 'lsp or 'traditional, where the 'MAJOR-MODE' place is
 wildcards like, which case that if you want to use a LSP ide type for
 major-mode @samp{c-mode}, the corresponding customized variable is
 @samp{entropy/emacs-use-ide-type-for-c-mode} and manually set it to
-'traditional'. By defaultly the, we use LSP as for all major-modes.
+'traditional'. By default, we use LSP for all occasions.
 
-Follow sections given the description for each major modes which have
-been enhanced the extending feature details.
+Follow sections given the description for each major mode which have
+been enhanced for those IDE features.
 
 @menu
 * C and C++::
@@ -2140,7 +1978,7 @@ Use ide type customized variable: @samp{entropy/emacs-use-ide-type-for-[c/c++]-m
 @item
 @strong{Lsp-mode for cland eemacs configuration:}
 
-Common lsp-mode configuration.
+Common LSP configuration.
 
 @item
 @strong{irony-mode eemacs configuration:}
@@ -2159,7 +1997,7 @@ completions.
 w32 platform within @samp{entropy-emacs} (see project @uref{https://sourceforge.net/projects/entropy-emax64/, entropy-emax64} for
 details), but needed compiling manually on linux with dependencies
 installed e.g. cmake, clang @dots{} (We do not packing the server binary
-on linux because for ths platform across conflicated, thus x86 and
+on linux because for its platform across conflicts , thus x86 and
 arm or other cpu platform can not using the same binary.)
 @end itemize
 
@@ -2185,15 +2023,15 @@ Use ide type customized variable: @samp{entropy/emacs-use-ide-type-for-php-mode}
 
 @strong{Lsp-mode php-language-server eemacs configuration:}
 
-Common lsp-mode instruction
+Common LSP instruction.
 
 @strong{Ac-php eemacs configuration:}
 
-Php mode was derived from C-mode, familiar syntax-table and grammer
-refer so that the syntax highlight was not needed to extend.
+Php mode was derived from C-mode, similar syntax-table and grammer
+styple so that the syntax highlight was not needed to extend.
 
 The main extending for was coding completion, we using @samp{company-php}
-for giving thus. Binding with @samp{M-p} for activation.
+for giving thus feature.
 
 @node Html and Css
 @subsection Html and Css
@@ -2203,9 +2041,9 @@ Use ide type customized variable:
 @samp{entropy/emacs-use-ide-type-for-css-mode}.
 
 emacs internal default web front-end major modes html and css mode are
-user basically with simple func interactively support, we use melpa
-package @uref{http://web-mode.org, web-mode} for the enhancements for html group markup language
-but for css as.
+used as basically with simple function interactively support, we use
+melpa package @uref{http://web-mode.org, web-mode} for the enhancements for web technology coding
+context.
 
 web-mode provide sets of mordern features as for. Tag folding and
 expanding with @uref{https://github.com/smihica/emmet-mode, emmet-mode}'s abbrevation tag editting, giving the more
@@ -2215,10 +2053,11 @@ Our self built func @code{entropy/emacs-web-browse-web-buffer} can quickly
 browse the current html page out of using external browser for
 previewing as the way of quickly did.
 
-Both of html and css buffer can be tidy up with normally code style
-using @uref{https://github.com/yasuyk/web-beautify, web-beautify} package which required nodejs path searched and the
-npm refer packages installed or using the function @samp{lsp-format-buffer}
-when use ide type of LSP for those major-modes.
+Both of html and css buffer can be tidied up with conventionally code
+style using @uref{https://github.com/yasuyk/web-beautify, web-beautify} package which required node-js can be
+searched in PATH and the npm referred packages installed or using the
+command @samp{lsp-format-buffer} when use eemacs IDE type of LSP for those
+major-modes.
 
 @multitable {aaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaa}
 @headitem @strong{IDE type}
@@ -2244,10 +2083,9 @@ when use ide type of LSP for those major-modes.
 
 Use ide type customized variable: @samp{entropy/emacs-use-ide-type-for-js2-mode}.
 
-JS development IDE @uref{https://github.com/mooz/js2-mode/, js2-mode} was the one for given such as repl and
-syntax checking and morden syntax highlighting feature for js coding
-which used in @samp{entropy-emacs} for be replaced with origin js major
-mode.
+JS development major-mode @uref{https://github.com/mooz/js2-mode/, js2-mode} was the one for given such as repl
+morden syntax highlighting feature for javascript coding which used in
+@samp{entropy-emacs} for be replaced with origin @samp{js-mode}.
 
 @multitable {aaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaa}
 @headitem @strong{IDE type}
@@ -2294,18 +2132,19 @@ external browser tracking the response.
 
 @end quotation
 
-Full process enable just using one func calling @code{run-skewer},
-immediately then let your external browser directed to one page
-@uref{http://127.0.0.1:8080/skewer/demo} , this page was the one previewing
-all results generated by @samp{skewer-mode}.
+Full process enable just hinting the command @code{run-skewer},
+immediately then makeing your external browser open a newtab with
+address @uref{http://127.0.0.1:8080/skewer/demo} , this page was the one
+previewing all results generated by @samp{skewer-mode}.
 
-@samp{skewer-mode} support css well, for css html and javascript, it
-divided three minor-modes individually and functionally purpose as
-the list below:
+@samp{skewer-mode} support css well, for css html and javascript, its
+functionals are divided into three minor-modes individually and they
+are list as below:
 
 @example
-The keybindings for evaluating expressions in the browser are just
-like the Lisp modes. These are provided by the minor mode skewer-mode.
+The keybindings for evaluating expressions from emacs to the browser
+are just like did that for Lisp modes. These are provided by the minor
+mode skewer-mode.
 
 * C-x C-e: Evaluate the form before the point and display the result
  in the minibuffer. If given a prefix argument, insert the result into
@@ -2363,7 +2202,7 @@ When one folder structer list as:
 @end example
 
 Thus we can following few steps for previewing the @samp{index.html} and
-it's css file by @samp{impaitent-mode}, that's to say if you want the
+it's css file by @samp{impatient-mode}, that's to say if you want the
 index html file be rendered with all the references as above, you
 need to manually adding them into server by call @code{impatient-mode}.
 
@@ -2383,10 +2222,9 @@ html file as instead of css file at the same meaning.
 
 @strong{Limitations:}
 
-All the linkage file must under the same directory tree. Thus
-impatient-mode just the one for html design layout tool, otherwise
-for the meaning as just for the single file previewing as the css
-html js all in one embedding file as for.
+All the linkage file must be under the same directory tree. Thus
+@samp{impatient-mode} is just the one for html designation layout
+developments, or for demo previewing.
 @end itemize
 
 @node Python
@@ -2414,7 +2252,7 @@ We using emacs built-in major-mode @samp{python-mode} for coding python codes.
 @strong{python-mode eemacs specification}
 
 By defautly, we using @samp{python3} be the primary python shell, that it
-was the most recommendation for thus.
+was the most recommendation today.
 
 @node Packages enhancements and introduction
 @section Packages enhancements and introduction
@@ -2430,10 +2268,10 @@ was the most recommendation for thus.
 @subsection Ivy and Helm
 
 Ivy was emacs @samp{M-x} enhancements tool framework, it provides the
-feature of listing candidates with extra operation given.
+feature of listing candidates with extra functional supplied.
 
-The internal @samp{M-x} replacement is swiper, using the same keybinding as
-it but with the interactive interface visualized as:
+Ivy remap @samp{M-x} with @samp{swiper}, with the interactive interface
+visualized as:
 
 @example
 +-----------------------------------+
@@ -2457,10 +2295,11 @@ it but with the interactive interface visualized as:
 
 Aspect oriented for framework, ivy provides ability for building extra
 extension based the query promting listing sytle as upon , sets of
-presented feature going collection was @samp{counsel}.
+presented extra functionas are collected in melpa package @samp{counsel}.
 
 @samp{counsel} including commonly used tool e.g. @code{counsel-find-file}
-replaced @code{find-file}.
+replaced @code{find-file}, and more of the often used commands are
+described as below.
 
 @itemize
 @item
@@ -2472,29 +2311,29 @@ replaced @code{find-file}.
 
 @enumerate
 @item
-coiunsel-org-goto: searching Org outlines, located quickly.
+counsel-org-goto: searching Org outlines, located quickly.
 
 @item
 counsel-org-goto-all: searching all org buffers listing
 under current emacs session.
 @item
-counsel-org-capture: query selecting org capture templates.
+counsel-org-capture: query for selecting org capture templates.
 
 @item
-counsel-org-entity: query inserting entity char e.g. À ℘ δ π etc.
+counsel-org-entity: query for inserting entity char e.g. À ℘ δ π etc.
 @end enumerate
 
 @item
 couinsel-yank-pop group: similiar as @code{browse-kill-ring}.
 
 @item
-counsel-recentf: show and query for recent files opened.
+counsel-recentf: query for selecting recent opened files.
 
 @item
-counsel-ibuffer: ibuffer using ivy interface.
+counsel-ibuffer: @samp{ibuffer} with ivy interface.
 
 @item
-counsel-bookmark: bookmark chosen extended for
+counsel-bookmark: bookmark selecting extended with
 @code{bookmark-bmenu-list}, as it's quickly view port.
 
 @item
@@ -2502,11 +2341,12 @@ counsel-mark-ring: query selecting mark position.
 
 @item
 counsel-unicode-char: query insert unicode char with name
-specification e.g. 00000C FORM FEED (FF)
+charset point, convention name, display etc.
+(e.g. "00271D LATIN CROSS ✝")
 @end enumerate
 
 @item
-@strong{counsel system config:}
+@strong{counsel emacs utilities:}
 
 @enumerate
 @item
@@ -2532,12 +2372,6 @@ counsel-git-log: query git log quickly.
 @item
 counsel-company: using ivy interface to show company backends
 candidates.
-
-@quotation
-Notice: bug that can not cancel company-mode origin tooltip
-when @samp{C-g} for this command.
-
-@end quotation
 @end enumerate
 
 @item
@@ -2553,16 +2387,17 @@ Internal ivy-read-action has them:
 @item
 @samp{C-M m}
 
-Repeately selected candidates.
+Repeately selecting candidates (if the caller supports this feature).
 
 @item
 @samp{C-M j}
 
 Force executing operation with current input string.
 
-origin RET key will cover current inputs as instead of any
-matched candidate list with ivy interface, thus this action is
-feature as thus.
+origin RET key will cover current inputs with any matched
+candidate shown with face @samp{ivy-current-match}, this command make
+the whatever inputted as the chosen (for some @samp{require-match}
+specified caller, this command will be hinted with an warning).
 
 @item
 @samp{C-c C-o}
@@ -2570,61 +2405,67 @@ feature as thus.
 Collected all current candidate into the temporary buffer for be
 occurrence so.
 
+This command is useful for user to display all matched (or all
+candidates when no querying is happened) in one buffer with
+action binded (may not when the caller is not defined by @samp{ivy} as
+it is purely using @samp{completing-read}) in which case that we can
+read, query or save the results.
+
 @item
 @samp{M-o}
 
-Expand listing other specific extra actions.
+Listing other specific extra actions.
 
-This action was the leader for other internal extra actions and
-user specifications did as, the defination former for thus can be
-using the demo as @code{counsel-describe-face}:
+This command was the dispatcher for caller specfied extra actions
+and user specified ones, the defination former for thus can be
+exhibited as one demo which @code{counsel-describe-face} coded for:
 @lisp
 (ivy-set-actions
  'counsel-describe-variable
  '(("I" counsel-info-lookup-symbol "info")
    ("d" counsel--find-symbol "definition")))
 @end lisp
+
+@item
+@samp{C-o}
+
+Show generally operation specifications of ivy for current
+caller. Which is a @samp{ivy} defined @strong{hydra} dispatcher used to
+charge the optional customizations for this ivy invocation.
 @end enumerate
 @end itemize
 
 
-
-@uref{https://emacs-helm.github.io/helm/, Helm} was the another one extension similiar with ivy did, but with
-more powerful. We do not using it by default because it's heavy volumn
-as for. But we using other minor tool based on it e.g. @uref{https://github.com/syohex/emacs-helm-ag, helm-ag} which
-binded to @samp{C-c j}.
+@uref{https://emacs-helm.github.io/helm/, Helm} was the another one extension similiar with what @samp{ivy} did, but
+with more powerful. We do not using it by default because it's huge
+size of source code which indicates its complication just in my sense
+and most of new decades' emacsers. But we using other minor tool based
+on it e.g. @uref{https://github.com/syohex/emacs-helm-ag, helm-ag} which binded to @samp{C-c j}.
 
 @node Emacs-W3m
 @subsection Emacs-W3m
 
-Emacs internal browser eww was pure and enough for simple text web
-browing using as. we also combine @samp{emacs-w3m} into @samp{entropy-emacs} for
-providing full rich browsing experience for terminal or for keeping
-the using feeling constant full with emacs as well.
-
-@quotation
-One reason for doing this was that emacs now can not retrieving https
-content using the external proxy.
-
-@end quotation
+Emacs internal browser @samp{eww} was pure and enough for simple text web
+browing using as. we also combine @uref{https://github.com/emacs-w3m/emacs-w3m, emacs-w3m} into @samp{entropy-emacs} for
+providing fully featured text based browser travelling experience.
 
 The origin keybindings and UI default setting for emacs-w3m was minor
 strange as so, we hacking thus for:
 
 @itemize
 @item
-UI reconfig
+UI reconfiguration
 @item
-Adding external browser quickly going for by keybinding @samp{B}.
+Quickly view current page with external browser by keybinding @samp{B}.
 @item
 Automatically proxy with specific rule setting.(using feature powerd
 by @uref{https://github.com/c0001/entropy-proxy-url, entropy-proxy-url})
 @end itemize
 
-For using @samp{emacs-w3m} you need the external cli programe w3m
-installed, see the w3m home page @uref{http://w3m.sourceforge.net/}.
+For using @samp{emacs-w3m} you need the external command line programe
+@samp{w3m} installed, see the its home page @uref{http://w3m.sourceforge.net/}.
 
-And onekey for open it with @samp{M-x w3m}. Go go go @dots{}
+Type @samp{M-x w3m} to travelling for.
 
 @node Elfeed
 @subsection Elfeed
@@ -2634,80 +2475,57 @@ Did you thought about for feeding rss rely on emacs only?
 Melpa package @uref{https://github.com/skeeto/elfeed, elfeed} given the try for. The only operation you need to
 do is calling @samp{M-x elfeed} thus as.
 
-Elfeed was the rss feeds viewing, management program written of elisp,
-the only alternative external requirements is 'curl', which for push
-the feeds retrieving task for subprocess for reducing emacs self
-performance consumption.
+Elfeed was the rss feeds viewing, management program written by purely
+emacs lisp, the only alternative external dependence is @uref{https://github.com/curl/curl, curl}, which is
+used for pushing the feeds retrieving task for emacs subprocess for
+reducing emacs self performance consumption.
 
-origin elfeeds feeds naming string querying searching support was not
-support cjk unicode as, we given the try for hacking with by using
-self built func @code{entropy/emacs-tools-elfeed-filter-by-tag}, as more
-hacking see below:
+@samp{entropy-emacs} hacking on @samp{elfeed} for adding more conventional
+features.
 
 @itemize
 @item
-Feature adding of searching feed according to feed title
-name. Binding to @samp{A}.
+Search feeds according to feed title and tags.
 
 @item
-Tag filter with query promting, binding to @samp{B}.
+Filter feeds according to resources and tags.
 
 @item
 Auto rename feed-title with hyphenation '-'.
 
 This is for fixing the problem by feed title name with space that
-can not be detective by origin internal funcs.
+can not be detective by origin internal mechanism.
 
 @item
-Repeatly removing feeds.
+Repeatly removing feeds. (using @samp{ivy} interface)
 
 @item
 Update feeds using proxy.
-
-Through manually setting proxy config through custom variable
-@samp{entropy/emacs-elfeed-proxyfeeds-regexp-list}. (with prompt for
-input as @uref{http://127.0.0.1:1080})
-
-Proxy updating with three methods:
-
-@enumerate
-@item
-using manually feeds selecting by
-@code{entropy/emacs-tools-elfeed-update-proxy}.
-@item
-update feeds with regexp matching by
-@code{entropy/emacs-tools-elfeed-update-proxyfeeds-regexp-match}.
-@item
-upate all null feeds (without and entries obtained yet), using
-@code{entropy/emacs-tools-elfeed-proxy-update-all-nil-feeds}.
-@end enumerate
 @end itemize
 
 All the feeds filter can be reset with short cut @samp{S}.
 
 @node Gnus
-@subsection Gnus
+@subsection @strong{TODO} Gnus
 
-For now, we just given gnus simply try with the local file directory
-location config with one custom variable
-@samp{entropy/emacs-gnus-init-config} try see coding snippet for the
-details.
+For now, we just given @uref{https://www.gnus.org/, gnus} a simply try with the local
+files/directories unified customization, by one custom variable
+@samp{entropy/emacs-gnus-init-config}. See coding snippet for the details.
 
 @node Emacs on windows
 @section Emacs on windows
 
-Emacs was originally built for gnu/linux, compatible with UNIX-like
+Emacs was originally built for GNU/Linux, compatible with UNIX-like
 OS@. Windows port was built for be as the reason by:
 @quotation
 We support GNU Emacs on proprietary operating systems because we hope
 this taste of freedom will inspire users to escape from them.
 
-excerpt from:
-@uref{https://www.gnu.org/software/emacs/manual/html_node/emacs/Microsoft-Windows.html#Microsoft-Windows}
+excerpt from @uref{https://www.gnu.org/software/emacs/manual/html_node/emacs/Microsoft-Windows.html#Microsoft-Windows, here}.
 
 @end quotation
 
-'Taste' notice for, but more than this prudent meaning.
+@strong{Taste} notice for, but more than this prudent meaning.
 
 I thought the reason for 'taste' annotaion quoting for this as the
 declaration was that WINDOWS was designed by the different tree fork
@@ -2715,15 +2533,15 @@ sibling as the rebeler against UNIX@. Thus the OS internal process
 mechnism was not full compat with the origin emacs design conceptual.
 
 But, actually I am one emacser port on w32. Mine experience was fully
-sensitive acquiring the almost fully features covered as on linux,
-just with some explicit non-compatible feature which came from the OS
-feature forking on. One of them was shell interface bash intern and
-the rest was some feature's bug caused by the w32 api iteration.
+sensitive acquiring the almost features covered as on linux, just with
+some explicit non-compatible feature which came from the OS feature
+tied on. One of them was POSIX shell interaction and the rest was some
+feature's bug caused by the w32 api iteration.
 
 Although, the hacking for emulating the whole linux emacs using
-environment by us was not full featured as, but I thoughts following
-WINDOWS emacs using was enough for daily using just with minor trouble
-for.
+environment by us was hard and without robust guarantees, but I
+thoughts following WINDOWS emacs using was enough for daily using just
+with minor trouble for.
 
 @menu
 * Bash and unix tool chains for windows::
@@ -2755,14 +2573,13 @@ internally built which can auto re-set before emacs started.
 The portale of emacs config was depent on the config folder portable
 refer setting, i.e. HOME path portale specification. You can using
 those two variable to be the bridge to directed to the home path using
-the elisp code indicating:
+the elisp code illustrated as:
 @lisp
 (defvar device-root (concat (substring invocation-directory 0 -11) "Msys2/"))
 (setenv "HOME" (expand-file-name (concat device-root "portable-HOME")))
 @end lisp
 
-As so, this config demo can be extending for each portable path
-setting.
+As so, this demo can be extended for any portable path setting.
 
 @node Notice for key touching on windows
 @subsection Notice for key touching on windows
