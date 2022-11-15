@@ -1111,8 +1111,39 @@ frame as that will cause error."
 ;; ******* core patch
 ;; ******** unified core patch
 
-  (defvar-local __local-company-box-doc-hided nil
-    "indicator for whether is company-box-doc frame hiden.")
+  (defvar entropy/emacs-company-box-silent-error-log nil)
+  (defun entropy/emacs-company--cmpbox-silent-error (fmtstr &rest args)
+    (let ((msg (format-message fmtstr args)))
+      (push (cons (format-time-string "[%Y-%m-%d %a %H:%M:%S]")
+                  msg)
+            entropy/emacs-company-box-silent-error-log)
+      (message "%s" msg)))
+  (eval-and-compile
+    (defmacro entropy/emacs-company--cmpbox-with-demoted-errors
+        (format &rest body)
+      "Same as `with-demoted-errors' with use
+`entropy/emacs-company--cmpbox-silent-error' instead of `message'
+as subroutine."
+      (declare (debug t) (indent 1))
+      (let* ((err (make-symbol "err"))
+             (orig-body body)
+             (format (if (and (stringp format) body) format
+                       (prog1 "Error: %S"
+                         (if format (push format body)))))
+             (exp
+              `(condition-case-unless-debug ,err
+                   ,(macroexp-progn body)
+                 (error (entropy/emacs-company--cmpbox-silent-error ,format ,err)
+                        nil))))
+        (if (eq orig-body body) exp
+          ;; The use without `format' is obsolete, let's warn when we bump
+          ;; into any such remaining uses.
+          (macroexp-warn-and-return "Missing format argument" exp nil nil format)))))
+
+  (defvar __company-box-doc-hided-p nil)
+  (defvar __company-box-doc-need-force-hide-p nil)
+  (defvar __company-box-main-frame-hided-p nil)
+  (defvar __company-box-main-frame-need-force-hide-p nil)
 
 ;; ********* set child frame indicator
   (defun __company-box-make-child-frame-with-frame-indicator
@@ -1154,7 +1185,7 @@ indicator as its `frame-parameter'."
       (and (framep doc-frame)
            (frame-live-p doc-frame)
            (delete-frame doc-frame t)))
-    (setq __local-company-box-doc-hided nil)
+    (setq __company-box-doc-hided-p nil)
     (frame-local-setq company-box-frame nil)
     (frame-local-setq company-box-doc-frame nil))
 
@@ -1213,7 +1244,8 @@ as an scroll lagging reason when toggle on `company-box-doc-enable'.
 EEMACS_MAINTENANCE: need patching updately with `company-box'
 upstream."
     (when-let* ((company-box-doc-enable))
-      (unless __local-company-box-doc-hided
+      (unless (or __company-box-doc-need-force-hide-p
+                  __company-box-doc-hided-p)
         (let ((doc-frame
                (frame-local-getq company-box-doc-frame
                                  frame)))
@@ -1224,7 +1256,7 @@ upstream."
                      ;; to ensuer is not the root frame
                      (framep (frame-parent doc-frame)))
             (make-frame-invisible doc-frame))
-          (setq __local-company-box-doc-hided t)))
+          (setq __company-box-doc-hided-p t)))
       (when (timerp company-box-doc--timer)
         (cancel-timer company-box-doc--timer)
         (cancel-function-timers '__company-box-doc-show-timer-func)
@@ -1239,16 +1271,17 @@ upstream."
   (defun __local-company-box-doc-hided-rest
       (orig-func &rest orig-args)
     (let ((rtn (apply orig-func orig-args)))
-      (setq __local-company-box-doc-hided nil)
+      (setq __company-box-doc-hided-p nil)
       rtn))
   (advice-add 'company-box-doc--show
               :around #'__local-company-box-doc-hided-rest)
 
   (defun __company-box-doc-hide--with-local-judge
       (orig-func &rest orig-args)
-    (unless __local-company-box-doc-hided
+    (unless (or __company-box-doc-need-force-hide-p
+                __company-box-doc-hided-p)
       (let ((rtn (apply orig-func orig-args)))
-        (setq __local-company-box-doc-hided t)
+        (setq __company-box-doc-hided-p t)
         rtn)))
   (advice-add 'company-box-doc--hide
               :around
@@ -1269,6 +1302,57 @@ while in `company-box-mode'."
             #'entropy/emacs-company-box-hide-on-the-fly)
 
 ;; ******** company box main core patch
+;; ********* company box hide/show patch
+
+  (defun __ya/company-box-hide/light-ver (&optional no-run-hook)
+    "light version of `company-box-hide' but without make frame
+invisible.
+
+This function exists since we want to let company-box known that the
+frame is hided so that it can create new frame position cache without
+collisions caused by eemacs company's idle port modification and
+reducing lag caused by `make-frame-invisible'."
+    ;; EEMACS_MAINTENANCE: follow `company-box-hide's updates
+    (setq company-box--bottom nil
+          company-box--x nil
+          company-box--prefix-pos nil
+          company-box--last-start nil
+          company-box--edges nil)
+    ;; we should do this since this is a fake hiding method
+    (setq __company-box-main-frame-hided-p nil)
+    (with-current-buffer (company-box--get-buffer)
+      (setq company-box--last-start nil))
+    (remove-hook 'window-scroll-functions 'company-box--handle-scroll-parent t)
+    (unless no-run-hook
+      (run-hook-with-args
+       'company-box-hide-hook
+       (or (frame-parent) (selected-frame)))))
+
+  (defun __ya/company-box-hide (orig-func &rest orig-args)
+    (when (or __company-box-main-frame-need-force-hide-p
+              (not __company-box-main-frame-hided-p))
+      (prog1
+          (apply orig-func orig-args)
+        (setq __company-box-main-frame-hided-p t)
+        (if __company-box-main-frame-need-force-hide-p
+            (let ((__company-box-doc-need-force-hide-p t))
+              (company-box-doc--hide))))))
+  (advice-add 'company-box-hide :around #'__ya/company-box-hide)
+
+  (defun __ya/company-box-show (orig-func &rest orig-args)
+    (unless __company-box-main-frame-hided-p
+      (__ya/company-box-hide/light-ver))
+    ;; NOTE: we should whatever do this firstly since for preventing
+    ;; messy.
+    (setq __company-box-main-frame-hided-p nil)
+    (apply orig-func orig-args))
+  (advice-add 'company-box-show :around #'__ya/company-box-show)
+
+  (defun __company-box-main-frame-displayed-flag-set (&rest _)
+    (setq __company-box-doc-hided-p nil))
+  (dolist (func '(company-box--update company-box--select-mouse))
+    (advice-add func :after #'__company-box-main-frame-displayed-flag-set))
+
 ;; ******* frame hide/show robust
 
   (defun __ya/company-box-hide-or-show/robust (orig-func &rest orig-args)
@@ -1277,27 +1361,38 @@ while in `company-box-mode'."
           (apply orig-func orig-args)
         (error
          (let ((inhibit-quit t))
-           ;; EEMACS_MAINTENANCE: follow upstream updates
-           (remove-hook 'window-scroll-functions 'company-box--handle-scroll-parent t)
-           (setq company-box--bottom nil
-                 company-box--x nil
-                 company-box--prefix-pos nil
-                 company-box--last-start nil
-                 company-box--edges nil)
-           (ignore-errors
+           (entropy/emacs-company--cmpbox-with-demoted-errors
+               "[__ya/company-box-hide-or-show/robust internal] [1] %S"
+             (__ya/company-box-hide/light-ver t))
+           (entropy/emacs-company--cmpbox-with-demoted-errors
+               "[__ya/company-box-hide-or-show/robust internal] [2] %S"
              (when (fboundp 'company-box--get-buffer)
                (let ((buff (company-box--get-buffer)))
                  (with-current-buffer buff
                    (setq company-box--last-start nil)))))
            (entropy/emacs-company--cmpbox-del-frames)
-           (company-abort)
-           (user-error "[company-box hide/show] error: %S" err))))))
+           (dolist (var '(__company-box-doc-hided-p __company-box-main-frame-hided-p))
+             (set var nil))
+           (entropy/emacs-company--cmpbox-with-demoted-errors
+               "[__ya/company-box-hide-or-show/robust internal] [3] %S"
+             (dolist (buff (buffer-list))
+               (with-current-buffer buff
+                 (when (and (entropy/emacs-operation-status/running-auto-completion-op-p)
+                            (memq 'company-box-frontend company-frontends))
+                   (company-abort)))))
+           (entropy/emacs-company--cmpbox-silent-error
+            "[company-box hide/show] error: %S" err))))))
   (dolist (func '(company-box-hide
                   company-box-show
                   company-box--update
                   company-box--move-selection
                   company-box-doc--show
-                  company-box-doc--hide))
+                  company-box-doc--hide
+                  ;; the internal handles
+                  company-box--handle-scroll
+                  company-box--handle-window-changes
+                  company-box--handle-scroll-parent
+                  company-box--handle-theme-change))
     (advice-add func
                 :around #'__ya/company-box-hide-or-show/robust))
 
