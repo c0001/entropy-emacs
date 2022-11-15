@@ -153,9 +153,11 @@ Created by `entropy/emacs-company--make-auto-handy-backend'."
 yasnippet support *locally*."
   (entropy/emacs-company--set-backends
    '(company-yasnippet
-     company-dabbrev
+     ;; we should make spell candis take prior before dabbrev backend
+     ;; since this is used for documentation mode.
+     company-en-words
      :separate
-     company-en-words)))
+     company-dabbrev)))
 
 (defun entropy/emacs-company-yas-for-docs-init ()
   (let (funcs)
