@@ -1,5 +1,9 @@
+# -*- mode: org; -*-
 #+title: entropy-emacs bugs collection
 #+author: Entropy
+#+option: auto-id:t
+#+attr_org: :width 300px
+#+attr_html: :width 300px
 
 The bug collection for emacs recoreded for =entropy-emacs=.
 
@@ -1318,6 +1322,51 @@ release.
 
   This bug may caused by duplicated company frontend perfoming
   invocation.
+
+- [2022-11-16 Wed 14:33:01]
+
+  This bug may be a emacs-29.0.50 dev bug since the error happened
+  wherever I hinted in as randomly both of daemon and common gui
+  session with gtk built with.
+
+  The debugger backtrace catched up both of ~window-in-direction~ and
+  ~posn-at-point~ as:
+
+  #+begin_example
+    Debugger entered--Lisp error: (circular-list (("29.0.50") . #2))
+      window-in-direction(up nil nil nil nil t)
+      windmove-find-other-window(up nil nil)
+      windmove-do-window-select(up nil)
+      windmove-up()
+      entropy/emacs-basic-windmove-up-cycle()
+      funcall-interactively(entropy/emacs-basic-windmove-up-cycle)
+      command-execute(entropy/emacs-basic-windmove-up-cycle)
+
+    Debugger entered--Lisp error: (circular-list (("29.0.50") . #2))
+      posn-at-point()
+      eval-expression((posn-at-point) nil nil 127)
+      funcall-interactively(eval-expression (posn-at-point) nil nil 127)
+      command-execute(eval-expression)
+
+    Debugger entered--Lisp error: (circular-list (("29.0.50") . #2))
+      scroll-up(nil)
+      scroll-up-command(nil)
+      scroll-other-window(nil)
+      funcall-interactively(scroll-other-window nil)
+      command-execute(scroll-other-window)
+
+  #+end_example
+
+  I have found the trigger as described before in =company-mode=
+  interaction with using =company-box= as frontend. But today I
+  encounter that with invocation of =rg= and =helm= while their
+  candidates exhibition buffer displayed as a wired visual style and
+  =windmove= commands can not used. The found of =helm= also triggered
+  this bug after the =rg= bug throwed out already and do for it is for
+  that sake for individually testing, thus the bug occurrence of
+  =helm= may caused by =rg='s presented influences, but other buffer
+  display and jump has no bugs in which case I assume that =rg= and
+  =helm= may has similar inner procedure which caused the same deep.
 
 * COMMENT Local Varaibles
 :PROPERTIES:
