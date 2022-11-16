@@ -618,7 +618,7 @@ window removed since we just need one welcom buffer."
     (entropy/emacs-ui--init-welcom-init-core)))
 
 ;; *** emacs dashboard
-
+(defvar dashboard-buffer-name)
 (defvar dashboard-init-info)
 (defvar dashboard-navigator-buttons)
 (defvar dashboard-startup-banner)
@@ -702,37 +702,52 @@ window removed since we just need one welcom buffer."
       (setq dashboard-set-heading-icons t)
       (setq dashboard-set-file-icons t))
     (dashboard-insert-startupify-lists)
+    ;; FIXME: why this is not enough? (i.e. still remained after init)
+    (remove-hook 'window-size-change-functions 'dashboard-resize-on-hook)
     (let ((win (or (get-buffer-window entropy/emacs-init-welcome-buffer-name)
-                   (error "eemacs internal fatal of no welcom buffer window getted"))))
-      (set-window-buffer
-       win
-       "*dashboard*")
+                   (error "eemacs internal fatal of no welcom buffer window getted")))
+          (dbuff (or (get-buffer dashboard-buffer-name)
+                     (error "eemacs internal fatal of failed init dashboard buffer"))))
+      (set-window-buffer win dbuff)
       (with-selected-window win
         (goto-char (point-min))
         (hl-line-mode 1)))
+    ;; FIXME:
     ;; kill dashboard org pre load opened buffers for let them
     ;; encounter rest org specification in `entropy-emacs-org.el'
-    (mapc
-      (lambda (buffer)
-        (with-current-buffer buffer
-          (when (eq major-mode 'org-mode)
-            (kill-buffer buffer))))
-      (buffer-list))
+    (let (kill-buffer-hook)
+      (mapc
+       (lambda (buffer)
+         (with-current-buffer buffer
+           (when (eq major-mode 'org-mode)
+             (kill-buffer buffer))))
+       (buffer-list)))
     ;; (redisplay t)
     )
 
-  (let (_)
-    (entropy/emacs-add-hook-with-lambda 'rich-dashboard-init
-      (&rest _)
-      "Initialize eemacs specified `dashboard' configs and its UI."
-      ;; we must inject it after startup since it may cause some
-      ;; features load at eemacs init time where all lazy config are
-      ;; not allowed to run in, so that some collisions may happened.
-      :use-hook 'entropy/emacs-after-startup-hook
-      :use-append t
-      (entropy/emacs-rich-dashboard-init)
-      (add-hook 'window-size-change-functions
-                'dashboard-resize-on-hook))))
+  (defun __eemacs/remove-dashboard-messy-injection (&rest _)
+    (remove-hook 'window-size-change-functions 'dashboard-resize-on-hook)
+    (when-let ((dbuff (get-buffer dashboard-buffer-name)))
+      (with-current-buffer dbuff
+        (remove-hook 'window-size-change-functions 'dashboard-resize-on-hook t)
+        (when (eq major-mode 'dashboard-mode)
+          (add-hook 'window-size-change-functions 'dashboard-resize-on-hook
+                    nil t)))))
+  (advice-add 'dashboard-mode :after #'__eemacs/remove-dashboard-messy-injection)
+
+  (entropy/emacs-add-hook-with-lambda 'rich-dashboard-init
+    (&rest _)
+    "Initialize eemacs specified `dashboard' configs and its UI."
+    ;; we must inject it after startup since it may cause some
+    ;; features load at eemacs init time where all lazy config are
+    ;; not allowed to run in, so that some collisions may happened.
+    :use-hook 'entropy/emacs-after-startup-hook
+    :use-append t
+    (entropy/emacs-rich-dashboard-init)
+    (run-with-idle-timer
+     0.1 nil #'__eemacs/remove-dashboard-messy-injection))
+
+  )
 
 ;; ** Frame spec
 ;; *** Title
