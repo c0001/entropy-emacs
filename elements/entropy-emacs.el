@@ -208,6 +208,15 @@ nil otherwise."
              (advice--cd*r (advice--symbol-function func)))
 	func)))
 
+;; `compiled-function-p' is new with emacs-29, thus we should backport
+;; it to lower emacs version.
+(unless (fboundp 'compiled-function-p)
+  (defun compiled-function-p (object)
+    "Return non-nil if OBJECT is a function that has been compiled.
+Does not distinguish between functions implemented in machine code
+or byte-code."
+    (or (subrp object) (byte-code-function-p object))))
+
 (defun entropy/emacs-child-frame-p (&optional frame)
   "Return FRAME's parent frame if it is a child-frame (See Info node
 `(elisp) Child Frames' for what is child-frame), nil if it is not
