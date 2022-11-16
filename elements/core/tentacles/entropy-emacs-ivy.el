@@ -264,37 +264,41 @@ upstream and may be make risky follow the ivy updates.
     "The override advice for `ivy--queue-exhibit' to exhibit the
 canidates idle after input event done by 0.2 seconds."
     (setq __idle/ivy-queue-exhited-done nil)
-    (if (and (> ivy-dynamic-exhibit-delay-ms 0)
-             (not (entropy/emacs-ivy-patch/inhibit-dynamic-exhibit-p))
-             (ivy-state-dynamic-collection ivy-last))
-        (progn
-          (entropy/emacs-cancel-timer-var ivy--exhibit-timer)
-          (setq ivy--exhibit-timer
-                (run-with-timer
-                 (/ ivy-dynamic-exhibit-delay-ms 1000.0)
-                 nil
-                 (lambda ()
-                   "timer idle show ivy candis and set the the
+    (let ((eemacs-dym-p (not (entropy/emacs-ivy-patch/inhibit-dynamic-exhibit-p)))
+          (ivy-dym-p (ivy-state-dynamic-collection ivy-last)))
+      (if (and eemacs-dym-p ivy-dym-p
+               (> ivy-dynamic-exhibit-delay-ms 0))
+          (progn
+            (entropy/emacs-cancel-timer-var ivy--exhibit-timer)
+            (setq ivy--exhibit-timer
+                  (run-with-timer
+                   (/ ivy-dynamic-exhibit-delay-ms 1000.0)
+                   nil
+                   #'(lambda ()
+                       "timer idle show ivy candis and set the the
 queue done flag exposed to `ivy-done' idle trigger judger."
-                   (ivy--exhibit)
-                   (setq __idle/ivy-queue-exhited-done t)))))
-      (if (and (memq   this-command '(self-insert-command
-                                      ivy-backward-delete-char
-                                      ivy-backward-kill-word
-                                      ivy-forward-char
-                                      backward-char))
-               ;; Using orig func when the dynamic caller is on since
-               ;; `entropy/emacs-ivy-patch/inhibit-dynamic-exhibit-p'
-               ;; inhbit the dynamic but we should respect the
-               ;; behavior as the origin func with customized as
-               ;; setting `ivy-dynamic-exhibit-delay-ms' is 0 (i.e. no
-               ;; dynamic to trigger).
-               (not (ivy-state-dynamic-collection ivy-last))
-               ;; TODO: more conditions here
-               )
-          (funcall __ya/ivy--queue-exhibit/idle-func)
-        (ivy--exhibit)
-        (setq __idle/ivy-queue-exhited-done t))))
+                       (prog1 (ivy--exhibit)
+                         (setq __idle/ivy-queue-exhited-done t))))))
+        (if (and
+             ;; Using orig func when the dynamic caller is on since
+             ;; `entropy/emacs-ivy-patch/inhibit-dynamic-exhibit-p'
+             ;; inhbit the dynamic but we should respect the
+             ;; behavior as the origin func with customized as
+             ;; setting `ivy-dynamic-exhibit-delay-ms' is 0 (i.e. no
+             ;; dynamic to trigger).
+             (not ivy-dym-p)
+             (and
+              eemacs-dym-p
+              (memq this-command '(self-insert-command
+                                   ivy-backward-delete-char
+                                   ivy-backward-kill-word
+                                   ivy-forward-char
+                                   backward-char)))
+             ;; TODO: more conditions here
+             )
+            (funcall __ya/ivy--queue-exhibit/idle-func)
+          (ivy--exhibit)
+          (setq __idle/ivy-queue-exhited-done t)))))
 
   (advice-add 'ivy--queue-exhibit :override #'__ya/ivy--queue-exhibit)
 
@@ -401,6 +405,34 @@ large buffer."
               :around
               #'__ya/ivy-thing-at-point)
 
+
+;; **** TODO `ivy--dynamic-collection-cands' bugs notation
+
+;; For `swiper-isearch', `ivy--dynamic-collection-cands's error part
+;; will be triggerred for as my "fixme" part description:
+;; #+begin_src elisp
+;;   (defun ivy--dynamic-collection-cands (input)
+;;     (let ((coll (condition-case nil
+;;                     (funcall (ivy-state-collection ivy-last) input)
+;;                   (error
+;;                    ;; FIXME: why ivy pass three args that func as that
+;;                    ;; the above normal invocation is just use one, does
+;;                    ;; its a protol for &rest'?
+;;                    ;;
+;;                    ;; if not, then this is horrible since both of the
+;;                    ;; expection and the error debugging information is
+;;                    ;; messed up.
+;;                    (funcall (ivy-state-collection ivy-last) input nil nil)))))
+;;       (if (listp coll)
+;;           (mapcar (lambda (x) (if (consp x) (car x) x)) coll)
+;;         coll)))
+;; #+end_src
+;; Thus for `swiper-isearch-function' will throw the
+;; `wrong-type-arguments' error since it just declared as accepting
+;; one arg.
+
+
+;; **** __end___
   )
 
 ;; ** ivy hydra
@@ -428,7 +460,9 @@ large buffer."
 
   :bind (("C-M-s" . swiper-all)
          :map swiper-map
-         ("M-q" . swiper-query-replace))
+         ("M-q" . swiper-query-replace)
+         :map ivy-minibuffer-map
+         ("M-p" . entropy/emacs-basic-pyim-toggle-cregexp-ivy-enable))
 
 ;; *** init
   :init
@@ -881,7 +915,7 @@ latin inputs as pyinyin query."
     (interactive)
     ;; enable chinese pyinyin search support
     (when current-prefix-arg
-      (entropy/emacs-basic-pyim-enable-ivy-regexp)
+      (entropy/emacs-basic-pyim-enable-cregexp-ivy)
       (entropy/emacs-basic-pyim-pre-disable-ivy-regexp-for-minibuffer))
     (if (or (not buffer-file-name)
             (buffer-narrowed-p)
