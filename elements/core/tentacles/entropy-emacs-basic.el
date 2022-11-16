@@ -5665,6 +5665,44 @@ by run command \"make liberime\" in eemacs root place")
   :ensure nil
   :commands (pyim-basedict-enable))
 
+(use-package pyim-cregexp-utils
+  :ensure nil
+  :commands (pyim-isearch-mode
+             entropy/emacs-basic-pyim-enable-ivy-regexp
+             entropy/emacs-basic-pyim-disbale-ivy-regexp)
+  :eemacs-functions (pyim-cregexp-ivy
+                     entropy/emacs-basic-pyim-pre-disable-ivy-regexp-for-minibuffer)
+  :config
+  (defvar entropy/emacs-basic--pyim-orig-ivy-rebalist nil)
+  (defvar __eemacs/pyim-ivy-rebalist '((t . pyim-cregexp-ivy)))
+  (defun entropy/emacs-basic-pyim-disbale-ivy-regexp nil
+    (interactive)
+    (let ((inhibit-quit t))
+      (when (and entropy/emacs-basic--pyim-orig-ivy-rebalist
+                 (eq ivy-re-builders-alist __eemacs/pyim-ivy-rebalist))
+        (setq ivy-re-builders-alist
+              entropy/emacs-basic--pyim-orig-ivy-rebalist))))
+
+  (defun __eemacs/pyim-disable-ivy-regexp-with-remove-minibuffer-hook nil
+    (let ((inhibit-quit t))
+      (entropy/emacs-basic-pyim-disbale-ivy-regexp)
+      (remove-hook
+       'minibuffer-exit-hook
+       #'__eemacs/pyim-disable-ivy-regexp-with-remove-minibuffer-hook)))
+  (defun entropy/emacs-basic-pyim-pre-disable-ivy-regexp-for-minibuffer nil
+    (add-hook
+     'minibuffer-exit-hook
+     #'__eemacs/pyim-disable-ivy-regexp-with-remove-minibuffer-hook))
+
+  (defun entropy/emacs-basic-pyim-enable-ivy-regexp nil
+    (interactive)
+    (unless (eq ivy-re-builders-alist __eemacs/pyim-ivy-rebalist)
+      (setq entropy/emacs-basic--pyim-orig-ivy-rebalist
+            ivy-re-builders-alist))
+    (setq ivy-re-builders-alist __eemacs/pyim-ivy-rebalist)
+    (message "pyim ivy regexp enabled, \
+use `entropy/emacs-basic-pyim-disbale-ivy-regexp' to disable it.")))
+
 ;; ******* simple chinese to traditional chinese
 (use-package entropy-s2t
   :ensure nil

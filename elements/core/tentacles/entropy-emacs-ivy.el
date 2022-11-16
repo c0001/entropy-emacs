@@ -873,17 +873,27 @@ casue some error in eemacs-specification."
 
   (defun __ya/counsel-grep-or-swiper (&optional initial-input)
     "Call `swiper-isearch' for small buffers and `counsel-grep' for large ones.
-When non-nil, INITIAL-INPUT is the initial search pattern."
+When non-nil, INITIAL-INPUT is the initial search pattern.
+
+When `current-prefix-arg' is non-nil then enable `pyim-cregexp-ivy' as
+the main regexp builder, therefore we can search chinese chars with
+latin inputs as pyinyin query."
     (interactive)
+    ;; enable chinese pyinyin search support
+    (when current-prefix-arg
+      (entropy/emacs-basic-pyim-enable-ivy-regexp)
+      (entropy/emacs-basic-pyim-pre-disable-ivy-regexp-for-minibuffer))
     (if (or (not buffer-file-name)
             (buffer-narrowed-p)
-            (ignore-errors
-              (file-remote-p buffer-file-name))
-            (jka-compr-get-compression-info buffer-file-name)
+            (and buffer-file-name
+                 (file-remote-p buffer-file-name))
+            (and buffer-file-name
+                 (jka-compr-get-compression-info buffer-file-name))
             (funcall counsel-grep-use-swiper-p))
         (swiper-isearch initial-input)
       (when (and (buffer-modified-p)
-                 (file-writable-p buffer-file-name)
+                 (and buffer-file-name
+                      (file-writable-p buffer-file-name))
                  (or
                   (yes-or-no-p "Save buffer before `counsel-grep'?")
                   (user-error "Abort!")))
