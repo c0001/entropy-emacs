@@ -153,9 +153,6 @@ determined by above variable you setted."
            (not (daemonp)))
 
 ;; **** varaible defination
-  (defvar entropy/emacs-ui--init-welcom-last-width nil
-    "Remain the window size of previous (the last) buffer
-    `entropy/emacs-init-welcome-buffer-name''s widnow.")
   (defvar entropy/emacs-ui--init-welcom-width (window-width)
     "Default entropy emacs initial dashboard width. ")
 
@@ -481,14 +478,16 @@ text logo module was one plist which has three keys:
          rtn))
       rtn))
 
-  (defun entropy/emacs-ui--init-welcom-initial-buffer ()
+  (defun entropy/emacs-ui--init-welcom-initial-buffer (&optional use-buffer)
     "Create entroy-emacs initial buffer.
 
 First insert entropy-emacs logo into initial buffer
 `entropy/emacs-init-welcome-buffer-name', and then insert 'welcom' title
 and entropy-emacs version with tag description. Last to insert
 widget used func `entropy/emacs-ui--init-welcom-create-widget'."
-    (let ((buffer (get-buffer-create entropy/emacs-init-welcome-buffer-name))
+    (let ((buffer
+           (or use-buffer
+               (get-buffer-create entropy/emacs-init-welcome-buffer-name)))
           img
           (title " WELCOME TO ENTROPY-EMACS ")
           (version entropy/emacs-ecv))
@@ -536,7 +535,6 @@ widget used func `entropy/emacs-ui--init-welcom-create-widget'."
         (insert entropy/emacs-ecv)
         (insert "\n\n\n\n\n\n")
         (entropy/emacs-ui--init-welcom-create-widget)
-        (setq entropy/emacs-ui--init-welcom-last-width (window-width))
         (set-buffer-modified-p nil)
         (if (and view-read-only (not view-mode))
             (view-mode-enter nil 'kill-buffer))
@@ -548,46 +546,67 @@ widget used func `entropy/emacs-ui--init-welcom-create-widget'."
         (entropy/emacs-ui-init-welcom-mode))
       buffer))
 
-  (defun entropy/emacs-ui--init-welcom-wc-change-func ()
-    "Erase and recreate initial buffer when origin window size
-was changed, the window modification detector was the variable
-`entropy/emacs-ui--init-welcom-last-width' which stored the lates initial
-buffer window size."
-    (let ((buffer-exists (buffer-live-p (get-buffer entropy/emacs-init-welcome-buffer-name))))
-      (when (or (not (eq entropy/emacs-ui--init-welcom-last-width (window-width)))
-                (not buffer-exists))
-        (setq entropy/emacs-ui--init-welcom-width (window-width)
-              entropy/emacs-ui--init-welcom-last-width entropy/emacs-ui--init-welcom-width)
-        (with-current-buffer (get-buffer-create entropy/emacs-init-welcome-buffer-name)
+  (defun entropy/emacs-ui--init-welcom-wc-change-func (&optional use-buffer)
+    "Erase and recreate initial buffer when origin window size was
+changed."
+    (when-let* ((buff (or use-buffer
+                          (get-buffer entropy/emacs-init-welcome-buffer-name)))
+                (buff-win (get-buffer-window buff))
+                (buff-lp (and buff buff-win))
+                (buff-win-curw (with-selected-window buff-win (window-width))))
+      (unless (eq entropy/emacs-ui--init-welcom-width buff-win-curw)
+        (setq entropy/emacs-ui--init-welcom-width buff-win-curw)
+        (with-current-buffer buff
           (let ((buffer-read-only nil))
             (erase-buffer)
-            (entropy/emacs-ui--init-welcom-initial-buffer))))))
+            (entropy/emacs-ui--init-welcom-initial-buffer buff))))))
 
   (defun entropy/emacs-ui--init-welcom-resize-hook (&optional _)
-    "Hook useing the core func `entropy/emacs-ui--init-welcom-wc-change-func'
-for adding to variable `window-size-change-functions' and hook
-`window-setup-hook'."
-    (when-let ((win-spec (get-buffer-window entropy/emacs-init-welcome-buffer-name))
-               (win-sel (frame-selected-window)))
-      (when (and (not (window-minibuffer-p win-sel))
-                 (window-live-p win-sel)
-                 (window-live-p win-spec))
-        (with-selected-window win-spec
-          (entropy/emacs-ui--init-welcom-wc-change-func)))))
+    "Hook using the core func
+`entropy/emacs-ui--init-welcom-wc-change-func' for adding to
+variable `window-size-change-functions' with dups same displayed
+window removed since we just need one welcom buffer."
+    (entropy/emacs-when-let*-firstn 2
+        (((not (minibufferp)))
+         (wins (get-buffer-window-list
+                entropy/emacs-init-welcome-buffer-name
+                'nomini 'visible))
+         (selframe (selected-frame))
+         (ignore-window-parameters t)
+         win-spec)
+      (when (cdr wins)
+        ;; just remain one welcom window in current `selected-frame'
+        ;; if exists, and remove others in any other frame.
+        (entropy/emacs-setf-by-body wins
+          (entropy/emacs-mapcar-without-orphans
+           (lambda (win)
+             (if (eq (window-frame win) selframe) win
+               (if (frame-root-window-p win)
+                   (set-window-buffer win (get-buffer-create "*scratch*"))
+                 (delete-window win)) nil))
+           wins nil nil))
+        (if wins (mapc #'delete-window (cdr wins))))
+      (when (and (setq win-spec (car wins)) (window-live-p win-spec))
+        (entropy/emacs-ui--init-welcom-wc-change-func))))
 
 ;; **** welcom initialize
 
-  (defun entropy/emacs-ui--init-welcom-resize-run ()
-    (unless (member 'entropy/emacs-ui--init-welcom-resize-hook
-                    window-size-change-functions)
-      (add-hook 'window-size-change-functions 'entropy/emacs-ui--init-welcom-resize-hook))
-    (entropy/emacs-ui--init-welcom-resize-hook))
-
-  (defun entropy/emacs-ui--init-welcom-init-core (&optional initial)
-    (if initial
-        (setq initial-buffer-choice #'entropy/emacs-ui--init-welcom-initial-buffer)
-      (switch-to-buffer (entropy/emacs-ui--init-welcom-initial-buffer)))
-    (entropy/emacs-ui--init-welcom-resize-run))
+  (defun entropy/emacs-ui--init-welcom-init-core (&optional use-initial)
+    (when-let*
+        ((buff
+          (if use-initial
+              (let ((buffgen (get-buffer-create entropy/emacs-init-welcome-buffer-name)))
+                (setq initial-buffer-choice
+                      #'(lambda () (entropy/emacs-ui--init-welcom-initial-buffer buffgen)
+                          buffgen))
+                buffgen)
+            (entropy/emacs-ui--init-welcom-initial-buffer)))
+         ((buffer-live-p buff)))
+      (with-current-buffer buff
+        (add-hook 'window-size-change-functions
+                  'entropy/emacs-ui--init-welcom-resize-hook
+                  nil t))
+      (unless use-initial (set-window-buffer (frame-root-window) buff))))
 
   (setq inhibit-startup-screen t)
 
