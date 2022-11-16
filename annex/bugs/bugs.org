@@ -353,7 +353,7 @@ This caused by both of above and follow:
 
 Thus for now we can built the reproducible template via vanilla emacs:
 
-Run [[./h-c02794e4-bdb8-4510-84cb-d668873b02fc/run.sh]]
+Run [[./c02794e4-bdb8-4510-84cb-d668873b02fc/run.sh]]
 
 With manually hover reproduced of:
 #+begin_quote
@@ -384,7 +384,7 @@ it still lag on, which I'd thought its an emacs bug.
 
 *Reproduce steps:*
 
-Run the =run.sh= in =./h-f551b679-908f-4b64-b08e-e7074d17581e=
+Run the =run.sh= in =./f551b679-908f-4b64-b08e-e7074d17581e=
 
 ** TODO bug of ~ivy-reverse-i-search~ 'ivy-call: Wrong type argument: listp, "..."'
 :PROPERTIES:
@@ -438,7 +438,7 @@ When emacs is startup with an idle timer as end procedure in
 =init.el=, then there're two pre-typed char =[= and =I= are preformed
 into the echo area of that timer.
 
-- Reproduce: [[./h-6d28b926-88c0-4286-a0de-9ee7b4a7516c/start-bug.sh]]
+- Reproduce: [[./6d28b926-88c0-4286-a0de-9ee7b4a7516c/start-bug.sh]]
 
   We can not reproduce in arbitary environment, since it seems related
   to the shell env the emacs start at, espacially in tmux session.
@@ -579,7 +579,7 @@ Issues on emacs versions: 27.2, 28.0.91
 
 *Reproduction:*
 
-Run the bash file [[./h-936e4fb3-57d7-4958-89d9-a1cdfb52c495/start.sh]]
+Run the bash file [[./936e4fb3-57d7-4958-89d9-a1cdfb52c495/start.sh]]
 
 ** TODO emacs-rime bug when =ivy-dynamic-exhibit-delay-ms= larger than 0
 :PROPERTIES:
@@ -608,7 +608,7 @@ the beginning of the minibuffer.
 
 *Reproduce:*
 
-Run: [[./h-1c9af04d-403f-4050-a8eb-778fc47ff8de/run.sh]]
+Run: [[./1c9af04d-403f-4050-a8eb-778fc47ff8de/run.sh]]
 
 ** DONE emacs 29 ~commandp~ check function ~find-file~ loop without termination while ~find-file~ is adviced nested up to 20 level
 CLOSED: [2022-08-14 Sun 12:23]
@@ -626,7 +626,7 @@ Reproduce:
 2. run the follow pre-defined reproduction:
 
 #+begin_src sh
-  sh ./'h:cf1dab14-2d89-4369-82e1-1a4e298fcfd3'/reproduce.sh emacs-29
+  sh ./'cf1dab14-2d89-4369-82e1-1a4e298fcfd3'/reproduce.sh emacs-29
 #+end_src
 
 *** [2022-08-11 Thu 12:57:06] report bug to [[bug-gnu-emacs@gnu.org]]
