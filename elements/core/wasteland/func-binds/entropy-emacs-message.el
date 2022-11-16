@@ -146,7 +146,8 @@ To get the real-body in BODY.
 (defun entropy/emacs-message-quit (&rest _)
   (ignore-errors
     (entropy/emacs-message-hide-popup t)))
-(advice-add 'keyboard-quit :before #'entropy/emacs-message-quit)
+(add-hook 'entropy/emacs-keyboard-quit-before-hook
+          #'entropy/emacs-message-quit)
 
 ;; *** common ansi message wrapper core
 

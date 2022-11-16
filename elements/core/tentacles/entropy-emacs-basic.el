@@ -5710,12 +5710,17 @@ by run command \"make liberime\" in eemacs root place")
     (unless (eq ivy-re-builders-alist __eemacs/pyim-ivy-rebalist)
       (setq entropy/emacs-basic--pyim-orig-ivy-rebalist
             ivy-re-builders-alist))
-    (when (minibufferp)
-      (entropy/emacs-basic-pyim-pre-disable-ivy-regexp-for-minibuffer))
+    (entropy/emacs-basic-pyim-pre-disable-ivy-regexp-for-minibuffer)
     (setq ivy-re-builders-alist __eemacs/pyim-ivy-rebalist
           entropy/emacs-basic--pyim-cregexp-ivy-enabled-p t)
-    (message "pyim ivy regexp enabled, \
-use `entropy/emacs-basic-pyim-disbale-cregexp-ivy' to disable it."))
+    (if (minibufferp)
+        (message
+         (substitute-command-keys
+          "pyim cregexp for ivy is enabled, type \\[minibuffer-keyboard-quit] \
+or \\[entropy/emacs-basic-pyim-toggle-cregexp-ivy-enable] to disable it."))
+      (message "pyim cregexp for ivy is enabled, \
+use `entropy/emacs-basic-pyim-disbale-cregexp-ivy' to disable it \
+or it will be enaled last to the end of next invocation of `ivy-read'.")))
 
   (defun entropy/emacs-basic-pyim-toggle-cregexp-ivy-enable nil
     (interactive)

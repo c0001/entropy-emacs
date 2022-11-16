@@ -518,7 +518,7 @@ specification."
     (entropy/emacs-popwin--shackle-prunning-popup-history)
     ;; main filter
     (let (close-done stick-buffer stick-window)
-      (when (and (called-interactively-p 'interactive)
+      (when (and ;; (called-interactively-p 'interactive)
                  (not (region-active-p))
                  (not (minibufferp)))
         (let (
@@ -591,8 +591,8 @@ specification."
           ))
       ))
 
-  (advice-add #'keyboard-quit
-              :before #'entropy/emacs-popwin--shackle-close-popup-window-hack)
+  (add-hook 'entropy/emacs-keyboard-quit-before-hook
+            #'entropy/emacs-popwin--shackle-close-popup-window-hack)
 
 ;; **** further more pop actions
 

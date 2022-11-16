@@ -823,6 +823,38 @@ in which case return BODY's final return.
        (setq ,name ',name-1)
        ',name-1)))
 
+;; ** keyboard quit hooks
+
+(defvar entropy/emacs-keyboard-quit-before-hook-running-p nil
+  "Non-nil when `entropy/emacs-keyboard-quit-before-hook' being
+mapped up.")
+(defvar entropy/emacs-keyboard-quit-before-hook nil
+  "Hooks run before `keyboard-quit' happened.
+
+Ran of hook is error suppressed and logging error into
+`entropy/emacs-keyboard-quit-run-hook-error-log' while thus
+happened.")
+(defvar entropy/emacs-keyboard-quit-run-hook-error-log nil
+  "Erros log of `entropy/emacs-keyboard-quit-before-hook'.")
+(defun entropy/emacs--keyboard-quit-with-run-hooks (&rest _)
+  (when (and entropy/emacs-keyboard-quit-before-hook
+             (not entropy/emacs-keyboard-quit-before-hook-running-p))
+    (unwind-protect
+        (progn
+          (setq entropy/emacs-keyboard-quit-before-hook-running-p t)
+          (condition-case err
+              (run-hooks 'entropy/emacs-keyboard-quit-before-hook)
+            (:success nil)
+            (t
+             (let ((ctime (format-time-string "[%Y-%m-%d %a %H:%M:%S]")))
+               (push (list ctime err)
+                     entropy/emacs-keyboard-quit-run-hook-error-log)
+               (message "[keybaord-quit] %s run hook with error \"%S\""
+                        ctime err)))))
+      (setq entropy/emacs-keyboard-quit-before-hook-running-p nil))))
+(advice-add 'keyboard-quit
+            :before #'entropy/emacs--keyboard-quit-with-run-hooks)
+
 ;; ** eemacs top keymap refer
 (defvar entropy/emacs-top-keymap (make-sparse-keymap)
   "The top keymap for entropy-emacs holding the global
