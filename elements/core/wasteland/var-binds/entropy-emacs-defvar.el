@@ -2160,6 +2160,33 @@ conditions and consider that should be inhibited.")
       (when (funcall func)
         (throw :exit t)))))
 
+(defvar entropy/emacs-ivy-common-re-builder-should-use nil
+  "User defined regexp builder used to replace
+`entropy/emacs-ivy-common-re-builder'.
+
+If non-nil, it should be list of functions which can be used in
+`ivy-re-builders-alist', and only its car is used since this
+variable commonly used as a stack, thus use `push' to add items.")
+(defun entropy/emacs-ivy-common-re-builder (str)
+  "Use `ivy--regex-plus' as default unless
+`entropy/emacs-ivy-common-re-builder-should-use' is non-nil in
+which case use its car instead.
+
+This re-builder is eemacs spec for all collection read procedure
+in `ivy-re-builder-alist', that they're not directly using
+`ivy-read' (i.e. called from `completing-read').
+
+This function exists since non-`ivy-read' created collection can
+not dynamically change their regexp builder from
+`ivy-completing-read' after they are parsed."
+  (if entropy/emacs-ivy-common-re-builder-should-use
+      (funcall (car entropy/emacs-ivy-common-re-builder-should-use) str)
+    ;; NOTE: do not use more fuzzy one like `ivy--regex-ignore-order'
+    ;; since they required high performance stand by where table like
+    ;; `read-file-name-internal' may be lag on caused by long
+    ;; filenames or CJK missed filenames.
+    (ivy--regex-plus str)))
+
 ;; ** coding sytle
 
 ;; * provide

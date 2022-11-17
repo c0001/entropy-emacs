@@ -96,13 +96,14 @@
 
   ;; using fuzzy matching
   (setq ivy-re-builders-alist
-        '((read-file-name-internal . ivy--regex-plus)
+        '(;; (read-file-name-internal . ivy--regex-plus)
           (counsel-M-x . ivy--regex-ignore-order)
           (counsel-describe-function . ivy--regex-ignore-order)
           (counsel-describe-variable . ivy--regex-ignore-order)
           (counsel-describe-symbol . ivy--regex-ignore-order)
-          ;; using elisp regex match candidates
-          (t . ivy--regex)))
+          ;; eemacs union spec for all procedure directly using
+          ;; `completing-read' instead of `ivy-read'.
+          (t . entropy/emacs-ivy-common-re-builder)))
 
   ;; prompt newline set
   (let* ((with-nl-func

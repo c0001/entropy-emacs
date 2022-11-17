@@ -1,4 +1,4 @@
-;;; entropy-emacs.el --- entropy emacs main bridge controller
+;;; entropy-emacs.el --- entropy emacs main bridge controller  -*- lexical-binding: t; -*-
 ;;
 ;; * Copyright (C) 20190602  Entropy
 ;; #+BEGIN_EXAMPLE
@@ -203,10 +203,10 @@ nil otherwise."
 `nadvice' patched."
   (let* ((advised
           (and (symbolp func)
-	       (advice--p (advice--symbol-function func)))))
+               (advice--p (advice--symbol-function func)))))
     (or (and advised
              (advice--cd*r (advice--symbol-function func)))
-	func)))
+        func)))
 
 ;; `compiled-function-p' is new with emacs-29, thus we should backport
 ;; it to lower emacs version.
@@ -262,6 +262,75 @@ NOTE: not support load dynamic module"
   #'entropy/emacs-common-require-feature
   "Alias for `entropy/emacs-common-require-feature' but just used
 in baron part to simplify context distinction search")
+;; *** high perfomance alist
+
+(defun entropy/emacs--make-alist-with-symbol-prop-set/core-func
+    (vsym nv _op _wh keyname &optional init)
+  (let* ((inhibit-quit t) (oldval (symbol-value vsym)) key)
+    (when (and (not init) (consp oldval))
+      (dolist (el oldval)
+        (when (and (consp el) (symbolp (setq key (car el))))
+          (put key keyname nil))))
+    (setq nv (if init oldval nv))
+    (when (consp nv)
+      (dolist (el nv)
+        (when (and (consp el) (symbolp (setq key (car el))))
+          (put key keyname (cdr el)))))))
+
+(defmacro entropy/emacs-make-alist-with-symbol-prop-set (var-sym key-sym)
+  "If a symbol VAR-SYM who is a `special-variable-p' variable and its
+value is an alist (or partial of it is), then make `symbolp' key of
+any of its key-pair element (i.e. the `car' of that pair) has a symbol
+property key symbol KEY-SYM and make VAR-SYM's KEY-SYM slot has the
+original corresponding value (i.e. the `cdr' of that pair).
+
+If VAR-SYM's value is changed via `setq' or any other global sets
+method after the initialization (i.e. after this macro's
+invocation) then set all symbol's KEY-SYM slot to nil firstly and
+then set them according to the new value of VAR-SYM in turn as
+initialization. This automatic updates functional is supplied by
+given VAR-SYM a variable watcher thru `add-variable-watcher'.
+
+According to this macro's mechanism, each valid key's value cat via
+`get' by KEY-SYM is greatly faster than `alist-get' since it is
+mapping through list and will cause times of gc while VAR-SYM's value
+is huge and did it frequently. But the set operation of VAR-SYM's
+value is slower than the oridinary alist set method, since each set
+will invoke the rearrangements for all old and new valid keys. Thus
+the main usage of this macro is making a const or modification rarely
+alist with high performance value cat experience.
+
+KEY-SYM should be `keywordp' i.e. explicitly set as `:key' or the
+defination is failed with error.
+
+NOTE: this macro must be expanded in `lexical-binding' enabled
+context or messy up."
+  (declare (indent 2))
+  (unless (bound-and-true-p lexical-binding)
+    (user-error "[eemacs-hpal]: need lexical enabled environment!"))
+  (let ((varsym (make-symbol "var-symbol"))
+        (keysym (make-symbol "key-symbol")))
+    `(let* ((,varsym ,var-sym) (,keysym ,key-sym)
+            (var-guard-func-name
+             (intern (format "__eemacs/%s/high-perfomance-alist/set-guard" ,varsym))))
+       (unless (and (symbolp ,varsym) (special-variable-p ,varsym))
+         (user-error "var-sym `%S' is not `symbolp' or `special-variable-p'"
+                     ,varsym))
+       (unless (keywordp ,keysym)
+         (user-error "key-sym `%S' is not `keywordp'" ,keysym))
+       ;; We should remove the old var-watcher firstly.
+       (remove-variable-watcher ,varsym var-guard-func-name)
+       (put ,varsym '__eemacs-alist-get__ ,keysym)
+       (funcall 'entropy/emacs--make-alist-with-symbol-prop-set/core-func
+                ,varsym nil nil nil ,keysym 'init)
+       (defalias var-guard-func-name
+         (lambda (vsym nv op wh)
+           (when (eq op 'set)
+             (funcall 'entropy/emacs--make-alist-with-symbol-prop-set/core-func
+                      ,varsym nv op wh ,keysym)))
+         (format "variable guard for high performance alist variable `%s', made
+via `entropy/emacs-make-alist-with-symbol-prop-set'." ,varsym))
+       (add-variable-watcher ,varsym var-guard-func-name))))
 
 ;; ** INIT
 (let* ((subs-core

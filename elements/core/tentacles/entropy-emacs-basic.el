@@ -5692,6 +5692,8 @@ by run command \"make liberime\" in eemacs root place")
         (setq ivy-re-builders-alist
               entropy/emacs-basic--pyim-orig-ivy-rebalist
               entropy/emacs-basic--pyim-cregexp-ivy-enabled-p nil)
+        (setq entropy/emacs-ivy-common-re-builder-should-use
+              (delete 'pyim-cregexp-ivy entropy/emacs-ivy-common-re-builder-should-use))
         (message "pyim ivy regexp disabled"))))
 
   (defun __eemacs/pyim-disable-ivy-regexp-with-remove-minibuffer-hook nil
@@ -5711,6 +5713,7 @@ by run command \"make liberime\" in eemacs root place")
       (setq entropy/emacs-basic--pyim-orig-ivy-rebalist
             ivy-re-builders-alist))
     (entropy/emacs-basic-pyim-pre-disable-ivy-regexp-for-minibuffer)
+    (push 'pyim-cregexp-ivy entropy/emacs-ivy-common-re-builder-should-use)
     (setq ivy-re-builders-alist __eemacs/pyim-ivy-rebalist
           entropy/emacs-basic--pyim-cregexp-ivy-enabled-p t)
     (if (minibufferp)
