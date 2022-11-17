@@ -11496,9 +11496,27 @@ corresponding stuffs."
      :background "white"
      :foreground "blue4"))
    ((string= "ujelly" theme-name-str)
-    (dolist (el `((:face tooltip
+    (dolist (el `((:face default
+                         :frame ,frame
+                         :spec (:foreground "#e0e0e0"))
+                  (:face tooltip
                          :frame ,frame
                          :spec (:background "#393939393939" :foreground "white"))
+                  (:face company-tooltip
+                         :frame ,frame
+                         :spec (:background "#202020202020" :foreground "lightgrey"))
+                  (:face company-tooltip-common
+                         :frame ,frame
+                         :spec (:background "#505000000000" :foreground "lightgrey"))
+                  (:face company-tooltip-common-selection
+                         :frame ,frame
+                         :spec (:foreground "lightgrey"))
+                  (:face company-tooltip-search
+                         :frame ,frame
+                         :spec (:background "darkgoldenrod" :foreground "black"))
+                  (:face company-tooltip-search-selection
+                         :frame ,frame
+                         :spec (:background "darkgoldenrod2" :foreground "black"))
                   (:face term-color-blue
                          :frame ,frame
                          :spec (:foreground "#61AFEF"))
