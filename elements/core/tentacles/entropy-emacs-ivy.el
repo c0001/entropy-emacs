@@ -1367,7 +1367,7 @@ display icon or empty string while
   (defun _ivy-rich-use-icon-func (icon-func &optional empty)
     (if (or empty
             (not (eq entropy/emacs-ivy-rich-type 'ivy-rich-mode)))
-        '((lambda (&rest _) ""))
+        `(,(lambda (&rest _) ""))
       `(,icon-func)))
 
   (defun __ya/ivy-rich-normalize-width (str len &optional right-aligned)
