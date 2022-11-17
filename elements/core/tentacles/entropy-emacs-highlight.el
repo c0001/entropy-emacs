@@ -693,6 +693,31 @@ while change themes."
       (if my-prev-whitespace-mode
           (whitespace-mode 1)))))
 
+;; ** display-fill-column-indicator-mode
+
+(use-package display-fill-column-indicator
+  :ensure nil
+  :commands (display-fill-column-indicator-mode)
+  :init
+  (when entropy/emacs-hl-display-fill-column-indicator-enable-at-startup
+    (global-display-fill-column-indicator-mode 1))
+
+  (entropy/emacs-lazy-initial-advice-after
+   '(prog-mode)
+   "display-fill-column-indicator-mode-init"
+   "display-fill-column-indicator-mode-init"
+   :prompt-type 'prompt-echo
+   :pdumper-no-end t
+   (entropy/emacs-hydra-hollow-add-for-top-dispatch
+    '("Highlight"
+      (("C-c h p f" display-fill-column-indicator-mode
+        "Toggle fill column indicator mode"
+        :enable t
+        :eemacs-top-bind t
+        :toggle
+        (if (bound-and-true-p display-fill-column-indicator-mode)
+            t nil)))))))
+
 ;; * provide
 (provide 'entropy-emacs-highlight)
 

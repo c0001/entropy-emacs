@@ -1693,6 +1693,13 @@ difference.
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-highlight-features)
 
+
+;; ***** Display `fill-column' indicator
+(defcustom entropy/emacs-hl-display-fill-column-indicator-enable-at-startup nil
+  "Enable `display-fill-column-indicator-mode' feature at eemacs startup."
+  :type 'boolean
+  :group 'entropy/emacs-customize-group-for-highlight-features)
+
 ;; *** Eshell
 (defgroup entropy/emacs-customize-group-for-eshell nil
   "Eemacs eshell configuration customizable group."
