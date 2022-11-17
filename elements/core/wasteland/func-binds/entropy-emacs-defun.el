@@ -3977,7 +3977,8 @@ appended."
         (body (entropy/emacs-get-plist-body body)))
     (entropy/emacs-make-letform-lexical-ignorable
      `(let* (,@base-letbinds
-             ,@(when use-vh vh-letbinds)
+             ;; NOTE: use-calc used bindings created by use-vh
+             ,@(when (or use-calc use-vh) vh-letbinds)
              ,@(when use-calc calc-letbinds))
         ,(entropy/emacs-macroexp-progn body)))))
 
