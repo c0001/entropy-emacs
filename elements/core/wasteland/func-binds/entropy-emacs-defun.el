@@ -9132,8 +9132,10 @@ unspecified attribute is not collected into the return."
    entropy/emacs-face-attributes-list nil nil))
 
 (defvar entropy/emacs-set-face-attribute--internal-log-for-setted-faces nil)
-(when (custom-theme-enabled-p 'eemacs-cover-theme-0)
-  (disable-theme 'eemacs-cover-theme-0))
+;; FIXME: should we check its enabled status at load-time?
+;;
+;; (when (custom-theme-enabled-p 'eemacs-cover-theme-0)
+;;   (disable-theme 'eemacs-cover-theme-0))
 (custom-declare-theme 'eemacs-cover-theme-0 nil)
 (put 'eemacs-cover-theme-0 'theme-settings nil)
 ;; enable `theme-immediate' to the internal cover theme which let any
@@ -9146,25 +9148,25 @@ unspecified attribute is not collected into the return."
     (let (log)
       (dolist (fre entropy/emacs-set-face-attribute--internal-log-for-setted-faces)
         (let ((face (car fre))
+              ;; guarantee the changes take effects Immediately
               (custom--inhibit-theme-enable nil))
-          (unless (member face log)
-            (custom-theme-reset-faces
-             'eemacs-cover-theme-0
-             `(,face nil))
+          (unless (memq face log)
+            (custom-theme-reset-faces 'eemacs-cover-theme-0 `(,face nil))
             (push face log))))))
   (setq entropy/emacs-set-face-attribute--internal-log-for-setted-faces nil)
-  (disable-theme 'eemacs-cover-theme-0))
+  (disable-theme 'eemacs-cover-theme-0)
+  ;; idle delay guard for re-enable eemacs cover theme
+  (run-with-idle-timer
+   0.001 nil
+   #'entropy/emacs--advice-priority-eemacs-cover-them-0-timer))
 ;; disable the internal cover theme must before any hooks running so
 (add-hook 'entropy/emacs-theme-load-before-hook-head-1
           #'entropy/emacs-defun--theme-cover-0-rest)
 
-(defvar entropy/emacs--advice-priority-eemacs-cover-them-0-timer
-  (run-with-idle-timer
-   0.001 t
-   #'entropy/emacs--advice-priority-eemacs-cover-them-0-timer))
 (defun entropy/emacs--advice-priority-eemacs-cover-them-0-timer ()
   "Take advanced priority for the `eemacs-cover-theme-0' in
-`custom-enabled-themes' to guarantee the coverage feature."
+`custom-enabled-themes' to guarantee the coverage feature take
+effects."
   (unless (and (custom-theme-enabled-p 'eemacs-cover-theme-0)
                (eq 'eemacs-cover-theme-0 (car custom-enabled-themes)))
     (enable-theme 'eemacs-cover-theme-0)))
