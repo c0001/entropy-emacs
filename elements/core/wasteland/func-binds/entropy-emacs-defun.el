@@ -3963,11 +3963,11 @@ changed.
        &allow-other-keys)
   "Macro run BODY with `entropy/emacs-xycrd-rectangle-cmp-letbinds-wrapper'.
 
-If USE-VN is non-nil also use
+If USE-VH is set as non-nil then also use
 `entropy/emacs-xycrd-rectangle-cmp-vh-letbinds-wrapper'.
 
-If USE-CALC is non-nil then USE-VH is used forcely without check
-whether it is set or not, and
+If USE-CALC is set as non-nil then USE-VH is used forcely without
+check whether it is set or not, and
 `entropy/emacs-xycrd-rectangle-calc-cmp-letbinds-wrapper' is
 appended."
   (declare (indent defun))
