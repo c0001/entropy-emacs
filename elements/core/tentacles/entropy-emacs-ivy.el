@@ -1390,220 +1390,246 @@ currnt fontset."
     (let ((dcw-w entropy/ivy--ivy-rich-candi-width/with-docstring)
           ;; (dcw-n entropy/ivy--ivy-rich-candi-width/non-docstring)
           rtn)
-      (setq rtn
-            `(ivy-switch-buffer
-              (:columns
-               (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-buffer-icon)
-                (ivy-rich-candidate
-                 (:width
-                  (lambda (str)
-                    (ivy-rich-normalize-width
-                     str
-                     (max (- (window-width (minibuffer-window))
-                             32)
-                          ,dcw-w)))))
-                (ivy-rich-switch-buffer-size
-                 (:width 7))
-                (ivy-rich-switch-buffer-indicators
-                 (:width 4 :face error :align left))
-                (ivy-rich-switch-buffer-major-mode
-                 (:width 12 :face warning)))
-               :predicate
-               (lambda
-                 (cand)
-                 (get-buffer cand))
-               :delimiter "\t")
-              entropy/emacs-popwin-shackle-popup-buffer
-              (:columns
-               (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-buffer-icon)
-                (ivy-rich-candidate
-                 (:width
-                  (lambda (str)
-                    (ivy-rich-normalize-width
-                     str
-                     (max (- (window-width (minibuffer-window))
-                             32)
-                          ,dcw-w)))))
-                (ivy-rich-switch-buffer-size
-                 (:width 7))
-                (ivy-rich-switch-buffer-indicators
-                 (:width 4 :face error :align left))
-                (ivy-rich-switch-buffer-major-mode
-                 (:width 12 :face warning)))
-               :predicate
-               (lambda
-                 (cand)
-                 (get-buffer cand))
-               :delimiter "\t")
-              counsel-find-file
-              (:columns
-               (,(_ivy-rich-use-icon-func 'ya/all-the-icons-ivy-rich-common-file-icon)
-                (ivy-read-file-transformer)
-                (ivy-rich-counsel-find-file-truename
-                 (:face font-lock-doc-face)))
-               :delimiter "\t")
-              entropy/emacs-popwin-shackle-popup-find-file
-              (:columns
-               (,(_ivy-rich-use-icon-func 'ya/all-the-icons-ivy-rich-common-file-icon)
-                (ivy-read-file-transformer)
-                (ivy-rich-counsel-find-file-truename
-                 (:face font-lock-doc-face)))
-               :delimiter "\t")
-              counsel-M-x
-              (:columns
-               (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-function-icon)
-                (counsel-M-x-transformer
-                 (:width ,(_ivy-rich-use-doc-width)))
-                (,(_ivy-rich-use-doc-func-elisp-func)
-                 (:face font-lock-doc-face)))
-               :delimiter "\t")
-              counsel-describe-function
-              (:columns
-               (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-function-icon)
-                (counsel-describe-function-transformer
-                 (:width ,(_ivy-rich-use-doc-width)))
-                (,(_ivy-rich-use-doc-func-elisp-func)
-                 (:face font-lock-doc-face)))
-               :delimiter "\t")
-              counsel-describe-variable
-              (:columns
-               (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-variable-icon)
-                (counsel-describe-variable-transformer
-                 (:width ,(_ivy-rich-use-doc-width)))
-                (,(_ivy-rich-use-doc-func-elisp-var)
-                 (:face font-lock-doc-face)))
-               :delimiter "\t")
-              counsel-recentf
-              (:columns
-               (,(_ivy-rich-use-icon-func 'ya/all-the-icons-ivy-rich-common-file-icon)
-                (ivy-rich-candidate
-                 (:width 0.8))
-                (ivy-rich-file-last-modified-time
-                 (:face font-lock-comment-face)))
-               :delimiter "\t")
-              counsel-list-processes
-              (:columns
-               (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-process-icon)
-                (ivy-rich-candidate (:width 25))
-                (all-the-icons-ivy-rich-process-id (:width 7 :face all-the-icons-ivy-rich-process-id-face))
-                (all-the-icons-ivy-rich-process-status (:width 7 :face all-the-icons-ivy-rich-process-status-face))
-                (all-the-icons-ivy-rich-process-buffer-name (:width 25 :face all-the-icons-ivy-rich-process-buffer-face))
-                (all-the-icons-ivy-rich-process-tty-name (:width 12 :face all-the-icons-ivy-rich-process-tty-face))
-                (all-the-icons-ivy-rich-process-thread (:width 12 :face all-the-icons-ivy-rich-process-thread-face))
-                (all-the-icons-ivy-rich-process-command (:face all-the-icons-ivy-rich-process-command-face)))
-               :delimiter "\t")
-              counsel-package
-              (:columns
-               (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-package-icon)
-                (ivy-rich-candidate (:width 0.3))
-                (all-the-icons-ivy-rich-package-version (:width 16 :face all-the-icons-ivy-rich-version-face))
-                (all-the-icons-ivy-rich-package-archive-summary (:width 7 :face all-the-icons-ivy-rich-archive-face))
-                (all-the-icons-ivy-rich-package-install-summary (:face all-the-icons-ivy-rich-package-status-installed-face)))
-               :delimiter "\t")
-              package-install
-              (:columns
-               (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-package-icon)
-                (ivy-rich-candidate
-                 (:width 30))
-                (ivy-rich-package-version
-                 (:width 16 :face font-lock-comment-face))
-                (ivy-rich-package-archive-summary
-                 (:width 7 :face font-lock-builtin-face))
-                (ivy-rich-package-install-summary
-                 (:face font-lock-doc-face)))
-               :delimiter "\t")
-              package-reinstall
-              (:columns
-               (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-package-icon)
-                (ivy-rich-candidate (:width 0.3))
-                (ivy-rich-package-version (:width 16 :face all-the-icons-ivy-rich-version-face))
-                (ivy-rich-package-archive-summary (:width 7 :face all-the-icons-ivy-rich-archive-face))
-                (ivy-rich-package-install-summary (:face all-the-icons-ivy-rich-package-status-installed-face)))
-               :delimiter "\t")
-              package-delete
-              (:columns
-               (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-package-icon)
-                (ivy-rich-candidate))
-               :delimiter "\t")
-              counsel-projectile-switch-project
-              (:columns
-               ((ya/all-the-icon-ivy-rich-common-dir-icon)
-                (ivy-rich-candidate))
-               :delimiter "\t")
-              counsel-projectile-find-file
-              (:columns
-               ((ya/all-the-icons-ivy-rich-common-file-icon)
-                (counsel-projectile-find-file-transformer))
-               :delimiter "\t")
-              counsel-projectile-find-dir
-              (:columns
-               ((all-the-icons-ivy-rich-dir-icon)
-                (counsel-projectile-find-dir-transformer))
-               :delimiter "\t")
-              counsel-major
-              (:columns
-               (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-mode-icon)
-                (ivy-rich-candidate))
-               :delimiter "\t")
-              counsel-minor
-              (:columns
-               (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-mode-icon)
-                (ivy-rich-candidate))
-               :delimiter "\t")
-              counsel-imenu
-              (:columns
-               (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-imenu-icon)
-                (ivy-rich-candidate))
-               :delimiter "\t")
-              ;; ;; EEMACS_MAINTENANCE:  need to use newer version of `company-box'
-              ;; counsel-company
-              ;; (:columns
-              ;;  (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-company-icon)
-              ;;   (ivy-rich-candidate))
-              ;;  :delimiter "\t")
-              counsel-fonts
-              (:columns
-               (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-font-icon)
-                (ivy-rich-candidate))
-               :delimiter "\t")
-              counsel-find-library
-              (:columns
-               (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-library-icon)
-                (ivy-rich-candidate))
-               :delimiter "\t")
-              counsel-load-library
-              (:columns
-               (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-library-icon)
-                (ivy-rich-candidate))
-               :delimiter "\t")
-              counsel-load-theme
-              (:columns
-               (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-theme-icon)
-                (ivy-rich-candidate))
-               :delimiter "\t")
-              counsel-world-clock
-              (:columns
-               (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-world-clock-icon)
-                (ivy-rich-candidate))
-               :delimiter "\t")
-              counsel-tramp
-              (:columns
-               (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-tramp-icon)
-                (ivy-rich-candidate))
-               :delimiter "\t")
-              counsel-git-checkout
-              (:columns
-               (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-git-branch-icon)
-                (ivy-rich-candidate))
-               :delimiter "\t")
+      (entropy/emacs-setf-by-body rtn
+        `(ivy-switch-buffer
+          (:columns
+           (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-buffer-icon)
+            (ivy-rich-candidate
+             (:width
+              (lambda (str)
+                (ivy-rich-normalize-width
+                 str
+                 (max (- (window-width (minibuffer-window))
+                         32)
+                      ,dcw-w)))))
+            (ivy-rich-switch-buffer-size
+             (:width 7))
+            (ivy-rich-switch-buffer-indicators
+             (:width 4 :face error :align left))
+            (ivy-rich-switch-buffer-major-mode
+             (:width 12 :face warning)))
+           :predicate
+           (lambda
+             (cand)
+             (get-buffer cand))
+           :delimiter "\t")
+          ;; --------------------
+          entropy/emacs-popwin-shackle-popup-buffer
+          (:columns
+           (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-buffer-icon)
+            (ivy-rich-candidate
+             (:width
+              (lambda (str)
+                (ivy-rich-normalize-width
+                 str
+                 (max (- (window-width (minibuffer-window))
+                         32)
+                      ,dcw-w)))))
+            (ivy-rich-switch-buffer-size
+             (:width 7))
+            (ivy-rich-switch-buffer-indicators
+             (:width 4 :face error :align left))
+            (ivy-rich-switch-buffer-major-mode
+             (:width 12 :face warning)))
+           :predicate
+           (lambda
+             (cand)
+             (get-buffer cand))
+           :delimiter "\t")
+          ;; --------------------
+          counsel-find-file
+          (:columns
+           (,(_ivy-rich-use-icon-func 'ya/all-the-icons-ivy-rich-common-file-icon)
+            (ivy-read-file-transformer)
+            (ivy-rich-counsel-find-file-truename
+             (:face font-lock-doc-face)))
+           :delimiter "\t")
+          ;; --------------------
+          entropy/emacs-popwin-shackle-popup-find-file
+          (:columns
+           (,(_ivy-rich-use-icon-func 'ya/all-the-icons-ivy-rich-common-file-icon)
+            (ivy-read-file-transformer)
+            (ivy-rich-counsel-find-file-truename
+             (:face font-lock-doc-face)))
+           :delimiter "\t")
+          ;; --------------------
+          counsel-M-x
+          (:columns
+           (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-function-icon)
+            (counsel-M-x-transformer
+             (:width ,(_ivy-rich-use-doc-width)))
+            (,(_ivy-rich-use-doc-func-elisp-func)
+             (:face font-lock-doc-face)))
+           :delimiter "\t")
+          ;; --------------------
+          counsel-describe-function
+          (:columns
+           (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-function-icon)
+            (counsel-describe-function-transformer
+             (:width ,(_ivy-rich-use-doc-width)))
+            (,(_ivy-rich-use-doc-func-elisp-func)
+             (:face font-lock-doc-face)))
+           :delimiter "\t")
+          ;; --------------------
+          counsel-describe-variable
+          (:columns
+           (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-variable-icon)
+            (counsel-describe-variable-transformer
+             (:width ,(_ivy-rich-use-doc-width)))
+            (,(_ivy-rich-use-doc-func-elisp-var)
+             (:face font-lock-doc-face)))
+           :delimiter "\t")
+          ;; --------------------
+          counsel-recentf
+          (:columns
+           (,(_ivy-rich-use-icon-func 'ya/all-the-icons-ivy-rich-common-file-icon)
+            (ivy-rich-candidate
+             (:width 0.8))
+            (ivy-rich-file-last-modified-time
+             (:face font-lock-comment-face)))
+           :delimiter "\t")
+          ;; --------------------
+          counsel-list-processes
+          (:columns
+           (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-process-icon)
+            (ivy-rich-candidate (:width 25))
+            (all-the-icons-ivy-rich-process-id (:width 7 :face all-the-icons-ivy-rich-process-id-face))
+            (all-the-icons-ivy-rich-process-status (:width 7 :face all-the-icons-ivy-rich-process-status-face))
+            (all-the-icons-ivy-rich-process-buffer-name (:width 25 :face all-the-icons-ivy-rich-process-buffer-face))
+            (all-the-icons-ivy-rich-process-tty-name (:width 12 :face all-the-icons-ivy-rich-process-tty-face))
+            (all-the-icons-ivy-rich-process-thread (:width 12 :face all-the-icons-ivy-rich-process-thread-face))
+            (all-the-icons-ivy-rich-process-command (:face all-the-icons-ivy-rich-process-command-face)))
+           :delimiter "\t")
+          ;; --------------------
+          counsel-package
+          (:columns
+           (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-package-icon)
+            (ivy-rich-candidate (:width 0.3))
+            (all-the-icons-ivy-rich-package-version (:width 16 :face all-the-icons-ivy-rich-version-face))
+            (all-the-icons-ivy-rich-package-archive-summary (:width 7 :face all-the-icons-ivy-rich-archive-face))
+            (all-the-icons-ivy-rich-package-install-summary (:face all-the-icons-ivy-rich-package-status-installed-face)))
+           :delimiter "\t")
+          ;; --------------------
+          package-install
+          (:columns
+           (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-package-icon)
+            (ivy-rich-candidate
+             (:width 30))
+            (ivy-rich-package-version
+             (:width 16 :face font-lock-comment-face))
+            (ivy-rich-package-archive-summary
+             (:width 7 :face font-lock-builtin-face))
+            (ivy-rich-package-install-summary
+             (:face font-lock-doc-face)))
+           :delimiter "\t")
+          ;; --------------------
+          package-reinstall
+          (:columns
+           (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-package-icon)
+            (ivy-rich-candidate (:width 0.3))
+            (ivy-rich-package-version (:width 16 :face all-the-icons-ivy-rich-version-face))
+            (ivy-rich-package-archive-summary (:width 7 :face all-the-icons-ivy-rich-archive-face))
+            (ivy-rich-package-install-summary (:face all-the-icons-ivy-rich-package-status-installed-face)))
+           :delimiter "\t")
+          ;; --------------------
+          package-delete
+          (:columns
+           (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-package-icon)
+            (ivy-rich-candidate))
+           :delimiter "\t")
+          ;; --------------------
+          counsel-projectile-switch-project
+          (:columns
+           ((ya/all-the-icon-ivy-rich-common-dir-icon)
+            (ivy-rich-candidate))
+           :delimiter "\t")
+          ;; --------------------
+          counsel-projectile-find-file
+          (:columns
+           ((ya/all-the-icons-ivy-rich-common-file-icon)
+            (counsel-projectile-find-file-transformer))
+           :delimiter "\t")
+          ;; --------------------
+          counsel-projectile-find-dir
+          (:columns
+           ((all-the-icons-ivy-rich-dir-icon)
+            (counsel-projectile-find-dir-transformer))
+           :delimiter "\t")
+          ;; --------------------
+          counsel-major
+          (:columns
+           (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-mode-icon)
+            (ivy-rich-candidate))
+           :delimiter "\t")
+          ;; --------------------
+          counsel-minor
+          (:columns
+           (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-mode-icon)
+            (ivy-rich-candidate))
+           :delimiter "\t")
+          ;; --------------------
+          counsel-imenu
+          (:columns
+           (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-imenu-icon)
+            (ivy-rich-candidate))
+           :delimiter "\t")
 
-              ))
+          ;; --------------------
+          ;;
+          ;; ;; EEMACS_MAINTENANCE:  need to use newer version of `company-box'
+          ;; counsel-company
+          ;; (:columns
+          ;;  (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-company-icon)
+          ;;   (ivy-rich-candidate))
+          ;;  :delimiter "\t")
 
+          ;; --------------------
+          counsel-fonts
+          (:columns
+           (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-font-icon)
+            (ivy-rich-candidate))
+           :delimiter "\t")
+          ;; --------------------
+          counsel-find-library
+          (:columns
+           (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-library-icon)
+            (ivy-rich-candidate))
+           :delimiter "\t")
+          ;; --------------------
+          counsel-load-library
+          (:columns
+           (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-library-icon)
+            (ivy-rich-candidate))
+           :delimiter "\t")
+          ;; --------------------
+          counsel-load-theme
+          (:columns
+           (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-theme-icon)
+            (ivy-rich-candidate))
+           :delimiter "\t")
+          ;; --------------------
+          counsel-world-clock
+          (:columns
+           (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-world-clock-icon)
+            (ivy-rich-candidate))
+           :delimiter "\t")
+          ;; --------------------
+          counsel-tramp
+          (:columns
+           (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-tramp-icon)
+            (ivy-rich-candidate))
+           :delimiter "\t")
+          ;; --------------------
+          counsel-git-checkout
+          (:columns
+           (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-git-branch-icon)
+            (ivy-rich-candidate))
+           :delimiter "\t")
+
+          ))
       ;; append customized specification
-      (dolist (cus-spec
-               entropy/emacs-ivy-rich-extra-display-transformers-list)
-        (setq rtn
-              (append rtn cus-spec)))
+      (dolist (cus-spec entropy/emacs-ivy-rich-extra-display-transformers-list)
+        (entropy/emacs-nconc-with-setvar-use-rest rtn cus-spec))
       rtn))
 
   (defun entropy/emacs-ivy-rich-toggle-doc-show (&optional type)
