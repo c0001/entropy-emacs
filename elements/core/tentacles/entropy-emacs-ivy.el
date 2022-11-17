@@ -1498,7 +1498,7 @@ currnt fontset."
                 (ivy-rich-candidate (:width 0.3))
                 (all-the-icons-ivy-rich-package-version (:width 16 :face all-the-icons-ivy-rich-version-face))
                 (all-the-icons-ivy-rich-package-archive-summary (:width 7 :face all-the-icons-ivy-rich-archive-face))
-                (all-the-icons-ivy-rich-package-install-summary (:face all-the-icons-ivy-rich-install-face)))
+                (all-the-icons-ivy-rich-package-install-summary (:face all-the-icons-ivy-rich-package-status-installed-face)))
                :delimiter "\t")
               package-install
               (:columns
@@ -1518,7 +1518,7 @@ currnt fontset."
                 (ivy-rich-candidate (:width 0.3))
                 (ivy-rich-package-version (:width 16 :face all-the-icons-ivy-rich-version-face))
                 (ivy-rich-package-archive-summary (:width 7 :face all-the-icons-ivy-rich-archive-face))
-                (ivy-rich-package-install-summary (:face all-the-icons-ivy-rich-install-face)))
+                (ivy-rich-package-install-summary (:face all-the-icons-ivy-rich-package-status-installed-face)))
                :delimiter "\t")
               package-delete
               (:columns

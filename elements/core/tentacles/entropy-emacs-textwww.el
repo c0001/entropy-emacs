@@ -473,6 +473,9 @@ do any emacs work in any other buffer, or just wait ... ")))
 `w3m-current-url' to `entropy/emacs-textwww--w3m-url-history'. It
 should always be `let' binding to use."
     )
+
+  (defvar-local entropy/emacs-textwww--w3m-current-pre-real-url nil
+    "The current retrieving url string which passed to `w3m-real-url'.")
   (defvar-local entropy/emacs-textwww--w3m-url-history nil
     "The canonical url `w3m-current-url' (FIXME: does it always the
 return of `w3m-canonicalize-url'? if not we should update
@@ -481,7 +484,14 @@ current w3m buffer.
 
 Each element of of this log list is a cons which car is the url
 and the cdr is the point which is the last visit for page
-content."
+content.
+
+The usage of this variable if not just cat the history value, you
+should always use `pop' or modify it by destructive for which logs are
+used \"goto\", since this variable is usually used to fallback to one
+history place which let be the latest visited place. Or if you just
+want to cat what url current is retrieving, see and use
+`entropy/emacs-textwww--w3m-current-pre-real-url'."
     )
 
   (defun entropy/emacs-textwww--w3m-log-current-url
@@ -497,6 +507,25 @@ content."
               :around
               #'entropy/emacs-textwww--w3m-log-current-url)
 
+  (defun entropy/emacs-textwww--w3m-real-url-save-url
+      (&rest orig-args)
+    (let ((url (car orig-args)))
+      (setq entropy/emacs-textwww--w3m-current-pre-real-url url)))
+  (advice-add 'w3m-real-url :before #'entropy/emacs-textwww--w3m-real-url-save-url)
+  (defun entropy/emacs-textwww--w3m-real-url-fatal-error
+      (orig-func &rest orig-args)
+    (let ((str (car orig-args)))
+      ;; TODO: also find a way to find the corresponding w3m buffer and
+      ;; stop its process via `w3m-process-stop'?
+      (unless (stringp str)
+        (user-error "[eemacs w3m] can not retrieve url: \"%s\""
+                    entropy/emacs-textwww--w3m-current-pre-real-url))
+      (apply orig-func orig-args)))
+  ;; FIXME: `w3m-string-match-url-components' somehow recieve a `nil'
+  ;; string from `w3m-real-url', does it a emacs-w3m internal bug?
+  (advice-add 'w3m-string-match-url-components-1 ;NOTE: we should advice for its error handler
+              :around #'entropy/emacs-textwww--w3m-real-url-fatal-error)
+
 ;; ****** previous page restore
   (defun entropy/emacs-textwww-w3m-view-previous-page ()
     "Like `w3m-view-previous-page' but use the eemacs spec history
@@ -507,7 +536,14 @@ rotate the `w3m-history' to the previous page of the page we want
 to restore."
     (declare (interactive-only t))
     (interactive nil w3m-mode)
-    (let* ((hist (pop entropy/emacs-textwww--w3m-url-history))
+    (let* ((hist
+            ;; NOTE: we should use `pop' to remove the head of log
+            ;; while this usage since we shouldn't let any other
+            ;; procedure refers to
+            ;; `entropy/emacs-textwww--w3m-url-history' to use that
+            ;; head again that we've used it to "goto" already as "go
+            ;; back" which shouldn't be used any more.
+            (pop entropy/emacs-textwww--w3m-url-history))
            (url (car hist))
            (pos (cdr hist)))
       (if (and (stringp url)
