@@ -1050,13 +1050,10 @@ directly identified the input regexp string which do not be with
 
 ;; **** counsel-locate
   (when (and sys/win32p entropy/emacs-microsoft-windows-unix-emulator-enable)
-    (defun counsel-locate (&optional initial-input)
-      "Call the \"locate\" shell command.
-INITIAL-INPUT can be given as the initial minibuffer input.
-
-Note: This function has been modified for transfer volum's type
-of msys2 or other window-gnu-enviroment to windows origin volum
-type by function `entropy/emacs-transfer-wvol'"
+    (defun __ya/counsel-locate (&optional initial-input)
+      "Redefined for transfer volum's type of msys2 or other
+window-gnu-enviroment to windows origin volum type by function
+`entropy/emacs-transfer-wvol'"
       (interactive)
       (counsel--locate-updatedb)
       (ivy-read "Locate: " #'counsel-locate-function
@@ -1068,7 +1065,8 @@ type by function `entropy/emacs-transfer-wvol'"
                             (with-ivy-window
                               (entropy/emacs-transfer-wvol file))))
                 :unwind #'counsel-delete-process
-                :caller 'counsel-locate)))
+                :caller 'counsel-locate))
+    (advice-add 'counsel-locate :around #'__ya/counsel-locate))
 
 ;; **** redefine counsel-git
 
@@ -1078,7 +1076,8 @@ type by function `entropy/emacs-transfer-wvol'"
     "Temporally variable storing git repository root dir,
 this variable used to patching for origin `counsel-git'.")
 
-  (defun counsel-git-cands (&rest _)
+  (defun __ya/counsel-git-cands (&rest _)
+    "Patched with eemacs used for `__ya/counsel-git-action'."
     (let ((default-directory (entropy/emacs-return-as-default-directory
                               (counsel-locate-git-root))))
       (setq entropy/emacs-ivy-counsel-git-root default-directory)
@@ -1086,28 +1085,24 @@ this variable used to patching for origin `counsel-git'.")
        (shell-command-to-string counsel-git-cmd)
        "\n"
        t)))
+  (advice-add 'counsel-git-cands :override #'__ya/counsel-git-cands)
 
-  (defun counsel-git-action (x)
-    "Find file X in current Git repository.
-
-Note: this function has been modified by entropy-emacs because of:
+  (defun __ya/counsel-git-action (x)
+    "Redefined by entropy-emacs because of:
 
 ivy version 0.11.0 and counsel version 0.11.0 has the bug that
 using wrong root-dir for find git repo's file that will cause
 file not existed error and creating new buffer with that actual
 name, this problem caused by origin `counsel-git-action' using
 `ivy-last''s directory slot as the default diretory on the 0.11.0
-version of ivy framework updating.
-    "
+version of ivy framework updating."
     (with-ivy-window
       (let ((default-directory entropy/emacs-ivy-counsel-git-root))
         (find-file x))))
-
+  (advice-add 'counsel-git-action :override #'__ya/counsel-git-action)
 ;; **** redefine counsel-kmacro
-  (defun counsel-kmacro-action-run (x)
-    "Run keyboard macro.
-
-NOTE: this function has been redefined to compat with eemacs.
+  (defun __ya/counsel-kmacro-action-run (x)
+    "Redefined to compat with eemacs.
 
 Since we chosen the kmacro from ring, we set it as the
 `last-kbd-macro' for reputation later."
@@ -1119,7 +1114,20 @@ Since we chosen the kmacro from ring, we set it as the
       (kmacro-split-ring-element actual-kmacro)
       ;; With prefix argument, call the macro that many times.
       (kmacro-call-macro (or current-prefix-arg 1) t nil kmacro-keys)))
+  (advice-add 'counsel-kmacro-action-run
+              :override #'__ya/counsel-kmacro-action-run)
 
+;; **** redefine `counsel-fonts'
+
+  (defun __ya/counsel-fonts (orig-func &rest orig-args)
+    "Same as `counsel-fonts', but ignored in non-GUI session
+since `font-family-list' always return nil in TUI session."
+    (when (eq (face-attribute 'default :font) 'unspecified)
+      (user-error "We can not detecting any system fonts in this emacs session"))
+    (apply orig-func orig-args))
+  (advice-add 'counsel-fonts :around #'__ya/counsel-fonts)
+
+;; *** __end___
   )
 
 ;; *** use counsel css for quickly search css selector
