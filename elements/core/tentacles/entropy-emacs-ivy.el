@@ -889,12 +889,9 @@ This is for use in `ivy-re-builders-alist'."
               #'entropy/emacs-ivy--counsel--M-x-externs)
 
 ;; **** override `counsel-load-theme-action'
-  (defun counsel-load-theme-action (x)
-    "Disable current themes and load theme X.
-
-NOTE: this function has been overriden to remove the
-all-theme-disable preface in the origin procedure which will
-casue some error in eemacs-specification."
+  (defun __ya/counsel-load-theme-action (x)
+    "Redefined by overriden to remove the all-theme-disable preface in the
+origin procedure which will casue some error in eemacs-specification."
     (condition-case nil
         (progn
           ;;(mapc #'disable-theme custom-enabled-themes)
@@ -902,6 +899,9 @@ casue some error in eemacs-specification."
           (when (fboundp 'powerline-reset)
             (powerline-reset)))
       (error "Problem loading theme %s" x)))
+  (advice-add 'counsel-load-theme-action
+              :override
+              #'__ya/counsel-load-theme-action)
 
 ;; **** do not active `counsel-grep' function when not grep exec found
 
