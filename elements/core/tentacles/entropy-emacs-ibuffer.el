@@ -122,7 +122,7 @@
 
 ;; ** common ibuffer display
 (defun entropy/emacs-ibuffer--init-common ()
-  (let ((set-basic-format? (and (not all-the-icons-ibuffer-mode)
+  (let ((set-basic-format? (and (not (bound-and-true-p all-the-icons-ibuffer-mode))
                                 (not entropy/emacs-enable-ibuffer-projectitle))))
 
     ;; filter ibuffer using `major-mode' when `ibuffer-projectile' is
