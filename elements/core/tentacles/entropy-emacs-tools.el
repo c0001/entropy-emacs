@@ -1296,15 +1296,17 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
 (defun entropy/emacs-tools-goto-sys-home ()
   "Open system home folder.
 
-  It's usefully for windows user to quickly switching to 'c:/.../user-name'."
+It's usefully for windows user to quickly switching to
+`c:/.../user-name'."
   (declare (interactive-only t))
   (interactive)
   (cond
    (sys/win32p
     (let ((home (getenv "USERPROFILE")))
+      (unless (stringp home)
+        (user-error "Can not detect home dir in current windows system."))
       (dired home)))
-   (sys/is-posix-compatible
-    (dired "~/"))))
+   (sys/is-posix-compatible (dired "~/"))))
 
 (defalias 'ehome
   'entropy/emacs-tools-goto-sys-home

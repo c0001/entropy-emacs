@@ -333,6 +333,11 @@ via `entropy/emacs-make-alist-with-symbol-prop-set'." ,varsym))
        (add-variable-watcher ,varsym var-guard-func-name))))
 
 ;; ** INIT
+
+;; eemacs conventional top-level binding either NOTE emacs bind to
+;; "M-ESC"
+(global-set-key (kbd "ESC ESC") 'top-level)
+
 (let* ((subs-core
         '("wasteland/var-binds" "wasteland/func-binds"
           "baron/startup" "baron/batch" "baron/summon" "baron/utils" "baron/hollow"

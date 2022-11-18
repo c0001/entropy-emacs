@@ -202,11 +202,6 @@ upstream and may be make risky follow the ivy updates.
           (user-error "Ivy quit for caller '%s'" this-caller)))))
   (advice-add 'ivy-read :after #'entropy/emacs-ivy--ivy-read-quit-after-dispatch-actions)
 
-  ;; top level for ivy-mode-map
-  (entropy/emacs-lazy-load-simple 'ivy
-    (define-key ivy-mode-map (kbd "ESC ESC") 'top-level))
-
-
 ;; **** inhibit double tab trigger
   ;; Patch the `ivy-alt-done' to prevent double click '<tab>'
   ;; triggered in `ivy-partial-or-done' i.e. This portion give the
