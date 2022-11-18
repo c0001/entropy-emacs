@@ -1900,8 +1900,8 @@ let eglot do completion with interface argument injection."
 (defmacro entropy/emacs-codeserver--ide-with-lsp-p?-and-immediately
     (hook-mode &rest body)
   (declare (indent defun))
-  `(when (and (member (entropy/emacs-get-use-ide-type ',hook-mode)
-                      '(lsp eglot))
+  `(when (and (memq (entropy/emacs-get-use-ide-type ',hook-mode)
+                    '(lsp eglot))
               entropy/emacs-install-coworker-immediately)
      ,(entropy/emacs-macroexp-progn body)))
 
