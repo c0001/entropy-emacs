@@ -1034,6 +1034,12 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
     (entropy/emacs-message-make-func-with-simple-progress-prompts func
       "google translate"))
 
+  ;; FIXME: notice upstream that this wrong usage of
+  ;; `backward-sentence'.
+  (advice-patch 'google-translate--split-text
+                '(> (progn (backward-sentence) (point)) pos)
+                '(> (backward-sentence) pos))
+
 ;; ***** end
   )
 
