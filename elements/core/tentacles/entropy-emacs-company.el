@@ -336,6 +336,23 @@ native-compiled subr."
   ;; set the default company frontend with eemacs spec
   (setq-default company-frontends '(company-pseudo-tooltip-frontend))
 
+  ;; Reset `company-emulation-alist' for two reason:
+  ;; 1) origin set of `company-emulation-alist' is a const var `((t
+  ;;    . nil))' in which case its a company internal typo or neglect
+  ;;    since it modifies it via install or uninstall the overriding
+  ;;    keymap thru `company-uninstall-map' or `company-install-map'.
+  ;; 2) the default `t' of that override's indicator will cause every
+  ;;    buffer use `company-emulation-alist' as the overriding when
+  ;;    it's set in an `company-backend' activated buffer, thus the
+  ;;    buffer or window swiches will make keymap usage messy. Thus we
+  ;;    use `company-candidates' for indicator since it's a
+  ;;    buffer-local variable and default in nil for those reverse
+  ;;    occasions.
+  ;;
+  ;; FIXME: shall we need to push a bug for company upstream?
+  (setq company-emulation-alist
+        (entropy/emacs-double-list 'company-candidates))
+
 ;; **** advices
 ;; ***** `company-post-command' idle trigger
 
