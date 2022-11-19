@@ -189,6 +189,24 @@ This function exists since user usually use `get' for
 its value is a COMMAND."
   (if (symbolp maybe-sym) (get maybe-sym prop)))
 
+(defun entropy/emacs-safety-message (format-string &rest args)
+  "Like `message' but prevent user use the FORMAT-STRING as the
+only argument apply to it which may cause error while the
+FORMAT-STRING is actually a format-string but used as a common
+string and no ARGS can be formatted."
+  (if args
+      (apply 'message format-string args)
+    (message "%s" format-string)))
+
+(defun entropy/emacs-time-subtract (before &optional now use-float)
+  "`time-subtract' from BEFORE to NOW (defautls to `current-time').
+Return that result.
+
+If USE-FLOAT is non-nil, the result is a `floatp' number indiate that
+duration in seconds."
+  (let ((dr (time-subtract (or now (current-time)) before)))
+    (if use-float (float-time dr) dr)))
+
 (defun entropy/emacs-func-is-native-comp-p (func)
   "Return non-nil when function FUNC is a native-compiled function,
 nil otherwise."

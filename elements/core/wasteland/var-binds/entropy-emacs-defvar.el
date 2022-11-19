@@ -224,7 +224,7 @@ said."
                 ;; quit via first match failed
                 (throw :exit nil)))
             ;; test duration whether matched
-            (<= (float-time (time-subtract ctime the-time))
+            (<= (entropy/emacs-time-subtract the-time ctime 'use-float)
                 time-duration-limit)))
       (error (message "[eemacs-cmds-seq-p] error: %S" err)))))
 
