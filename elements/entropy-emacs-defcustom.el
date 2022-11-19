@@ -3043,18 +3043,19 @@ with requests.")
 `entropy/emacs-find-file-judge-filename-is-emacs-intspecially-p'
 which is stored in `file-name-handler-alist'.")
 (defvar entropy/emacs-find-file-judge-filename-is-emacs-intspecially-core-filters
-  '((lambda (filename)
-      (catch :exit
-        (dolist (el file-name-handler-alist)
-          (let ((matcher (car el))
-                (handler (cdr el)))
-            (unless (member
-                     handler
-                     entropy/emacs-find-file-judge-filename-is-emacs-intspecially-core-ignore-handlers
-                     )
-              (when (string-match-p matcher filename)
-                (throw :exit t)))))
-        nil)))
+  `(,(entropy/emacs-defalias '__eemacs-basic-intspecially-basic-filter
+       (lambda (filename)
+         (catch :exit
+           (dolist (el file-name-handler-alist)
+             (let ((matcher (car el))
+                   (handler (cdr el)))
+               (unless (memq
+                        handler
+                        entropy/emacs-find-file-judge-filename-is-emacs-intspecially-core-ignore-handlers
+                        )
+                 (when (string-match-p matcher filename)
+                   (throw :exit t)))))
+           nil))))
   "List of functions used for
 `entropy/emacs-find-file-judge-filename-is-emacs-intspecially-p'
 where each one accept one argument of a filename and return
@@ -3097,8 +3098,7 @@ list return t i.e. inidcate to unjudge for as.")
 
       (when entropy/emacs-unreadable-file-unjuge-cases-predicates
         (dolist (el entropy/emacs-unreadable-file-unjuge-cases-predicates)
-          (when (and (functionp el)
-                     (funcall el))
+          (when (and (functionp el) (funcall el))
             (throw :exit t))))
       ;; TODO add more unjudge predicates
       )))
@@ -3112,17 +3112,14 @@ list return t i.e. inidcate to unjudge for as.")
                (fsize-max (entropy/emacs-large-file-warning-threshold-get))
                (fsize (and
                        f-readp f-existp
-                       (file-attribute-size
-                        (file-attributes
-                         filename)))))
+                       (file-attribute-size (file-attributes filename)))))
           (catch :exit
             ;; firstly we should escape check when matching unjudge cases
             (when (entropy/emacs-unreadable-file-unjuge-cases filename)
               (throw :exit nil))
             (cond (
                    ;; Fistly we just determin the filesize limitation
-                   (and fsize
-                        (> fsize fsize-max))
+                   (and fsize (> fsize fsize-max))
                    t)
                   ;; and then we detect with `entropy/emacs-unreadable-buffer-judge-function'
                   (t
@@ -3130,9 +3127,7 @@ list return t i.e. inidcate to unjudge for as.")
                      (when
                          ;; Just judge existed and readable file so we
                          ;; ignore errors for the reading procedure.
-                         (ignore-errors
-                           (insert-file-contents
-                            filename))
+                         (ignore-errors (insert-file-contents filename))
                        (when (functionp entropy/emacs-unreadable-buffer-judge-function)
                          (funcall entropy/emacs-unreadable-buffer-judge-function
                                   (current-buffer)))))))))))

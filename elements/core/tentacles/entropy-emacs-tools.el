@@ -152,24 +152,25 @@ with ARGLIST."
   (advice-add 'openwith-open-windows :override #'__ya/openwith-open-windows)
 
   (entropy/emacs-add-to-list
-   entropy/emacs-find-file-judge-fllename-need-open-with-external-app-core-filters
-   '(lambda (filename)
-      (let ((assocs openwith-associations)
-            (file filename)
-            oa)
-        (catch :exit
-          ;; do not use `dolist' here, since some packages (like cl)
-          ;; temporarily unbind it
-          (while assocs
-            (setq oa (car assocs)
-                  assocs (cdr assocs))
-            (when (let
-                      ;; we must ensure `case-fold-search' since the
-                      ;; extenxion have uppercaes variants
-                      ((case-fold-search t))
-                    (string-match-p (car oa) file))
-              (throw :exit t))))))
-   'append)
+    entropy/emacs-find-file-judge-fllename-need-open-with-external-app-core-filters
+    (entropy/emacs-defalias '__eemas/tools-openwith-external-open-filter
+      (lambda (filename)
+        (let ((assocs openwith-associations)
+              (file filename)
+              oa)
+          (catch :exit
+            ;; do not use `dolist' here, since some packages (like cl)
+            ;; temporarily unbind it
+            (while assocs
+              (setq oa (car assocs)
+                    assocs (cdr assocs))
+              (when (let
+                        ;; we must ensure `case-fold-search' since the
+                        ;; extenxion have uppercaes variants
+                        ((case-fold-search t))
+                      (string-match-p (car oa) file))
+                (throw :exit t)))))))
+    'append)
 
   (defvar __openwith-file-handler-history nil
     "The `openwith-file-handler' hander log used for eemacs debug only.")
