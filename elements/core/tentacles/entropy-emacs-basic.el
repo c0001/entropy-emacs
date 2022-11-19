@@ -4665,8 +4665,8 @@ successfully both of situation of read persisit of create an new."
            (buffer (let ((large-file-warning-threshold most-positive-fixnum))
                      (find-file-noselect file)))
            (inhibit-read-only t)
-           kill-ring-read
-           (kill-ring-old (copy-sequence kill-ring))
+           kring--read
+           (kring--old (copy-sequence kill-ring))
            (rtn t))
       (with-current-buffer buffer
         (goto-char (point-min))
@@ -4683,12 +4683,12 @@ successfully both of situation of read persisit of create an new."
           (condition-case error
               (let ((coding-system-for-read 'utf-8-auto)
                     (coding-system-for-write 'utf-8-auto))
-                (setq kill-ring-read (read (current-buffer)))
+                (setq kring--read (read (current-buffer)))
                 ;; append the current `kill-ring' to the persist one
                 ;; as we need the new to be insert as.
-                (setq kill-ring (append kill-ring kill-ring-read)))
+                (setq kill-ring (append kill-ring kring--read)))
             (error
-             (setq kill-ring kill-ring-old
+             (setq kill-ring kring--old
                    rtn nil)
              (unless (= (buffer-size) 0)
                (warn (format "Read persit kill-ring fatal of [%s], fallen back to origin done!"
