@@ -3225,9 +3225,8 @@ origin config file."
 ;; ***** unreadable file detection
 
 (defun __ureadable-file-do-prompt-of-message (format &rest args)
-  (if (yes-or-no-p (format format args))
-      t
-    (user-error "Abort!")))
+  (or (yes-or-no-p (format format args))
+      (user-error "Abort!")))
 
 (defun entropy/emacs-unreadable-file-advice-for-finid-file
     (orig-func &rest orig-args)
