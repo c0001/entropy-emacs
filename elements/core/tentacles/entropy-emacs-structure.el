@@ -362,6 +362,8 @@ want to preserve the source demo."
   :hook
   ((emacs-lisp-mode . outshine-mode)
    (lisp-interaction-mode . outshine-mode)
+   (lisp-data-mode . outshine-mode)
+   (yaml-mode . outshine-mode)
    (sh-mode . outshine-mode)
    (c-mode . outshine-mode)
    (c++-mode . outshine-mode)
