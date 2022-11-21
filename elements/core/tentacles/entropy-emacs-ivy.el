@@ -365,6 +365,8 @@ bug of (EEMACS_BUG: h-17036bdc-c6e9-4ac2-bac8-1c55bd8ecda4)."
       ;; internal needed in ivy source filea
       swiper
       swiper-all
+      swiper-all-thing-at-point
+      __ya/swiper-all-thing-at-point
       swiper-isearch
       swiper-isearch-thing-at-point
       counsel-grep-or-swiper
@@ -474,7 +476,10 @@ large buffer."
          :map swiper-map
          ("M-q" . swiper-query-replace)
          :map ivy-minibuffer-map
-         ("M-p" . entropy/emacs-basic-pyim-toggle-cregexp-ivy-enable))
+         (("M-p" . entropy/emacs-basic-pyim-toggle-cregexp-ivy-enable)
+          ("M-n" . __eemacs/ivy-minibuffer-common-thing-at-point))
+         :map swiper-all-map
+         ("M-n" . __ya/swiper-all-thing-at-point))
 
 ;; *** init
   :init
@@ -485,27 +490,16 @@ large buffer."
 
 ;; **** core advice
 ;; ***** enhance `swiper-isearch-thing-at-point'
-  (defun __ya/swiper-isearch-thing-at-point ()
-    "Like `swiper-isearch-thing-at-point' but with some eemacs patch
-and bug fix."
-    (interactive)
+
+  (defun __eemacs/swiper-call-with-thing-at-point (name func)
+    "entropy-emacs union ivy framework inline `thing-at-point' core
+subroutine."
     (let (_)
       (if (window-minibuffer-p)
           (let (bnd str regionp)
             ;; Do not duplicated insert the match when reinvoke
             (delete-region (line-beginning-position)
                            (line-end-position))
-            ;; Prompts for insert boundary
-            (setq ivy--prompt
-                  (if (or (eq real-last-command 'swiper-isearch-thing-at-point)
-                          current-prefix-arg)
-                      (concat
-                       ivy-count-format
-                       " Swiper-isearch-thing-at-pt: ")
-                    (concat
-                     ivy-count-format
-                     " Swiper-isearch-thing-at-pt (with 'C-u' and invoking again to insert boundary): "
-                     )))
             (with-ivy-window
               (setq bnd
                     (if (setq regionp (region-active-p))
@@ -527,7 +521,11 @@ and bug fix."
                 ;; boundary is used to restrict without part match
                 ;; like match 'abc' not match '0-abc-1' when boundary
                 ;; added through `swiper--re-builder'
-                (if current-prefix-arg (ivy--insert-symbol-boundaries)))))
+                (if current-prefix-arg (ivy--insert-symbol-boundaries)
+                  (unless (eq real-last-command this-command)
+                    (message
+                     (format " %s (with 'C-u' and invoking again to insert boundary): "
+                             name)))))))
         (let (thing)
           (if (use-region-p)
               (progn
@@ -538,10 +536,31 @@ and bug fix."
             (let ((bnd (bounds-of-thing-at-point 'symbol)))
               (if bnd (goto-char (car bnd)))
               (setq thing (ivy-thing-at-point))))
-          (swiper-isearch thing)))))
+          (funcall-interactively func thing)))))
+
+  (defun __ya/swiper-isearch-thing-at-point ()
+    "Like `swiper-isearch-thing-at-point' but with some eemacs patch
+and bug fix."
+    (interactive)
+    (__eemacs/swiper-call-with-thing-at-point
+     "Swiper-isearch-thing-at-pt" 'swiper-isearch))
   (advice-add 'swiper-isearch-thing-at-point
-              :override
-              #'__ya/swiper-isearch-thing-at-point)
+              :override #'__ya/swiper-isearch-thing-at-point)
+
+  (defun __ya/swiper-all-thing-at-point ()
+    "Like `swiper-isearch-thing-at-point' but for `swiper-all' inline
+usage."
+    (interactive)
+    (__eemacs/swiper-call-with-thing-at-point
+     "Swiper-all-thing-at-pt" 'swiper-all))
+
+  (defun __eemacs/ivy-minibuffer-common-thing-at-point ()
+    "Like `swiper-isearch-thing-at-point' but for
+`ivy-minibuffer-map' inline usage for those commands has no
+grabing thing feature."
+    (interactive)
+    (__eemacs/swiper-call-with-thing-at-point
+     "ivy-common-thing-at-pt" 'swiper-all))
 
 ;; ***** swiper all patch
 ;; ****** core
