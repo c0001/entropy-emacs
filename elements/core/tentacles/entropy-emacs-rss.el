@@ -719,32 +719,31 @@ Arguemnts:
           ;; [2018-08-30 Thu 02:32:49] this can be replaced with `elfeed-db-get-all-tags' for full
           ;; tags search.
 
-          (let ((entl selected-entries))
+          (let ((entl selected-entries) tgs)
             (dolist (el entl)
-              (when (listp (elfeed-entry-tags el))
+              (when (listp (setq tgs (elfeed-entry-tags el)))
                 (push el entries)
-                (mapc #'(lambda (x)
-                          (unless
-                              ;; do not save duplicated tags
-                              (member x tags-list)
-                            (push x tags-list)))
-                      (elfeed-entry-tags el)))))
+                (mapc
+                 #'(lambda (x)
+                     (unless
+                         ;; do not save duplicated tags
+                         (memq x tags-list)
+                       (push x tags-list)))
+                 tgs))))
           ;; read user choice
           (if (not tag)
-              (setq choice (completing-read
-                            (if (not prompt)
-                                "Choose tag: "
-                              prompt)
-                            tags-list nil
-                            (if match t nil)))
+              (entropy/emacs-setf-by-body choice
+                (completing-read
+                 (if (not prompt) "Choose tag: "
+                   prompt)
+                 tags-list nil (if match t nil)))
             (setq choice tag))
-
+          (setq choice (intern choice))
           (if return-list
               ;; match entries of choice
               (dolist (el entries)
-                (if (member (intern choice) (elfeed-entry-tags el))
-                    (push el rtn)))
-            (setq rtn (intern choice)))
+                (if (memq choice (elfeed-entry-tags el)) (push el rtn)))
+            (setq rtn choice))
           rtn)
       (error "unsupport major-mode `%s'" major-mode)))
 

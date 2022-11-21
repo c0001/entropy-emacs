@@ -126,6 +126,14 @@ BODY or FORMS requested context by `,@' in `backquote' forms.
 See also `entropy/emacs-macroexp-progn'."
   (or args (list nil)))
 
+(defun entropy/emacs-maybe-list (object)
+  "Wrap OBJECT as a list of it only when OBJECT is not a `listp'
+list.
+
+Return the list or OBJECT when not thus."
+  (and object
+       (if (consp object) object (list object))))
+
 (defmacro entropy/emacs-defalias (&rest args)
   "Same as `defalias' but indeed return the SYMBOL.
 
