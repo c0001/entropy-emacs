@@ -4353,9 +4353,13 @@ coding style."
    global-auto-revert-ignore-modes nil
    ;; we should see what heppens to track bugs
    auto-revert-verbose t
-   )
-  ;; disable lagging since vc check is time expensive
-  (setq auto-revert-check-vc-info nil))
+
+   ;; disable lagging since vc check is time expensive
+   auto-revert-check-vc-info nil
+   ;; We just revert the file-visiting buffer i.e. with real
+   ;; `buffer-file-name' so that not did mess for temporary
+   ;; buffers.
+   global-auto-revert-non-file-buffers nil))
 
 (entropy/emacs-lazy-initial-for-hook
  '(find-file-hook)

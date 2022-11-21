@@ -1307,7 +1307,7 @@ upstream."
                                  frame)))
           (when (and doc-frame
                      (framep doc-frame)
-                     (frame-live-p frame)
+                     (frame-live-p doc-frame)
                      (frame-visible-p doc-frame)
                      ;; to ensuer is not the root frame
                      (framep (frame-parent doc-frame)))
@@ -1356,6 +1356,31 @@ while in `company-box-mode'."
                    #'__ya_company-box-doc-hide t)))
   (add-hook 'company-box-mode-hook
             #'entropy/emacs-company-box-hide-on-the-fly)
+
+;; ********* `company-box-doc--show' neglect patch
+
+  (defun __ya/company-box-doc--show/neglect-patch/0 (&rest _)
+    "If the doc frame is manipulated with multi buffer display
+operation then the `frame-root-window' of that frame will be
+inner one in which case made collision between
+`company-box-doc''s origin usage/designation and the new
+occasion.
+
+This patch delete the origin doc frame so that let the subroutine
+recreates a new one for usage so that remove that collision."
+    (when-let* ((frame (frame-local-getq company-box-doc-frame))
+                ((frame-live-p frame)))
+      (unless (window-live-p (frame-root-window frame))
+        (let (
+              ;; NOTE: we should ensure that no run frame deletion
+              ;; hooks since we're just kill it. For more precisely
+              ;; that `company-box--kill-buffer' will be invoked via
+              ;; that way which is not what we expecting for.
+              delete-frame-functions)
+          (delete-frame frame t)
+          (frame-local-setq company-box-doc-frame nil)))))
+  (advice-add 'company-box-doc--show
+              :before #'__ya/company-box-doc--show/neglect-patch/0)
 
 ;; ******** company box main core patch
 ;; ********* company box hide/show patch
@@ -1413,7 +1438,7 @@ reducing lag caused by `make-frame-invisible'."
 
   (defun __ya/company-box-hide-or-show/robust (orig-func &rest orig-args)
     (let ((inhibit-quit t))
-      (condition-case err
+      (condition-case-unless-debug err
           (apply orig-func orig-args)
         (error
          (let ((inhibit-quit t))

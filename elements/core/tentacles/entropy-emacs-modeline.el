@@ -142,22 +142,28 @@
 (defun entropy/emacs-modeline--mdl-common-eyebrowse-segment ()
   "Entropy-emacs specific modeline style.
 
-This customization mainly adding the eyebrowse slot and tagging name show function."
+This customization mainly adding the eyebrowse slot and tagging
+name show function."
   (if (or (null entropy/emacs-modeline--mdl-common-eyebrowse-segment)
           (bound-and-true-p entropy/emacs-current-session-is-idle-p))
-      (let* ((cs (eyebrowse--get 'current-slot))
-             (window-configs (eyebrowse--get 'window-configs))
-             (window-config (assoc cs window-configs))
-             (current-tag (nth 2 window-config))
-             (mdlface (entropy/emacs-modeline--mdl-common-eyebrowse-face-dynamic-gen
-                       (number-to-string cs)))
-             rtn)
-        (setq rtn (concat
-                   (propertize (concat (make-string 1 ?\x03BB) " " (number-to-string cs) " ") 'face mdlface)
-                   (propertize (concat current-tag " ") 'face mdlface)
-                   " "))
+      (entropy/emacs-when-let*-firstn 5
+          ((cs (eyebrowse--get 'current-slot))
+           (window-configs (eyebrowse--get 'window-configs))
+           (window-config (assoc cs window-configs))
+           (current-tag (nth 2 window-config))
+           (mdlface (entropy/emacs-modeline--mdl-common-eyebrowse-face-dynamic-gen
+                     (number-to-string cs)))
+           rtn)
+        (entropy/emacs-setf-by-body rtn
+          (concat
+           (propertize (concat (make-string 1 ?\x03BB) " "
+                               (number-to-string cs) " ")
+                       'face mdlface)
+           (propertize (concat current-tag " ") 'face mdlface)
+           " "))
         (setq entropy/emacs-modeline--mdl-common-eyebrowse-segment rtn))
-    entropy/emacs-modeline--mdl-common-eyebrowse-segment))
+    (or entropy/emacs-modeline--mdl-common-eyebrowse-segment
+        "")))
 
 
 ;; *** modeline type defined
