@@ -359,52 +359,63 @@ bug of (EEMACS_BUG: h-17036bdc-c6e9-4ac2-bac8-1c55bd8ecda4)."
 
 ;; **** fix lag on `ivy-thing-at-point'
 
+  (defvar __eemacs-ivy-thing-at-pt-nignore-cmds
+    '(
+      ;; let `swiper' like function using origin since its
+      ;; internal needed in ivy source filea
+      swiper
+      swiper-all
+      swiper-isearch
+      swiper-isearch-thing-at-point
+      counsel-grep-or-swiper
+      ))
+  (dolist (cmd __eemacs-ivy-thing-at-pt-nignore-cmds)
+    (put cmd '__eemacs-ivy-thing-at-pt-nignore-cmd-p t))
+
+  (defvar __eemacs-ivy-thing-at-pt-nignore-mmodes
+    '(emacs-lisp-mode
+      lisp-interaction-mode
+      lisp-data-mode
+      help-mode))
+  (dolist (cmd __eemacs-ivy-thing-at-pt-nignore-mmodes)
+    (put cmd '__eemacs-ivy-thing-at-pt-nignore-mmode-p t))
+
+  (defvar __eemacs-ivy-thing-at-pt-nignore-mmodes-cmds
+    '(counsel-describe-variable
+      counsel-describe-function
+      ))
+  (dolist (cmd __eemacs-ivy-thing-at-pt-nignore-mmodes-cmds)
+    (put cmd '__eemacs-ivy-thing-at-pt-nignore-mmodes-cmd-p t))
+
   (defun __ya/ivy-thing-at-point (orig-func &rest orig-args)
     "Ignore `ivy-thing-at-point' to return emtpy string but with some
 occasions since the internal `thing-at-point' is so laggy with
 large buffer."
-    (cond (
-           ;; FIXME: shall we need to use `with-ivy-window' to
-           ;; stat the status in origin buffer since, but I test
-           ;; that there's no need and why?
-           (or (member real-this-command
-                       ;; enable for some subroutines
-                       '(swiper-isearch-thing-at-point))
+    (cond ((or
+            ;; TODO: could we use this: `current-prefix-arg' ?
 
-               (and (memq major-mode '(emacs-lisp-mode
-                                       lisp-interaction-mode
-                                       lisp-data-mode
-                                       help-mode))
-                    (memq this-command
-                          '(counsel-describe-variable
-                            counsel-describe-function
-                            )))
-               ;; enable get thing when region actived unless the
-               ;; region content is not thing like
-               (and (region-active-p)
-                    (let ((str (buffer-substring
-                                (region-beginning)
-                                (region-end))))
-                      (and (not (string-match-p "[ \n\t\r]" str))
-                           (not (> (length str) 100)))))
-               ;; let `swiper' like function using origin since its
-               ;; internal needed in ivy source filea
-               (memq this-command
-                     '(swiper
-                       swiper-isearch
-                       swiper-isearch-thing-at-point
-                       ;; TODO: more
-                       ))
-               )
+            ;; FIXME: shall we need to use `with-ivy-window' to
+            ;; stat the status in origin buffer since, but I test
+            ;; that there's no need and why?
+            (entropy/emacs-get-symbol-prop
+             real-this-command '__eemacs-ivy-thing-at-pt-nignore-cmd-p)
+            (and (entropy/emacs-get-symbol-prop
+                  major-mode '__eemacs-ivy-thing-at-pt-nignore-mmode-p)
+                 (entropy/emacs-get-symbol-prop
+                  this-command '__eemacs-ivy-thing-at-pt-nignore-mmodes-cmd-p))
+            ;; enable get thing when region actived unless the
+            ;; region content is not thing like
+            (and (region-active-p)
+                 (let ((str (buffer-substring (region-beginning) (region-end))))
+                   (and (not (string-match-p "[ \n\t\r]" str))
+                        (not (> (length str) 100))))))
            (let (rtn)
              (prog1 (setq rtn (apply orig-func orig-args))
                (unless (string-empty-p rtn)
                  (message "ivy-thing-at-pt: invoke by command <%s> at thing '%s'"
                           this-command rtn)))))
           (t "")))
-  (advice-add 'ivy-thing-at-point
-              :around
-              #'__ya/ivy-thing-at-point)
+  (advice-add 'ivy-thing-at-point :around #'__ya/ivy-thing-at-point)
 
 
 ;; **** TODO `ivy--dynamic-collection-cands' bugs notation
@@ -558,10 +569,10 @@ and bug fix."
                            major-mode)))
                      buff-list))))
                  mode)
-            (entropy/emacs-setf-by-body mode
-              (completing-read "Which mode to swipr all?: "
-                               modes-get nil t)
-              mode (intern mode))
+            (setq mode
+                  (completing-read "Which mode to swipr all?: "
+                                   modes-get nil t)
+                  mode (intern mode))
             (lambda (buff)
               (with-current-buffer buff
                 (eq major-mode mode))))))))
@@ -908,16 +919,8 @@ origin procedure which will casue some error in eemacs-specification."
 
   (defun __ya/counsel-grep-or-swiper (&optional initial-input)
     "Call `swiper-isearch' for small buffers and `counsel-grep' for large ones.
-When non-nil, INITIAL-INPUT is the initial search pattern.
-
-When `current-prefix-arg' is non-nil then enable `pyim-cregexp-ivy' as
-the main regexp builder, therefore we can search chinese chars with
-latin inputs as pyinyin query."
+When non-nil, INITIAL-INPUT is the initial search pattern."
     (interactive)
-    ;; enable chinese pyinyin search support
-    (when current-prefix-arg
-      (entropy/emacs-basic-pyim-enable-cregexp-ivy)
-      (entropy/emacs-basic-pyim-pre-disable-ivy-regexp-for-minibuffer))
     (if (or (not buffer-file-name)
             (buffer-narrowed-p)
             (and buffer-file-name
@@ -934,9 +937,7 @@ latin inputs as pyinyin query."
                   (user-error "Abort!")))
         (save-buffer))
       (counsel-grep initial-input)))
-  (advice-add 'counsel-grep-or-swiper
-              :override
-              #'__ya/counsel-grep-or-swiper)
+  (advice-add 'counsel-grep-or-swiper :override #'__ya/counsel-grep-or-swiper)
 
 ;; **** patches for `counsel-grep' and referred
 
@@ -944,8 +945,7 @@ latin inputs as pyinyin query."
     "The around advice for `counsel-grep' to widen the current
 buffer for preventing ivy framework highlights the wrong positon
 in current buffer."
-    (when (buffer-narrowed-p)
-      (widen))
+    (when (buffer-narrowed-p) (widen))
     (apply orig-func orig-args))
 
   (advice-add 'counsel-grep :around #'entropy/emacs-ivy--counsel-grep-patch-1)
