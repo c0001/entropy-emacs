@@ -256,6 +256,14 @@ upstream and may be make risky follow the ivy updates.
         (ivy--exhibit))
       (setq __idle/ivy-queue-exhited-done t)))
 
+  (defvar __eemacs-ivy-dynamic-commands
+    '(self-insert-command
+      ivy-backward-delete-char
+      ivy-backward-kill-word
+      ivy-forward-char
+      backward-char))
+  (dolist (cmd __eemacs-ivy-dynamic-commands)
+    (put cmd '__eemacs-ivy-dynamic-command-p t))
   (defun __ya/ivy--queue-exhibit ()
     "The override advice for `ivy--queue-exhibit' to exhibit the
 canidates idle after input event done by 0.2 seconds."
@@ -285,11 +293,8 @@ queue done flag exposed to `ivy-done' idle trigger judger."
              (not ivy-dym-p)
              (and
               eemacs-dym-p
-              (memq this-command '(self-insert-command
-                                   ivy-backward-delete-char
-                                   ivy-backward-kill-word
-                                   ivy-forward-char
-                                   backward-char)))
+              (entropy/emacs-get-symbol-prop
+               this-command '__eemacs-ivy-dynamic-command-p))
              ;; TODO: more conditions here
              )
             (funcall __ya/ivy--queue-exhibit/idle-func)
