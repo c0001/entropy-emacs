@@ -83,6 +83,27 @@
       :enable t :exit t :map-inject t)
      ("-" entropy/emacs-rss-elfeed-untag-selected "Delete tag for current entry"
       :enable t :exit t :map-inject t))))
+  :eemacs-mmphc
+  (((:enable t :defer t)
+    (elfeed-show-mode (elfeed-show elfeed-show-mode-map) t))
+   ("Common"
+    (("c" elfeed-kill-link-url-at-point "Copy link at point"
+      :enable t :exit t :map-inject t)
+     ("y" elfeed-kill-link-url-at-point "Copy current entry's link"
+      :enable t :exit t :map-inject t)
+     ("TAB" elfeed-show-next-link "Jump to next link"
+      :enable t :exit t :map-inject t)
+     ("b" elfeed-show-visit "Show current entry in browser"
+      :enable t :exit t :map-inject t))
+    "Misc."
+    (("g" elfeed-show-refresh "Refresh current buffer"
+      :enable t :exit t :map-inject t)
+     ("q" entropy/emacs-rss-elfeed-kill-buffer "Quit"
+      :enable t :exit t :map-inject t)
+     ("-" entropy/emacs-rss-elfeed-untag-selected "Remove TAGS from the displayed entry"
+      :enable t :exit t :map-inject t)
+     ("+" entropy/emacs-rss-elfeed-tag-selected "Add TAGS to the displayed entry"
+      :enable t :exit t :map-inject t))))
 
 ;; *** init
   :init
@@ -692,7 +713,7 @@ Arguemnts:
 - prompt:      string for specific the query prompt.
 
 - match:       whether require match with query prompt step."
-    (if (equal major-mode 'elfeed-search-mode)
+    (if (memq major-mode '(elfeed-search-mode elfeed-show-mode))
         (let (rtn entries tags-list choice)
           ;; extract entries by selected which have existed tags and make initial tags-list list.
           ;; [2018-08-30 Thu 02:32:49] this can be replaced with `elfeed-db-get-all-tags' for full
@@ -725,7 +746,7 @@ Arguemnts:
                     (push el rtn)))
             (setq rtn (intern choice)))
           rtn)
-      (error "Unmatched major-mode of 'elfeed-search-mode'!")))
+      (error "unsupport major-mode `%s'" major-mode)))
 
   (defun entropy/emacs-rss--elfeed-feedname-choice (selected-entries &optional tname return-list)
     "Query with promt for choosing one feedname from the selected
@@ -793,27 +814,30 @@ Arguments:
     "Untag tag for selected entries with query prompt as
 requiring matched."
     (declare (interactive-only t))
-    (interactive nil elfeed-search-mode)
-    (let* ((entries (elfeed-search-selected))
+    (interactive nil elfeed-search-mode elfeed-show-mode)
+    (let* ((smp (eq major-mode 'elfeed-show-mode))
+           (entries (or (and smp (list elfeed-show-entry)) (elfeed-search-selected)))
            (choice (entropy/emacs-rss--elfeed-tags-choice
                     entries nil nil "Choose tag for remove: " t)))
       (elfeed-untag entries choice)
       (mapc #'elfeed-search-update-entry entries)
-      (unless (use-region-p) (forward-line))))
+      (unless (or smp (use-region-p)) (forward-line))
+      (if smp (elfeed-show-refresh))))
 
   (defun entropy/emacs-rss-elfeed-tag-selected ()
     "Adding tag for selected entries with query prompt for
 selecting existing tag or input the new one instead."
     (declare (interactive-only t))
-    (interactive nil elfeed-search-mode)
-    (let* ((entries (elfeed-search-selected))
+    (interactive nil elfeed-search-mode elfeed-show-mode)
+    (let* ((smp (eq major-mode 'elfeed-show-mode))
+           (entries (or (and smp (list elfeed-show-entry)) (elfeed-search-selected)))
            (full-entrylist (entropy/emacs-rss--elfeed-get-all-entries))
            (tag (entropy/emacs-rss--elfeed-tags-choice
                  full-entrylist nil nil "Choose tag or input one: ")))
       (elfeed-tag entries tag)
       (mapc #'elfeed-search-update-entry entries)
-      (unless (use-region-p) (forward-line))))
-
+      (unless (or smp (use-region-p)) (forward-line))
+      (if smp (elfeed-show-refresh))))
 
 ;; *** delete entry
   (defun entropy/emacs-rss-elfeed-delete-entry ()
