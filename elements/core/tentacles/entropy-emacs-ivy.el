@@ -336,7 +336,7 @@ bug of (EEMACS_BUG: h-17036bdc-c6e9-4ac2-bac8-1c55bd8ecda4)."
     (cond
      ((= (minibuffer-depth) 0)
       (user-error
-       "This command is intended to be called from within `ivy-read'"))
+       "This command is intended to be called from within `ivy-read' only"))
      ;; don't recur
      ((and (> (minibuffer-depth) 1)
            (eq (ivy-state-caller ivy-last) 'ivy-reverse-i-search)))
