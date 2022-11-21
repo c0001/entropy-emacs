@@ -114,6 +114,7 @@
     (prefix
      (let ((word (company-grab-word)))
        word))
+    (kind 'text)
     (candidates
      (when (and (stringp arg)
                 (not (string-empty-p arg)))
