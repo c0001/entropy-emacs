@@ -538,19 +538,12 @@ re-calculation."
     "Judge whether the `delete-char' hit on flying while company
 activated status. Default time during set is less than 70ms."
     (catch :exit
-      (let* ((time-old (or __company-delc-time-host
-                           (throw :exit nil)))
-             (time-now (current-time))
-             (duration (abs
-                        (- (caddr time-now)
-                           (caddr time-old)))))
+      (let* ((time-old (or __company-delc-time-host (throw :exit nil)))
+             (time-now (current-time)))
         (and
-         (equal (cadr time-now) (cadr time-old))
-         (< duration
-            ;; 1ms = 1000 substract of nth 3 of `current-time' between
-            ;; before and after
-            (* entropy/emacs-company-delete-char-on-the-fly-duration
-               1000))))))
+         (eq (cadr time-now) (cadr time-old))
+         (<= (entropy/emacs-time-subtract time-old time-now t)
+             entropy/emacs-company-delete-char-on-the-fly-duration)))))
   (defun __company-delete-char (orig-func &rest orig-args)
     (let (rtn)
       (when (and (bound-and-true-p company-mode)

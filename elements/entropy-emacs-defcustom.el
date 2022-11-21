@@ -1616,16 +1616,13 @@ disable help doc auto-show."
 
 
 (defcustom entropy/emacs-company-delete-char-on-the-fly-duration
-  300
-  "The flying on `delete-char' duration (milliseconds integer) MSEC while
-company is actived on in which case `company-candidates' is non-nil.
+  0.3
+  "The flying on `delete-char' duration (seconds) while company is
+actived on in which case `company-candidates' is non-nil.
 
-This is used to auto close company daemon so that flying on aaaaahits
-will not cause emacs lagging on.
-
-NOTE: MSEC larger than 1000 is meaningless and corresponding feature
-is never triggered out since 1000msec is 1s and that is not the
-milliseconds."
+This is used to auto close company daemon so that flying on hits of
+`delete-char' will not cause emacs lagging on its enlarge candidates
+retrieval caused by reduction of `company-prefix' each time."
   :type 'integer
   :group 'entropy/emacs-customize-group-for-company-mode)
 
