@@ -310,6 +310,7 @@ for function '%s', eval and compile its defination instead?"
                              (insert "\n\n")))
                           (t (error "eemacs byte compile form internal error")))
                         (toggle-truncate-lines -1)
+                        (entropy/emacs-local-set-key (kbd "q") #'kill-buffer-and-window)
                         (goto-char (point-min))))))))
              ;; return
              ,rtn-sym)))))

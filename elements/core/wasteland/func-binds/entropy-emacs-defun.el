@@ -11425,6 +11425,16 @@ units number specfied by OFFSET (defaults to 0)."
 
 (declare-function doom-modeline-refresh-bars "ext:doom-modeline")
 
+(defun entropy/emacs--set-fixed-pitch-serif-face-to-monospace ()
+  "Set face `fixed-pitch-serif' to entropy-emacs specific monospace
+style.
+
+This funciton will solve the problem that the symbol pattern
+display ugly and small in `info-mode' or other similar occasions."
+  (entropy/emacs-set-face-attribute
+   'fixed-pitch-serif nil
+   :family "Monospace" :slant 'italic))
+
 (defun entropy/emacs-theme-load-face-specifix (&optional theme-name-str frame)
   "Sets of specification for eemacs native themes.
 
@@ -11549,8 +11559,9 @@ corresponding stuffs."
              (plist-get el :face)
              (plist-get el :frame)
              (plist-get el :spec))))
-   (t
-    (entropy/emacs-set-fixed-pitch-serif-face-to-monospace)))
+   (t nil))
+  ;; do not use internal fixed-pitch font spec since its visual messy
+  (entropy/emacs--set-fixed-pitch-serif-face-to-monospace)
   ;; other spec
   ;; --- magit diff hunk highlight spec
   ;;

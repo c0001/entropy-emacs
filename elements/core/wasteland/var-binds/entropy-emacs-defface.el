@@ -34,18 +34,6 @@
 
 ;; ** preparation
 
-(defun entropy/emacs-set-fixed-pitch-serif-face-to-monospace ()
-  "Set face `fixed-pitch-serif' to entropy-emacs specific monospace
-style.
-
-This funciton will solve the problem that the symbol pattern
-display ugly and small in `info-mode' or other simulate occasions."
-  (set-face-attribute 'fixed-pitch-serif nil
-                      :family "Monospace" :slant 'italic))
-
-(with-eval-after-load 'faces
-  (entropy/emacs-set-fixed-pitch-serif-face-to-monospace))
-
 (defgroup entropy/emacs-defface-group nil
   "Eemacs customizable faces group"
   :group 'entropy-emacs-customize-top-group)
