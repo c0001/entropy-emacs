@@ -1223,20 +1223,25 @@ indicator as its `frame-parameter'."
 ;; ********* delete company box frames
 
   (defun entropy/emacs-company--cmpbox-del-frames nil
+    ;; abort all activated company activities firstly
+    (dolist (buff (buffer-list))
+      (with-current-buffer buff
+        (when (bound-and-true-p company-candidates)
+          (company-abort))))
+    ;; delete all `company-box' (and doc) frames with reset the frame
+    ;; local var.
     (dolist (frame (frame-list))
-      (when (frame-parameter frame 'this-company-box-frame-p)
-        (delete-frame frame t)))
-    (let ((main-frame (frame-local-getq company-box-frame))
-          (doc-frame (frame-local-getq company-box-doc-frame)))
-      (and (framep main-frame)
-           (frame-live-p main-frame)
-           (delete-frame main-frame t))
-      (and (framep doc-frame)
-           (frame-live-p doc-frame)
-           (delete-frame doc-frame t)))
-    (setq __company-box-doc-hided-p nil)
-    (frame-local-setq company-box-frame nil)
-    (frame-local-setq company-box-doc-frame nil))
+      (let ((cmpbox-frame-p (frame-parameter frame 'this-company-box-frame-p))
+            lfm)
+        (if cmpbox-frame-p (delete-frame frame t)
+          (when (setq lfm (frame-local-getq company-box-frame frame))
+            (if (frame-live-p lfm) (delete-frame lfm t))
+            (frame-local-setq company-box-frame nil frame))
+          (when (setq lfm (frame-local-getq company-box-doc-frame frame))
+            (if (frame-live-p lfm) (delete-frame lfm t))
+            (frame-local-setq company-box-doc-frame nil frame)))))
+    ;; rest eemacs specs set
+    (setq __company-box-doc-hided-p nil))
 
 ;; ********* frame font spec
   (defun __company-box-make-child-frame-with-fontspec
