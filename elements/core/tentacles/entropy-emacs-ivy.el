@@ -524,7 +524,7 @@ subroutine."
                 (if current-prefix-arg (ivy--insert-symbol-boundaries)
                   (unless (eq real-last-command this-command)
                     (message
-                     (format " %s (with 'C-u' and invoking again to insert boundary): "
+                     (format "%s (with 'C-u' and invoking again to insert boundary)"
                              name)))))))
         (let (thing)
           (if (use-region-p)
