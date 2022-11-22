@@ -291,19 +291,30 @@ in baron part to simplify context distinction search")
 ;; *** high perfomance alist
 
 (defun entropy/emacs--make-alist-with-symbol-prop-set/core-func
-    (vsym nv _op _wh keyname &optional init)
-  (let* ((inhibit-quit t) (oldval (symbol-value vsym)) key)
+    (vsym nv _op _wh keyname &optional init with-single)
+  (let* ((inhibit-quit t) (oldval (symbol-value vsym))
+         key keysym-p single-p nsingle-p
+         decfunc)
+    (entropy/emacs-setf-by-body decfunc
+      (lambda (x)
+        (or (and (prog1 (entropy/emacs-setf-by-body keysym-p
+                          (symbolp (setq key (if (setq nsingle-p (consp x))
+                                                 (car x) x))))
+                   (setq single-p (not nsingle-p)))
+                 with-single)
+            (and keysym-p (consp x)))))
     (when (and (not init) (consp oldval))
       (dolist (el oldval)
-        (when (and (consp el) (symbolp (setq key (car el))))
-          (put key keyname nil))))
+        (if (funcall decfunc el) (put key keyname nil))))
     (setq nv (if init oldval nv))
     (when (consp nv)
       (dolist (el nv)
-        (when (and (consp el) (symbolp (setq key (car el))))
-          (put key keyname (cdr el)))))))
+        (when (funcall decfunc el)
+          (put key keyname
+               (if (and with-single single-p) t (cdr el))))))))
 
-(defmacro entropy/emacs-make-alist-with-symbol-prop-set (var-sym key-sym)
+(cl-defmacro entropy/emacs-make-alist-with-symbol-prop-set
+    (var-sym key-sym &key with-single)
   "If a symbol VAR-SYM who is a `special-variable-p' variable and its
 value is an alist (or partial of it is), then make `symbolp' key of
 any of its key-pair element (i.e. the `car' of that pair) has a symbol
@@ -329,14 +340,20 @@ alist with high performance value cat experience.
 KEY-SYM should be `keywordp' i.e. explicitly set as `:key' or the
 defination is failed with error.
 
+If WITH-SINGLE is set and return non-nil, then any symbol directly
+presented in value of VAR-SYM is also used with considering to enable
+as set that prop to `t' and disable as set thus to `nil'.
+
 NOTE: this macro must be expanded in `lexical-binding' enabled
 context or messy up."
   (declare (indent 2))
   (unless (bound-and-true-p lexical-binding)
     (user-error "[eemacs-hpal]: need lexical enabled environment!"))
   (let ((varsym (make-symbol "var-symbol"))
-        (keysym (make-symbol "key-symbol")))
+        (keysym (make-symbol "key-symbol"))
+        (wssym  (make-symbol "with-single-p")))
     `(let* ((,varsym ,var-sym) (,keysym ,key-sym)
+            (,wssym ,with-single)
             (var-guard-func-name
              (intern (format "__eemacs/%s/high-perfomance-alist/set-guard" ,varsym))))
        (unless (and (symbolp ,varsym) (special-variable-p ,varsym))
@@ -348,12 +365,12 @@ context or messy up."
        (remove-variable-watcher ,varsym var-guard-func-name)
        (put ,varsym '__eemacs-alist-get__ ,keysym)
        (funcall 'entropy/emacs--make-alist-with-symbol-prop-set/core-func
-                ,varsym nil nil nil ,keysym 'init)
+                ,varsym nil nil nil ,keysym 'init ,wssym)
        (defalias var-guard-func-name
          (lambda (vsym nv op wh)
            (when (eq op 'set)
              (funcall 'entropy/emacs--make-alist-with-symbol-prop-set/core-func
-                      ,varsym nv op wh ,keysym)))
+                      ,varsym nv op wh ,keysym nil ,wssym)))
          (format "variable guard for high performance alist variable `%s', made
 via `entropy/emacs-make-alist-with-symbol-prop-set'." ,varsym))
        (add-variable-watcher ,varsym var-guard-func-name))))
