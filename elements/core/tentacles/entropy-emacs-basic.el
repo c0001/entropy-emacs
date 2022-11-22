@@ -4105,7 +4105,7 @@ collection."
                          (buffer-name buff)))
             (set-process-filter proc nil)
             (kill-process proc)
-            (let ((kill-buffer-query-functions '((lambda () t))))
+            (let ((kill-buffer-query-functions nil))
               (if (not (one-window-p))
                   (kill-buffer-and-window)
                 (kill-this-buffer))))))
