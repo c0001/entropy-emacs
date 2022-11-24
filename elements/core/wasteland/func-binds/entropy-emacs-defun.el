@@ -9175,26 +9175,38 @@ effects."
 (defun entropy/emacs-set-face-attribute (face frame &rest args)
   "=entropy-emacs= specified function same as `set-face-attribute'.
 
-But using a internal declared theme take priority over the
-`entropy/emacs-theme-sticker' when frame FRAME is nil. This
-specification will not pollute the default attribute of face FACE
-in the `selected-frame'.
+But using a internal declared theme take priority from the theme
+`entropy/emacs-theme-sticker' when `entropy/emacs-main-frame' is the
+`selected-frame' or `eq' to FRAME. This specification will not pollute
+the default attribute of face FACE in the original enabled theme's
+corresponding spec. Call `set-face-attribute' when FRAME or
+`selected-frame' is not `entropy/emacs-main-frame'.
 
 NOTE: any hook include this function injected into the
-'entropy/emacs-theme-load-(before/after)-hook-*' must injected
-after the hook `entropy/emacs-theme-load-before-hook-head-1' in
-where an internal reset function injected."
-  (let* ((this-spec `(,face ((t ,@args))))
-         (custom--inhibit-theme-enable nil))
-    (push (cons face args) entropy/emacs-set-face-attribute--internal-log-for-setted-faces)
-    (if frame
-        (apply 'set-face-attribute face frame args)
-      (custom-theme-reset-faces
-       'eemacs-cover-theme-0
-       `(,face nil))
-      (custom-theme-set-faces
-       'eemacs-cover-theme-0
-       this-spec)
+'entropy/emacs-theme-load-(before/after)-hook-*' must injected after
+the hook `entropy/emacs-theme-load-before-hook-head-1' in where an
+internal reset function injected."
+  (setq frame (or frame (selected-frame))
+        frame (and (not (eq frame entropy/emacs-main-frame)) frame))
+  (if frame (apply 'set-face-attribute face frame args)
+    (let* ((custom--inhibit-theme-enable nil)
+           this-spec this-spec-cache tmp-cache)
+      (if (not (setq this-spec-cache
+                     (assoc
+                      face
+                      entropy/emacs-set-face-attribute--internal-log-for-setted-faces)))
+          (push (cons face args)
+                entropy/emacs-set-face-attribute--internal-log-for-setted-faces)
+        (setq tmp-cache (cdr this-spec-cache))
+        (entropy/emacs-list-map-cdr args
+          (when (keywordp (car it))
+            (setq tmp-cache
+                  (plist-put tmp-cache (car it) (cadr it)))))
+        (setcdr this-spec-cache tmp-cache))
+      (if tmp-cache (setq args tmp-cache))
+      (setq this-spec `(,face ((t ,@args))))
+      (custom-theme-reset-faces 'eemacs-cover-theme-0 `(,face nil))
+      (custom-theme-set-faces 'eemacs-cover-theme-0 this-spec)
       (custom-theme-recalc-face face))))
 
 (defun entropy/emacs-face-bg-scale-when-same
