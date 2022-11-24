@@ -241,13 +241,13 @@ If `entropy/emacs-session-idle-trigger-debug' is unset, then
 return nil when any error occurred in BODY and push the error msg
 into ERROR-VAR."
   (declare (indent defun))
-  `(if entropy/emacs-session-idle-trigger-debug
-       ,(entropy/emacs-macroexp-progn body)
-     (condition-case err
-         ,(entropy/emacs-macroexp-progn body)
-       (error
-        (push (cons ',name err) ,error-var)
-        nil))))
+  (let ((err-sym (make-symbol "error-data"))
+        (body (entropy/emacs-macroexp-progn body)))
+    `(if entropy/emacs-session-idle-trigger-debug ,body
+       (condition-case ,err-sym ,body
+         (error
+          (push (cons ',name ,err-sym) ,error-var)
+          nil)))))
 
 (defvar entropy/emacs-session-idle-trigger-timer nil
   "The timer guard for run the
@@ -535,7 +535,7 @@ but used for hook `%s'."
         ))))
 
 (defun entropy/emacs-def-idle-hook-refer-context (idle-sec)
-  (unless (memq idle-sec entropy/emacs-idle-session-trigger-delay-clusters)
+  (unless (memql idle-sec entropy/emacs-idle-session-trigger-delay-clusters)
     (entropy/emacs-def-idle-hook-refer-context-1 idle-sec)))
 
 (defun entropy/emacs-current-session-is-idle
@@ -722,7 +722,7 @@ context."
          ;; We should append the hook to the tail since follow the time
          ;; order.
          (entropy/emacs-nconc-with-setvar-use-rest ,hook
-           (list #',name))
+           (list ',name))
 
          ;; Intial the trigger timer when not bound
          (unless (bound-and-true-p ,hook-timer-varname)
