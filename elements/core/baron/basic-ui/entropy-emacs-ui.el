@@ -754,7 +754,7 @@ window removed since we just need one welcom buffer."
 (entropy/emacs-lazy-with-load-trail
   'frame-title-set
   (setq frame-title-format
-        '("GNU Emacs " emacs-version "@" user-login-name))
+        (list "GNU Emacs " emacs-version "@" user-login-name))
   (setq icon-title-format frame-title-format))
 
 ;; *** Transparence
