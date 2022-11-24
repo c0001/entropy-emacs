@@ -11562,6 +11562,15 @@ corresponding stuffs."
    (t nil))
   ;; do not use internal fixed-pitch font spec since its visual messy
   (entropy/emacs--set-fixed-pitch-serif-face-to-monospace)
+  ;; `default' face TUI inhibition
+  (when (and entropy/emacs-theme-inhibit-bg-of-default-face-for-tui
+             (not (display-graphic-p)))
+    (entropy/emacs-set-face-attribute
+     'default frame :background "unspecified-bg")
+    (when (facep 'solaire-default-face)
+      (entropy/emacs-set-face-attribute
+       'solaire-default-face frame
+       :background "unspecified-bg")))
   ;; other spec
   ;; --- magit diff hunk highlight spec
   ;;

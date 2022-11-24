@@ -263,6 +263,18 @@ height of dock:
   :type '(repeat string)
   :group 'entropy/emacs-customize-group-for-ui-theme)
 
+(defcustom entropy/emacs-theme-inhibit-bg-of-default-face-for-tui nil
+  "When non-nil, the background face spec for face `default' will be
+disabled as `unspecified-bg' in TUI session.
+
+This customization is useful for those TUI emaser to obey its terminal
+backgrond color with emacs, particularly for a opacity terminal env
+where emacs will always make its frame without transparent visual obey
+the terminal has since each face has a color to cover in. Thus,
+disable `default' face's background may enough in there cases."
+  :type 'boolean
+  :group 'entropy/emacs-customize-group-for-ui-theme)
+
 ;; **** Modeline
 (defgroup entropy/emacs-customize-group-for-modeline nil
   "Eemacs mode-line configuration customizable group."
