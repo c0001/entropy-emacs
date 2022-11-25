@@ -617,7 +617,7 @@ Currently detected env variables:")
              (if (framep frame)
                  ;; justify whether the frame is an gui daemon client
                  (and
-                  (entropy/emacs-daemon-frame-is-daemon-client-p frame)
+                  (entropy/emacs-daemon-frame-is-legal-daemon-client-p frame)
                   (frame-live-p frame)
                   (with-selected-frame frame (display-graphic-p)))
                t)

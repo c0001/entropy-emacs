@@ -1873,8 +1873,9 @@ daemon-clients number."
       (if always-return cnt
         (if (> cnt 1) cnt nil)))))
 
-(defun entropy/emacs-daemon-frame-is-daemon-client-p (frame)
-  "Return non-nil when frame is an daemon client."
+(defun entropy/emacs-daemon-frame-is-legal-daemon-client-p (frame)
+  "Return non-nil when frame is an eemacs created legal daemon
+client."
   (when (daemonp)
     (catch :exit
       (dolist (el entropy/emacs-daemon--legal-clients)
@@ -1907,7 +1908,7 @@ main client."
 (defun entropy/emacs-daemon--delete-frame-function
     (frame-predel)
   "Delete the frame FRAME-PREDEL when it is an daemon client i.e. judged
-by `entropy/emacs-daemon-frame-is-daemon-client-p'.
+by `entropy/emacs-daemon-frame-is-legal-daemon-client-p'.
 
 If FRAME-PREDEL is `entropy/emacs-daemon--main-client-indicator' , it
 will be rest and the car of `entropy/emacs-daemon--legal-clients' will
@@ -1915,11 +1916,11 @@ be the assignment to be the new main one if non-nil.
 
 Otherwise FRAME-PREDEL will be delete from
 `entropy/emacs-daemon--legal-clients', so that it will not be an legal
-frame predicated by `entropy/emacs-daemon-frame-is-daemon-client-p'
+frame predicated by `entropy/emacs-daemon-frame-is-legal-daemon-client-p'
 any more.
 "
   (let (temp_var (frame frame-predel))
-    (when (entropy/emacs-daemon-frame-is-daemon-client-p frame)
+    (when (entropy/emacs-daemon-frame-is-legal-daemon-client-p frame)
       ;; pop out current daemon client from
       ;; `entropy/emacs-daemon--legal-clients'.
       (when (not (null entropy/emacs-daemon--legal-clients))
@@ -1954,6 +1955,31 @@ when non-nil.
 EEMACS_MAINTENANCE:
 Please just use in debug way as may not work in lexical way.")
 
+(defun entropy/emacs-daemon--generall-new-client-frame-p (frame)
+  "Judge whether a frame FRAME is a newly created daemon client
+frame just in generally meaningful way."
+  (and (daemonp)
+       ;; must in interaction mode
+       (null noninteractive)
+       (null entropy/emacs-daemon--dont-init-client)
+       (entropy/emacs-server-client-frame-p frame)
+       (and
+        ;; must has minibuffer since it's the chacater for a usual
+        ;; interactive frame.
+        (eq (frame-parameter nil 'minibuffer) t)
+        ;; TODO: add more normal frame like detectors
+
+        ;; must not an existed client frame since
+        ;; `server-process-filter' use current frame like some
+        ;; server based package such as `with-editor' to make
+        ;; pseudo frame which reused current one.
+        (not (entropy/emacs-daemon-frame-is-legal-daemon-client-p frame))
+
+        ;; TODO: add more filters to make explicit judge whether
+        ;; the frame is maked from command line
+        ;; i.e. 'emacsclient ...'
+        )))
+
 (defun entropy/emacs-daemon--client-initialize-1 ()
   "Initial daemon client instance with eemacs specification
 creation procedure.
@@ -1965,40 +1991,16 @@ EEMACS_MAINTENANCE:
 
 Please just leave it in `entropy-emacs-defvar' file as its
 internal functional."
-  (when (and (daemonp)
-             (null entropy/emacs-daemon--dont-init-client)
-             (and
-              ;; must in interaction mode
-              (null noninteractive)
-              ;; must be a visible and indeed user focused in frame
-              ;; since the non-focused/invisible frame commonly is not
-              ;; a usually emacsclient start connection.
-              (frame-visible-p (selected-frame))
-              ;; FIXME: the focus state just be set while accept a
-              ;; user input event, thus a pretty new daemon client
-              ;; which not accept any input event will not get its
-              ;; focused status even if its raised up in the most
-              ;; front of others.
-              ;;
-              ;; (eq (frame-focus-state) t)
-
-              ;; must not a child frame and must looks like a normal
-              ;; used frame
-              (not (entropy/emacs-child-frame-p))
-              (eq (frame-parameter nil 'minibuffer) t)
-              ;; TODO: add more normal frame like detectors
-
-              ;; must not an existed client frame since
-              ;; `server-process-filter' use current frame like some
-              ;; server based package such as `with-editor' to make
-              ;; pseudo frame which reused current one.
-              (not (entropy/emacs-daemon-frame-is-daemon-client-p
-                    (selected-frame)))
-
-              ;; TODO: add more filters to make explicit judge whether
-              ;; the frame is maked from command line
-              ;; i.e. 'emacsclient ...'
-              ))
+  (when (and
+         (frame-visible-p (selected-frame))
+         ;; FIXME: the focus state just be set while accept a
+         ;; user input event, thus a pretty new daemon client
+         ;; which not accept any input event will not get its
+         ;; focused status even if its raised up in the most
+         ;; front of others.
+         ;;
+         ;; (eq (frame-focus-state) t)
+         )
     (set-frame-parameter (selected-frame) 'eemacs-current-frame-is-daemon-created t)
     ;; fix problem when main daemon client is dead
     (when entropy/emacs-daemon--main-client-indicator
@@ -2084,8 +2086,9 @@ entropy-emacs.
   (let ((var-sym (make-symbol "__timer_var__"))
         (inhibit-quit t)
         (frame (selected-frame)))
-    ;; FIXME: why there's multi timer for same frame?
-    (unless (assoc frame entropy/emacs-daemon--client-initialize-main-register)
+    (unless (or (not (entropy/emacs-daemon--generall-new-client-frame-p frame))
+                ;; FIXME: why there's multi timer for same frame?
+                (assoc frame entropy/emacs-daemon--client-initialize-main-register))
       (set var-sym
            (run-with-idle-timer
             0.001 t

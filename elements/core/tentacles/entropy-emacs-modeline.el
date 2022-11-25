@@ -114,6 +114,9 @@
          (not (entropy/emacs-modeline--subr-var->messy-window-p
                cwin)))))
 
+(defun entropy/emacs-modeline--subr-func->escape-mdl-str-pcfmt (str)
+  (replace-regexp-in-string "%" "%%" str))
+
 ;; **** advices after swither
 
 (defun entropy/emacs-modeline--set-mdlfmt-after-advice (&rest _)
@@ -161,7 +164,9 @@ name show function."
                        'face mdlface)
            (propertize (concat current-tag " ") 'face mdlface)
            " "))
-        (setq entropy/emacs-modeline--mdl-common-eyebrowse-segment rtn))
+        (setq entropy/emacs-modeline--mdl-common-eyebrowse-segment
+              (entropy/emacs-modeline--subr-func->escape-mdl-str-pcfmt
+               rtn)))
     (or entropy/emacs-modeline--mdl-common-eyebrowse-segment
         "")))
 
@@ -317,18 +322,36 @@ return nil"
          (t
           (all-the-icons-icon-for-mode major-mode)))
    (entropy/emacs-modeline--origin-mdl-propertize-face
-    (format "%s" major-mode)
+    (entropy/emacs-modeline--subr-func->escape-mdl-str-pcfmt
+     (format "%s" major-mode))
     (if (memq entropy/emacs-theme-sticker '(doom-1337))
         'entropy/emacs-defface-simple-color-face-yellow-bold
       'success))))
 
-(let (cache)
-  (defun entropy/emacs-modeline--origin-mdl-seg/pos-info ()
-    "The cached mode-line buffer position segment for eemacs origin
+(defvar-local entropy/emacs-modeline--origin-mdl-seg/pos-info/cache nil)
+(defun entropy/emacs-modeline--origin-mdl-seg/pos-info ()
+  "The cached mode-line buffer position segment for eemacs origin
 type which reduce performance issue."
-    (if entropy/emacs-current-session-is-idle-p
-        (setq cache (format-mode-line "%l:%C"))
-      (or cache "......"))))
+  (if entropy/emacs-current-session-is-idle-p
+      ;; FIXME: due to bug h:c5b6bd90-0662-4daa-877f-5be88c04ce2a, we
+      ;; must use a string directly.
+      (setq entropy/emacs-modeline--origin-mdl-seg/pos-info/cache
+            (format-mode-line "%l:%C"))
+    (or entropy/emacs-modeline--origin-mdl-seg/pos-info/cache
+        "......")))
+
+(defvar-local entropy/emacs-modeline--origin-mdl-seg/pos-percent-info/cache nil)
+(defun entropy/emacs-modeline--origin-mdl-seg/pos-percent-info ()
+  "The cached mode-line buffer position percentage segment for
+eemacs origin type which reduce performance issue."
+  (if entropy/emacs-current-session-is-idle-p
+      ;; FIXME: due to bug h:c5b6bd90-0662-4daa-877f-5be88c04ce2a, we
+      ;; must use a string directly.
+      (setq entropy/emacs-modeline--origin-mdl-seg/pos-percent-info/cache
+            (entropy/emacs-modeline--subr-func->escape-mdl-str-pcfmt
+             (format-mode-line "%p of %I")))
+    (or entropy/emacs-modeline--origin-mdl-seg/pos-percent-info/cache
+        "......")))
 
 (defvar entropy/emacs-modeline--simple-mode-line-format)
 (defvar entropy/emacs-modeline--simple-mode-line-rhs-fmt
@@ -360,7 +383,8 @@ type which reduce performance issue."
         ;;
         ;; see eemacs bug h:c5b6bd90-0662-4daa-877f-5be88c04ce2a
         (list
-         '(10 "%p of %I") " "
+         '(10 (:eval (entropy/emacs-modeline--origin-mdl-seg/pos-percent-info)))
+         " "
          '(10 (-10 (:eval (entropy/emacs-modeline--origin-mdl-seg/pos-info))))
          ;; the real-time flushed type but with more performance issued
          ;;
@@ -408,10 +432,11 @@ type which reduce performance issue."
 (defun entropy/emacs-mode-line-origin-theme ()
   (setq-default
    mode-line-format
-   '(:eval
-     (if (entropy/emacs-modeline--subr-func->judge-current-window-focus-on-p)
-         entropy/emacs-modeline--simple-mode-line-format
-       (propertize (make-string (+ (window-width) 3) ?─ t) 'face 'error)))))
+   (copy-sequence
+    '(:eval
+      (if (entropy/emacs-modeline--subr-func->judge-current-window-focus-on-p)
+          entropy/emacs-modeline--simple-mode-line-format
+        (propertize (make-string (+ (window-width) 3) ?─ t) 'face 'error))))))
 
 ;; **** doom modeline
 (entropy/emacs-usepackage-with-permanently-defer doom-modeline

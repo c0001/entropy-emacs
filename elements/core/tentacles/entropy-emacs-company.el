@@ -1220,8 +1220,51 @@ indicator as its `frame-parameter'."
               :around
               #'__company-box-doc-make-frame-with-frame-indicator)
 
-;; ********* delete company box frames
+;; ********* company box buffers
 
+  (defun __ya/company-box--get-buffer (&optional suffix)
+    "Same as original func but guarantee the created buffer is indeed
+not used for common usage i.e. with `inhibit-buffer-hooks' bind
+locally."
+    (let* ((buffname (concat " *company-box-" (company-box--get-id) suffix "*"))
+           (bufflp (get-buffer buffname))
+           buff)
+      (if bufflp (setq buff bufflp)
+        (setq buff (get-buffer-create buffname 'inhibit-buffer-hooks)))
+      (unless bufflp
+        ;; NOTE: inhibit buffer local features to this un-commonly
+        ;; used buffer since messy may be raised up.
+        (with-current-buffer buff
+          (setq
+           mode-line-format nil
+           header-line-format nil
+           display-line-numbers nil
+           truncate-lines t
+           show-trailing-whitespace nil
+           cursor-in-non-selected-windows nil)))
+      ;; return buffer
+      buff))
+  (advice-add 'company-box--get-buffer
+              :override #'__ya/company-box--get-buffer)
+
+  ;; EEMACS_MAINTENANCE: follow upstream updates
+  (defun __ya/company-box--kill-buffer (frame)
+    "Same as original func but run immediately in context without idle
+tricks.
+
+We patched this since the idle trick is not suitable for other
+eemacs specs."
+    (let* ((kill-buffer-hook nil)
+           (func
+            (lambda (buff) (when (buffer-live-p buff)
+                             (kill-buffer buff)))))
+      (funcall func (frame-local-getq company-box-buffer frame))
+      (funcall func (frame-local-getq company-box-scrollbar frame))))
+  (advice-add 'company-box--kill-buffer
+              :override #'__ya/company-box--kill-buffer)
+
+;; ********* company box frames
+;; ********** core
   (defun entropy/emacs-company--cmpbox-del-frames nil
     ;; abort all activated company activities firstly
     (dolist (buff (buffer-list))
@@ -1243,7 +1286,7 @@ indicator as its `frame-parameter'."
     ;; rest eemacs specs set
     (setq __company-box-doc-hided-p nil))
 
-;; ********* frame font spec
+;; ********** frame font spec
   (defun __company-box-make-child-frame-with-fontspec
       (orig-func &rest orig-args)
     "Let `company-box--make-frame' use same font from its parent
@@ -1266,7 +1309,7 @@ frame."
   (advice-add 'company-box-doc--make-frame
               :around #'__company-box-make-doc-child-frame-with-fontspec)
 
-;; ********* recreate child frame after theme load
+;; ********** recreate child frame after theme load
   (defun __company-box-remove-child-frame/before-load-theme ()
     "Remove company-box's frame before load a new theme since the we
 don't set a proper method to let preserved old frame use the new
@@ -1474,6 +1517,23 @@ reducing lag caused by `make-frame-invisible'."
                   company-box--handle-theme-change))
     (advice-add func
                 :around #'__ya/company-box-hide-or-show/robust))
+
+;; ******* `company-box--move-selection' patch
+;; ******** FIXME: Debug only for duplicated movements
+  (defvar-local __cmpbox-selection-cache/dups-debug nil)
+  (defun __ya/company-box--move-selection/dups-debug (orig-func &rest orig-args)
+    (if entropy/emacs-startup-with-Debug-p
+        (if (or company-selection-changed
+                ;; first render
+                (car orig-args))
+            (prog1 (apply orig-func orig-args)
+              (push company-selection
+                    __cmpbox-selection-cache/dups-debug))
+          (message "[company-box]: at same selection"))
+      (apply orig-func orig-args)))
+  (advice-add 'company-box--move-selection
+              :around
+              #'__ya/company-box--move-selection/dups-debug)
 
 ;; ******* Debug
   (defun entropy/emacs-company-box-delete-all-child-frames

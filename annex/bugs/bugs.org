@@ -1368,6 +1368,20 @@ release.
   display and jump has no bugs in which case I assume that =rg= and
   =helm= may has similar inner procedure which caused the same deep.
 
+- [2022-11-26 Sat 07:36:22]
+
+  Thought about =mode-line-position= mode line format segment, I test
+  that if we remove it from current mode line format, then the crash
+  is disappeared. Precisely say that, the mode line constructor "%c"
+  "%l" "%p" "%I" is the cause for that, but the interesting truth is
+  that the evaluation of ~(format-mode-line "%p of %I %c:%l")~ has not
+  crash even in this crash occasion. (In where all mode line type used
+  those segments will be in such crash, e.g. =doom-modeline=)
+
+  So for now, we use self-defined strings based segment for position
+  informations which is calculated by ~format-mode-line~ firstly, so
+  that the preventing the crash happens.
+
 * COMMENT Local Varaibles
 :PROPERTIES:
 :CUSTOM_ID: h-550f1e2d-23da-47d3-98e1-cd8be05baa7d

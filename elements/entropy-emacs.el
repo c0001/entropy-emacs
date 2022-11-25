@@ -262,8 +262,15 @@ Precisely say that `client' frame parameter is inherit from
 who are rely on the core `server--create-frame' frame creators
 and set by it as well.
 
+But the `client' parameter is inheritance for all child-frames
+created from a client frame, thus we also return nil when the
+frame has a parent (but FIXME: how we ensure a child-frame is
+truely a child frame that user considered as? or shall we make a
+prediates hook for user registering what they recognized for?)
+
 If FRAME is omitted or nil use `selected-frame' as default."
-  (frame-parameter frame 'client))
+  (and (frame-parameter frame 'client)
+       (not (entropy/emacs-child-frame-p frame))))
 
 ;; *** eemacs-require-func
 
