@@ -1265,7 +1265,7 @@ eemacs specs."
 
 ;; ********* company box frames
 ;; ********** core
-  (defun entropy/emacs-company--cmpbox-del-frames nil
+  (defun entropy/emacs-company--cmpbox-del-frames (&rest _)
     ;; abort all activated company activities firstly
     (dolist (buff (buffer-list))
       (with-current-buffer buff
@@ -1285,6 +1285,11 @@ eemacs specs."
             (frame-local-setq company-box-doc-frame nil frame)))))
     ;; rest eemacs specs set
     (setq __company-box-doc-hided-p nil))
+
+  ;; prepare to re-create company box frames after change fonts since
+  ;; we should follow the new main-frame font.
+  (add-hook 'entropy/emacs-font-set-end-hook
+            #'entropy/emacs-company--cmpbox-del-frames)
 
 ;; ********** frame font spec
   (defun __company-box-make-child-frame-with-fontspec
