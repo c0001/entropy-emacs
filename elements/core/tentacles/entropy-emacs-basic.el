@@ -3445,6 +3445,14 @@ and `entropy/emacs-window-center-auto-mode-enable-p'."
       (apply orig-func orig-args)))
   (advice-add 'Man-columns :around #'__ya/Man-columns)
 
+  (defun __ya/Man-fit-to-window/with-pre-promptings
+      (orig-func &rest orig-args)
+    (entropy/emacs-message-simple-progress-message
+     "Man-fit-to-window format"
+     (apply orig-func orig-args)))
+  (advice-add 'Man-fit-to-window
+              :around
+              #'__ya/Man-fit-to-window/with-pre-promptings)
   )
 
 (use-package woman
