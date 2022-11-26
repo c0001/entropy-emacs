@@ -1298,6 +1298,19 @@ as I guess for, the bug is related to tramp loading mechanism.
 :CUSTOM_ID: h:c5b6bd90-0662-4daa-877f-5be88c04ce2a
 :END:
 
+#+begin_quote
+based on eemacs commit: dc62a2c5 and even formers
+
+with set =entropy/emacs-company-max-candidates= enlarge to 12000 with
+use =company-box= as company's frontend and
+=x-gtk-resize-child-frames= set to 'hide', then we begin the
+completing at scratch buffer with prefix =(en= (i.e. for large of
+eemacs defined functions) and fast scroll from top to bottom and
+bottom to top repeatly until the big =garbage-collect= is happend then
+immediately delete "en" to wait =company-candidates= updates and then
+the bug should popuped.(if not repeatly did more times)
+#+end_quote
+
 It's mainly caused by the mode-line-format segment
 ~mode-line-position~ of eemacs origin type mode line after my
 investigation few days. And found by using =company-box= with its
