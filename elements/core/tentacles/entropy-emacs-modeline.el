@@ -121,13 +121,14 @@
 
 (defun entropy/emacs-modeline--set-mdlfmt-after-advice (&rest _)
   "After advice for each mode line type switcher."
-  (let ((cur-mdl-fmt (default-value 'mode-line-format)))
+  (let ((cur-mdl-fmt (default-value 'mode-line-format))
+        buff)
     ;; Manually set the `mode-line-format' in some buffer since they
     ;; doesn't changed automatically after the mode line type switcher.
     (dolist (bname '("*scratch*" "*Messages*"))
-      (if (buffer-live-p (get-buffer bname))
-          (with-current-buffer bname
-            (setq mode-line-format cur-mdl-fmt))))))
+      (when (buffer-live-p (setq buff (get-buffer bname)))
+        (with-current-buffer buff
+          (setq mode-line-format cur-mdl-fmt))))))
 
 ;; **** common eemacs spec eyebrowse segment
 (defun entropy/emacs-modeline--mdl-common-eyebrowse-face-dynamic-gen (tag)
@@ -162,14 +163,15 @@ name show function."
            (propertize (concat (make-string 1 ?\x03BB) " "
                                (number-to-string cs) " ")
                        'face mdlface)
-           (propertize (concat current-tag " ") 'face mdlface)
+           (propertize
+            (concat (entropy/emacs-modeline--subr-func->escape-mdl-str-pcfmt
+                     current-tag)
+                    " ")
+            'face mdlface)
            " "))
-        (setq entropy/emacs-modeline--mdl-common-eyebrowse-segment
-              (entropy/emacs-modeline--subr-func->escape-mdl-str-pcfmt
-               rtn)))
+        (setq entropy/emacs-modeline--mdl-common-eyebrowse-segment rtn))
     (or entropy/emacs-modeline--mdl-common-eyebrowse-segment
         "")))
-
 
 ;; *** modeline type defined
 ;; **** powerline group
@@ -952,7 +954,7 @@ function name has been changed, please update internal hack of \
 will messy emacs performance, really enable it?"
         modeline-name-str))
       t
-    (error "Cancled enable `%s'!" modeline-name-str)))
+    (user-error "Cancled enable `%s'!" modeline-name-str)))
 
 (defun entropy/emacs-modeline--mdl-tidy-spec ()
   (pcase entropy/emacs-mode-line-sticker
@@ -1161,7 +1163,7 @@ style which defined in `entropy/emacs-modeline-style'."
   (entropy/emacs-modeline--mdl-init)
   ;; (redisplay t)
   (entropy/emacs-with-daemon-make-frame-done
-    'eemacs-modeline-init (&rest _)
+    'eemacs-modeline-init/for-daemon (&rest _)
     "Rest modeline for daemon client for eemacs adaption."
     (entropy/emacs-modeline--mdl-tidy-spec)
     (funcall (alist-get entropy/emacs-mode-line-sticker
