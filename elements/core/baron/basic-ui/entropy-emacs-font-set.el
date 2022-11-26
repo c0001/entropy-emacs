@@ -204,7 +204,7 @@ it.
                 (,entropy/emacs-fontsets-used-cjk-jp-font . 1.2)
                 (,entropy/emacs-fontsets-used-cjk-kr-font . 1.2))))
 
-      (if (< entropy/emacs-font-size-default 24)
+      (if (<= entropy/emacs-font-size-default 30)
           (let ((height (ceiling (* entropy/emacs-font-size-default 10))))
             ;; FIXME: remap height with unpredictable manually try but
             ;; stable for me for the sake for make 'Latin' an 'CJK'
@@ -254,6 +254,24 @@ it.
                    ((and (<= height 240)
                          (> height 230))
                     238)
+                   ((and (<= height 250)
+                         (> height 240))
+                    258)
+                   ((and (<= height 260)
+                         (> height 250))
+                    268)
+                   ((and (<= height 270)
+                         (> height 260))
+                    288)
+                   ((and (<= height 280)
+                         (> height 270))
+                    298)
+                   ((and (<= height 290)
+                         (> height 280))
+                    318)
+                   ((and (<= height 300)
+                         (> height 290))
+                    328)
                    (t
                     nil)))
             (when height
