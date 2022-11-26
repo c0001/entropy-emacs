@@ -1458,8 +1458,23 @@ reducing lag caused by `make-frame-invisible'."
         (setq __company-box-main-frame-hided-p t)
         (if __company-box-main-frame-need-force-hide-p
             (let ((__company-box-doc-need-force-hide-p t))
-              (company-box-doc--hide))))))
+              (company-box-doc--hide (selected-frame)))))))
   (advice-add 'company-box-hide :around #'__ya/company-box-hide)
+
+  (entropy/emacs-add-hook-with-lambda
+    (cons t '__eemacs/hide-frame-local-company-box-frame)
+    (&rest _)
+    "Hide `selected-frame''s company box frames (include doc frame) before
+`keyboard-quit' happened.
+
+This hook exists since we can not guarantee that a buffer in all
+frames has a same hiden expection via eemacs spec patch for
+`company-box-hide' and its further."
+    :use-hook 'entropy/emacs-keyboard-quit-before-hook
+    (let ((__company-box-main-frame-need-force-hide-p t)
+          (__company-box-doc-need-force-hide-p t))
+      (company-box-hide)
+      (company-box-doc--hide (selected-frame))))
 
   (defun __ya/company-box-show (orig-func &rest orig-args)
     (unless __company-box-main-frame-hided-p
