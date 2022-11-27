@@ -649,8 +649,8 @@ retriever will obtained the url abided by
 ;; We must strictly did judgement for packages refer setting to
 ;; guarantee the package initialization procedure did correctly before
 ;; any eemacs specification loading.
-(unless (member entropy/emacs-ext-elpkg-customized-get-type
-                '(origin entropy-emacs-extenisons-project))
+(unless (memq entropy/emacs-ext-elpkg-customized-get-type
+              '(origin entropy-emacs-extenisons-project))
   (error "Invalid value for `entropy/emacs-ext-elpkg-customized-get-type': %s"
          entropy/emacs-ext-elpkg-customized-get-type))
 
@@ -715,11 +715,11 @@ download/%s/entropy-emacs-extensions_build_%s.tar.xz"
 
   (setq entropy/emacs-ext-elpkg-get-type
         'entropy-emacs-extensions-project-build)
-  (let ((archive-fmt `(lambda (name)
-                        (expand-file-name
-                         name
-                         ,entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-local-path)))
-        )
+  (let ((archive-fmt
+         (lambda (name)
+           (expand-file-name
+            name
+            entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-local-path))))
     (setq package-archives
           `(("entropy-melpa"      . ,(funcall archive-fmt "melpa"))
             ("entropy-elpa"       . ,(funcall archive-fmt "elpa"))
