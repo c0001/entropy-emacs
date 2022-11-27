@@ -4041,8 +4041,8 @@ A file system node name is an non-empty string at least."
               (list 'stringp
                     (format "file system node name: %s" el))))))
 
-(defsubst entropy/emacs-filesystem-node-exists-p
-  (filesystem-node-name &optional _return-file-attributes)
+(defun entropy/emacs-filesystem-node-exists-p
+    (filesystem-node-name &optional _return-file-attributes)
   "Return non-nil while a file system node pointed by
 FILESYSTEM-NODE-NAME is existed, or nil otherwise.
 
@@ -4057,7 +4057,11 @@ grabbed by `file-attributes' after the existed status check out.
   (entropy/emacs-filesystem-node-name-invalid-error filesystem-node-name)
   ;; FIXME: is there another way can be check a fsnode-name exist
   ;; status quickly than this?
-  (file-attributes filesystem-node-name))
+  (condition-case _err
+      (file-attributes filesystem-node-name)
+    ;; FIXME: consider a permissio denied node as non-existed since we
+    ;; can not read it in which case that's equalized to non-existed.
+    (permission-denied nil)))
 
 (defsubst entropy/emacs--filesystem-node-exists-p
   (filesystem-node-name &optional return-file-attributes attributes)
@@ -4095,30 +4099,30 @@ a cons of =first-target= and a plist =target-desc-plist=.
 When WITH-VALIDATION is set non-nil , which has two keys used with
 meaningful to =target-desc-plist=:
 
-1. ':symlink-first-target-absolute-path':
+1. `:symlink-first-target-absolute-path':
 
    the absolute path of =first-target=.
 
-2. 'symlink-first-target-existence':
+2. `symlink-first-target-existence':
 
-   non-nil while ':symlink-first-target-absolute-path' is existed, nil
+   non-nil while `:symlink-first-target-absolute-path' is existed, nil
    otherwise.
 
 When WITH-CHASE-ALL-VALIDATION is set, two keys will be used with
 meaningfull to =target-desc-plist= and they are:
-1. ':symlink-final-target-absolute-path':
+1. `:symlink-final-target-absolute-path':
 
    `null' when the =first-target= is not a symbolic link or
    the symbolic linkage's chasing end path of the FILESYSTEM-NODE.
 
-2. ':symlink-final-target-existence':
+2. `:symlink-final-target-existence':
 
    non-nil while ':symlink-final-target-absolute-path' is existed, nil
    otherwise.
 
 When VALIDATION-WITH-FILE-ATTRIBUTES is set non-nil, for
-=target-desc-plist='s both ':symlink-first-target-existence' and
-':symlink-final-target-existence' are set to their absolute path's
+=target-desc-plist='s both `:symlink-first-target-existence' and
+`:symlink-final-target-existence' are set to their absolute path's
 `file-attributes' or nil while corresponding path is not existed.
 
 All the existence check is powered by `entropy/emacs-filesystem-node-exists-p'.
@@ -4449,7 +4453,7 @@ be real file system path hierarchy."
 node's file name for directory DIR-ROOT as:
 
 #+begin_src elisp
-  '((dir . \"a-dir\") (file . \"a.txt\") ...)
+  ((dir . \"a-dir\") (file . \"a.txt\") ...)
 #+end_src
 
 Return nil while DIR-ROOT is empty.
@@ -4457,7 +4461,7 @@ Return nil while DIR-ROOT is empty.
 The car of each element of that alist is the node type with follow
 symols to indicate that:
 
-1) 'dir': the node is an directory (or an symbolic to an regular
+1) `dir': the node is an directory (or an symbolic to an regular
    directory).
 
    A regular directory is judged by
@@ -4467,7 +4471,7 @@ symols to indicate that:
    If WITH-ONLY-REGULAR-DIRECTORY is set non-nil, then only a regular
    directory is recognized.
 
-2) 'file': the node is an file (or an symbolic to an regular file,
+2) `file': the node is an file (or an symbolic to an regular file,
    even if for any symbolic links with limitations see below).
 
    A regular file is judged by
@@ -4479,10 +4483,10 @@ symols to indicate that:
 
    If WITH-ONLY-REGULAR-FILE is not set and
    WITH-ONLY-REGULAR-DIRECTORY is set then any symbolic link linked to
-   a regular directory is recognized as a 'file'.
+   a regular directory is recognized as a `file'.
 
    If WITH-ONLY-REGULAR-FILE is not set, any broken symbolic links is
-   also recognized as a 'file'.
+   also recognized as a `file'.
 
 
 The return is sorted as ordering those file names by `string-lessp'.
@@ -4491,13 +4495,11 @@ If optional arg NOT-ABS is non-nil then each node's file name is
 grabbed relative to the DIR-ROOT.
 
 The returned is filtered by `directory-files-no-dot-files-regexp'
-i.e. without '.' or '..' node included.
-
-"
+i.e. without `.' or `..' node included."
   (let ((default-directory
-          ;; NOTE: `default-directory' must be a dirctory name
-          (entropy/emacs-return-as-default-directory
-           (expand-file-name dir-root)))
+         ;; NOTE: `default-directory' must be a dirctory name
+         (entropy/emacs-return-as-default-directory
+          (expand-file-name dir-root)))
         rtn-lite)
     (dolist (el (directory-files default-directory (not not-abs)))
       ;; filter the . and ..
