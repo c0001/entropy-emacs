@@ -287,18 +287,20 @@ enabled."
 Its default value is (\"%6b\") with some text properties added.
 Major modes that edit things other than ordinary files may change this
 \(e.g. Info, Dired,...)")
-(put 'entropy/emac-modeline--origin-mdl-buffer-identification 'risky-local-variable t)
-(make-variable-buffer-local 'entropy/emac-modeline--origin-mdl-buffer-identification)
+(put 'entropy/emac-modeline--origin-mdl-buffer-identification
+     'risky-local-variable t)
+(make-variable-buffer-local
+ 'entropy/emac-modeline--origin-mdl-buffer-identification)
 
 (defun entropy/emacs-modeline--origin-mdl-propertize-face (str face)
   "Use `propertize' to decorate the STR with face FACE but
 inactive when
 `entropy/emacs-modeline--subr-func->judge-current-window-focus-on-p'
 return nil"
-  (propertize str 'face
-              (if (entropy/emacs-modeline--subr-func->judge-current-window-focus-on-p)
-                  face
-                'mode-line-inactive)))
+  (propertize
+   str 'face
+   (if (entropy/emacs-modeline--subr-func->judge-current-window-focus-on-p)
+       face 'mode-line-inactive)))
 
 (defun entropy/emacs-modeline--origin-mdl-use-icon-or-plain
     (icon plain)
@@ -365,13 +367,19 @@ eemacs origin type which reduce performance issue."
      ;; > VCS
      (when vc-mode
        (entropy/emacs-modeline--origin-mdl-use-icon-or-plain
-        (format " %s%s " (all-the-icons-octicon "git-branch" :v-adjust 0.01 :face 'all-the-icons-red)
+        (format " %s%s " (all-the-icons-octicon
+                          "git-branch"
+                          :v-adjust 0.01 :face 'all-the-icons-red)
                 vc-mode)
-        (format "%s " (entropy/emacs-modeline--origin-mdl-propertize-face vc-mode 'warning)))))
+        (format
+         "%s " (entropy/emacs-modeline--origin-mdl-propertize-face
+                vc-mode 'warning)))))
     ;; > Buffer position
     (:eval
      (entropy/emacs-modeline--origin-mdl-use-icon-or-plain
-      (concat (all-the-icons-faicon "pencil-square-o" :face 'all-the-icons-yellow :v-adjust -0.1) " ")
+      (concat (all-the-icons-faicon
+               "pencil-square-o"
+               :face 'all-the-icons-yellow :v-adjust -0.1) " ")
       " "))
     ,@(if
           ;; NOTE: we should use the self-create binds for all emacs
@@ -438,7 +446,8 @@ eemacs origin type which reduce performance issue."
     '(:eval
       (if (entropy/emacs-modeline--subr-func->judge-current-window-focus-on-p)
           entropy/emacs-modeline--simple-mode-line-format
-        (propertize (make-string (+ (window-width) 3) ?─ t) 'face 'error))))))
+        (propertize (make-string (+ (window-width) 3) ?─ t)
+                    'face 'error))))))
 
 ;; **** doom modeline
 (entropy/emacs-usepackage-with-permanently-defer doom-modeline
