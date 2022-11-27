@@ -1682,14 +1682,35 @@ be good for maintenance:
 
 (defvar entropy/emacs-modeline-cases-of-spec-modeline
   '(
+    ;; special buffers (commonly noninteractive buffer in usage)
+    (and (buffer-name)
+         (string-match-p
+          (rx (seq bol " " "*company-box" (* any)))
+          (buffer-name)))
+
+    ;; child-frames
+    ;;
+    ;; we consider all child-frames' window buffer is specical since
+    ;; they commonly is not used for interaction but TODO for
+    ;; exceptions?
+    (let ((wins (get-buffer-window-list nil t)) frm)
+      (when wins
+        (catch :exit
+          (dolist (win wins)
+            (setq frm
+                  (and (window-live-p win) (window-frame win)))
+            (when (and (frame-live-p frm)
+                       (entropy/emacs-child-frame-p frm))
+              (throw :exit t)))) nil))
+
     ;; special major-mode enabled in `current-buffer'
-    (member major-mode '(treemacs-mode
-                         neotree-mode
-                         mpc-mode
-                         mpc-tagbrowser-mode
-                         mpc-songs-mode
-                         mpc-status-mode
-                         mpc-tagbrowser-dir-mode))
+    (memq major-mode '(treemacs-mode
+                       neotree-mode
+                       mpc-mode
+                       mpc-tagbrowser-mode
+                       mpc-songs-mode
+                       mpc-status-mode
+                       mpc-tagbrowser-dir-mode))
     ;; special minor-mode enabled in current-buffer
     (or (bound-and-true-p entropy-shellpop-mode))
     )
