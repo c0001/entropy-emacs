@@ -253,8 +253,7 @@ upstream and may be make risky follow the ivy updates.
                       'self-insert-command
                     entropy/emacs-current-session-last-command-before-idle)
                 entropy/emacs-current-session-this-command-before-idle)))
-        (ivy--exhibit))
-      (setq __idle/ivy-queue-exhited-done t)))
+        (ivy--exhibit))))
 
   (defvar __eemacs-ivy-dynamic-commands
     '(self-insert-command
@@ -264,42 +263,24 @@ upstream and may be make risky follow the ivy updates.
       backward-char))
   (dolist (cmd __eemacs-ivy-dynamic-commands)
     (put cmd '__eemacs-ivy-dynamic-command-p t))
+
+  (defun __ya/ivy--exhibit (&rest _)
+    (setq __idle/ivy-queue-exhited-done t))
+  (advice-add 'ivy--exhibit :after #'__ya/ivy--exhibit)
   (defun __ya/ivy--queue-exhibit ()
     "The override advice for `ivy--queue-exhibit' to exhibit the
 canidates idle after input event done by 0.2 seconds."
     (setq __idle/ivy-queue-exhited-done nil)
     (let ((eemacs-dym-p (not (entropy/emacs-ivy-patch/inhibit-dynamic-exhibit-p)))
-          (ivy-dym-p (ivy-state-dynamic-collection ivy-last)))
-      (if (and eemacs-dym-p ivy-dym-p
-               (> ivy-dynamic-exhibit-delay-ms 0))
-          (progn
-            (entropy/emacs-cancel-timer-var ivy--exhibit-timer)
-            (setq ivy--exhibit-timer
-                  (run-with-timer
-                   (/ ivy-dynamic-exhibit-delay-ms 1000.0)
-                   nil
-                   #'(lambda ()
-                       "timer idle show ivy candis and set the the
-queue done flag exposed to `ivy-done' idle trigger judger."
-                       (prog1 (ivy--exhibit)
-                         (setq __idle/ivy-queue-exhited-done t))))))
-        (if (and
-             ;; Using orig func when the dynamic caller is on since
-             ;; `entropy/emacs-ivy-patch/inhibit-dynamic-exhibit-p'
-             ;; inhbit the dynamic but we should respect the
-             ;; behavior as the origin func with customized as
-             ;; setting `ivy-dynamic-exhibit-delay-ms' is 0 (i.e. no
-             ;; dynamic to trigger).
-             (not ivy-dym-p)
-             (and
-              eemacs-dym-p
-              (entropy/emacs-get-symbol-prop
-               this-command '__eemacs-ivy-dynamic-command-p))
-             ;; TODO: more conditions here
-             )
-            (funcall __ya/ivy--queue-exhibit/idle-func)
-          (ivy--exhibit)
-          (setq __idle/ivy-queue-exhited-done t)))))
+          (ivy-dym-p (and (> ivy-dynamic-exhibit-delay-ms 0)
+                          (ivy-state-dynamic-collection ivy-last))))
+      (and ivy-dym-p
+           (entropy/emacs-cancel-timer-var ivy--exhibit-timer))
+      (if (and
+           eemacs-dym-p
+           (entropy/emacs-get-symbol-prop
+            this-command '__eemacs-ivy-dynamic-command-p))
+          (funcall __ya/ivy--queue-exhibit/idle-func) (ivy--exhibit))))
 
   (advice-add 'ivy--queue-exhibit :override #'__ya/ivy--queue-exhibit)
 
