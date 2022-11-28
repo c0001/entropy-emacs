@@ -44,36 +44,9 @@
 (eval-when-compile (require 'rx))
 
 ;; ** internal libs
-(cl-defun entropy/emacs-defun--get-real-body (list-var &optional with-safe)
-  "Get BODY inside of plist like list LIST-VAR, commonly is the
-last `keywordp' keypair's cdr or return LIST-VAR when the car of
-LIST-VAR is not a `keywordp' keyword.
 
-When WITH-SAFE is non-nil, when the real body is nil, then return
-`(nil)'. Otherwise of thus case, always return nil.
-
-This function is useful for `cl-defmacro' BODY parsing like:
-
-#+begin_src emacs-lisp
-(cl-defmacro name &rest body
-             &key
-             key-1
-             key-2
-             ...
-             &allow-other-keys)
-#+end_src
-
-To get the real-body in BODY use
-\(setq BODY (fn BODY))
-"
-  (let ((it list-var))
-    (catch 'break
-      (while t
-        (if (keywordp (car it)) (setq it (cddr it))
-          (throw 'break
-                 (if (not with-safe) it
-                   (or it (list nil)))))))))
-
+(defalias 'entropy/emacs-defun--get-real-body
+  #'entropy/emacs--get-def-body)
 (defun entropy/emacs-defun--get-body-without-keys
     (body &optional reverse &rest keys)
   "Like `entropy/emacs-defun--get-real-body' but just trim the key-pairs

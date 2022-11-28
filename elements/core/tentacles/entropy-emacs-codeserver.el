@@ -157,7 +157,7 @@ Bounds is an cons of (beg . end) point of `current-buffer'"
                        ))))))
 
 ;; ***** Dwim with `entropy-emacs-structure'
-  (defun entropy/emacs-codeserver-xref--show-entry-after-jump (&rest _)
+  (entropy/emacs-!cl-defun entropy/emacs-codeserver-xref--show-entry-after-jump (&rest _)
     "Show hidden entry after xref jump which hidden by
 `entropy-emacs-structure' feature."
     (when-let* ((feature-p (featurep 'entropy-emacs-structure))
@@ -170,9 +170,9 @@ Bounds is an cons of (beg . end) point of `current-buffer'"
           (condition-case err
               (outline-show-entry)
             (outline-before-first-heading
-             (message "outline-before-first-heading"))
+             (entropy/emacs-!message "outline-before-first-heading"))
             (error
-             (error "%s" err)))))
+             (entropy/emacs-!error "%s" err)))))
 
       ;; then remove `hs-minor-mode' hidden overlay
       (when-let ((hsmode-p (bound-and-true-p hs-minor-mode))

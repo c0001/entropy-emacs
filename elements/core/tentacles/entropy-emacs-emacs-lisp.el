@@ -98,6 +98,9 @@ For lisp coding aim, always return the transfered buffer.
   :preface
   (defvar entropy/emacs-lisp--emacs-lisp-lambda-form-keywords
     '(defun cl-defun defalias
+       entropy/emacs-!cl-defun
+       entropy/emacs-defalias
+       entropy/emacs-!defalias
        lambda cl-lambda
        defmacro cl-defmacro
        entropy/emacs-cl-lambda
@@ -250,7 +253,8 @@ byte-code into a popup buffer.
                            ;; lexical or dynamic interpretation.
                            (with-current-buffer orig-buff
                              (if (and (memq (setq defun-sym (car eval-form))
-                                            '(defun cl-defun entropy/emacs-define-idle-function))
+                                            '(defun cl-defun entropy/emacs-define-idle-function
+                                               entropy/emacs-!cl-defun))
                                       (setq pre-byte-func-sym (cadr eval-form))
                                       (yes-or-no-p
                                        (format "It's seemes like a function defination form \

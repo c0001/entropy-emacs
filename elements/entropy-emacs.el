@@ -105,7 +105,7 @@
 (defvar entropy/emacs-run-startup-top-init-timestamp (current-time)
   "Time-stamp eemacs top init prepare")
 
-;; ** eemacs top functions
+;; ** eemacs top APIs
 ;; Top declared functions used for eemacs.
 
 (defun entropy/emacs-macroexp-progn (exps)
@@ -125,6 +125,36 @@ BODY or FORMS requested context by `,@' in `backquote' forms.
 
 See also `entropy/emacs-macroexp-progn'."
   (or args (list nil)))
+
+(cl-defun entropy/emacs--get-def-body (list-var &optional with-safe)
+  "Get BODY inside of plist like list LIST-VAR, commonly is the
+last `keywordp' keypair's cdr or return LIST-VAR when the car of
+LIST-VAR is not a `keywordp' keyword.
+
+When WITH-SAFE is non-nil, when the real body is nil, then return
+`(nil)'. Otherwise of thus case, always return nil.
+
+This function is useful for `cl-defmacro' BODY parsing like:
+
+#+begin_src emacs-lisp
+(cl-defmacro name &rest body
+             &key
+             key-1
+             key-2
+             ...
+             &allow-other-keys)
+#+end_src
+
+To get the real-body in BODY use
+\(setq BODY (fn BODY))
+"
+  (let ((it list-var))
+    (catch 'break
+      (while t
+        (if (keywordp (car it)) (setq it (cddr it))
+          (throw 'break
+                 (if (not with-safe) it
+                   (or it (list nil)))))))))
 
 (defun entropy/emacs-maybe-list (object)
   "Wrap OBJECT as a list of it only when OBJECT is not a `listp'
@@ -272,6 +302,100 @@ If FRAME is omitted or nil use `selected-frame' as default."
   (and (frame-parameter frame 'client)
        (not (entropy/emacs-child-frame-p frame))))
 
+
+;; *** eemacs def*
+
+(defvar entropy/emacs-inner-sym-for/current-defname
+  (make-symbol "*eemacs-current-defname*")
+  "Eemacs inner used non-`interned' symbol used for lexical bind the
+current defination name for name bound definations like `defun',
+`defalias', but only for those who have eemacs variant.
+
+The valid variants are:
+- `entropy/emacs-!cl-defun'
+- `entropy/emacs-!defalias'
+
+In eemacs, we use =eemacs-defn-bind= as the term for that binding
+usage in context.
+
+To use the lexical value of this symbol in context, see
+`entropy/emacs-!with-cdefn'.")
+(defmacro entropy/emacs-!cl-defun (&rest args)
+  "Same as `cl-defun' but indeed return the symbol of NAME and also
+for:
+
+Use =eemacs-defn-bind= of symbol of NAME for BODY when
+`lexical-binding' is non-nil.. (see
+`entropy/emacs-inner-sym-for/current-defname')
+
+\(fn NAME ARGLIST [DOCSTRING] [DECL] [INTERACTIVE] BODY...)"
+  (declare (doc-string 3) (indent 2))
+  (let ((name (car args)))
+    `(let ((,entropy/emacs-inner-sym-for/current-defname
+            ',name))
+       (cl-defun ,@args) ',name)))
+
+(defmacro entropy/emacs-!defalias (&rest args)
+  "Same as `entropy/emacs-defalias' but also:
+
+Use =eemacs-defn-bind= of SYMBOL for DEFINITION if it's an
+`lambda' when `lexical-binding' is non-nil. (see
+`entropy/emacs-inner-sym-for/current-defname')
+
+\(fn SYMBOL DEFINITION &optional DOCSTRING)"
+  (declare (indent 1))
+  (macroexp-let2* ignore ((sym-name (car args)))
+    `(let ((,entropy/emacs-inner-sym-for/current-defname
+            ,sym-name))
+       (defalias ,sym-name ,@(cdr args))
+       ,sym-name)))
+
+(cl-defmacro entropy/emacs-!with-cdefn
+    (&rest body &key with-it-as &allow-other-keys)
+  "Run body with binding lexical var symbol set by
+WITH-IT-AS (default is `it') of value of =eemacs-defn-bind=, if
+thus is void, the bind's value is nil. Return BODY's value.
+
+(see `entropy/emacs-inner-sym-for/current-defname')"
+  (declare (indent defun))
+  (let ((bind-sym (or with-it-as 'it)))
+    `(let ((,bind-sym
+            (ignore-errors ,entropy/emacs-inner-sym-for/current-defname)))
+       ,@(entropy/emacs--get-def-body body 'with-safe))))
+
+(defmacro entropy/emacs-!message (format-string &rest args)
+  "Like `message' but message with =eemacs-defn-bind= as prefix when
+available.
+
+(see `entropy/emacs-inner-sym-for/current-defname')"
+  `(entropy/emacs-!with-cdefn
+     :with-it-as cur-defn
+     (if (not cur-defn) (apply 'message ,format-string ,@args)
+       (message (concat "[%s] " ,format-string)
+                cur-defn ,@args))))
+
+(defmacro entropy/emacs-!error (string &rest args)
+  "Like `error' but message with =eemacs-defn-bind= as prefix when
+available.
+
+(see `entropy/emacs-inner-sym-for/current-defname')"
+  `(entropy/emacs-!with-cdefn
+     :with-it-as cur-defn
+     (if (not cur-defn) (apply 'error ,string ,@args)
+       (error (concat "[%s] " ,string)
+              cur-defn ,@args))))
+
+(defmacro entropy/emacs-!user-error (string &rest args)
+  "Like `user-error' but message with =eemacs-defn-bind= as prefix
+when available.
+
+(see `entropy/emacs-inner-sym-for/current-defname')"
+  `(entropy/emacs-!with-cdefn
+     :with-it-as cur-defn
+     (if (not cur-defn) (apply 'user-error ,string ,@args)
+       (user-error (concat "[%s] " ,string)
+                   cur-defn ,@args))))
+
 ;; *** eemacs-require-func
 
 (defun entropy/emacs-common-require-feature
@@ -295,6 +419,7 @@ NOTE: not support load dynamic module"
   #'entropy/emacs-common-require-feature
   "Alias for `entropy/emacs-common-require-feature' but just used
 in baron part to simplify context distinction search")
+
 ;; *** high perfomance alist
 
 (defun entropy/emacs--make-alist-with-symbol-prop-set/core-func
