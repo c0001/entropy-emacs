@@ -325,7 +325,7 @@ To use the lexical value of this symbol in context, see
 for:
 
 Use =eemacs-defn-bind= of symbol of NAME for BODY when
-`lexical-binding' is non-nil.. (see
+`lexical-binding' is non-nil. (see
 `entropy/emacs-inner-sym-for/current-defname')
 
 \(fn NAME ARGLIST [DOCSTRING] [DECL] [INTERACTIVE] BODY...)"
