@@ -746,19 +746,19 @@ faild with hash '%s' which must match '%s'"
          (and (not clean)
               (delete nil
                       `(,(when (entropy/emacs-vterm-support-p)
-                           '(vterm ("cmake" ".") ("make")))))))
-        )
+                           '(vterm (("cmake" ".") ("make"))))))))
+        pkg cmds penv defdir)
     ;; Compile dynamic modules firstly since the byte-compile process
     ;; will load the module as well.
     (when module-pkg-incs
       (dolist (spec module-pkg-incs)
+        (setq pkg (car spec) cmds (cadr spec)
+              penv (nth 2 spec) defdir (nth 3 spec))
         (entropy/emacs-package-compile-dynamic-module
-         (car spec) (cdr spec))))
+         pkg cmds penv defdir)))
     (dolist (item entropy/emacs-batch--bytecompile-item-register)
       (apply 'entropy/emacs-batch--bytecompile-eemacs-core-utils-frameworks
-             (if clean
-                 (append item '(t))
-               item)))))
+             (if clean (append item '(t)) item)))))
 
 ;; ** interactive
 (when (entropy/emacs-ext-main)

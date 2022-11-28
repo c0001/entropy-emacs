@@ -274,17 +274,27 @@ the error msg into `entropy/emacs-package-install-failed-list'."
               (red "✕ FAILED")
               (cdr error-rtn)))))))
 
-(defun entropy/emacs-package-compile-dynamic-module (pkg install-commands)
+(defun entropy/emacs-package-compile-dynamic-module
+    (pkg install-commands &optional proc-env def-dir)
   "Make dynamic module for package PKG through commands list
 INSTALL-COMMANDS whose each element is a list whose car was the
-command and rest of the command's arguments"
-  (entropy/emacs-package-prepare-foras)
+command and rest of the command's arguments.
+
+If DEF-DIR is non-nil, it should be the directory absolute path for
+PKG.
+
+If PROC-ENV is non-nil, use it replace `process-environment' for
+building procedure while invoking INSTALL-COMMANDS."
+  (unless def-dir
+    (entropy/emacs-package-prepare-foras))
   (let ((pkg-dir
-         (package-desc-dir
-          (cadr (assq pkg (package--alist))))))
+         (or def-dir
+             (package-desc-dir
+              (cadr (assq pkg (package--alist)))))))
     (unless (ignore-errors (file-exists-p pkg-dir))
       (error "Package '%s' not installed yet" pkg))
     (let* ((default-directory (entropy/emacs-return-as-default-directory pkg-dir))
+           (process-environment (or proc-env process-environment))
            (process-format-func
             (lambda (command uid)
               `(:name
