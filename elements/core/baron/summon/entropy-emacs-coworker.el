@@ -731,12 +731,6 @@ EXIT /b
    ;; download speed restriction.
    "https://sourceforge.net/projects/entropy-emacs-cabinet/files/LSP/lsp-java/lsp-java-v3.0_jdtls_release/lsp-java-v3.0_jdtls_release.tgz"
    'tgz))
-(unless entropy/emacs-ext-use-eemacs-lsparc
-  (setq lsp-java-server-install-dir
-        (expand-file-name
-         "jdtls/jdt-lsp"
-         entropy/emacs-coworker-archive-host-root)))
-
 
 ;; *** exra tools
 ;; **** wsl-open

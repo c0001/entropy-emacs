@@ -1350,6 +1350,11 @@ updating."
   ;; feature has lots of bug when init at boot time.
   (setq lsp-java-boot-enabled nil)
   (setq lsp-java-autobuild-enabled nil)
+  (unless entropy/emacs-ext-use-eemacs-lsparc
+    (setq lsp-java-server-install-dir
+          (expand-file-name
+           "jdtls/jdt-lsp/"
+           entropy/emacs-coworker-archive-host-root)))
   (with-eval-after-load 'lsp-mode
     (entropy/emacs-message-simple-progress-message
      "require lsp-java"
