@@ -247,6 +247,7 @@ renderred after init this.)"
                  (not (daemonp)))
             )
         (require (car eemacs-top-init-file)
+                 ;; confirm load the source i.e. non-compiled ver.
                  (cdr eemacs-top-init-file)))
        (t
         (add-to-list 'load-path (file-name-directory (cdr eemacs-top-init-file)))

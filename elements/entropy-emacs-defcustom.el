@@ -1,4 +1,4 @@
-;;; entropy-emacs-defcustom.el --- entropy emacs collection of customizable variables
+;;; entropy-emacs-defcustom.el --- entropy emacs collection of customizable variables  -*- lexical-binding: t; -*-
 ;;
 ;; * Copyright (C) 20190602  Entropy
 ;; #+BEGIN_EXAMPLE
@@ -1486,12 +1486,12 @@ option."
     sh-mode powershell-mode))
 
 (defvar entropy/emacs-use-ide-conditions nil)
-(defun entropy/emacs-get-ide-condition-symbol (major-mode)
-  (intern (format "entropy/emacs-use-ide-type-for-%s" major-mode)))
-(defun entropy/emacs-get-use-ide-type (major-mode)
+(defun entropy/emacs-get-ide-condition-symbol (for-major-mode)
+  (intern (format "entropy/emacs-use-ide-type-for-%s" for-major-mode)))
+(defun entropy/emacs-get-use-ide-type (for-major-mode)
   (unless entropy/emacs-ide-suppressed
     (symbol-value
-     (entropy/emacs-get-ide-condition-symbol major-mode))))
+     (entropy/emacs-get-ide-condition-symbol for-major-mode))))
 
 (defun entropy/emacs-ide-gen-customized-variables ()
   (let (forms)
@@ -2973,6 +2973,9 @@ only one for thus."
 
 ;; *** large file/buffer detection
 
+(defvar so-long-threshold)
+(defvar so-long-max-lines)
+
 (defun entropy/emacs-check-buffer-has-long-line-p
     (&optional buffer-or-name long-threshold max-lines-to-detect)
   "Decide whether buffer (default to `current-buffer' unless
@@ -3005,7 +3008,7 @@ as fallback. (also see
 NOTE: this var is an const var, do not modify it in any cases
 include in `let' binding or will make disaster.")
 (defun entropy/emacs-large-file-warning-threshold-guard
-    (sym newval op where)
+    (_sym _newval op _where)
   (when op
     (error
      "`%S' to the const `entropy/emacs-large-file-warning-threshold'."
@@ -3165,7 +3168,7 @@ as.")
 (setq epa-pinentry-mode 'loopback)
 ;; The pinentry-emacs interface
 ;; >>> https://github.com/ecraven/pinentry-emacs
-(defun pinentry-emacs (desc prompt ok error)
+(defun pinentry-emacs (desc prompt _ok _error)
   (let ((str (read-passwd
               (concat
                (replace-regexp-in-string
@@ -3370,7 +3373,7 @@ Do you want to open it with messy?"
 
   ;; append eemacs extra docs
   (dolist (doc entropy/emacs-extra-doc-file-archives-alist)
-    (let* ((doc-name (car doc))
+    (let* ((_doc-name (car doc))
            (doc-attr (cdr doc))
            (doc-info-file (plist-get doc-attr :texinfo))
            (doc-info-dir
@@ -3420,7 +3423,7 @@ that."
                  #'entropy/emacs-display-graphic-fake-advice))))
 
 ;; *** clean stuff files
-(when-let ((_ (not (entropy/emacs-env-init-with-pure-eemacs-env-p)))
+(when-let (((not (entropy/emacs-env-init-with-pure-eemacs-env-p)))
            (top entropy/emacs-stuffs-topdir))
   (unless (file-exists-p top)
     (make-directory top))
