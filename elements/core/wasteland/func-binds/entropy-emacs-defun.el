@@ -45,8 +45,7 @@
 
 ;; ** internal libs
 
-(defalias 'entropy/emacs-defun--get-real-body
-  #'entropy/emacs--get-def-body)
+(defalias 'entropy/emacs-defun--get-real-body #'entropy/emacs--get-def-body)
 (defun entropy/emacs-defun--get-body-without-keys
     (body &optional reverse &rest keys)
   "Like `entropy/emacs-defun--get-real-body' but just trim the key-pairs
