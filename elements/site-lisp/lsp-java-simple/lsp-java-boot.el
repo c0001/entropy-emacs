@@ -1,7 +1,7 @@
 ;;; lsp-java-boot.el --- Spring boot support for lsp-java -*- lexical-binding: t; -*-
 
 ;; Version: 2.0
-;; Package-Requires: ((emacs "25.1") (lsp-mode "6.0") (markdown-mode "2.3") (dash "2.14.1") (f "0.20.0") (ht "2.0") (dash-functional "1.2.0") (request "0.3.0"))
+;; Package-Requires: ((emacs "25.1") (lsp-mode "6.0") (markdown-mode "2.3") (dash "2.18.0") (f "0.20.0") (ht "2.0") (request "0.3.0"))
 ;; Keywords: languague, tools
 ;; URL: https://github.com/emacs-lsp/lsp-java
 
@@ -35,7 +35,8 @@
   :type 'boolean)
 
 (defcustom lsp-java-boot-java-tools-jar nil
-  "Path to tools jar. If it is not specified it will be calculated using `JAVA_HOME'."
+  "Path to tools jar. If it is not specified it will be
+calculated using `JAVA_HOME'."
   :group 'lsp-java-boot
   :type 'file)
 
@@ -144,9 +145,11 @@ Store CALLBACK to use it `sts/highlight'."
                                         (memq mode '(java-mode conf-javaprop-mode yaml-mode))
                                         (lsp-java-boot--server-jar)))
                   :request-handlers  (ht ("sts/addClasspathListener" #'lsp-java-boot--sts-add-classpath-listener)
-                                         ("sts/javadocHoverLink" #'lsp-java-boot--sts-javadoc-hover-link))
+                                         ("sts/javadocHoverLink" #'lsp-java-boot--sts-javadoc-hover-link)
+                                         ("sts/javaType" #'ignore))
                   :notification-handlers  (ht ("sts/highlight" #'lsp-java-boot--sts-hightlight)
-                                              ("sts/progress" #'ignore))
+                                              ("sts/progress" #'ignore)
+                                              ("sts/javaSuperTypes" #'ignore))
                   :multi-root t
                   :add-on? t
                   :server-id 'boot-ls

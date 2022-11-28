@@ -729,7 +729,7 @@ EXIT /b
    ;; full project with boot/test/compiler tools integrated instead of
    ;; `lsp-java' github release stuff url which has significantly
    ;; download speed restriction.
-   "https://sourceforge.net/projects/entropy-emacs-cabinet/files/LSP/lsp-java/lsp-java-v3.0_jdtls_release/lsp-java-v3.0_jdtls_release.tgz"
+   "https://sourceforge.net/projects/entropy-emacs-cabinet/files/LSP/lsp-java/lsp-java-v3.1_jdtls_release/jdt-language-server-1.12.0-202206011637.tar.gz"
    'tgz))
 
 ;; *** exra tools
