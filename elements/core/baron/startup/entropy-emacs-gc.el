@@ -45,6 +45,15 @@
 
 (defvar entropy/emacs-gc-records nil)
 
+(eval-and-compile
+  (defvar entropy/emacs-gc-thread-max
+    (if (< emacs-major-version 29) (* 100 (expt 1024 2))
+      ;; FIXME: emacs-29's gc inner optimization has collision with the
+      ;; traditional enlarging value, thus we attempt to use a tiny
+      ;; value approaching to the default one to reduce gc time
+      ;; duration. Is this theory right?
+      (* 2 (expt 1024 2)))))
+
 (defmacro entropy/emacs-gc--with-record (&rest body)
   (declare (indent defun))
   `(let* (--duration--
@@ -104,8 +113,7 @@ origin, since each set to the `gc-threshold' or
         ;; -------------------- high performance mode --------------------
         (t
          (__ya/gc-threshold_setq
-          gc-cons-threshold
-          (* 100 1024 1024)))))
+          gc-cons-threshold entropy/emacs-gc-thread-max))))
 
 (defun entropy/emacs-gc--init-idle-gc (&optional sec)
   (entropy/emacs-cancel-timer-var entropy/emacs-garbage-collect-idle-timer)
