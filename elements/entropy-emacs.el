@@ -507,6 +507,20 @@ context or messy up."
 via `entropy/emacs-make-alist-with-symbol-prop-set'." ,varsym))
        (add-variable-watcher ,varsym var-guard-func-name))))
 
+;; *** eemacs env
+
+(cl-defmacro entropy/emacs-env-with-pure-eemacs-env
+    (defdir &rest body &key load-custom-file-p &allow-other-keys)
+  `(let ((default-directory (or ,defdir default-directory))
+         (proc-env
+          (cons "EEMACS_INIT_WITH_PURE=t"
+                process-environment)))
+     (let ((process-environment
+            (if ,load-custom-file-p
+                (cons "EEMACS_INIT_WITH_PURE_LCSTF=t" proc-env)
+              proc-env)))
+       ,@(entropy/emacs--get-def-body body 'with-safe))))
+
 ;; ** INIT
 
 ;; eemacs conventional top-level binding either NOTE emacs bind to

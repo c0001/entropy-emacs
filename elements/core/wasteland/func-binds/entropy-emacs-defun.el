@@ -10127,7 +10127,10 @@ WITH-DEFAULT-DIRECTORY-AS if set or will fallback to
        ,finish-form))))
 
 (cl-defun entropy/emacs-run-body-with-eemacs-pure-env
-    (&rest body &key with-default-directory-as emacs-invocation-name &allow-other-keys)
+    (&rest body
+           &key with-default-directory-as emacs-invocation-name
+           load-custom-file-p
+           &allow-other-keys)
   "like `entropy/emacs-run-batch-with-eemacs-pure-env' but run BODY with
 gui interactive emacs session. Thus do noting while
 `display-graphic-p' is not checked as valid.
@@ -10144,6 +10147,11 @@ session running start workspace i.e. the `default-directory' of that
 emacs session process. Defaults to use `temporary-file-directory' as
 thus.
 
+If LOAD-CUSTOM-FILE-P is non-nil, then also load eemacs's
+`entropy/emacs-custom-common-file' before initialized the eemacs pure
+environment. Where all commonly eemacs customizations is specified by
+user end in this case.
+
 The main subroutine of this function is
 `entropy/emacs-test-emacs-with-vanilla-setup' thus for what
 EMACS-INVOCATION-NAME is as is.
@@ -10155,6 +10163,7 @@ EMACS-INVOCATION-NAME is as is.
                 (entropy/emacs-return-as-default-directory
                  with-default-directory-as))
            temporary-file-directory)
+       :load-custom-file-p load-custom-file-p
        (entropy/emacs-test-emacs-with-vanilla-setup
         "eemacs-pure-env-interactive-test"
         :emacs-invocation-name emacs-invocation-name

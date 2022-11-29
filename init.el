@@ -182,12 +182,10 @@ renderred after init this.)"
     (and env
          (not (string-empty-p env)))))
 
-(defmacro entropy/emacs-env-with-pure-eemacs-env (defdir &rest body)
-  `(let ((default-directory (or ,defdir default-directory))
-         (process-environment
-          (cons "EEMACS_INIT_WITH_PURE=t"
-                process-environment)))
-     ,@body))
+(defun entropy/emacs-env-init-with-pure-eemacs-env/load-custom-file-p nil
+  (and (entropy/emacs-env-init-with-pure-eemacs-env-p)
+       (let ((env (getenv "EEMACS_INIT_WITH_PURE_LCSTF")))
+         (and (stringp env) (not (string-empty-p env))))))
 
 ;; ** Startup entropy-emacs
 
@@ -213,7 +211,9 @@ renderred after init this.)"
         after-init-time))
 
   (let ((cus entropy/emacs-custom-common-file))
-    (unless (entropy/emacs-env-init-with-pure-eemacs-env-p)
+    (when (if (entropy/emacs-env-init-with-pure-eemacs-env-p)
+              (entropy/emacs-env-init-with-pure-eemacs-env/load-custom-file-p)
+            t)
       (when (not (file-exists-p cus))
         (copy-file entropy/emacs-custom-common-file-template
                    entropy/emacs-custom-common-file
