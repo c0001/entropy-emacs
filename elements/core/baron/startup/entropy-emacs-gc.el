@@ -64,8 +64,7 @@
      (when (> (length entropy/emacs-gc-records) 1000)
        (setq entropy/emacs-gc-records nil))
 
-     (prog1
-         ,(entropy/emacs-macroexp-progn body)
+     (prog1 ,(entropy/emacs-macroexp-progn body)
        (setq --duration--
              (float-time
               (time-subtract
@@ -104,12 +103,11 @@ origin, since each set to the `gc-threshold' or
 
           ;; we hope all procedure during `eval-expression' are gc
           ;; restricted
-          (entropy/emacs-get-symbol-prop this-command 'eemacs-gc-special-cmd-p)
+          (entropy/emacs-get-symbol-prop this-command 'eemacs-gc-res-cmd-p)
           )
          ;; restrict the gc threshold when matching above condidtions
          (__ya/gc-threshold_setq
-          gc-cons-threshold
-          entropy/emacs-gc-threshold-basic))
+          gc-cons-threshold entropy/emacs-gc-threshold-basic))
         ;; -------------------- high performance mode --------------------
         (t
          (__ya/gc-threshold_setq
