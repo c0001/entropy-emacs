@@ -103,6 +103,12 @@
 ;; DONE [20220921]: this bug has been fix in emacs-28.2
 (setq tramp-archive-enabled nil)
 
+;;;; Fix pgtk frame visible/invisible performance issue
+;; https://debbugs.gnu.org/cgi/bugreport.cgi?bug=58556
+
+(setq pgtk-wait-for-event-timeout 0
+      pgtk-selection-timeout 0)
+
 ;;; early-init.el loaded done indicator
 
 (defvar entropy/emacs-early-init-done t
