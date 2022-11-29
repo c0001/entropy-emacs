@@ -4104,20 +4104,23 @@ kill ansi-term buffer and its popup window refer to bug
 #h-0c3ab89e-a470-42d2-946e-4f217ea2f20c in entropy-emacs bug
 collection."
   (interactive)
-  (if sys/linuxp
-      (let* ((buff (current-buffer))
-             (proc (get-buffer-process buff)))
-        (when proc
-          (when (yes-or-no-p
-                 (format "Buffer %S has a running process; kill it? "
-                         (buffer-name buff)))
-            (set-process-filter proc nil)
-            (kill-process proc)
-            (let ((kill-buffer-query-functions nil))
-              (if (not (one-window-p))
-                  (kill-buffer-and-window)
-                (kill-this-buffer))))))
-    (kill-this-buffer)))
+  (let ((mfunc
+         (lambda nil
+           (if (not (one-window-p)) (kill-buffer-and-window)
+             (kill-this-buffer)))))
+    (if sys/linuxp
+        (let* ((buff (current-buffer))
+               (proc (get-buffer-process buff)))
+          (if proc
+              (when (yes-or-no-p
+                     (format "Buffer %S has a running process; kill it? "
+                             (buffer-name buff)))
+                (set-process-filter proc nil)
+                (delete-process proc)
+                (let ((kill-buffer-query-functions nil))
+                  (funcall mfunc)))
+            (funcall mfunc)))
+      (funcall mfunc))))
 
 (defun entropy/emacs-basic-kill-buffer-and-show-its-dired ()
   "Kill buffer, swtich to its hosted location `dired' buffer when
