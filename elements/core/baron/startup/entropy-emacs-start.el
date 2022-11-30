@@ -559,14 +559,12 @@ notation.
   ;; we just check those envs at startup time since after that there's
   ;; no problem for this emacs main process as what we can use those
   ;; envs in spawn processes.
-  (if entropy/emacs-start--linux-DE-IME-checked-p
-      entropy/emacs-start--linux-DE-IME-detected-p
-    (setq entropy/emacs-start--linux-DE-IME-detected-p
-          (entropy/emacs-start-linux-DE-IME-warning-1
-           force pop-warn)
-          entropy/emacs-start--linux-DE-IME-checked-p t)))
+  (prog1 (entropy/emacs-start-linux-DE-IME-warning-1
+          force pop-warn entropy/emacs-start--linux-DE-IME-checked-p)
+    (setq entropy/emacs-start--linux-DE-IME-checked-p t)))
 
-(defun entropy/emacs-start-linux-DE-IME-warning-1 (&optional force pop-warn)
+(defvar entropy/emacs-start--linux-DE-IME-old-warn-str nil)
+(defun entropy/emacs-start-linux-DE-IME-warning-1 (&optional force pop-warn use-old-warn)
   "Warnning for linux desktop IME bug of eemacs bug
 [h-12379f67-4311-4433-86e3-a6fdfd886112].
 
@@ -607,15 +605,18 @@ as ~EXEC=env GTL_IM_MODULE= GTK_IM_MODULE= QT_IM_MODULE= XMODIFIERS= emacs %F~ o
 ~env GTL_IM_MODULE= GTK_IM_MODULE= QT_IM_MODULE= XMODIFIERS= emacs~.
 
 Currently detected env variables:")
-          (msg ""))
-      (dolist (env envars)
-        (let ((val (getenv env)))
-          (when (and val (not (string-empty-p val)))
-            (setq msg (format "%s\n%s=%s" msg env val)))))
-      (unless (string-empty-p msg)
-        (when pop-warn
-          (warn "%s" (concat warn-head msg)))
-        t))))
+          (msg "") rtn)
+      (if use-old-warn (setq msg entropy/emacs-start--linux-DE-IME-old-warn-str
+                             rtn (not (null msg)))
+        (dolist (env envars)
+          (let ((val (getenv env)))
+            (when (and val (not (string-empty-p val)))
+              (setq msg (format "%s\n%s=%s" msg env val)
+                    rtn t))))
+        (setq entropy/emacs-start--linux-DE-IME-old-warn-str msg))
+      (setq entropy/emacs-start--linux-DE-IME-detected-p
+            (prog1 rtn
+              (if (and rtn pop-warn) (warn "%s" (concat warn-head msg))))))))
 
 (defvar entropy/emacs-start-linux-DE-IME-warning-idle-timer nil)
 (defvar entropy/emacs-start-linux-DE-IME-warning-idle-is-prompting-p nil)
@@ -640,54 +641,55 @@ Currently detected env variables:")
                  t
                ;; just disable the timer when this client is the last gui client
                (not (entropy/emacs-daemon-multi-gui-clients-p))))
-    (cancel-timer entropy/emacs-start-linux-DE-IME-warning-idle-timer)
-    (setq entropy/emacs-start-linux-DE-IME-warning-idle-timer nil)))
+    (entropy/emacs-cancel-timer-var
+     entropy/emacs-start-linux-DE-IME-warning-idle-timer)))
 
 (when (daemonp)
   (add-to-list 'delete-frame-functions
                #'entropy/emacs-start-linux-DE-IME-warning-idle-timer/reset))
 
-(cond
- ((daemonp)
-  (entropy/emacs-with-daemon-make-frame-done
-    'eemacs-linux-de-ime-warning (&rest _)
-    :when-gui
-    (progn
+(defun entropy/emacs-start--linux-DE-IME-warning-guard nil
+  (unless (or entropy/emacs-start-linux-DE-IME-warning-idle-is-prompting-p
+              ;; in occasion such as daemon without any clients connected
+              (bound-and-true-p noninteractive))
+    (setq entropy/emacs-start-linux-DE-IME-warning-idle-is-prompting-p t)
+    (let ((cur_wcfg (current-window-configuration))
+          (cur_frame (selected-frame))
+          nis-p)
+      (unwind-protect
+          (if (setq nis-p (not (entropy/emacs-start-linux-DE-IME-warning t t)))
+              (entropy/emacs-start-linux-DE-IME-warning-idle-timer/reset nil t)
+            (switch-to-buffer "*Warnings*")
+            (delete-other-windows)
+            (sit-for 0.1)        ;enuser rediplay
+            (when (yes-or-no-p "Did you know that?")
+              (entropy/emacs-start-linux-DE-IME-warning-idle-timer/reset nil t)))
+        (when (and (not nis-p)
+                   (frame-live-p cur_frame)
+                   (frame-visible-p cur_frame))
+          (with-selected-frame cur_frame
+            (set-window-configuration cur_wcfg)))
+        (setq entropy/emacs-start-linux-DE-IME-warning-idle-is-prompting-p
+              nil)))))
+
+;; init detection
+(when (entropy/emacs-start-linux-DE-IME-warning 'force)
+  ;; further popup warn
+  (cond
+   ((daemonp)
+    (entropy/emacs-with-daemon-make-frame-done
+      'eemacs-linux-de-ime-warning (&rest _)
+      :when-gui
       (when (and (not entropy/emacs-start-linux-DE-IME-warning-idle-timer)
                  (entropy/emacs-start-linux-DE-IME-warning t))
         (setq entropy/emacs-start-linux-DE-IME-warning-idle-timer
               (run-with-idle-timer
-               3
-               t
-               (entropy/emacs-defalias 'entropy/emacs-start--linux-DE-IME-warning-guard
-                 (lambda (&rest _)
-                   (unless entropy/emacs-start-linux-DE-IME-warning-idle-is-prompting-p
-                     (setq entropy/emacs-start-linux-DE-IME-warning-idle-is-prompting-p t)
-                     (let ((cur_wcfg (current-window-configuration))
-                           (cur_frame (selected-frame))
-                           nis-p)
-                       (unwind-protect
-                           (if (setq nis-p (not (entropy/emacs-start-linux-DE-IME-warning t t)))
-                               (entropy/emacs-start-linux-DE-IME-warning-idle-timer/reset nil t)
-                             (switch-to-buffer "*Warnings*")
-                             (delete-other-windows)
-                             (sit-for 0.1)        ;enuser rediplay
-                             (when (yes-or-no-p "Did you know that?")
-                               (entropy/emacs-start-linux-DE-IME-warning-idle-timer/reset nil t)))
-                         (when (and (not nis-p)
-                                    (frame-live-p cur_frame)
-                                    (frame-visible-p cur_frame))
-                           (with-selected-frame cur_frame
-                             (set-window-configuration cur_wcfg)))
-                         (setq entropy/emacs-start-linux-DE-IME-warning-idle-is-prompting-p
-                               nil))))))))))))
-
- ((bound-and-true-p entropy/emacs-fall-love-with-pdumper)
-  (add-hook 'entropy/emacs-pdumper-load-hook
-            #'(lambda (&rest _)
-                (entropy/emacs-start-linux-DE-IME-warning nil t))))
- (t
-  (entropy/emacs-start-linux-DE-IME-warning nil t)))
+               3 t #'entropy/emacs-start--linux-DE-IME-warning-guard)))))
+   ((bound-and-true-p entropy/emacs-fall-love-with-pdumper)
+    (add-hook 'entropy/emacs-pdumper-load-hook
+              #'(lambda (&rest _)
+                  (entropy/emacs-start-linux-DE-IME-warning nil t))))
+   (t (entropy/emacs-start-linux-DE-IME-warning nil t))))
 
 ;; *** startup main function
 (defun entropy/emacs-start--init-X ()
