@@ -667,7 +667,7 @@ Currently detected env variables:")
                            (cur_frame (selected-frame))
                            nis-p)
                        (unwind-protect
-                           (if (nis-p (not (entropy/emacs-start-linux-DE-IME-warning t t)))
+                           (if (setq nis-p (not (entropy/emacs-start-linux-DE-IME-warning t t)))
                                (entropy/emacs-start-linux-DE-IME-warning-idle-timer/reset nil t)
                              (switch-to-buffer "*Warnings*")
                              (delete-other-windows)
