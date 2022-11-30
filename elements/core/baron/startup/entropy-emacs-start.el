@@ -552,16 +552,31 @@ notation.
 
 ;; *** start up warns
 ;; **** linux DE IME warning
+
+(defvar entropy/emacs-start--linux-DE-IME-detected-p nil)
+(defvar entropy/emacs-start--linux-DE-IME-checked-p nil)
 (defun entropy/emacs-start-linux-DE-IME-warning (&optional force pop-warn)
+  ;; we just check those envs at startup time since after that there's
+  ;; no problem for this emacs main process as what we can use those
+  ;; envs in spawn processes.
+  (if entropy/emacs-start--linux-DE-IME-checked-p
+      entropy/emacs-start--linux-DE-IME-detected-p
+    (setq entropy/emacs-start--linux-DE-IME-detected-p
+          (entropy/emacs-start-linux-DE-IME-warning-1
+           force pop-warn)
+          entropy/emacs-start--linux-DE-IME-checked-p t)))
+
+(defun entropy/emacs-start-linux-DE-IME-warning-1 (&optional force pop-warn)
   "Warnning for linux desktop IME bug of eemacs bug
 [h-12379f67-4311-4433-86e3-a6fdfd886112].
 
 Return t for messy env detected, nil for otherwise. If optional
-argument POP-WARN is non-nil, throw out the warning.
+argument POP-WARN is non-nil, either throw out the warning before
+the return.
 
 If optional argument FORCE is non-nil, we also judged in linux
-non-X env."
-  (when (or sys/linux-x-p (and sys/linuxp force))
+non-X env, this useful for daemon session with X expectation."
+  (when (or sys/linux-x-p (and force sys/is-linux-and-graphic-support-p))
     (let ((envars '("GTL_IM_MODULE"
                     "GTK_IM_MODULE"
                     "QT_IM_MODULE"
@@ -644,25 +659,28 @@ Currently detected env variables:")
               (run-with-idle-timer
                3
                t
-               (lambda (&rest _)
-                 (unless entropy/emacs-start-linux-DE-IME-warning-idle-is-prompting-p
-                   (setq entropy/emacs-start-linux-DE-IME-warning-idle-is-prompting-p t)
-                   (let ((cur_wcfg (current-window-configuration))
-                         (cur_frame (selected-frame)))
-                     (unwind-protect
-                         (progn
-                           (entropy/emacs-start-linux-DE-IME-warning t t)
-                           (switch-to-buffer "*Warnings*")
-                           (delete-other-windows)
-                           (sit-for 0.1)        ;enuser rediplay
-                           (when (yes-or-no-p "Did you know that?")
-                             (entropy/emacs-start-linux-DE-IME-warning-idle-timer/reset nil t)))
-                       (when (and (frame-live-p cur_frame)
-                                  (frame-visible-p cur_frame))
-                         (with-selected-frame cur_frame
-                           (set-window-configuration cur_wcfg)))
-                       (setq entropy/emacs-start-linux-DE-IME-warning-idle-is-prompting-p nil))))))))
-      )))
+               (entropy/emacs-defalias 'entropy/emacs-start--linux-DE-IME-warning-guard
+                 (lambda (&rest _)
+                   (unless entropy/emacs-start-linux-DE-IME-warning-idle-is-prompting-p
+                     (setq entropy/emacs-start-linux-DE-IME-warning-idle-is-prompting-p t)
+                     (let ((cur_wcfg (current-window-configuration))
+                           (cur_frame (selected-frame))
+                           nis-p)
+                       (unwind-protect
+                           (if (nis-p (not (entropy/emacs-start-linux-DE-IME-warning t t)))
+                               (entropy/emacs-start-linux-DE-IME-warning-idle-timer/reset nil t)
+                             (switch-to-buffer "*Warnings*")
+                             (delete-other-windows)
+                             (sit-for 0.1)        ;enuser rediplay
+                             (when (yes-or-no-p "Did you know that?")
+                               (entropy/emacs-start-linux-DE-IME-warning-idle-timer/reset nil t)))
+                         (when (and (not nis-p)
+                                    (frame-live-p cur_frame)
+                                    (frame-visible-p cur_frame))
+                           (with-selected-frame cur_frame
+                             (set-window-configuration cur_wcfg)))
+                         (setq entropy/emacs-start-linux-DE-IME-warning-idle-is-prompting-p
+                               nil))))))))))))
 
  ((bound-and-true-p entropy/emacs-fall-love-with-pdumper)
   (add-hook 'entropy/emacs-pdumper-load-hook
