@@ -2880,6 +2880,13 @@ i.e. `entropy/emacs-startup-done' is set, used to initialize
 startup after procedure of some defaults configs must be without
 lazy-load.")
 
+(defvar entropy/emacs-after-startup-idle-hook nil
+  "Like `entropy/emacs-after-startup-hook' but ran at idle time just
+after thus unless `daemonp' or
+`entropy/emacs-fall-love-with-pdumper' is used/activated in which
+case any startup idle for those occasions is not adapted for
+eemacs.")
+
 ;; *** making procedure
 (defvar __entropy/emacs-is-make-session-check-done nil)
 (defvar __entropy/emacs-is-make-session-value-cache nil)

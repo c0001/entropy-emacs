@@ -129,9 +129,11 @@ determined by above variable you setted."
 (when (and entropy/emacs-init-fpos-enable
            (< entropy/emacs-init-frame-width-scale 1))
   ;; use the idle timer to prevent eemacs startup redisplay lag
-  (run-with-idle-timer
-   0.2 nil #'(lambda () (when (display-graphic-p)
-                          (entropy/emacs-ui-set-frame-position)))))
+  (entropy/emacs-add-hook-with-lambda
+    (cons t '__eemacs-initial-set-frame-pos) nil
+    :use-hook 'entropy/emacs-after-startup-idle-hook
+    (when (display-graphic-p)
+      (entropy/emacs-ui-set-frame-position))))
 
 ;; ** elisp show parent
 (unless entropy/emacs-use-highlight-features
@@ -763,8 +765,9 @@ window removed since we just need one welcom buffer."
     :use-hook 'entropy/emacs-after-startup-hook
     :use-append t
     (entropy/emacs-rich-dashboard-init)
-    (run-with-idle-timer
-     0.1 nil #'__eemacs/remove-dashboard-messy-injection))
+    (add-hook
+     'entropy/emacs-after-startup-idle-hook
+     #'__eemacs/remove-dashboard-messy-injection 90))
 
   )
 
@@ -829,9 +832,9 @@ value as optional interaction while `PREFIX' is non-nil."
            (display-graphic-p))
   (entropy/emacs-lazy-with-load-trail
     'loop-alpha
-    (run-with-idle-timer
-     0.2 nil
-     #'entropy/emacs-ui-loop-alpha-selected-frame)))
+    (add-hook
+     'entropy/emacs-after-startup-idle-hook
+     #'entropy/emacs-ui-loop-alpha-selected-frame 90)))
 
 ;; ** Misc
 ;; *** minor misc

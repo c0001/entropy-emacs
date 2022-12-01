@@ -369,10 +369,14 @@ fontset using `entropy/emacs-font-set-setfont-core'."
 (defun entropy/emacs-font-set--setfont-initial ()
   (unless (or (daemonp) entropy/emacs-fall-love-with-pdumper)
     ;; use the idle timer to prevent eemacs startup redisplay lag
-    (run-with-idle-timer
-     0.1 nil
-     #'(lambda () (entropy/emacs-font-set-setfont-core)
-         (entropy/emacs-font-set--var-watcher-initial))))
+    (add-hook 'entropy/emacs-after-startup-idle-hook
+              #'(lambda () (entropy/emacs-font-set-setfont-core)
+                  (entropy/emacs-font-set--var-watcher-initial))))
+  (when entropy/emacs-fall-love-with-pdumper
+    (entropy/emacs-add-hook-with-lambda
+      (cons t '__eemacs_initial-theme-for-pdumper) nil
+      :use-hook 'entropy/emacs-pdumper-load-hook
+      (entropy/emacs-font-set-setfont-core)))
   (add-hook 'entropy/emacs-after-startup-hook
             #'(lambda ()
                 (add-hook 'entropy/emacs-theme-load-after-hook

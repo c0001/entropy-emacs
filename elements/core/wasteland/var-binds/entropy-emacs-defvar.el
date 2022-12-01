@@ -929,6 +929,12 @@ initialize the default non-lazy configs.
           ;; ========== ran `entropy/emacs-after-startup-hook'
           (progn
             (run-hooks 'entropy/emacs-after-startup-hook)
+            (if (or entropy/emacs-fall-love-with-pdumper (daemonp))
+                (run-hooks 'entropy/emacs-after-startup-idle-hook)
+              (run-with-idle-timer
+               0.1 nil
+               (lambda nil
+                 (run-hooks 'entropy/emacs-after-startup-idle-hook))))
             (message
              "%s"
              "==================== eemacs after end hooks ran out ====================")
