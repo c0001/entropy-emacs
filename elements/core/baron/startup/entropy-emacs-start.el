@@ -651,7 +651,7 @@ Currently detected env variables:")
 (defun entropy/emacs-start--linux-DE-IME-warning-guard nil
   (unless (or entropy/emacs-start-linux-DE-IME-warning-idle-is-prompting-p
               ;; in occasion such as daemon without any clients connected
-              (bound-and-true-p noninteractive))
+              noninteractive)
     (setq entropy/emacs-start-linux-DE-IME-warning-idle-is-prompting-p t)
     (let ((cur_wcfg (current-window-configuration))
           (cur_frame (selected-frame))
