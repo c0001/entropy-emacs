@@ -830,11 +830,10 @@ value as optional interaction while `PREFIX' is non-nil."
 
 (when (and entropy/emacs-start-with-frame-transparent-action
            (display-graphic-p))
-  (entropy/emacs-lazy-with-load-trail
-    'loop-alpha
-    (add-hook
-     'entropy/emacs-after-startup-idle-hook
-     #'entropy/emacs-ui-loop-alpha-selected-frame 90)))
+  (entropy/emacs-add-hook-with-lambda
+    (cons t '__eemacs-frame-loop-alpha-initialization) nil
+    :use-hook 'entropy/emacs-after-startup-idle-hook
+    (entropy/emacs-ui-loop-alpha-selected-frame)))
 
 ;; ** Misc
 ;; *** minor misc

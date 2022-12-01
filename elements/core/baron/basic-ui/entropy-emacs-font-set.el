@@ -374,13 +374,14 @@ fontset using `entropy/emacs-font-set-setfont-core'."
                   (entropy/emacs-font-set--var-watcher-initial))))
   (when entropy/emacs-fall-love-with-pdumper
     (entropy/emacs-add-hook-with-lambda
-      (cons t '__eemacs_initial-theme-for-pdumper) nil
+      (cons t '__eemacs_initial-font-set-for-pdumper) nil
       :use-hook 'entropy/emacs-pdumper-load-hook
       (entropy/emacs-font-set-setfont-core)))
-  (add-hook 'entropy/emacs-after-startup-hook
-            #'(lambda ()
-                (add-hook 'entropy/emacs-theme-load-after-hook
-                          #'entropy/emacs-font-set-setfont-core)
-                (entropy/emacs-font-set--var-watcher-initial))))
+  (entropy/emacs-add-hook-with-lambda
+    (cons t '__eemacs-initial-font-set-pre-sets) nil
+    :use-hook 'entropy/emacs-after-startup-hook
+    (add-hook 'entropy/emacs-theme-load-after-hook
+              #'entropy/emacs-font-set-setfont-core)
+    (entropy/emacs-font-set--var-watcher-initial)))
 
 (provide 'entropy-emacs-font-set)
