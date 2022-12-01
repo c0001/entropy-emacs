@@ -593,7 +593,27 @@ window removed since we just need one welcom buffer."
 
   (defun entropy/emacs-ui--init-welcom-init-core (&optional use-initial)
     (when-let*
-        ((buff
+        ((rwin (frame-root-window))
+         (win
+          ;; NOTE: we shouldn't use the root win since its may be a
+          ;; root of childs i.e not lived anymore which can not
+          ;; display buffer. Thus we should find a lived window in
+          ;; that frame which is normally unused.
+          (if (window-live-p rwin) rwin
+            (get-window-with-predicate
+             #'(lambda (win)
+                 (with-current-buffer (window-buffer win)
+                   (and
+                    (not (window-dedicated-p win))
+                    (not
+                     ;; window display special buffer like *Warnings*
+                     ;; which we should not cover them since they usually
+                     ;; display emergency informations
+                     (eq major-mode 'special-mode)))))
+             'nomini (selected-frame))))
+         ((setq entropy/emacs-ui--init-welcom-width
+                (with-selected-window win (window-width))))
+         (buff
           (if use-initial
               (let ((buffgen (get-buffer-create entropy/emacs-init-welcome-buffer-name)))
                 (setq initial-buffer-choice
@@ -606,14 +626,13 @@ window removed since we just need one welcom buffer."
         (add-hook 'window-size-change-functions
                   'entropy/emacs-ui--init-welcom-resize-hook
                   nil t))
-      (unless use-initial (set-window-buffer (frame-root-window) buff))))
+      (unless use-initial (set-window-buffer win buff))))
 
   (setq inhibit-startup-screen t)
 
   (if entropy/emacs-fall-love-with-pdumper
       (entropy/emacs-lazy-with-load-trail
         'welcome-buffer
-        (setq entropy/emacs-ui--init-welcom-width (window-width))
         (entropy/emacs-ui--init-welcom-init-core))
     (entropy/emacs-ui--init-welcom-init-core)))
 
