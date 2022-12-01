@@ -1551,6 +1551,22 @@ emacs performance."
           (const :tag "lsp-pyright" pyright))
   :group 'entropy/emacs-customize-group-for-codeserver)
 
+(defcustom entropy/emacs-codeserver-file-watch-ignored-files nil
+  "List of regexp matching for ignored workspace's subfiles which
+will not be watched by codeserver."
+  :type '(repeat (regexp :tag "file name regexp"))
+  :group 'entropy/emacs-customize-group-for-codeserver)
+
+(defcustom entropy/emacs-codeserver-file-watch-ignored-directories
+  (list "[/\\\\]\\.venv[/\\\\]?\\'"
+        "[/\\\\]\\.VENV[/\\\\]?\\'"
+        "[/\\\\]\\venv[/\\\\]/\\'"
+        "[/\\\\]\\VENV[/\\\\]?\\'"
+        )
+  "List of regexp matching for ignored workspace's subdirs which
+will not be watched by codeserver."
+  :type '(repeat (regexp :tag "directory name regexp"))
+  :group 'entropy/emacs-customize-group-for-codeserver)
 
 ;; **** code folding group
 (defgroup entropy/emacs-customize-group-for-code-folding nil

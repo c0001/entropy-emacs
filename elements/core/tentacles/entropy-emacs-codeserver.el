@@ -600,6 +600,22 @@ certain eemacs-spec conditions."
       (apply orig-func orig-args))))
 
 
+;; ***** ignoring watching files/directories
+
+(entropy/emacs-!cl-defun entropy/emacs-codeserver--union-ignore-watchings
+    (cache)
+  (let (type var)
+    (dolist (el cache)
+      (setq type (car el) var (cdr el))
+      (cond
+       ((eq type 'file)
+        (dolist (f (reverse entropy/emacs-codeserver-file-watch-ignored-files))
+          (add-to-list var f)))
+       ((eq type 'dir)
+        (dolist (d (reverse entropy/emacs-codeserver-file-watch-ignored-directories))
+          (add-to-list var d)))
+       (t (entropy/emacs-!error "invalid type `%s'" type))))))
+
 ;; **** lsp-mode
 ;; ****** lsp-mode core
 (use-package lsp-mode
@@ -867,6 +883,12 @@ shutdown since it is managed by the customize variable
 
 ;; ******* config
   :config
+
+;; ******** var sets (must be set after load)
+
+  (entropy/emacs-codeserver--union-ignore-watchings
+   '((file . lsp-file-watch-ignored-files)
+     (dir  . lsp-file-watch-ignored-directories)))
 
 ;; ******** advices
 ;; ********* require extra clients
