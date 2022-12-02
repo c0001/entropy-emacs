@@ -1133,6 +1133,22 @@ lagging."
   (advice-add 'elfeed-search--header
               :around #'__ya/elfeed-search--header)
 
+;; *** patch `elfeed-search-set-filter'
+
+  (defun __ya/elfeed-search-set-filter/with-progress-msg
+      (orig-func &rest orig-args)
+    "Wrap `elfeed-search-set-filter' within a message progress for
+prompting user to wait for some large filtering occasion."
+    (let ((nflt (car orig-args)))
+      (entropy/emacs-message-simple-progress-message
+       (format "[elfeed-search-set-filter]: set filter as \"%s\""
+               (if (and (stringp nflt) (string-empty-p nflt))
+                   "no-filter" nflt))
+       (apply orig-func orig-args))))
+  (advice-add 'elfeed-search-set-filter
+              :around
+              #'__ya/elfeed-search-set-filter/with-progress-msg)
+
 ;; *** __end__
   )
 
