@@ -12198,7 +12198,7 @@ by get `entropy/emacs-union-http-prroxy-internal-enable-p' non-nil."
 `entropy/emacs-union-http-proxy-plist'."
   (apply
    'entropy/emacs-funcall-with-eemacs-union-http-internet-proxy
-   (lambda nil t)
+   'always
    orig-func orig-args))
 
 ;; ** Major-modes' eemacs extra APIs
