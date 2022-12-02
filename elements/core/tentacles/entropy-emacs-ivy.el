@@ -133,6 +133,17 @@
            (funcall hack-func))
         (funcall hack-func))))
 
+  ;; GC restrictions:
+  ;;
+  ;; Since the selection line visual movement is implemented by
+  ;; re-generate minibuffer contents, so each move command posted will
+  ;; generated large heap of datas even that `ivy' already restrict
+  ;; the rener part just with lenght of candis where `ivy-height'
+  ;; indicated for.
+  (dolist (el '(ivy-next-line ivy-previous-line))
+    (add-to-list 'entropy/emacs-garbage-collect-restrict-commands
+                 el))
+
 ;; *** ivy config
   :config
 

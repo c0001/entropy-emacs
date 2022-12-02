@@ -120,7 +120,10 @@ eemacs."
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-fundametal-configuration)
 
-(defcustom entropy/emacs-garbage-collection-delay 5
+(defcustom entropy/emacs-garbage-collection-delay
+  ;; eight seconds may the best delay for the approach for that ensure
+  ;; user is indeed leaving the session idled less right now.
+  8
   "The defaults garbage collection idle delay secons setting
 for entropy-emacs."
   :type 'integer

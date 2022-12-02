@@ -53,7 +53,7 @@
       ;; value approaching to the default one to reduce gc time
       ;; duration. Is this theory right?
       (* 2 (expt 1024 2))))
-  (defvar entropy/emacs-gc-percentage-max 0.3))
+  (defvar entropy/emacs-gc-percentage-max 0.8))
 
 (defmacro entropy/emacs-gc--with-record (&rest body)
   (declare (indent defun))
@@ -103,9 +103,6 @@ origin, since each set to the `gc-threshold' or
           ;; we hope all procedure during `eval-expression' are gc
           ;; restricted
           (entropy/emacs-get-symbol-prop this-command 'eemacs-gc-res-cmd-p)
-          ;; and for those minibuffer interactions (i.e. commonly with
-          ;; completions with large of heaps used)
-          (minibufferp)
           )
          ;; restrict the gc threshold when matching above condidtions
          (__ya/gc-threshold_setq
