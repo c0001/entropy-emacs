@@ -10465,28 +10465,33 @@ true, nil for otherwise."
          (symbolp val))))
 
 (defvar entropy/emacs-icons-displayable-p--cache nil)
+(defvar entropy/emacs-icons-displayable-p--init-p nil)
 (defun entropy/emacs-icons-displayable-p (&optional reset)
   "Return non-nil if `all-the-icons' is displayable."
-  (or (and entropy/emacs-icons-displayable-p--cache
-           (not reset))
-      (setq entropy/emacs-icons-displayable-p--cache
-            (and entropy/emacs-use-icon
-                 (display-graphic-p)
-                 ;; FIXME: `find-font' can not be used in emacs batch mode.
-                 (or (and entropy/emacs-fall-love-with-pdumper
-                          entropy/emacs-do-pdumper-in-X)
-                     (let ((rtn t))
-                       (catch :exit
-                         (dolist (font-name '("github-octicons"
-                                              "FontAwesome"
-                                              "file-icons"
-                                              "Weather Icons"
-                                              "Material Icons"
-                                              "all-the-icons"))
-                           (unless (find-font (font-spec :name font-name))
-                             (setq rtn nil)
-                             (throw :exit nil))))
-                       rtn))))))
+  (if (and entropy/emacs-icons-displayable-p--init-p (not reset))
+      entropy/emacs-icons-displayable-p--cache
+    (entropy/emacs-setf-by-body entropy/emacs-icons-displayable-p--cache
+      (and entropy/emacs-use-icon
+           (display-graphic-p)
+           ;; FIXME: `find-font' can not be used in emacs batch mode.
+           (or
+            (and entropy/emacs-fall-love-with-pdumper
+                 entropy/emacs-do-pdumper-in-X)
+            (let ((rtn t))
+              (catch :exit
+                (dolist
+                    (font-name
+                     '("github-octicons"
+                       "FontAwesome"
+                       "file-icons"
+                       "Weather Icons"
+                       "Material Icons"
+                       "all-the-icons"))
+                  (unless (find-font (font-spec :name font-name))
+                    (throw :exit (setq rtn nil)))))
+              rtn))))
+    (setq entropy/emacs-icons-displayable-p--init-p t)
+    entropy/emacs-icons-displayable-p--cache))
 
 (defvar entropy/emacs-idle-cleanup-echo-area-timer-is-running-p nil)
 (defun entropy/emacs-idle-cleanup-echo-area ()

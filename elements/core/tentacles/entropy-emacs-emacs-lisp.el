@@ -564,12 +564,12 @@ interaction) then normally wrapped to top-level form."
 
   ;; ivy-rich feature add
   (add-to-list 'entropy/emacs-ivy-rich-extra-display-transformers-list
-               '(entropy/emacs-lisp-slime-counsel-desc-symbol
+               `(entropy/emacs-lisp-slime-counsel-desc-symbol
                  (:columns
-                  (((lambda (&rest _)
-                      (all-the-icons-octicon
-                       "gear" :height 0.9 :v-adjust -0.05
-                       :face 'success)))
+                  ((,(lambda (&rest _)
+                       (all-the-icons-octicon
+                        "gear" :height 0.9 :v-adjust -0.05
+                        :face 'success)))
                    (ivy-rich-candidate (:width 30)))
                   :delimiter "\t")))
 

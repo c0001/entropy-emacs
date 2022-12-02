@@ -1396,54 +1396,44 @@ currnt fontset."
               :override #'__ya/ivy-rich-normalize-width)
 
   (defun entropy/ivy--ivy-rich-set-transformers-list ()
-    (let ((dcw-w entropy/ivy--ivy-rich-candi-width/with-docstring)
-          ;; (dcw-n entropy/ivy--ivy-rich-candi-width/non-docstring)
-          rtn)
+    (let* ((dcw-w entropy/ivy--ivy-rich-candi-width/with-docstring)
+           ;; (dcw-n entropy/ivy--ivy-rich-candi-width/non-docstring)
+           (nwth-func
+            (lambda (str)
+              (ivy-rich-normalize-width
+               str
+               (max (- (window-width (minibuffer-window)) 32)
+                    dcw-w))))
+           (npred-func
+            (lambda (cand) (get-buffer cand)))
+           rtn)
       (entropy/emacs-setf-by-body rtn
         `(ivy-switch-buffer
           (:columns
            (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-buffer-icon)
             (ivy-rich-candidate
-             (:width
-              (lambda (str)
-                (ivy-rich-normalize-width
-                 str
-                 (max (- (window-width (minibuffer-window))
-                         32)
-                      ,dcw-w)))))
+             (:width ,nwth-func))
             (ivy-rich-switch-buffer-size
              (:width 7))
             (ivy-rich-switch-buffer-indicators
              (:width 4 :face error :align left))
             (ivy-rich-switch-buffer-major-mode
              (:width 12 :face warning)))
-           :predicate
-           (lambda
-             (cand)
-             (get-buffer cand))
+           :predicate ,npred-func
            :delimiter "\t")
           ;; --------------------
           entropy/emacs-popwin-shackle-popup-buffer
           (:columns
            (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-buffer-icon)
             (ivy-rich-candidate
-             (:width
-              (lambda (str)
-                (ivy-rich-normalize-width
-                 str
-                 (max (- (window-width (minibuffer-window))
-                         32)
-                      ,dcw-w)))))
+             (:width ,nwth-func))
             (ivy-rich-switch-buffer-size
              (:width 7))
             (ivy-rich-switch-buffer-indicators
              (:width 4 :face error :align left))
             (ivy-rich-switch-buffer-major-mode
              (:width 12 :face warning)))
-           :predicate
-           (lambda
-             (cand)
-             (get-buffer cand))
+           :predicate ,npred-func
            :delimiter "\t")
           ;; --------------------
           counsel-find-file
