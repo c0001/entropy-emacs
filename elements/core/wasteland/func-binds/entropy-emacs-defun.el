@@ -12139,7 +12139,7 @@ mistakes."
    `(process-environment ',(append (entropy/emacs-gen-eemacs-union-http-internet-proxy-envs)
                                    process-environment))
    ;; disable `entropy-proxy-url' patch
-   `(entropy/proxy-url-user-proxy-match-func #'(lambda (&rest _) nil))
+   '(entropy/proxy-url-user-proxy-match-func 'ignore)
    '(entropy/proxy-url-inhbit-all-proxy t)
    ;; user specs
    entropy/emacs-union-http-internet-proxy-extra-let-bindings))
@@ -12153,10 +12153,10 @@ lexical binding."
   (if entropy/emacs-union-http-prroxy-internal-enable-p
       (let ((func-call (nth 1 orig-args))
             func)
-        (setq func `(lambda (&rest args)
-                      (let ((this-func ',func-call)
-                            ,@(entropy/emacs-gen-eemacs-union-http-internet-proxy-let-bindings))
-                        (apply this-func args))))
+        (entropy/emacs-setf-by-body func
+          `(lambda (&rest args)
+             (let (,@(entropy/emacs-gen-eemacs-union-http-internet-proxy-let-bindings))
+               (apply ',func-call args))))
         (push (cons func-call func) __ya/timer-set-function/with-url-poroxy/register)
         (apply orig-func (car orig-args) func (cddr orig-args)))
     (apply orig-func orig-args)))
@@ -12188,7 +12188,7 @@ by get `entropy/emacs-union-http-prroxy-internal-enable-p' non-nil."
   (if (and (plist-get entropy/emacs-union-http-proxy-plist :enable)
            (funcall filter-func))
       (entropy/emacs-eval-with-lexical
-       `(let ,(entropy/emacs-gen-eemacs-union-http-internet-proxy-let-bindings)
+       `(let (,@(entropy/emacs-gen-eemacs-union-http-internet-proxy-let-bindings))
           (apply ',orig-func ',orig-args)))
     (apply orig-func orig-args)))
 
