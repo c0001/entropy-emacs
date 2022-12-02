@@ -52,7 +52,8 @@
       ;; traditional enlarging value, thus we attempt to use a tiny
       ;; value approaching to the default one to reduce gc time
       ;; duration. Is this theory right?
-      (* 2 (expt 1024 2)))))
+      (* 2 (expt 1024 2))))
+  (defvar entropy/emacs-gc-percentage-max 0.3))
 
 (defmacro entropy/emacs-gc--with-record (&rest body)
   (declare (indent defun))
@@ -82,13 +83,11 @@ origin, since each set to the `gc-threshold' or
 `gc-cons-percentage' will make gc subrotine analysis(?)"
   `(let ((newval ,value))
      (unless (= ,symbol newval)
-       (let ((gcval gc-cons-threshold))
-         (setq ,symbol newval)
-         (when (and garbage-collection-messages
-                    (not (= gcval gc-cons-threshold)))
-           (message
-            "[%s] gc-cons-threshold change from %s to %s"
-            this-command gcval gc-cons-threshold))))))
+       (let ((oval ,symbol))
+         (prog1 (setq ,symbol newval)
+           (when garbage-collection-messages
+             (message "[%s] `%s' change from %s to %s"
+                      this-command ',symbol oval newval)))))))
 
 (defun entropy/emacs-gc--adjust-cons-threshold ()
   (cond (
@@ -104,14 +103,21 @@ origin, since each set to the `gc-threshold' or
           ;; we hope all procedure during `eval-expression' are gc
           ;; restricted
           (entropy/emacs-get-symbol-prop this-command 'eemacs-gc-res-cmd-p)
+          ;; and for those minibuffer interactions (i.e. commonly with
+          ;; completions with large of heaps used)
+          (minibufferp)
           )
          ;; restrict the gc threshold when matching above condidtions
          (__ya/gc-threshold_setq
-          gc-cons-threshold entropy/emacs-gc-threshold-basic))
+          gc-cons-threshold entropy/emacs-gc-threshold-basic)
+         (__ya/gc-threshold_setq
+          gc-cons-percentage entropy/emacs-gc-percentage-basic))
         ;; -------------------- high performance mode --------------------
         (t
          (__ya/gc-threshold_setq
-          gc-cons-threshold entropy/emacs-gc-thread-max))))
+          gc-cons-threshold entropy/emacs-gc-thread-max)
+         (__ya/gc-threshold_setq
+          gc-cons-percentage entropy/emacs-gc-percentage-max))))
 
 (defun entropy/emacs-gc--init-idle-gc (&optional sec)
   (entropy/emacs-cancel-timer-var entropy/emacs-garbage-collect-idle-timer)
@@ -131,7 +137,13 @@ origin, since each set to the `gc-threshold' or
      msg
      :with-temp-message t
      :ignore-current-messages (lambda (x) (string-match-p (regexp-quote msg) x))
-     (entropy/emacs-gc--with-record (garbage-collect)))))
+     (entropy/emacs-gc--with-record (garbage-collect)
+       ;; FIXME: Since gc seems doesn't return the unsed heap to
+       ;; system, so we must do it manually since for a days used
+       ;; emacs session whose memory size used is crazy.
+       (when (fboundp 'malloc-trim)
+         ;; is emacs-29 facility
+         (malloc-trim))))))
 
 (defun entropy/emacs-gc-set-idle-gc (secs)
   "Re-set the garbage collecton timer
@@ -176,7 +188,7 @@ delay seconds SECS."
          ;; frequently than 28, so I find a sweet point for thus.
          (setq gc-cons-threshold (* (if emtn-p 50 100) (expt 1024 2)))
          ;; FIXME: [2022-10-30 Sun 06:11:57] emacs-29.0.50's gc
-         ;; percentage is suggested to 1.0?
+         ;; percentage is suggested to 1.0 to emacs startup?
          (if emtn-p (setq gc-cons-percentage 1.0)))))
 
 (provide 'entropy-emacs-gc)
