@@ -1101,6 +1101,7 @@ version of ivy framework updating."
       (let ((default-directory entropy/emacs-ivy-counsel-git-root))
         (find-file x))))
   (advice-add 'counsel-git-action :override #'__ya/counsel-git-action)
+
 ;; **** redefine counsel-kmacro
   (defun __ya/counsel-kmacro-action-run (x)
     "Redefined to compat with eemacs.
