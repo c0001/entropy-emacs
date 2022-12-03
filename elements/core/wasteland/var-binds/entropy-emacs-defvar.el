@@ -2246,7 +2246,7 @@ its origin defination.")
               :before
               #'__eemacs-follow-read-only-suggest/before-adv))
 (defun __eemacs-follow-read-only-suggest/var-guard
-    (_vsyms nval op _wh)
+    (_vsym nval op _wh)
   (when (eq op 'set)
     (dolist (el nval)
       (advice-add el :before

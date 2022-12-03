@@ -542,7 +542,7 @@ context or messy up."
          (lambda (vsym nv op wh)
            (when (eq op 'set)
              (funcall 'entropy/emacs--make-alist-with-symbol-prop-set/core-func
-                      ,varsym nv op wh ,keysym nil ,wssym)))
+                      vsym nv op wh ,keysym nil ,wssym)))
          (format "Variable guard for high performance alist variable `%s', made
 via `entropy/emacs-make-alist-with-symbol-prop-set'." ,varsym))
        (add-variable-watcher ,varsym var-guard-func-name))))
