@@ -887,19 +887,13 @@ This is for use in `ivy-re-builders-alist'."
   ;; - use perl regex match
   (setq counsel-grep-base-command "grep -a -P -n -e %s %s")
 
-  ;; counsel-git with utf-8
-  (advice-add 'counsel-git :around
-              #'entropy/emacs-lang-use-utf-8-ces-around-advice)
-
-  (entropy/emacs-lazy-load-simple 'counsel
-    ;; enable `ivy-mode‘ firstly before enable `counsel-mode'
-    (unless (bound-and-true-p ivy-mode)
-      (ivy-mode +1))
-    (unless (bound-and-true-p counsel-mode)
-      (counsel-mode +1)))
-
 ;; *** config
   :config
+  ;; enable `ivy-mode‘ firstly before enable `counsel-mode'
+  (unless (bound-and-true-p ivy-mode)
+    (ivy-mode +1))
+  (unless (bound-and-true-p counsel-mode)
+    (counsel-mode +1))
 
 ;; **** advice counsel--M-x-externs for it's bad lagging perfomance
 
@@ -1114,6 +1108,10 @@ version of ivy framework updating."
         (find-file x))))
   (advice-add 'counsel-git-action :override #'__ya/counsel-git-action)
 
+  ;; counsel-git with utf-8
+  (advice-add 'counsel-git :around
+              #'entropy/emacs-lang-use-utf-8-ces-around-advice)
+
 ;; **** redefine counsel-kmacro
   (defun __ya/counsel-kmacro-action-run (x)
     "Redefined to compat with eemacs.
@@ -1227,10 +1225,29 @@ since `font-family-list' always return nil in TUI session."
 ;; **** all the icons ivy rich
 (use-package all-the-icons-ivy-rich
   :commands
-  (all-the-icons-ivy-rich-mode
-   all-the-icons-ivy-rich-align-icons
-   all-the-icons-ivy-rich--format-icon
-   )
+  (all-the-icons-ivy-rich-mode)
+  :eemacs-functions
+  (all-the-icons-ivy-rich-world-clock-icon
+   all-the-icons-ivy-rich-file-icon
+   all-the-icons-ivy-rich-mode-icon
+   all-the-icons-ivy-rich-buffer-icon
+   all-the-icons-ivy-rich-company-icon
+   all-the-icons-ivy-rich-git-branch-icon
+   all-the-icons-ivy-rich-package-icon
+   all-the-icons-ivy-rich-process-icon
+   all-the-icons-ivy-rich-font-icon
+   all-the-icons-ivy-rich-dir-icon
+   all-the-icons-ivy-rich-face-icon
+   all-the-icons-ivy-rich-bookmark-icon
+   all-the-icons-ivy-rich-function-icon
+   all-the-icons-ivy-rich-imenu-icon
+   all-the-icons-ivy-rich-tramp-icon
+   all-the-icons-ivy-rich-library-icon
+   all-the-icons-ivy-rich-keybinding-icon
+   all-the-icons-ivy-rich-symbol-icon
+   all-the-icons-ivy-rich-theme-icon
+   all-the-icons-ivy-rich-variable-icon
+   all-the-icons-ivy-rich--format-icon)
   :preface
 
   (defvar entropy/emacs-ivy-all-the-icon-ivy-rich-icon-funcs
@@ -1254,10 +1271,6 @@ since `font-family-list' always return nil in TUI session."
       all-the-icons-ivy-rich-symbol-icon
       all-the-icons-ivy-rich-theme-icon
       all-the-icons-ivy-rich-variable-icon))
-  (dolist (icon-func
-           entropy/emacs-ivy-all-the-icon-ivy-rich-icon-funcs)
-    (autoload icon-func "all-the-icons-ivy-rich"))
-
   (defun ya/all-the-icon-ivy-rich-common-dir-icon
       (_candi)
     (all-the-icons-ivy-rich--format-icon

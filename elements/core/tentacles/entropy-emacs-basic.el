@@ -1696,84 +1696,73 @@ TODO:
  (define-key dired-mode-map (kbd ".") nil))
 
 ;; **** Quick sort dired buffers via hydra
-  ;;; bind key: `S'
-(when (not sys/win32p)
-  (use-package dired-quick-sort
-    :if (or (executable-find "gls") (executable-find "ls"))
-    :commands (dired-quick-sort-setup)
-    :init (add-hook 'dired-mode-hook 'dired-quick-sort-setup)))
+(use-package dired-quick-sort
+  :if sys/is-posix-compatible
+  :commands (dired-quick-sort-setup)
+  :init (add-hook 'dired-mode-hook 'dired-quick-sort-setup))
 
 ;; **** Use coloful dired ls
 
 (use-package dired-rainbow
-  :eemacs-macros (dired-rainbow-define)
   :eemacs-adrequire
-   ((:enable t :adfors (dired-mode-hook) :adtype hook :pdumper-no-end t))
+  ((:enable t :adfors (dired-mode-hook) :adtype hook :pdumper-no-end t))
   :commands (dired-rainbow-define-chmod)
-  :init
-  (defvar entropy/emacs-dired-rainbow-spec
-    '(
-      (dired-rainbow-define dotfiles "gray" "\\..*")
-      (dired-rainbow-define
-       web "#4e9a06"
-       ("htm" "html" "xhtml" "xml" "xaml" "css" "js"
-        "json" "asp" "aspx" "haml" "php" "jsp" "ts"
-        "coffee" "scss" "less" "phtml"))
-      (dired-rainbow-define
-       prog "yellow3"
-       ("el" "l" "ml" "py" "rb" "pl" "pm" "c"
-        "cpp" "cxx" "c++" "h" "hpp" "hxx" "h++"
-        "m" "cs" "mk" "make" "swift" "go" "java"
-        "asm" "robot" "yml" "yaml" "rake" "lua"))
-      (dired-rainbow-define
-       sh "green yellow"
-       ("sh" "bash" "zsh" "fish" "csh" "ksh"
-        "awk" "ps1" "psm1" "psd1" "bat" "cmd"))
-      (dired-rainbow-define
-       text "yellow green"
-       ("txt" "md" "org" "ini" "conf" "rc"
-        "vim" "vimrc" "exrc"))
-      (dired-rainbow-define
-       doc "spring green"
-       ("doc" "docx" "ppt" "pptx" "xls" "xlsx"
-        "csv" "rtf" "wps" "pdf" "texi" "tex"
-        "odt" "ott" "odp" "otp" "ods" "ots"
-        "odg" "otg"))
-      (dired-rainbow-define
-       misc "gray50"
-       ("DS_Store" "projectile" "cache" "elc"
-        "dat" "meta"))
-      (dired-rainbow-define
-       media "#ce5c00"
-       ("mp3" "mp4" "MP3" "MP4" "wav" "wma"
-        "wmv" "mov" "3gp" "avi" "mpg" "mkv"
-        "flv" "ogg" "rm" "rmvb"))
-      (dired-rainbow-define
-       picture "purple3"
-       ("bmp" "jpg" "jpeg" "gif" "png" "tiff"
-        "ico" "svg" "psd" "pcd" "raw" "exif"
-        "BMP" "JPG" "PNG"))
-      (dired-rainbow-define
-       archive "saddle brown"
-       ("zip" "tar" "gz" "tgz" "7z" "rar"
-        "gzip" "xz" "001" "ace" "bz2" "lz"
-        "lzma" "bzip2" "cab" "jar" "iso"))
-      ;; boring regexp due to lack of imagination
-      (dired-rainbow-define log (:inherit default :italic t) ".*\\.log")))
   :config
-  (entropy/emacs-eval-with-lexical
-   `(progn
-      ,@entropy/emacs-dired-rainbow-spec)))
+  (progn
+    (dired-rainbow-define dotfiles "gray" "\\..*")
+    (dired-rainbow-define
+     web "#4e9a06"
+     ("htm" "html" "xhtml" "xml" "xaml" "css" "js"
+      "json" "asp" "aspx" "haml" "php" "jsp" "ts"
+      "coffee" "scss" "less" "phtml"))
+    (dired-rainbow-define
+     prog "yellow3"
+     ("el" "l" "ml" "py" "rb" "pl" "pm" "c"
+      "cpp" "cxx" "c++" "h" "hpp" "hxx" "h++"
+      "m" "cs" "mk" "make" "swift" "go" "java"
+      "asm" "robot" "yml" "yaml" "rake" "lua"))
+    (dired-rainbow-define
+     sh "green yellow"
+     ("sh" "bash" "zsh" "fish" "csh" "ksh"
+      "awk" "ps1" "psm1" "psd1" "bat" "cmd"))
+    (dired-rainbow-define
+     text "yellow green"
+     ("txt" "md" "org" "ini" "conf" "rc"
+      "vim" "vimrc" "exrc"))
+    (dired-rainbow-define
+     doc "spring green"
+     ("doc" "docx" "ppt" "pptx" "xls" "xlsx"
+      "csv" "rtf" "wps" "pdf" "texi" "tex"
+      "odt" "ott" "odp" "otp" "ods" "ots"
+      "odg" "otg"))
+    (dired-rainbow-define
+     misc "gray50"
+     ("DS_Store" "projectile" "cache" "elc"
+      "dat" "meta"))
+    (dired-rainbow-define
+     media "#ce5c00"
+     ("mp3" "mp4" "MP3" "MP4" "wav" "wma"
+      "wmv" "mov" "3gp" "avi" "mpg" "mkv"
+      "flv" "ogg" "rm" "rmvb"))
+    (dired-rainbow-define
+     picture "purple3"
+     ("bmp" "jpg" "jpeg" "gif" "png" "tiff"
+      "ico" "svg" "psd" "pcd" "raw" "exif"
+      "BMP" "JPG" "PNG"))
+    (dired-rainbow-define
+     archive "saddle brown"
+     ("zip" "tar" "gz" "tgz" "7z" "rar"
+      "gzip" "xz" "001" "ace" "bz2" "lz"
+      "lzma" "bzip2" "cab" "jar" "iso"))
+    ;; boring regexp due to lack of imagination
+    (dired-rainbow-define log (:inherit default :italic t) ".*\\.log")))
 
 (use-package diredfl
   :commands (diredfl-global-mode)
-  :init
-  (entropy/emacs-lazy-initial-advice-after
-   '(dired-mode)
-   "diredfl-init-for-dired" "diredfl-init-for-dired"
-   :prompt-type 'prompt-echo
-   :pdumper-no-end t
-   (diredfl-global-mode 1)))
+  :eemacs-adrequire
+  ((:enable t :adfors (dired-mode-hook) :adtype hook :pdumper-no-end t))
+  :config
+  (diredfl-global-mode 1))
 
 ;; **** dired-x
 (use-package dired-x
@@ -2195,8 +2184,7 @@ is the minimal nested one from PT."
     "Recenter the window after `wdired-finish-edit' since it
 always revert buffer after change dired buffer in which case the
 window point not shown in nice place e.g. at window bottom."
-    (prog1
-        (apply orig-func orig-args)
+    (prog1 (apply orig-func orig-args)
       (recenter-top-bottom '(middle))))
   (advice-add 'wdired-finish-edit
               :around
@@ -2210,12 +2198,9 @@ window point not shown in nice place e.g. at window bottom."
   :ensure nil
   :commands (image-file-name-regexp
              auto-image-file-mode)
-  :init
-
+  :config
   ;; Support webp file
-  (add-to-list 'image-file-name-extensions "webp")
-
-  )
+  (add-to-list 'image-file-name-extensions "webp"))
 
 (defun entropy/emacs-image-mode-external-view-union (image-file)
   "Use `entropy/open-with-port' to open IMAGE-FILE in external app.
@@ -2370,7 +2355,7 @@ buffer."
   )
 
 ;; **** image dired
-
+(eval-and-compile
 (defmacro entropy/emacs-basic-image-dired-use-package (&rest body)
   "The use-packag patch for `image-dired' version related patches
 ver. load.
@@ -2391,7 +2376,7 @@ mechanism."
         `(use-package
            ,@body-patch)
       `(use-package
-         ,@body))))
+         ,@body)))))
 
 ;; ***** core
 (entropy/emacs-defvar-local-with-pml
@@ -2540,7 +2525,7 @@ an error."
 
 ;; ***** image-dired-thumbnail-mode
 
-;; FIXME: Def macro must be out of the `use-package' body why?
+(eval-and-compile
 (defmacro entropy/emacs-image-dired-thumbnail-with-mapping-images
     (&rest body)
   "Do BODY at every point at an image thumbnail in
@@ -2554,7 +2539,7 @@ an error."
            (with-silent-modifications
              (when (image-dired-image-at-point-p)
                ,(entropy/emacs-macroexp-progn body)))
-           (forward-char))))))
+           (forward-char)))))))
 
 (entropy/emacs-basic-image-dired-use-package image-dired
   :ensure nil
@@ -3362,10 +3347,8 @@ displayed image as same operated mechanism as
   :config
 
   ;; Disabled '<' and '>' keybinding function.
-  (entropy/emacs-lazy-load-simple 'artist
-    (define-key artist-mode-map (kbd ">") nil)
-    (define-key artist-mode-map (kbd "<") nil))
-  )
+  (define-key artist-mode-map (kbd ">") nil)
+  (define-key artist-mode-map (kbd "<") nil))
 
 (defun entropy/emacs-basic-do-artist-temporally ()
   "Display one temp-buffer with `artist-mode' enabled."
@@ -3668,9 +3651,11 @@ buffer, in that case any conditions don't match the filter then
   (when hl-line-overlay
     (delete-overlay hl-line-overlay)
     (setq hl-line-overlay nil)))
-(advice-add 'hl-line-overlay
-            :override
-            #'__bugfix/hl-line-unhighlight/for-timer-var-clean)
+(entropy/emacs-lazy-load-simple 'hl-line
+  (when (fboundp 'hl-line-overlay)
+    (advice-add 'hl-line-overlay
+                :override
+                #'__bugfix/hl-line-unhighlight/for-timer-var-clean)))
 
 (defvar-local eemacs-hl-line-mode-enable nil)
 (defun entropy/emacs-basic--hl-line-mode-patcher-0
@@ -4821,6 +4806,13 @@ successfully both of situation of read persisit of create an new."
 ;; FIXME: shall we need to remap those for those modes who has its own
 ;; implementation.
 (global-set-key [remap backward-kill-word] #'entropy/emacs-basic-backward-kill-word)
+(dolist (cmd '(entropy/emacs-basic-backward-kill-word
+               backward-kill-paragraph
+               backward-kill-sentence
+               backward-kill-sexp
+               backward-kill-word))
+  (add-to-list 'entropy/emacs-follow-read-only-suggestion-commands
+               cmd))
 
 ;; **** Delete file to trash
 (if entropy/emacs-dired-enable-trash
@@ -4875,7 +4867,6 @@ successfully both of situation of read persisit of create an new."
         :pdumper-no-end t
         (auto-compression-mode 0)
         (auto-compression-mode 1))))
-
 
 ;; **** History && Recentf
 (use-package saveplace
@@ -4971,7 +4962,8 @@ successfully both of situation of read persisit of create an new."
   :diminish which-key-mode
   :commands which-key-mode
   :init
-  (entropy/emacs-lazy-with-load-trail 'which-key
+  (entropy/emacs-lazy-with-load-trail
+    '__eemacs/which-key-global-mode-init
     :pdumper-no-end t
     (which-key-mode t))
   (setq which-key-popup-type 'side-window
@@ -5120,6 +5112,17 @@ successfully both of situation of read persisit of create an new."
 
 (use-package help-fns
   :ensure nil
+  :commands (variable-at-point
+             describe-variable
+             describe-function
+             describe-face
+             describe-symbol
+             describe-syntax
+             describe-categories
+             describe-keymap
+             describe-mode
+             describe-widget
+             doc-file-to-man)
   :eemacs-indhc
   (((:enable
      t
