@@ -3845,7 +3845,9 @@ formatted in American style, e.g. Tuesday, November 15, 2022."
 (use-package undo-tree
   :diminish undo-tree-mode
   :ensure nil
-  :commands (global-undo-tree-mode undo-tree-visualize)
+  :commands (global-undo-tree-mode
+             undo-tree-visualize
+             entropy/emacs-basic-do-undo)
   :preface
 
   (defvar-local entropy/emacs-basic--undo-tree-stick-window-configuration nil
@@ -3889,9 +3891,43 @@ formatted in American style, e.g. Tuesday, November 15, 2022."
    ;; undo-tree can not enabled while pdumper
    :pdumper-no-end nil
    (global-undo-tree-mode t)
-   (global-set-key (kbd "C-x u") #'undo-tree-visualize))
+   (global-set-key (kbd "C-x u") #'entropy/emacs-basic-do-undo)
+   (define-key undo-tree-map (kbd "\C-x u") nil))
 
   :config
+
+  ;; EEMACS_MAINTENANCE: follow upstream updates of func
+  ;; `undo-list-transfer-to-tree' by which this func inspired
+  (defun entropy/emacs-basic--undotree-shouldnt-gc-p nil
+    (or (null buffer-undo-list)
+        (undo-list-found-canary-p buffer-undo-list)))
+
+  (defun entropy/emacs-basic-do-undo nil
+    "Do `undo' properly with eemacs spec."
+    (declare (interactive-only t))
+    (interactive)
+    (let* ((untree-ngc-p (entropy/emacs-basic--undotree-shouldnt-gc-p))
+           (use-undotree-p
+            ;; we just use `undo-tree' when there's no need to did gc
+            ;; while `undo-tree' internally hacking on. Since thus is
+            ;; so laggy.
+            (or current-prefix-arg untree-ngc-p))
+           (undo-func
+            (lambda nil
+              (entropy/emacs-message-simple-progress-message
+               "Do undo-only 1 step"
+               (call-interactively 'undo-only))))
+           (untree-func
+            (lambda nil
+              (entropy/emacs-message-simple-progress-message
+               (unless untree-ngc-p "Undo-tree garbage collecting")
+               (call-interactively 'undo-tree-visualize)))))
+      (if use-undotree-p (funcall untree-func)
+        (condition-case nil (funcall undo-func)
+          ;; in which case native `undo' can not recognize the undo
+          ;; entry `undo-tree-canary' since we enabled
+          ;; `undo-tree-mode'.
+          (error (funcall untree-func))))))
 
   (advice-add 'undo-tree-visualize
               :around
