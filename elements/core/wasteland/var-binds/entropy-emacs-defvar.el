@@ -1562,7 +1562,6 @@ keymap.")
     'eemacs-gc-res-cmd-p
   :with-single t)
 
-
 ;; ** theme refer
 
 (defvar entropy/emacs-theme-sticker nil
