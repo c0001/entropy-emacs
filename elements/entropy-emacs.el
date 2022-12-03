@@ -126,6 +126,25 @@ BODY or FORMS requested context by `,@' in `backquote' forms.
 See also `entropy/emacs-macroexp-progn'."
   (or args (list nil)))
 
+(defmacro entropy/emacs-setf-by-body (var &rest body)
+  "Run BODY and using its last form's evaluated value set to a
+generalized variable VAR i.e rely on `setf'. Return VAR's new
+value.
+
+The main exist reason for this macro is used to clear out the
+lisp coding type."
+  (declare (indent defun))
+  (when body `(setf ,var ,(entropy/emacs-macroexp-progn body))))
+
+(defmacro entropy/emacs-setf-by-func (var func &rest args)
+  "Call FUNCTION with its ARGS and set its value to variable VAR by
+`setf'. Return FUNC's evaluated value.
+
+The main exist reason for this macro is used to clear out the
+lisp coding type."
+  (declare (indent defun))
+  `(setf ,var (apply ,func ,@(entropy/emacs-macroexp-rest args))))
+
 (cl-defun entropy/emacs--get-def-body (list-var &optional with-safe)
   "Get BODY inside of plist like list LIST-VAR, commonly is the
 last `keywordp' keypair's cdr or return LIST-VAR when the car of
@@ -155,6 +174,22 @@ To get the real-body in BODY use
           (throw 'break
                  (if (not with-safe) it
                    (or it (list nil)))))))))
+
+(defun entropy/emacs-keywordp (object &optional can-be-var can-be-func)
+  "Like `keywordp' but extended with eemacs terms. Return non-nil
+for true, nil for false.
+
+Any OBJECTs can be predicated by `keywordp' is true, plus any
+symbol interned in initial `obarray' is consider true unless it's
+`boundp' or `fboundp'.
+
+Optional arguments CAN-BE-VAR and CAN-BE-FUNC, either one of them
+set non-nil orderred to say ignore `boundp' or `fboundp' check
+respectively."
+  (or (keywordp object)
+      (and (symbolp object) (intern-soft object nil)
+           (if can-be-var  t (not (boundp object)))
+           (if can-be-func t (not (fboundp object))))))
 
 (defun entropy/emacs-maybe-list (object)
   "Wrap OBJECT as a list of it only when OBJECT is not a `listp'
@@ -425,24 +460,25 @@ in baron part to simplify context distinction search")
 (defun entropy/emacs--make-alist-with-symbol-prop-set/core-func
     (vsym nv _op _wh keyname &optional init with-single)
   (let* ((inhibit-quit t) (oldval (symbol-value vsym))
-         key keysym-p single-p nsingle-p
+         alkey alkey-is-sym-p single-p nsingle-p
          decfunc)
     (entropy/emacs-setf-by-body decfunc
       (lambda (x)
-        (or (and (prog1 (entropy/emacs-setf-by-body keysym-p
-                          (symbolp (setq key (if (setq nsingle-p (consp x))
-                                                 (car x) x))))
+        (or (and (prog1 (entropy/emacs-setf-by-body alkey-is-sym-p
+                          (symbolp (setq alkey
+                                         (if (setq nsingle-p (consp x))
+                                             (car x) x))))
                    (setq single-p (not nsingle-p)))
                  with-single)
-            (and keysym-p (consp x)))))
+            (and alkey-is-sym-p nsingle-p))))
     (when (and (not init) (consp oldval))
       (dolist (el oldval)
-        (if (funcall decfunc el) (put key keyname nil))))
+        (if (funcall decfunc el) (put alkey keyname nil))))
     (setq nv (if init oldval nv))
     (when (consp nv)
       (dolist (el nv)
         (when (funcall decfunc el)
-          (put key keyname
+          (put alkey keyname
                (if (and with-single single-p) t (cdr el))))))))
 
 (cl-defmacro entropy/emacs-make-alist-with-symbol-prop-set
@@ -469,8 +505,10 @@ will invoke the rearrangements for all old and new valid keys. Thus
 the main usage of this macro is making a const or modification rarely
 alist with high performance value cat experience.
 
-KEY-SYM should be `keywordp' i.e. explicitly set as `:key' or the
-defination is failed with error.
+KEY-SYM should be `entropy/emacs-keywordp' i.e. set as `:key', `sym'
+or the defination is failed with error. And it must a purely presented
+symbol which not have any variable or function definations bounded (as
+why we restrict this since if not is so strange right?).
 
 If WITH-SINGLE is set and return non-nil, then any symbol directly
 presented in value of VAR-SYM is also used with considering to enable
@@ -487,14 +525,16 @@ context or messy up."
     `(let* ((,varsym ,var-sym) (,keysym ,key-sym)
             (,wssym ,with-single)
             (var-guard-func-name
-             (intern (format "__eemacs/%s/high-perfomance-alist/set-guard" ,varsym))))
+             (intern (format "__eemacs/%s/high-perfomance-alist/set-guard"
+                             ,varsym))))
        (unless (and (symbolp ,varsym) (special-variable-p ,varsym))
          (user-error "var-sym `%S' is not `symbolp' or `special-variable-p'"
                      ,varsym))
-       (unless (keywordp ,keysym)
+       (unless (entropy/emacs-keywordp ,keysym)
          (user-error "key-sym `%S' is not `keywordp'" ,keysym))
        ;; We should remove the old var-watcher firstly.
        (remove-variable-watcher ,varsym var-guard-func-name)
+       ;; internal usage
        (put ,varsym '__eemacs-alist-get__ ,keysym)
        (funcall 'entropy/emacs--make-alist-with-symbol-prop-set/core-func
                 ,varsym nil nil nil ,keysym 'init ,wssym)

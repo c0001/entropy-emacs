@@ -140,7 +140,8 @@
   ;; generated large heap of datas even that `ivy' already restrict
   ;; the rener part just with lenght of candis where `ivy-height'
   ;; indicated for.
-  (dolist (el '(ivy-next-line ivy-previous-line))
+  (dolist (el '((ivy-next-line nil . 0.3)
+                (ivy-previous-line nil . 0.3)))
     (add-to-list 'entropy/emacs-garbage-collect-restrict-commands
                  el))
 

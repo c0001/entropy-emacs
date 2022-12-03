@@ -52,7 +52,7 @@
       ;; traditional enlarging value, thus we attempt to use a tiny
       ;; value approaching to the default one to reduce gc time
       ;; duration. Is this theory right?
-      (* 2 (expt 1024 2))))
+      (* 10 (expt 1024 2))))
   (defvar entropy/emacs-gc-percentage-max 0.8))
 
 (defmacro entropy/emacs-gc--with-record (&rest body)
@@ -90,31 +90,52 @@ origin, since each set to the `gc-threshold' or
                       this-command ',symbol oval newval)))))))
 
 (defun entropy/emacs-gc--adjust-cons-threshold ()
-  (cond (
-         ;; -------------------- restrict status --------------------
-         ;; condition orderred by the performance sort from low to
-         ;; high for preventing the judge performance issue
-         (or
-          ;; ----------
-          ;; ;; company frontend will leak memory
-          ;; (bound-and-true-p company-candidates)
-          ;; ----------
+  (let (prop thr per)
+    (cond (
+           ;; -------------------- restrict status --------------------
+           ;; condition orderred by the performance sort from low to
+           ;; high for preventing the judge performance issue
+           (or
+            ;; ----------
+            ;; ;; company frontend will leak memory
+            ;; (bound-and-true-p company-candidates)
+            ;; ----------
 
-          ;; we hope all procedure during `eval-expression' are gc
-          ;; restricted
-          (entropy/emacs-get-symbol-prop this-command 'eemacs-gc-res-cmd-p)
-          )
-         ;; restrict the gc threshold when matching above condidtions
-         (__ya/gc-threshold_setq
-          gc-cons-threshold entropy/emacs-gc-threshold-basic)
-         (__ya/gc-threshold_setq
-          gc-cons-percentage entropy/emacs-gc-percentage-basic))
-        ;; -------------------- high performance mode --------------------
-        (t
-         (__ya/gc-threshold_setq
-          gc-cons-threshold entropy/emacs-gc-thread-max)
-         (__ya/gc-threshold_setq
-          gc-cons-percentage entropy/emacs-gc-percentage-max))))
+            ;; we hope all procedure during `eval-expression' are gc
+            ;; restricted
+            (when (entropy/emacs-setf-by-body prop
+                    (entropy/emacs-get-symbol-prop
+                     this-command
+                     'eemacs-gc-res-cmd-p))
+              (setq thr (car-safe prop) per (cdr-safe prop))
+              (when thr
+                (setq thr (cond ((functionp thr)
+                                 (ignore-errors (funcall thr)))
+                                ((symbolp thr)
+                                 (ignore-errors (symbol-value thr)))
+                                (t thr))
+                      thr (and (numberp thr) thr)))
+              (when per
+                (setq per (cond ((functionp per)
+                                 (ignore-errors (funcall per)))
+                                ((symbolp per)
+                                 (ignore-errors (symbol-value per)))
+                                (t per))
+                      per (and (numberp per) per)))
+              prop))
+           ;; restrict the gc threshold when matching above condidtions
+           (__ya/gc-threshold_setq
+            gc-cons-threshold
+            (or thr entropy/emacs-gc-threshold-basic))
+           (__ya/gc-threshold_setq
+            gc-cons-percentage
+            (or per entropy/emacs-gc-percentage-basic)))
+          ;; -------------------- high performance mode --------------------
+          (t
+           (__ya/gc-threshold_setq
+            gc-cons-threshold entropy/emacs-gc-thread-max)
+           (__ya/gc-threshold_setq
+            gc-cons-percentage entropy/emacs-gc-percentage-max)))))
 
 (defun entropy/emacs-gc--init-idle-gc (&optional sec)
   (entropy/emacs-cancel-timer-var entropy/emacs-garbage-collect-idle-timer)

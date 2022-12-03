@@ -1557,15 +1557,11 @@ with the base file name of FILE to speedup in most of cases."
 restrict their runtime `gc-cons-threshold' while invoked in any
 keymap.")
 
-(defun __eemacs-gc-res-cmds/var-guard
-    (var-sym nval op _wh)
-  (when (and nval (eq op 'set)
-             (not (equal nval (symbol-value var-sym))))
-    (dolist (sym nval)
-      (put sym 'eemacs-gc-res-cmd-p t))))
-(add-variable-watcher
- 'entropy/emacs-garbage-collect-restrict-commands
- #'__eemacs-gc-res-cmds/var-guard)
+(entropy/emacs-make-alist-with-symbol-prop-set
+    'entropy/emacs-garbage-collect-restrict-commands
+    'eemacs-gc-res-cmd-p
+  :with-single t)
+
 
 ;; ** theme refer
 

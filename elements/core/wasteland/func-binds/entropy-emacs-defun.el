@@ -597,25 +597,6 @@ lisp coding type."
   (declare (indent defun))
   `(apply ,func ,@(entropy/emacs-macroexp-rest args)))
 
-(defmacro entropy/emacs-setf-by-body (var &rest body)
-  "Run BODY and using its last form's evaluated value set to a
-generalized variable VAR i.e rely on `setf'. Return VAR's new
-value.
-
-The main exist reason for this macro is used to clear out the
-lisp coding type."
-  (declare (indent defun))
-  (when body `(setf ,var ,(entropy/emacs-macroexp-progn body))))
-
-(defmacro entropy/emacs-setf-by-func (var func &rest args)
-  "Call FUNCTION with its ARGS and set its value to variable VAR by
-`setf'. Return FUNC's evaluated value.
-
-The main exist reason for this macro is used to clear out the
-lisp coding type."
-  (declare (indent defun))
-  `(setf ,var (apply ,func ,@(entropy/emacs-macroexp-rest args))))
-
 (defsubst entropy/emacs-bound-and-true-p (var-name)
   "Like `bound-and-true-p' but as an function, so the VAR is using
 VAR-NAME i.e. a symbol."
