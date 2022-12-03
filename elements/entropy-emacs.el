@@ -132,7 +132,7 @@ generalized variable VAR i.e rely on `setf'. Return VAR's new
 value.
 
 The main exist reason for this macro is used to clear out the
-lisp coding type."
+lisp coding indentation."
   (declare (indent defun))
   (when body `(setf ,var ,(entropy/emacs-macroexp-progn body))))
 
@@ -141,7 +141,7 @@ lisp coding type."
 `setf'. Return FUNC's evaluated value.
 
 The main exist reason for this macro is used to clear out the
-lisp coding type."
+lisp coding indentation."
   (declare (indent defun))
   `(setf ,var (apply ,func ,@(entropy/emacs-macroexp-rest args))))
 
@@ -543,7 +543,7 @@ context or messy up."
            (when (eq op 'set)
              (funcall 'entropy/emacs--make-alist-with-symbol-prop-set/core-func
                       ,varsym nv op wh ,keysym nil ,wssym)))
-         (format "variable guard for high performance alist variable `%s', made
+         (format "Variable guard for high performance alist variable `%s', made
 via `entropy/emacs-make-alist-with-symbol-prop-set'." ,varsym))
        (add-variable-watcher ,varsym var-guard-func-name))))
 
