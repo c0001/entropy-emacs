@@ -10091,7 +10091,6 @@ START-FORM via the internal binding variable =$ASYNC-RESULT=.
 The process running `default-directory' is bind to
 WITH-DEFAULT-DIRECTORY-AS if set or will fallback to
 `temporary-file-directory'."
-  (entropy/emacs-require-only-once 'async)
   (entropy/emacs-env-with-pure-eemacs-env
    (or (and with-default-directory-as
             (entropy/emacs-return-as-default-directory

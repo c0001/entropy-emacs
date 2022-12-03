@@ -2212,5 +2212,48 @@ not dynamically change their regexp builder from
 
 ;; ** coding sytle
 
+;; ** operation refer
+;; *** Read only suggestion
+
+(defvar-local entropy/emacs-should-be-read-only nil
+  "Non-nil when `current-buffer' is suggested be `buffer-read-only' by
+eemcs internal scanner.
+
+When non-nil, many emacs commands (in interactive invocation only way)
+will throw an warning based `user-error' instead of running its
+original function.
+
+NOTE: This variable is set by eemacs internal facilities automatically
+in proper occasions, do not set it manually or messy up.")
+(defvar entropy/emacs-follow-read-only-suggestion-commands
+  '(self-insert-command
+    delete-backward-char
+    delete-forward-char
+    kill-line)
+  "List of command symbols for each to follow
+`entropy/emacs-should-be-read-only' suggestion where each hint (i.e
+interactive-only) of those commands will throw an warning instead of
+its origin defination.")
+(defun __eemacs-follow-read-only-suggest/before-adv (&rest _)
+  (and entropy/emacs-should-be-read-only
+       ;; only for interatively backend call
+       (called-interactively-p 'interactive)
+       (user-error
+        "[%s] Eemacs read-only suggested, do not modify this buffer!"
+        this-command)))
+(dolist (el entropy/emacs-follow-read-only-suggestion-commands)
+  (advice-add el
+              :before
+              #'__eemacs-follow-read-only-suggest/before-adv))
+(defun __eemacs-follow-read-only-suggest/var-guard
+    (_vsyms nval op _wh)
+  (when (eq op 'set)
+    (dolist (el nval)
+      (advice-add el :before
+                  #'__eemacs-follow-read-only-suggest/before-adv))))
+(add-variable-watcher
+ 'entropy/emacs-follow-read-only-suggestion-commands
+ #'__eemacs-follow-read-only-suggest/var-guard)
+
 ;; * provide
 (provide 'entropy-emacs-defvar)

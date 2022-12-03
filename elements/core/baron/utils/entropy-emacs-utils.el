@@ -64,6 +64,29 @@
 (use-package advice-patch
   :eemacs-functions (advice--patch advice-patch))
 
+;; ** async
+
+(use-package async
+  :eemacs-functions (async-start)
+  :commands (async-byte-compile-file
+             async-bytecomp-package-mode
+             async-shell-command)
+  :config
+  (defun __ya/async-start-process/suggest-read-only-for-proc-buffer
+      (orig-func &rest orig-args)
+    (let ((rtn (apply orig-func orig-args)))
+      (when-let* ((proc rtn)
+                  ((and (processp proc) (process-live-p proc)))
+                  (proc-buff (process-buffer proc))
+                  ((and (bufferp proc-buff) (buffer-live-p proc-buff))))
+        (with-current-buffer proc-buff
+          (setq entropy/emacs-should-be-read-only t)))
+      ;; orig return
+      rtn))
+  (advice-add 'async-start-process
+              :around
+              #'__ya/async-start-process/suggest-read-only-for-proc-buffer))
+
 ;; ** memoize
 (use-package memoize
   :commands
