@@ -86,7 +86,7 @@ origin, since each set to the `gc-threshold' or
        (let ((oval ,symbol))
          (entropy/emacs-message-simple-progress-message
           (unless garbage-collection-messages
-            "Reset garbage collection facilities")
+            (format "Automatically adjust `%s'" ',symbol))
           (prog1 (setq ,symbol newval)
             (when garbage-collection-messages
               (message "[%s] `%s' change from %s to %s"
