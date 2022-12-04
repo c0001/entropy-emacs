@@ -403,6 +403,7 @@ thus is void, the bind's value is nil. Return BODY's value.
 available.
 
 (see `entropy/emacs-inner-sym-for/current-defname')"
+  (unless args (setq args (list nil)))
   `(entropy/emacs-!with-cdefn
      :with-it-as cur-defn
      (if (not cur-defn) (apply 'message ,format-string ,@args)
@@ -414,6 +415,7 @@ available.
 available.
 
 (see `entropy/emacs-inner-sym-for/current-defname')"
+  (unless args (setq args (list nil)))
   `(entropy/emacs-!with-cdefn
      :with-it-as cur-defn
      (if (not cur-defn) (apply 'error ,string ,@args)
@@ -425,6 +427,7 @@ available.
 when available.
 
 (see `entropy/emacs-inner-sym-for/current-defname')"
+  (unless args (setq args (list nil)))
   `(entropy/emacs-!with-cdefn
      :with-it-as cur-defn
      (if (not cur-defn) (apply 'user-error ,string ,@args)

@@ -1208,7 +1208,24 @@ since `font-family-list' always return nil in TUI session."
   ;; misty keys touched for `avy-goto-char' which not explicit show to
   ;; user but useful for preventing unmentionable hints
   (dolist (misty-key '("C-s-r" "C-s-t" "C-s-e"))
-    (global-set-key (kbd misty-key) #'avy-goto-char)))
+    (global-set-key (kbd misty-key) #'avy-goto-char))
+
+  ;; FIXME: if invoke `avy-isearch' not in activated `isearch-mode'
+  ;; then will let emacs hang on with memory increased crazily in some
+  ;; occasions or be inner error since `avy-isearch' is just desinged
+  ;; for using in that case, thus shall we need to put a issue for
+  ;; upstream?
+  (entropy/emacs-!cl-defun __ya/avy-isearch/judge-isearch-enabled
+      (orig-func &rest orig-args)
+    (if (bound-and-true-p isearch-mode)
+        (apply orig-func orig-args)
+      (entropy/emacs-!user-error
+       "You are not in isearch-mode")))
+  (advice-add 'avy-isearch
+              :around
+              #'__ya/avy-isearch/judge-isearch-enabled)
+
+  )
 
 ;; ** Ivy UI Enhancement
 ;; *** all the icons ivy
