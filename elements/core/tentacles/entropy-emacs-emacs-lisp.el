@@ -373,7 +373,10 @@ byte-code."
                 (save-excursion
                   (goto-char (car reg))
                   (looking-at-p
-                   (rx (seq "(" (or "defun" "cl-defun"))))))
+                   (rx (seq "(" (or "defun" "cl-defun"
+                                    "entropy/emacs-!cl-defun"
+                                    "entropy/emacs-defalias"
+                                    "entropy/emacs-!defalias"))))))
             'nomove)))
       (unless region (error "No paired syntax list group found at point"))
       (entropy/emacs-lisp--elisp-inct-eval-safaty-wrap
