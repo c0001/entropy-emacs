@@ -216,10 +216,11 @@ or manually do 'C-x C-c' immediately.")))
                 (string-match-p "^entropy-" f-str)
               t)
         (entropy/emacs-message-do-message
-         "(%s) %s %s"
+         "(%s) %s %s (from: \"%s\")"
          (blue "require")
          (green "Loading:")
-         (yellow f-str))))))
+         (yellow f-str)
+         load-file-name)))))
 
 (defun entropy/emacs-start--advice-for-require-prompt
     (orig-func &rest orig-args)

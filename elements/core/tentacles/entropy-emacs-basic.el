@@ -3737,7 +3737,8 @@ NOTE: this is a advice wrapper for any function."
       (unless (bound-and-true-p pixel-scroll-precision-mode)
         (pixel-scroll-precision-mode 1)))))
 
-(if (not (daemonp)) (entropy/emacs-basic--smooth-scroll-basic-set)
+(if (not (daemonp)) (add-hook 'entropy/emacs-after-startup-idle-hook
+                              #'entropy/emacs-basic--smooth-scroll-basic-set)
   (entropy/emacs-with-daemon-make-frame-done 'eemacs-basic-smooth-scroll-set
     (&rest _) (entropy/emacs-basic--smooth-scroll-basic-set)))
 
