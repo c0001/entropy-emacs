@@ -11603,6 +11603,22 @@ corresponding stuffs."
               cur-bgc
               1.5)
            "#2f2f4f4f4f4f")))))
+
+  ;; -------------------- Fix some packages' neglects
+  ;;
+  ;; For `company-box--update-scrollbar' which directly uses manually
+  ;; `face' spec for `propertize' to render the scroll bar where will
+  ;; make warning of "invalid face attribute :background nil" for some
+  ;; theme do not specified the background of
+  ;; `company-tooltip-selection' which face `company-box-scrollbar'
+  ;; inherits from.
+  (when (facep 'company-box-scrollbar)
+    (unless (face-background 'company-box-scrollbar nil t)
+      (let ((clr (if (eq (frame-parameter frame 'background-mode) 'dark)
+                     "yellow" "red")))
+        (entropy/emacs-set-face-attribute
+         'company-box-scrollbar frame
+         :background clr))))
   )
 
 (defun entropy/emacs-theme-load-modeline-specifix (&optional arg)
