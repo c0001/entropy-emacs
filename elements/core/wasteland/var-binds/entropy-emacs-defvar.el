@@ -1537,6 +1537,10 @@ with the base file name of FILE to speedup in most of cases."
 
 ;; ** garbage collection refer
 
+(defvar entroy/emacs-inhibit-automatic-gc-adjust nil
+  "Non-nil indicate eemacs automatically gc adjusting should
+be under suppressed.")
+
 (defvar entropy/emacs-gc-threshold-basic (* 1 1024 1024)
   "The basic thredshold for the growth for `gc-cons-threshold'")
 
@@ -1550,7 +1554,9 @@ with the base file name of FILE to speedup in most of cases."
   '(eval-last-sexp
     eval-region
     eval-defun
-    eval-expression
+    ;; NOTE: we do not restrict `eval-expression' since it's just a
+    ;; interface entry, but for its final evalulation trigger:
+    read--expression-try-read
     eval-print-last-sexp
     eval-buffer)
   "List of commands (i.e. interactive functions) that need to

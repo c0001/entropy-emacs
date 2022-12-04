@@ -94,7 +94,8 @@ origin, since each set to the `gc-threshold' or
 
 (defun entropy/emacs-gc--adjust-cons-threshold ()
   (let (prop thr per)
-    (cond (
+    (cond (entroy/emacs-inhibit-automatic-gc-adjust nil)
+          (
            ;; -------------------- restrict status --------------------
            ;; condition orderred by the performance sort from low to
            ;; high for preventing the judge performance issue

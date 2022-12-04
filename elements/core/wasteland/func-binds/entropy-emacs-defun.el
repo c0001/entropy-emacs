@@ -10386,17 +10386,26 @@ operation or nil indicate no idle exists for."
 ;; *** Individuals
 
 (cl-defmacro entropy/emacs-general-run-with-gc-strict
-    (&rest body &key (when-use-gc-restrict t) &allow-other-keys)
-  "Run BODY with restricted `gc-cons-threshold'.
+    (&rest body
+           &key (when-use-gc-restrict t)
+           with-gc-adjust-msg
+           &allow-other-keys)
+  "Run BODY with restricted `gc-cons-threshold' and return its value.
 
 If WHEN-USE-GC-RESTRICT set and return nil, then run BODY
-directly. Defautlts to non-nil."
+directly. Defautlts to non-nil.
+
+If WITH-GC-ADJUST-MSG set and return non-nil, then run BODY with an gc
+restriction prompting progress message."
   (setq body (entropy/emacs-defun--get-real-body body))
   (when body
     `(if-let* ((,when-use-gc-restrict))
          (let ((gc-cons-threshold entropy/emacs-gc-threshold-basic)
                (gc-cons-percentage entropy/emacs-gc-percentage-basic))
-           (progn ,@body))
+           (entropy/emacs-message-simple-progress-message
+            (if ,with-gc-adjust-msg "with gc restrict")
+            :with-temp-message t
+            ,@body))
        ,@body)))
 
 (cl-defmacro entropy/emacs-general-run-with-protect-and-gc-strict

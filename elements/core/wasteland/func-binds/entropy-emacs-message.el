@@ -547,12 +547,17 @@ displayed via `entropy/emacs-message--do-message-popup'."
         (message-sym (make-symbol "message"))
         (progress-reporter-sym (make-symbol "progress-reporter"))
         (curmsg-sym (make-symbol "curmsg"))
+        (new-curmsg-sym (make-symbol "new-curmsg"))
+        (progmsg-sym (make-symbol "progmsg"))
+        (new-curmsg-np-sym (make-symbol "new-curmsg-np"))
         (ignmsgs-sym (make-symbol "ignmsgs"))
         (msg-max-ov-sym (make-symbol "origin-message-log-max-value"))
         (use-popup-p-sym (make-symbol "with-popup-p"))
         (msg-color-args-sym (make-symbol "message-color-args")))
     `(let* ((,with-tmpmsg-sym ,with-temp-message)
             (,curmsg-sym (current-message))
+            (,new-curmsg-sym ,curmsg-sym)
+            (,new-curmsg-np-sym t)
             (,ignmsgs-sym ,ignore-current-messages)
             (,message-sym ,message)
             (,use-popup-p-sym ,with-either-popup)
@@ -565,9 +570,11 @@ displayed via `entropy/emacs-message--do-message-popup'."
             (,msg-max-ov-sym message-log-max)
             (message-log-max
              (if ,with-tmpmsg-sym nil ,msg-max-ov-sym))
+            (,progmsg-sym nil)
             (,progress-reporter-sym
              (when ,message-sym
-               (make-progress-reporter (format "%s ... " ,message-sym)))))
+               (prog1 (make-progress-reporter (format "%s ... " ,message-sym))
+                 (setq ,progmsg-sym (current-message))))))
        (when (and ,message-sym ,use-popup-p-sym
                   entropy/emacs-startup-with-Debug-p
                   (not entropy/emacs-startup-done))
@@ -575,15 +582,26 @@ displayed via `entropy/emacs-message--do-message-popup'."
           (format "%s ..." ,message-sym)
           :without-log-message-before-eemacs-init-done t))
        (prog1 (let ((message-log-max ,msg-max-ov-sym))
-                ,(entropy/emacs-macroexp-progn body))
-         (when ,progress-reporter-sym
+                (prog1 ,(entropy/emacs-macroexp-progn body)
+                  (setq ,new-curmsg-sym (current-message)
+                        ,new-curmsg-np-sym
+                        (or (equal ,new-curmsg-sym ,curmsg-sym)
+                            (and ,progress-reporter-sym
+                                 ;; FIXME: how we prevent body
+                                 ;; yielding same message as current
+                                 ;; progress start message?
+                                 (equal ,new-curmsg-sym ,progmsg-sym))))))
+         ;; NOTE: we just update the reporter when body doesn't yield
+         ;; any messages, if not, we should respect the BODY's
+         ;; behaviour.
+         (when (and ,progress-reporter-sym ,new-curmsg-np-sym)
            (progress-reporter-done ,progress-reporter-sym))
          (when (and ,message-sym ,curmsg-sym)
            (let (
                  ;; we has no reason to log the old msg again since we
                  ;; just need to let be shown in echo area.
                  (message-log-max nil))
-             (when (and ,with-tmpmsg-sym
+             (when (and ,with-tmpmsg-sym ,new-curmsg-np-sym
                         (if (functionp ,ignmsgs-sym)
                             (not (funcall ,ignmsgs-sym ,curmsg-sym))
                           (not (member ,curmsg-sym ,ignmsgs-sym))))

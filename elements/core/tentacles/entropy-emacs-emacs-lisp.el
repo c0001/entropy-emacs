@@ -192,7 +192,10 @@ byte-code into a popup buffer.
            (when (or ,(if (null body) t) ,without-confirm
                      (yes-or-no-p (format "Really eval %s" ',type)))
              ,(if body
-                  `(setq ,rtn-sym (entropy/emacs-general-run-with-gc-strict ,@body)))
+                  `(setq ,rtn-sym
+                         (entropy/emacs-general-run-with-gc-strict
+                          :with-gc-adjust-msg t
+                          ,@body)))
              (let ((eval-form nil) (orig-buff (current-buffer))
                    msg-core-get-func)
                (when ,bytecmp-type-sym
