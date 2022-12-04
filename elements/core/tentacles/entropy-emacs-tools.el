@@ -1285,11 +1285,6 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
                 :around
                 #'entropy/emacs-tools--before-advice-for-code2org)))
 
-
-;; ****  require by el2org for generate source to readme which be with the github style md file
-(use-package ox-gfm)
-
-
 ;; *** bell ring refer
 (setq ring-bell-function 'ignore)
 

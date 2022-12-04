@@ -720,6 +720,14 @@ unwanted space when exporting org-mode to html."
 ;; ***** ___end___
   )
 
+;; **** ox-gfm
+(use-package ox-gfm
+  :after ox
+  :init
+  ;; adding the backends to the general variable
+  (add-to-list 'entropy/emacs-org-export-backends
+               'ox-gfm))
+
 ;; **** ox-reveal
 (use-package ox-reveal
   :after ox
