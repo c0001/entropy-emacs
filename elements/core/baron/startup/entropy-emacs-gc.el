@@ -84,10 +84,13 @@ origin, since each set to the `gc-threshold' or
   `(let ((newval ,value))
      (unless (= ,symbol newval)
        (let ((oval ,symbol))
-         (prog1 (setq ,symbol newval)
-           (when garbage-collection-messages
-             (message "[%s] `%s' change from %s to %s"
-                      this-command ',symbol oval newval)))))))
+         (entropy/emacs-message-simple-progress-message
+          (unless garbage-collection-messages
+            "Reset garbage collection facilities")
+          (prog1 (setq ,symbol newval)
+            (when garbage-collection-messages
+              (message "[%s] `%s' change from %s to %s"
+                       this-command ',symbol oval newval))))))))
 
 (defun entropy/emacs-gc--adjust-cons-threshold ()
   (let (prop thr per)
