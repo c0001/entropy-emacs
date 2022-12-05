@@ -181,7 +181,7 @@ files destroying."
 
 ;; **** Pop up last commit information of current line
 
-(eval-when-compile
+(eval-and-compile
   (defmacro entropy/emacs-vcs--git-messenger:popup-message/unwind-protect
       (&rest body)
     "The input waiting protect for
@@ -576,6 +576,7 @@ for 'git' type and fallback to it while other types."
              (git-messenger-hydra/body)
              (posframe-show msg-buffer-name
                             :string popuped-message
+                            :font (frame-parameter nil 'font)
                             :left-fringe 8
                             :right-fringe 8
                             :internal-border-color (face-foreground 'default)
