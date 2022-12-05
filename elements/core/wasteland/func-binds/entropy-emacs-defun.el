@@ -9196,14 +9196,19 @@ i.e. membered in `custom-enabled-themes'."
 (defun entropy/emacs-theme-adapted-to-solaire-p (&optional theme)
   "Judge whether current theme loaded adapted to `entropy/emacs-solaire-mode',
 return t otherwise for nil. "
-  (let ((theme_cur (if theme
-                       (symbol-name theme)
-                     (ignore-errors
-                       (symbol-name entropy/emacs-theme-sticker)))))
+  (when-let*
+      ((
+        ;; inhibit for tui session with non-bg ordered by user since
+        ;; in which case the solair mode spec is useless and messy in
+        ;; visual.
+        (not (entropy/emacs-theme-inhibit-bg-of-default-face-for-tui)))
+       (theme_cur (if theme (symbol-name theme)
+                    (ignore-errors
+                      (symbol-name entropy/emacs-theme-sticker)))))
     ;; Condition judge for unconditional occurrence for theme loading,
     ;; seem as in pdumper session.
     (if (and (stringp theme_cur)
-             (not (eql 0 (length theme_cur))))
+             (not (string-empty-p theme_cur)))
         (catch :exit
           (dolist (regex entropy/emacs-solaire-themes-regex-list)
             (when (ignore-errors (string-match-p regex theme_cur))
@@ -11552,8 +11557,7 @@ corresponding stuffs."
   ;; do not use internal fixed-pitch font spec since its visual messy
   (entropy/emacs--set-fixed-pitch-serif-face-to-monospace)
   ;; `default' face TUI inhibition
-  (when (and entropy/emacs-theme-inhibit-bg-of-default-face-for-tui
-             (not (display-graphic-p)))
+  (when (entropy/emacs-theme-inhibit-bg-of-default-face-for-tui)
     (entropy/emacs-set-face-attribute
      'default frame :background "unspecified-bg")
     (when (facep 'solaire-default-face)
@@ -11594,7 +11598,9 @@ corresponding stuffs."
 
   ;; --- company tooltip selection highlight
   ;; more visible for `company-tooltip-selection'
-  (when (member theme-name-str '("doom-1337" "doom-Iosvkem"))
+  (when (and
+         (not (entropy/emacs-theme-inhibit-bg-of-default-face-for-tui))
+         (member theme-name-str '("doom-1337" "doom-Iosvkem")))
     (entropy/emacs-eval-after-load-only-once 'company
       (entropy/emacs-set-face-attribute
        'company-tooltip-selection

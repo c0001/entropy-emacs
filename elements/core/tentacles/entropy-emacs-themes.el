@@ -189,7 +189,7 @@ Used to camoflauge the leading asterixes in `org-mode' when
     (mode-line                  . solaire-mode-line-face)
     (mode-line-inactive         . solaire-mode-line-inactive-face)
     (highlight-indentation-face . solaire-hl-line-face)
-    ,@(unless (version<= emacs-version "26")
+    ,@(unless (<= emacs-major-version 26)
         '((fringe               . solaire-fringe-face))))
   "An alist of faces to remap when enabling `entropy/emacs-solaire-mode'."
   :group 'solaire-mode
@@ -252,8 +252,9 @@ instead and see it for details."
 `entropy/emacs-solaire-global-mode'."
   (let (rtn
         (reverse-p (entropy/emacs-solaire-mode-current-theme-need-reverse-p))
-        (stick-filters (and (not (entropy/emacs-solaire-mode-judge-special-buffer-p))
-                            (not entropy/emacs-solaire-mode))))
+        (stick-filters (and (not (bound-and-true-p entropy/emacs-solaire-mode))
+                            (not (entropy/emacs-solaire-mode-judge-special-buffer-p)
+                                 ))))
     (setq
      rtn
      (and stick-filters
@@ -276,8 +277,7 @@ instead and see it for details."
           ((and reverse-p
                 rtn)
            (setq rtn nil)))
-    (when rtn
-      (entropy/emacs-solaire-mode +1))))
+    (and rtn (entropy/emacs-solaire-mode +1))))
 
 (define-globalized-minor-mode
   entropy/emacs-solaire-global-mode

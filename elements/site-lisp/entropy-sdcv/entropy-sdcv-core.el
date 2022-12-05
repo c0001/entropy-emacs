@@ -577,6 +577,10 @@ return a valid face or nil. Use `tooltip' face defautly if above
 filte return nil."
   (let ((solaire-p
          (and
+          ;; NOTE: respect eemacs tui spec
+          (if (fboundp 'entropy/emacs-theme-inhibit-bg-of-default-face-for-tui)
+              (not (entropy/emacs-theme-inhibit-bg-of-default-face-for-tui))
+            t)
           (or (bound-and-true-p entropy/emacs-solaire-mode)
               (bound-and-true-p solaire-mode))
           (facep 'solaire-tooltip-face))))
@@ -596,8 +600,7 @@ filte return nil."
           (if (eq show-method 'pos-tip)
               'default
             'solaire-tooltip-face))
-         (t
-          'tooltip)))))
+         (t 'tooltip)))))
 
 ;;;;; query with backend
 

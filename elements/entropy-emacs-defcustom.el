@@ -274,9 +274,20 @@ This customization is useful for those TUI emaser to obey its terminal
 backgrond color with emacs, particularly for a opacity terminal env
 where emacs will always make its frame without transparent visual obey
 the terminal has since each face has a color to cover in. Thus,
-disable `default' face's background may enough in there cases."
+disable `default' face's background may enough in there cases.
+
+For predication usage, use function
+`entropy/emacs-theme-inhibit-bg-of-default-face-for-tui' to
+predicate the result."
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-ui-theme)
+
+(defun entropy/emacs-theme-inhibit-bg-of-default-face-for-tui nil
+  "Predicate for
+`entropy/emacs-theme-inhibit-bg-of-default-face-for-tui' which
+restrict the return non-nil capable just in tui session."
+  (and (not (display-graphic-p))
+       entropy/emacs-theme-inhibit-bg-of-default-face-for-tui))
 
 ;; **** Modeline
 (defgroup entropy/emacs-customize-group-for-modeline nil
