@@ -3519,27 +3519,46 @@ specified."
   :defines (display-line-numbers-mode))
 
 ;; ****** Global display line number mode
+
+(defvar entropy/emacs-basic--dspln-mode-manually-p nil)
 (defun entropy/emacs-basic--dspln-mode-around-advice
     (orig-func &rest orig-args)
   "Filters for `display-line-numbers-mode' to press it for some
 occasions. "
-  (unless (or (memq   major-mode
-                      '(vterm-mode
-                        shell-mode
-                        eshell-mode
-                        term-mode
-                        treemacs-mode
-                        neotree-mode
-                        dashboard-mode
-                        dired-mode
-                        eww-mode
-                        w3m-mode))
-              (bound-and-true-p entropy/emacs-ui-init-welcom-mode)
-              ;; we should always restirct
-              ;; `global-display-line-numbers-mode' in `prog-mode' or
-              ;; its derived modes.
-              (and (bound-and-true-p global-display-line-numbers-mode)
-                   (not (derived-mode-p 'prog-mode))))
+  (when
+      (or
+       ;; if context query for disabling `display-line-numbers-mode'
+       ;; we should run, since that doesn't have any side-effects on.
+       (and (bound-and-true-p display-line-numbers-mode)
+            (let ((arg (car orig-args)))
+              (or (eq arg 'toggle)
+                  (and (numberp arg)
+                       (< arg 0)))))
+       ;; TODO: the restrictions/filters what we should never let it
+       ;; enabled.
+       (and
+        ;; special buffer detected
+        (not (bound-and-true-p entropy/emacs-ui-init-welcom-mode))
+        ;; such `major-mode's should not be display lnm even if
+        ;; user orderred for, since the messy is at front if not.
+        (not (memq major-mode
+                   '(vterm-mode
+                     shell-mode
+                     eshell-mode
+                     term-mode
+                     treemacs-mode
+                     neotree-mode
+                     dashboard-mode
+                     dired-mode
+                     eww-mode
+                     w3m-mode)))
+        ;; commonly we should consider it's `prog-mode' required
+        ;; only.
+        (or (derived-mode-p 'prog-mode)
+            ;; but if user specified forcely enabling, then we
+            ;; should respect for.
+            entropy/emacs-basic--dspln-mode-manually-p
+            (eq this-command 'display-line-numbers-mode))))
     (apply orig-func orig-args)))
 
 (advice-add 'display-line-numbers-mode
@@ -3637,11 +3656,13 @@ buffer, in that case any conditions don't match the filter then
     (cl-case (entropy/emacs-basic--dhl-judge-state)
       (1
        (hl-line-mode 1)
-       (display-line-numbers-mode 1))
+       (let ((entropy/emacs-basic--dspln-mode-manually-p t))
+         (display-line-numbers-mode 1)))
       (2
        (hl-line-mode 1))
       (3
-       (display-line-numbers-mode 1))
+       (let ((entropy/emacs-basic--dspln-mode-manually-p t))
+         (display-line-numbers-mode 1)))
       (4
        (hl-line-mode 0)
        (display-line-numbers-mode 0)))))
