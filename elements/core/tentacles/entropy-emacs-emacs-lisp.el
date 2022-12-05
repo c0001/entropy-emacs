@@ -406,14 +406,6 @@ interaction) then normally wrapped to top-level form."
 
   (define-key emacs-lisp-mode-map (kbd "C-x n d")
     #'entropy/emacs-lisp-elisp-narrow-to-defun)
-
-  (dolist (cmd '(entropy/emacs-lisp-elisp-eval-buffer
-                 entropy/emacs-lisp-elisp-eval-defun
-                 entropy/emacs-lisp-elisp-eval-last-sexp
-                 entropy/emacs-lisp-elisp-eval-region
-                 entropy/emacs-lisp-elisp-byte-compile-defun-form))
-    (add-to-list 'entropy/emacs-garbage-collect-restrict-commands
-                 cmd))
   )
 
 (use-package eldoc-eval
