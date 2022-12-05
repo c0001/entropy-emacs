@@ -370,7 +370,10 @@ building procedure while invoking INSTALL-COMMANDS."
    (blue "Checking extensions satisfied status ...")
    :force-message-while-eemacs-init t)
   (!eemacs-require 'entropy-emacs-package-requirements)
-  (let ((package-check-signature nil)
+  (let ((package-check-signature
+         ;; FIXME: shall we need to enable signature check for
+         ;; non-eemacs-ext built packages and how?
+         nil)
         (pkg-pre nil)
         pkg-for
         (count 1))
