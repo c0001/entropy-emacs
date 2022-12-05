@@ -36,7 +36,7 @@
 (defvar entropy-emacs-packages nil)
 
 (defun __entropy/emacs-requirements/pkgs_desc_get_statble (pkg-name)
-  (let ((pkg_descs (alist-get pkg-name package-archive-contents)))
+  (let ((pkg_descs (copy-sequence (alist-get pkg-name package-archive-contents))))
     (car (sort pkg_descs
                (lambda (x y)
                  (let ((x-v (package-desc-version x))

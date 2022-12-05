@@ -186,26 +186,27 @@ and the return is the rechecking result like above."
           (t
            rtn))))
 
-(defun entropy/emacs-package-pkg-installed-p (pkg)
-  "Like `package-installed-p' but when PKG is `package-desc' and
-`package-installed-p' return nil, we check PKG's `package-desc-name'
-in `package-alist' if existed (i.e. the installed package with same
-name as PKG has), and compre PKG's version with that version, return
-non-nil when that version was equal or larger than PKG's
-`package-desc-version'. Otherwise return nil."
-  (or (package-installed-p pkg)
-      (and (package-desc-p pkg)
-           (when-let
-               ((pkg-cur-desc
-                 (and (package-desc-p pkg)
-                      (car (alist-get
-                            (package-desc-name pkg)
-                            package-alist)))))
-             (when (entropy/emacs-version-compare
-                    '<=
-                    (package-desc-version pkg)
-                    (package-desc-version pkg-cur-desc))
-               t)))))
+(defun entropy/emacs-package-pkg-installed-p (pkg &optional no-multi)
+  "Like `package-installed-p' but when PKG is `package-desc',
+require its version as the MIN-VERSION for `package-installed-p'.
+
+By default, if multi version of PKG are installed, return non-nil
+whatever one of their version less or equal than PKG's
+version. Unless NO-MULTI is non-nil, in which case only the
+minimal version is checked for judgement."
+  (let* ((descp (package-desc-p pkg))
+         (pkg-name (if descp (package-desc-name pkg) pkg))
+         (pkg-ver (and descp (package-desc-version pkg))))
+    (or
+     ;; EEMACS_MAINTENANCE: ensure that `package-installed-p' is still
+     ;; just check the minimal version as its "installed-p" judgement
+     ;; since for now [2022-12-06 Tue 00:06:30] (emacs-29).
+     (package-installed-p pkg-name pkg-ver)
+     (and pkg-ver (not no-multi)
+          (catch :exit
+            (dolist (dc (alist-get pkg-name package-alist))
+              (and (version-list-<= pkg-ver (package-desc-version dc))
+                   (throw :exit t))))))))
 
 (defun entropy/emacs-package-install-package (update print-prefix &rest args)
   "Install/update package by apply ARGS to `package-install'.
@@ -371,19 +372,19 @@ building procedure while invoking INSTALL-COMMANDS."
   (!eemacs-require 'entropy-emacs-package-requirements)
   (let ((package-check-signature nil)
         (pkg-pre nil)
+        pkg-for
         (count 1))
     ;; calulate packages need to be installing
     (dolist (pkgreqptr entropy-emacs-packages)
       (unless (or (null pkgreqptr)
                   (entropy/emacs-package-pkg-installed-p
-                   (or
-                    (entropy/emacs-pkgreq-get-pkgreqptr-pkg-slot
-                     pkgreqptr :pkg-desc)
-                    (entropy/emacs-pkgreq-get-pkgreqptr-pkg-slot
-                     pkgreqptr :name))))
-        (push (or (entropy/emacs-pkgreq-get-pkgreqptr-pkg-slot pkgreqptr :pkg-desc)
-                  (entropy/emacs-pkgreq-get-pkgreqptr-pkg-slot pkgreqptr :name))
-              pkg-pre)))
+                   (entropy/emacs-setf-by-body pkg-for
+                     (or
+                      (entropy/emacs-pkgreq-get-pkgreqptr-pkg-slot
+                       pkgreqptr :pkg-desc)
+                      (entropy/emacs-pkgreq-get-pkgreqptr-pkg-slot
+                       pkgreqptr :name)))))
+        (push pkg-for pkg-pre)))
     ;; do installing
     (dolist (pkg pkg-pre)
       (ignore-errors
