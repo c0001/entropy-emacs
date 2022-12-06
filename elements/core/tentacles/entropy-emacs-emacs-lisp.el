@@ -316,7 +316,10 @@ for function '%s', eval and compile its defination instead?"
                              (if (stringp el) (insert el) (prin1 el buff))
                              (insert "\n\n")))
                           (t (error "eemacs byte compile form internal error")))
-                        (toggle-truncate-lines -1)
+                        (let ((inhibit-message t))
+                          ;; remove truncate echo message since we
+                          ;; want see the original byte-comp message
+                          (toggle-truncate-lines -1))
                         (entropy/emacs-local-set-key (kbd "q") #'kill-buffer-and-window)
                         (goto-char (point-min))))))))
              ;; return
