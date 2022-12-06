@@ -2772,24 +2772,16 @@ be `eq' even has same structure but we consider that is same.
 
 (fn SEQ-TO-SORT SEQ-BASE &optional WITH-SIDE-EFFECTS [KEYWORD VALUE]...)"
   (if (not (and seq-to-sort seq-base)) seq-to-sort
-    (let* ((type
-            (cond ((listp seq-to-sort) 'list)
-                  ((sequencep seq-to-sort) 'seq)
-                  (t
-                   (signal 'wrong-type-argument
-                           (list 'sequencep seq-to-sort)))))
-           (_ (unless (sequencep seq-base)
-                (signal 'wrong-type-argument
-                        (list 'sequencep seq-base))))
-           (rtn (if with-side-effects seq-to-sort
-                  (copy-sequence seq-to-sort)))
+    (unless (sequencep seq-to-sort)
+      (signal 'wrong-type-argument (list 'sequencep seq-to-sort)))
+    (unless (sequencep seq-base)
+      (signal 'wrong-type-argument (list 'sequencep seq-base)))
+    (let* ((rtn (if with-side-effects seq-to-sort (copy-sequence seq-to-sort)))
            (default-keys (list :test #'equal))
            (base-pos-get-func
             (lambda (x)
-              (apply 'cl-position x seq-base
-                     (or cl-keys default-keys))))
-           (cnt 0)
-           indx-list bndx-list)
+              (apply 'cl-position x seq-base (or cl-keys default-keys))))
+           (cnt 0) indx-list bndx-list)
       (catch :exit
         (cl-mapc
          (lambda (x)
@@ -2805,12 +2797,8 @@ be `eq' even has same structure but we consider that is same.
         (let (opos item)
           (setq cnt 0) (setq indx-list (nreverse indx-list))
           (dolist (el bndx-list)
-            (setq opos (cadr (nth cnt indx-list))
-                  item (car el))
-            (pcase type
-              ('list (entropy/emacs-list-setf-nth
-                      opos item rtn :with-error t))
-              ('seq (aset rtn opos item)))
+            (setq opos (cadr (nth cnt indx-list)) item (car el))
+            (setf (seq-elt rtn opos) item)
             (cl-incf cnt)))
         ;; return
         rtn))))
