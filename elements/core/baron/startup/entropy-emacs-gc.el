@@ -108,10 +108,11 @@ origin, since each set to the `gc-threshold' or
 
             ;; we hope all procedure during `eval-expression' are gc
             ;; restricted
-            (when (entropy/emacs-setf-by-body prop
-                    (entropy/emacs-get-symbol-prop
-                     this-command
-                     'eemacs-gc-res-cmd-p))
+            (when (and (entropy/emacs-setf-by-body prop
+                         (entropy/emacs-get-symbol-prop
+                          this-command 'eemacs-gc-res-cmd-p))
+                       (entropy/emacs-current-commands-continuous-p
+                        'eemacs-gc-res-cmd-p 8 1 'as-prop))
               (setq thr (car-safe prop) per (cdr-safe prop))
               (when thr
                 (setq thr (cond ((functionp thr)
