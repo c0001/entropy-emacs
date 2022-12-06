@@ -1744,7 +1744,7 @@ automatically followed by `entropy/emacs-font-setting-enable'.")
   (or entropy/emacs-fontsets-used-cjk-sc-font
       entropy/emacs-fontsets-used-cjk-tc-font)
   "The font for chinese lang-script in eemacs context, set
-atutomatically followed by `entropy/emacs-font-setting-enable',
+automatically followed by `entropy/emacs-font-setting-enable',
 using `entropy/emacs-fontsets-used-cjk-tc-font' when
 `entropy/emacs-font-chinese-type' was 'tc' or for using
 `entropy/emacs-fontsets-used-cjk-sc-font'.")
