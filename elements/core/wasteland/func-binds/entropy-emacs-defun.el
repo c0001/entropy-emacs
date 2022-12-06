@@ -2764,25 +2764,56 @@ WITH-SIDE-EFFECTS is set. Return a new copy sorted sequence of
 SEQ-TO-SORT or the altered SEQ-TO-SORT when WITH-SIDE-EFFECTS is
 non-nil. SEQ-BASE is never modified.
 
-The SEQ-BASE element's order index 'get' function using
+The SEQ-BASE element's order index `get' function using
 `cl-position', so as the optional CL-KEYS are `apply' to the
 [KEYWORD VALUE]... part of that function. Internally does use
 [:test `equal'] defaulty since the two sequence's element may not
 be `eq' even has same structure but we consider that is same.
 
 (fn SEQ-TO-SORT SEQ-BASE &optional WITH-SIDE-EFFECTS [KEYWORD VALUE]...)"
-  (let ((rtn (if with-side-effects seq-to-sort
-               (copy-sequence seq-to-sort)))
-        (default-keys '(:test equal)))
-    (sort
-     rtn
-     (lambda (a b)
-       (let ((apos (apply 'cl-position
-                          a seq-base (or cl-keys default-keys)))
-             (bpos (apply 'cl-position
-                          b seq-base (or cl-keys default-keys))))
-         (when (and apos bpos)
-           (< apos bpos)))))))
+  (if (not (and seq-to-sort seq-base)) seq-to-sort
+    (let* ((type
+            (cond ((listp seq-to-sort) 'list)
+                  ((sequencep seq-to-sort) 'seq)
+                  (t
+                   (signal 'wrong-type-argument
+                           (list 'sequencep seq-to-sort)))))
+           (_ (unless (sequencep seq-base)
+                (signal 'wrong-type-argument
+                        (list 'sequencep seq-base))))
+           (rtn (if with-side-effects seq-to-sort
+                  (copy-sequence seq-to-sort)))
+           (default-keys (list :test #'equal))
+           (base-pos-get-func
+            (lambda (x)
+              (apply 'cl-position x seq-base
+                     (or cl-keys default-keys))))
+           (cnt 0)
+           indx-list bndx-list)
+      (catch :exit
+        (cl-mapc
+         (lambda (x)
+           (let (pos)
+             (when (setq pos (funcall base-pos-get-func x))
+               (push (cons x (cons cnt pos)) indx-list)))
+           (cl-incf cnt)) rtn)
+        (when (entropy/emacs-lonely-listp indx-list)
+          (throw :exit seq-to-sort))
+        (entropy/emacs-setf-by-body bndx-list
+          (sort (copy-sequence indx-list)
+                (lambda (a b) (< (cddr a) (cddr b)))))
+        (let (opos item)
+          (setq cnt 0) (setq indx-list (nreverse indx-list))
+          (dolist (el bndx-list)
+            (setq opos (cadr (nth cnt indx-list))
+                  item (car el))
+            (pcase type
+              ('list (entropy/emacs-list-setf-nth
+                      opos item rtn :with-error t))
+              ('seq (aset rtn opos item)))
+            (cl-incf cnt)))
+        ;; return
+        rtn))))
 
 (defun entropy/emacs-mapcar-without-orphans
     (func seq &optional use-rich-orphan &rest orphans)
