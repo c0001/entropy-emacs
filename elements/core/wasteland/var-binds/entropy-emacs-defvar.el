@@ -159,32 +159,38 @@ otherwise.
 TIME indicate the *first* time emacs waked up from the last idle
 status.")
 
-(defvar entropy/emacs-current-commands-ring-size 10
+(defvar entropy/emacs-current-commands-ring-size 20
   "The max size of `entropy/emacs-current-commands-ring'.")
 (defvar entropy/emacs-current-commands-ring
   (make-ring entropy/emacs-current-commands-ring-size)
-  "A ring that maintained \"current\" activate session's sequence of
-`this-command's, of those typed before any `pre-command-hook' running
-that as real. The newest `this-command' is the newset element of this
-ring.
+  "A ring that maintained this emacs session's sequence of commands
+stroking objects, more precisely that of those commands that are
+obtained before any `pre-command-hook' running (i.e. any other
+`pre-command-hook' functions can use this as the newest updated
+ring). The newest object is the newset element of this ring.
 
-The \"current\" is not means what
-`entropy/emacs-current-session-is-active-p' non-nil indicating for,
-but for a user focusing on sense. Thus
-`entropy/emacs-current-session-is-active-p' may be updated several
-times within the \"current\" but this is nearly less of seconds that you
-can feeled.
+Each object of this ring is a cons of car of the `current-time' while
+building this object and cdr of a list whose elements ordered as:
+1) `this-command' while this object built
+2) `real-this-command' while this object built
 
 The max size of this ring is charged by
 `entropy/emacs-current-commands-ring-size'.
 
 See also `entropy/emacs-current-commands-continuous-p'.")
-(defvar __eemacs-cur-acs-cmds-ring-create-time (current-time))
+
+(defun entropy/emacs-current-commands-ring--put-new
+    (&optional cur-time)
+  (ring-insert
+   entropy/emacs-current-commands-ring
+   (list (or cur-time (current-time))
+         this-command real-this-command)))
+
 (defun entropy/emacs-current-commands-continuous-p
-    (command len time-duration-limit &optional consider-as-prop)
+    (command len time-duration-limit &optional consider-as-prop use-real)
   "Return non-nil when in a period (seconds specfied by
-TIME-DURATION-LIMIT), number LEN of commands hinted are all `eq' to
-COMMAND (a symbol whose function defination is a interactive
+TIME-DURATION-LIMIT), number LEN of user stroked commands are all `eq'
+to COMMAND (a symbol whose function defination is a interactive
 function). Return nil otherwise.
 
 LEN is max to `entropy/emacs-current-commands-ring-size'.
@@ -196,19 +202,21 @@ the key is existed and key's value is non-nil.
 
 COMMAND can also ba a list of COMMANDs, in which case only and
 immediately return non-nil when one of theme is matching as above
-said."
+said.
+
+If USE-REAL is non-nil, then all of those commands are obtained by
+`real-this-command', otherwise via `this-command'"
   (let ((ctime (current-time))
-        the-item the-cmd the-time)
+        the-item the-cmds the-cmd the-time)
     (condition-case err
         (when (>= (ring-length entropy/emacs-current-commands-ring)
                   len)
           (catch :exit
             (dotimes (iter len)
-              (setq the-item (ring-ref
-                              entropy/emacs-current-commands-ring
-                              iter)
-                    the-cmd (car the-item)
-                    the-time (cdr the-item))
+              (setq the-item
+                    (ring-ref entropy/emacs-current-commands-ring iter)
+                    the-time (car the-item) the-cmds (cdr the-item)
+                    the-cmd (nth (if use-real 1 0) the-cmds))
               (unless
                   (cond
                    ((consp command)
@@ -349,29 +357,12 @@ wrong type of type: %s"
 (defun entropy/emacs--reset-idle-signal ()
   ;; handle command ring firstly.
   (unless entropy/emacs-current-session-is-active-p
-    (setq entropy/emacs-current-session-is-active-p (current-time))
-    ;; create a new command ring via waking up from idle
-    (condition-case err
-        ;; FIXME: commonly the error shouldn't be happened but how we
-        ;; ensure preventing user modify
-        ;; `entropy/emacs-current-session-is-active-p' and
-        ;; `__eemacs-cur-acs-cmds-ring-create-time'.
-        (when
-            ;; we should preventing frequently reset the ring since
-            ;; user's typing can not faster that the idle flag
-            ;; setter. Thus we hint limit of 2s last from the previous
-            ;; re-allocate.
-            (> (float-time (time-subtract
-                            entropy/emacs-current-session-is-active-p
-                            __eemacs-cur-acs-cmds-ring-create-time))
-               2)
-          (setq entropy/emacs-current-commands-ring
-                (make-ring entropy/emacs-current-commands-ring-size)
-                __eemacs-cur-acs-cmds-ring-create-time (current-time)))
-      (error (message "[entropy/emacs--reset-idle-signal] error: %S" err))))
-  (ring-insert entropy/emacs-current-commands-ring
-               (cons this-command (current-time)))
-  (when entropy/emacs-current-session-is-idle-p
+    (setq entropy/emacs-current-session-is-active-p (current-time)))
+  (entropy/emacs-current-commands-ring--put-new)
+  (when
+      ;; we just reset status just when reocovery from last idle
+      ;; status for preventing redundant invocation
+      entropy/emacs-current-session-is-idle-p
     (let (
           ;; NOTE: protect as atomic manupulation
           (inhibit-quit t))
@@ -470,9 +461,20 @@ idle trigger guard `entropy/emacs--set-idle-signal'"
 ;; EEMACS_MAINTENANCE: follow the FIXME seciton to hack any other hook
 ;; injecting before this one.
 (add-hook 'pre-command-hook #'entropy/emacs--reset-idle-signal -100)
+(add-hook 'buffer-list-update-hook
+          (entropy/emacs-defalias '__eemacs-regist-local-idle-reset-hook
+            (lambda nil
+              "Local regist of `entropy/emacs--reset-idle-signal' since the
+functions of `pre-command-hook''s global value will always ran
+after its local binding which implicitly in the `run-hooks' C
+code."
+              (add-hook 'pre-command-hook #'entropy/emacs--reset-idle-signal
+                        -100 'local))))
+
+;; We must update modeline since it has lazy redisplay interval which
+;; can not refresh the visual feedback immediately.
 (defun entropy/emacs--idle-var-guard (_symbol newval _operation _where)
-  (unless (null newval)
-    (force-mode-line-update)))
+  (unless (null newval) (force-mode-line-update)))
 (add-variable-watcher 'entropy/emacs-current-session-is-idle-p
                       #'entropy/emacs--idle-var-guard)
 
