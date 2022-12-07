@@ -1114,6 +1114,7 @@ saved by
           )
         winner-boring-buffers-regexp
         (rx (or
+             " *company-box-"
              "*eemacs-"
              "*eemacs eval with byte-compile*"
              "*entropy/"
@@ -1168,7 +1169,7 @@ issue."
                                nil))
                      (error (message "[winner idle save] error: %S" err)
                             ;; FIXME: winner has bug for handling dead
-                            ;; frame properly.
+                            ;; frame properly. (see `__ya/winner-insert-if-new/with-frame-live-check')
                             (setq winner-last-frames nil)))))))
        (t (apply orig-func orig-args)))))
   (advice-add 'winner-save-old-configurations
@@ -1177,12 +1178,19 @@ issue."
   (advice-add 'winner-save-old-configurations
               :around
               ;; FIXME: winner's post command has bug for handling
-              ;; dead frame properly.
+              ;; dead frame properly. (see `__ya/winner-insert-if-new/with-frame-live-check')
               (entropy/emacs-defalias '__winner-post-ignore-errors
                 (lambda (orig-func &rest orig-args)
                   (condition-case err (apply orig-func orig-args)
                     (error (message "[winner post command] error: %S" err)
                            (setq winner-last-frames nil))))))
+  (defun __ya/winner-insert-if-new/with-frame-live-check
+      (orig-func &rest orig-args)
+    (when (frame-live-p (car orig-args))
+      (apply orig-func orig-args)))
+  (advice-add 'winner-insert-if-new
+              :around
+              #'__ya/winner-insert-if-new/with-frame-live-check)
 
   (defun entropy/emacs-wc-winner-undo ()
     "eemacs spec `winner-undo' command."
