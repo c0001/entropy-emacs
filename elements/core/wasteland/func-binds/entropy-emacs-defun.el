@@ -7328,8 +7328,10 @@ lexical environment."
        (when entropy/emacs-startup-with-Debug-p
          (push (list ,feature
                      :lexical-bind-p lexical-binding
-                     :functype (car (cadr ,body-lambda-exp-sym))
-                     :lexical (cadr (cadr ,body-lambda-exp-sym))
+                     ;; NOTE: we can not get its closure list when
+                     ;; it's byte-compiled, so we just exhibit the
+                     ;; whole expression
+                     :lambda-exp ,body-lambda-exp-sym
                      :load-fname load-file-name)
                entropy/emacs--eval-after-load-log)))))
 

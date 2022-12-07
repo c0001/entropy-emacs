@@ -38,16 +38,14 @@
 (require 'cl-lib)
 (require 'subr-x)
 
+;; Added by Package.el.  This must come before configurations of
+;; installed packages.  Don't delete this line.  If you don't want it,
+;; just comment it out by adding a semicolon to the start of the line.
+;; You may delete these explanatory comments.
+;; (package-initialize)
+
 ;; Debug emacs while hang on by send the SIGUSR2 process event
 (setq debug-on-event 'sigusr2)
-
-;; set entropy-emacs lowest emacs version requirement
-(defconst entropy/emacs-lowest-emacs-version-requirement
-  "27"
-  "The lowsest emacs version requirement for entropy-emacs.
-
-It's a version string which can be used for `version<' and
-`version<='.")
 
 ;; Native compile specs
 ;;
@@ -71,6 +69,18 @@ It's a version string which can be used for `version<' and
         "^.*/?fakecygpty[^/]*\\.el$"))
 
 ;; ** Eemacs top declares
+;; *** Vars
+;; set entropy-emacs lowest emacs version requirement
+(defconst entropy/emacs-lowest-emacs-version-requirement
+  "27"
+  "The lowsest emacs version requirement for entropy-emacs.
+
+It's a version string which can be used for `version<' and
+`version<='.")
+
+(when (version< emacs-version entropy/emacs-lowest-emacs-version-requirement)
+  (error "This requires Emacs %s and above!"
+         entropy/emacs-lowest-emacs-version-requirement))
 
 ;; top eemacs host
 (defconst entropy/emacs-user-emacs-directory
@@ -109,6 +119,39 @@ emacs upstream")
    entropy/emacs-user-emacs-directory)
   "The value for `custom-file' but specified for =entropy-emacs=.")
 
+;; *** Funcs
+;; **** Multi-version emacs compatible
+;; TODO ...
+
+;; **** Eemacs init env filter
+
+(defun entropy/emacs-env-init-with-pure-eemacs-env-p (&rest _)
+  (let ((env (getenv "EEMACS_INIT_WITH_PURE")))
+    (and env (not (string-empty-p env)))))
+
+(defun entropy/emacs-env-init-with-pure-eemacs-env/load-custom-file-p nil
+  (and (entropy/emacs-env-init-with-pure-eemacs-env-p)
+       (let ((env (getenv "EEMACS_INIT_WITH_PURE_LCSTF")))
+         (and (stringp env) (not (string-empty-p env))))))
+
+;; ** Load custom
+
+(let ((cus entropy/emacs-custom-common-file))
+  (when (if (entropy/emacs-env-init-with-pure-eemacs-env-p)
+            (entropy/emacs-env-init-with-pure-eemacs-env/load-custom-file-p)
+          t)
+    (when (not (file-exists-p cus))
+      (copy-file entropy/emacs-custom-common-file-template
+                 entropy/emacs-custom-common-file
+                 nil t))
+    (setq custom-file cus)
+    (message "")
+    (message "====================================")
+    (message "[Loading] custom specifications ...")
+    (message "====================================\n")
+    (load cus)))
+
+;; ** Top customized group
 (defgroup entropy-emacs-customize-top-group nil
   "Eemacs customizable variables top group."
   :group 'extensions)
@@ -133,6 +176,21 @@ emacs upstream")
   "Enable `debug-on-error' at eemacs startup time?"
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-DEBUG)
+
+(defun entropy/emacs-suggest-startup-with-elisp-source-load-p nil
+  (or
+   (and noninteractive
+        (not (bound-and-true-p entropy/emacs-fall-love-with-pdumper))
+        (not (daemonp)))
+   (and entropy/emacs-startup-with-Debug-p
+        ;; We just guarantee load source when in a debug
+        ;; session invoked by make env, since that's clear to
+        ;; show that this indeed is. In other words, we allow
+        ;; debug on byte-compiled eemacs core.
+        (let ((env-p (getenv "EEMACS_DEBUG")))
+          (cond ((or (null env-p) (string-empty-p env-p)) nil)
+                (t env-p))))
+   (entropy/emacs-env-init-with-pure-eemacs-env-p)))
 
 (defcustom entropy/emacs-startup-jit-lock-debug-mode nil
   "Enable `jit-lock-debug-mode' at eemacs startup time?
@@ -159,34 +217,6 @@ renderred after init this.)"
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-pdumper)
 
-;; ** Prepare
-;; *** multi-version emacs compatible
-;; TODO ...
-
-;; *** Warning of startup
-
-;; Added by Package.el.  This must come before configurations of
-;; installed packages.  Don't delete this line.  If you don't want it,
-;; just comment it out by adding a semicolon to the start of the line.
-;; You may delete these explanatory comments.
-;; (package-initialize)
-
-(when (version< emacs-version entropy/emacs-lowest-emacs-version-requirement)
-  (error "This requires Emacs %s and above!"
-         entropy/emacs-lowest-emacs-version-requirement))
-
-;; *** eemacs init env filter
-
-(defun entropy/emacs-env-init-with-pure-eemacs-env-p (&rest _)
-  (let ((env (getenv "EEMACS_INIT_WITH_PURE")))
-    (and env
-         (not (string-empty-p env)))))
-
-(defun entropy/emacs-env-init-with-pure-eemacs-env/load-custom-file-p nil
-  (and (entropy/emacs-env-init-with-pure-eemacs-env-p)
-       (let ((env (getenv "EEMACS_INIT_WITH_PURE_LCSTF")))
-         (and (stringp env) (not (string-empty-p env))))))
-
 ;; ** Startup entropy-emacs
 
 (defvar __inited-p? nil)
@@ -210,21 +240,6 @@ renderred after init this.)"
     (or entropy/emacs-run-startup-afterinit-timestamp
         after-init-time))
 
-  (let ((cus entropy/emacs-custom-common-file))
-    (when (if (entropy/emacs-env-init-with-pure-eemacs-env-p)
-              (entropy/emacs-env-init-with-pure-eemacs-env/load-custom-file-p)
-            t)
-      (when (not (file-exists-p cus))
-        (copy-file entropy/emacs-custom-common-file-template
-                   entropy/emacs-custom-common-file
-                   nil t))
-      (setq custom-file cus)
-      (message "")
-      (message "====================================")
-      (message "[Loading] custom specifications ...")
-      (message "====================================\n")
-      (load cus)))
-
   ;; load eemacs config
   (defun __init_eemacs__ (&rest _)
     "entropy-emacs loader"
@@ -240,12 +255,7 @@ renderred after init this.)"
                   "elements/entropy-emacs.el"
                   entropy/emacs-user-emacs-directory))))
       (cond
-       ((or entropy/emacs-startup-with-Debug-p
-            (entropy/emacs-env-init-with-pure-eemacs-env-p)
-            (and noninteractive
-                 (not (bound-and-true-p entropy/emacs-fall-love-with-pdumper))
-                 (not (daemonp)))
-            )
+       ((entropy/emacs-suggest-startup-with-elisp-source-load-p)
         (require (car eemacs-top-init-file)
                  ;; confirm load the source i.e. non-compiled ver.
                  (cdr eemacs-top-init-file)))

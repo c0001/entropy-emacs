@@ -434,6 +434,53 @@ when available.
        (user-error (concat "[%s] " ,string)
                    cur-defn ,@args))))
 
+;; *** making procedure
+(defvar __entropy/emacs-is-make-session-check-done nil)
+(defvar __entropy/emacs-is-make-session-value-cache nil)
+(defun entropy/emacs-is-make-session ()
+  "Obtained the 'EEMACS_MAKE' env variable value if valid
+otherwise return nil.
+
+This function commonly used to judge whether start eemacs in a make
+session, where specially indicate to other subroutines to get the
+eemacs make section type according to the value of entropy emacs
+specified environment variable \"EEMACS_MAKE\".
+
+NOTE: you should always use this function to get thus variable
+value where there's no published for any of the internal entropy
+emacs specified environment variable references APIs, this is the
+only one for thus."
+  (if __entropy/emacs-is-make-session-check-done
+      __entropy/emacs-is-make-session-value-cache
+    (let ((env-p (getenv "EEMACS_MAKE")))
+      (setq __entropy/emacs-is-make-session-value-cache
+            (cond
+             ((or (null env-p) (string-empty-p env-p)) nil)
+             (t env-p))
+            __entropy/emacs-is-make-session-check-done
+            t)
+      __entropy/emacs-is-make-session-value-cache)))
+
+(defun entropy/emacs-is-make-all-session ()
+  "Obtained the 'EEMACS_MAKE_ALL' env variable value if valid
+otherwise return nil.
+
+This function commonly used to judge whether start emacs in a
+`noninteractive' status but in daemon load procedure, where
+specially indicate to other subroutines to get the 'batch
+run' (e.g. use entropy emacs as a shell) type according to the
+value of entropy emacs specified environment variable
+\"EEMACS_MAKE_ALL\".
+
+NOTE: you should always use this function to get thus variable
+value where there's no published for any of the internal entropy
+emacs specified environment variable references APIs, this is the
+only one for thus."
+  (let ((env-p (getenv "EEMACS_MAKE_ALL")))
+    (cond
+     ((or (null env-p) (string-empty-p env-p)) nil)
+     (t env-p))))
+
 ;; *** eemacs-require-func
 
 (defun entropy/emacs-common-require-feature
@@ -444,11 +491,7 @@ source rather than its compiled version in some cases.
 NOTE: not support load dynamic module"
   (let (_)
     (cond
-     ((or entropy/emacs-startup-with-Debug-p
-          (entropy/emacs-env-init-with-pure-eemacs-env-p)
-          (and noninteractive
-               (not (bound-and-true-p entropy/emacs-fall-love-with-pdumper))
-               (not (daemonp))))
+     ((entropy/emacs-suggest-startup-with-elisp-source-load-p)
       (require feature (or filename (format "%s.el" feature))
                noerror))
      (t (require feature filename noerror)))))
