@@ -1291,7 +1291,11 @@ Either for inner bugs fix."
             ;; we are doing for and we must prevent messy inovked by
             ;; those functions to guarantee this function ran
             ;; successfully.
-            (delete-frame-functions nil)
+            ;;
+            ;; but for package `frame-local--on-delete' which is need
+            ;; to update, since its tied with company-box and authored
+            ;; by the same author, although it's buggy.
+            (delete-frame-functions '(frame-local--on-delete))
             lfm)
         ;; then we must tidy up associated buffers since we'll close
         ;; all stick frames
@@ -1443,7 +1447,11 @@ recreates a new one for usage so that remove that collision."
               ;; hooks since we're just kill it. For more precisely
               ;; that `company-box--kill-buffer' will be invoked via
               ;; that way which is not what we expecting for.
-              delete-frame-functions)
+              ;;
+              ;; but for package `frame-local--on-delete' which is need
+              ;; to update, since its tied with company-box and authored
+              ;; by the same author, although it's buggy.
+              (delete-frame-functions '(frame-local--on-delete)))
           (delete-frame frame t)
           (frame-local-setq company-box-doc-frame nil)))))
   (advice-add 'company-box-doc--show
