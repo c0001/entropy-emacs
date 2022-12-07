@@ -972,16 +972,13 @@ in `entropy/emacs-company-frontend-sticker'."
     (entropy/emacs-company--set-only-one-frontend
      'company-box-frontend))
 
-  (defun __auto_enable_or_disable_company-box-mode
-      ()
+  (defun __auto_enable_or_disable_company-box-mode nil
     (if (bound-and-true-p company-mode)
-        (company-box-mode 1)
-      (company-box-mode 0)))
+        (company-box-mode 1) (company-box-mode 0)))
 
   (defun entropy/emacs-company--box-disable ()
     (progn
-      (remove-hook 'company-mode-hook
-                   #'company-box-mode)
+      (remove-hook 'company-mode-hook #'company-box-mode)
       (remove-hook 'company-mode-hook
                    #'entropy/emacs-company--company-box-frontend-set-hook)
       (remove-hook
@@ -1093,20 +1090,19 @@ in `entropy/emacs-company-frontend-sticker'."
 
 ;; ***** Icons specified patch
 
-  (with-no-warnings
-    ;; Prettify icons
-    (defun entropy/emacs-company--company-box-icons-elisp (candidate)
-      (when (derived-mode-p 'emacs-lisp-mode)
-        (let ((sym (intern candidate)))
-          (cond ((fboundp sym) 'Function)
-                ((featurep sym) 'Module)
-                ((facep sym) 'Color)
-                ((boundp sym) 'Variable)
-                ((symbolp sym) 'Text)
-                (t . nil)))))
-    (advice-add #'company-box-icons--elisp
-                :override
-                #'entropy/emacs-company--company-box-icons-elisp))
+  ;; Prettify icons
+  (defun entropy/emacs-company--company-box-icons-elisp (candidate)
+    (when (derived-mode-p 'emacs-lisp-mode)
+      (let ((sym (intern candidate)))
+        (cond ((fboundp sym) 'Function)
+              ((featurep sym) 'Module)
+              ((facep sym) 'Color)
+              ((boundp sym) 'Variable)
+              ((symbolp sym) 'Text)
+              (t . nil)))))
+  (advice-add #'company-box-icons--elisp
+              :override
+              #'entropy/emacs-company--company-box-icons-elisp)
 
 ;; ***** advices
 ;; ****** make `company-box--set-mode' proper
@@ -1225,7 +1221,9 @@ indicator as its `frame-parameter'."
   (defun __ya/company-box--get-buffer (&optional suffix)
     "Same as original func but guarantee the created buffer is indeed
 not used for common usage i.e. with `inhibit-buffer-hooks' bind
-locally."
+locally.
+
+And also with some other bugs fix."
     (let* ((buffname (concat " *company-box-" (company-box--get-id) suffix "*"))
            (bufflp (get-buffer buffname))
            buff)
@@ -1235,6 +1233,9 @@ locally."
         ;; NOTE: inhibit buffer local features to this un-commonly
         ;; used buffer since messy may be raised up.
         (with-current-buffer buff
+          ;; FIXME: should tick a issue for upstream that the child
+          ;; frame's buffer is not `inhibit-read-only'.
+          (setq entropy/emacs-should-be-read-only t)
           (setq
            mode-line-format nil
            header-line-format nil
@@ -1253,13 +1254,24 @@ locally."
 tricks.
 
 We patched this since the idle trick is not suitable for other
-eemacs specs."
-    (let* ((kill-buffer-hook nil)
-           (func
-            (lambda (buff) (when (buffer-live-p buff)
-                             (kill-buffer buff)))))
+eemacs specs.
+
+Either for inner bugs fix."
+    (entropy/emacs-when-let*-first
+        ((
+          ;; EEMACS_TEMPORALLY_HACK: we must ensure that FRAME is
+          ;; lived since `frame-local-getq' is buggy if not of thus.
+          (frame-live-p frame))
+         (kill-buffer-hook nil)
+         (func
+          (lambda (buff) (when (buffer-live-p buff) (kill-buffer buff)))))
       (funcall func (frame-local-getq company-box-buffer frame))
-      (funcall func (frame-local-getq company-box-scrollbar frame))))
+      ;; FIXME: why kill the box main buffer will make the box frame
+      ;; be deleted? is emacs has that mechanism that what "frame
+      ;; dedicated buffer" i.e. delete the only buffer of that frame
+      ;; then the frame will be deleted either?
+      (when (frame-live-p frame)
+        (funcall func (frame-local-getq company-box-scrollbar frame)))))
   (advice-add 'company-box--kill-buffer
               :override #'__ya/company-box--kill-buffer)
 
@@ -1275,7 +1287,15 @@ eemacs specs."
     ;; local var.
     (dolist (frame (frame-list))
       (let ((cmpbox-frame-p (frame-parameter frame 'this-company-box-frame-p))
+            ;; inhibit global delframe functions since we known what
+            ;; we are doing for and we must prevent messy inovked by
+            ;; those functions to guarantee this function ran
+            ;; successfully.
+            (delete-frame-functions nil)
             lfm)
+        ;; then we must tidy up associated buffers since we'll close
+        ;; all stick frames
+        (company-box--kill-buffer frame)
         (if cmpbox-frame-p (delete-frame frame t)
           (when (setq lfm (frame-local-getq company-box-frame frame))
             (if (frame-live-p lfm) (delete-frame lfm t))
@@ -1284,7 +1304,8 @@ eemacs specs."
             (if (frame-live-p lfm) (delete-frame lfm t))
             (frame-local-setq company-box-doc-frame nil frame)))))
     ;; rest eemacs specs set
-    (setq __company-box-doc-hided-p nil))
+    (setq __company-box-doc-hided-p nil
+          __company-box-main-frame-hided-p nil))
 
   ;; prepare to re-create company box frames after change fonts since
   ;; we should follow the new main-frame font.
@@ -1343,8 +1364,8 @@ checking with function `frame-local-get' which mapped local frame
 obarray to search local varaible which has bad benchmark performance
 as an scroll lagging reason when toggle on `company-box-doc-enable'.
 
-EEMACS_MAINTENANCE: need patching updately with `company-box'
-upstream."
+EEMACS_MAINTENANCE: need patching with `company-box' upstream
+updates."
     (when-let* ((company-box-doc-enable))
       (unless (or __company-box-doc-need-force-hide-p
                   __company-box-doc-hided-p)
