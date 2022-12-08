@@ -550,9 +550,9 @@ faild with hash '%s' which must match '%s'"
 
 (defun entropy/emacs-batch--byte-compile-dir (dir)
   (let* ((dir-cur (expand-file-name dir))
-         (dir-cur-P (unless (file-exists-p dir-cur)
-                      (entropy/emacs-error-without-debugger
-                       "Directory '%s' not exists!" dir-cur)))
+         (_ (unless (file-exists-p dir-cur)
+              (entropy/emacs-error-without-debugger
+               "Directory '%s' not exists!" dir-cur)))
          (dir-list (directory-files (expand-file-name dir-cur)))
          source-dirP)
     (catch :exit
