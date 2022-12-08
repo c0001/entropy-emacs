@@ -339,7 +339,7 @@ If FRAME is omitted or nil use `selected-frame' as default."
 
 (defun entropy/emacs-buffer-local-value (variable &optional buffer)
   "Like `buffer-local-value' but return nil when VARIABLE doesn't
-has a local binding for BUFFER.
+have a local binding for BUFFER.
 
 BUFFER defaults to `current-buffer' if ignored or omitted."
   (if buffer
