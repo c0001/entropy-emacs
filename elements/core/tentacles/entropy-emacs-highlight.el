@@ -54,43 +54,12 @@
   :commands (symbol-overlay-mode
              symbol-overlay-put
              symbol-overlay-remove-all
-             symbol-overlay-jump-prev)
-;; *** preface
-  :preface
-
-  (defun entropy/emacs-hl-symbol-overlay-toggle ()
-    ""
-    (declare (interactive-only t))
-    (interactive)
-    (symbol-overlay-mode 'toggle))
-  (defun entropy/emacs-hl-symbol-overlay-put ()
-    ""
-    (declare (interactive-only t))
-    (interactive)
-    (unless (bound-and-true-p symbol-overlay-mode)
-      (symbol-overlay-mode +1))
-    (symbol-overlay-put))
-  (defun entropy/emacs-hl-symbol-overlay-remove-all ()
-    ""
-    (declare (interactive-only t))
-    (interactive)
-    (unless (bound-and-true-p symbol-overlay-mode)
-      (symbol-overlay-mode +1))
-    (symbol-overlay-remove-all))
-  (defun entropy/emacs-hl-symbol-overlay-jump-next ()
-    ""
-    (declare (interactive-only t))
-    (interactive)
-    (unless (bound-and-true-p symbol-overlay-mode)
-      (symbol-overlay-mode +1))
-    (symbol-overlay-jump-next))
-  (defun entropy/emacs-hl-symbol-overlay-jump-prev ()
-    ""
-    (declare (interactive-only t))
-    (interactive)
-    (unless (bound-and-true-p symbol-overlay-mode)
-      (symbol-overlay-mode +1))
-    (symbol-overlay-jump-prev))
+             symbol-overlay-jump-prev
+             entropy/emacs-hl-symbol-overlay-toggle
+             entropy/emacs-hl-symbol-overlay-put
+             entropy/emacs-hl-symbol-overlay-remove-all
+             entropy/emacs-hl-symbol-overlay-jump-next
+             entropy/emacs-hl-symbol-overlay-jump-prev)
 
 ;; *** eemacs hydra hollow
   :eemacs-tpha
@@ -154,8 +123,7 @@
            (null entropy/emacs-ide-suppressed)
            ;; And not used in lsp related session, since lsp already
            ;; have thus functionality.
-           (not (member entropy/emacs-ide-use-for-all
-                        '(lsp eglot))))
+           (not (memq entropy/emacs-ide-use-for-all '(lsp eglot))))
       (add-hook 'prog-mode-hook #'symbol-overlay-mode)
     ;; emacs lisp mode doesn't have code-server support so we use
     ;; `symbol-overlay-mode' forcely enable injections for those
@@ -262,6 +230,42 @@ dead and duplicated ones."
               :around
               #'__adv/around/symbol-overlay-mode/0)
 
+;; **** commands
+
+  (defun entropy/emacs-hl-symbol-overlay-toggle ()
+    ""
+    (declare (interactive-only t))
+    (interactive)
+    (symbol-overlay-mode 'toggle))
+  (defun entropy/emacs-hl-symbol-overlay-put ()
+    ""
+    (declare (interactive-only t))
+    (interactive)
+    (unless (bound-and-true-p symbol-overlay-mode)
+      (symbol-overlay-mode +1))
+    (symbol-overlay-put))
+  (defun entropy/emacs-hl-symbol-overlay-remove-all ()
+    ""
+    (declare (interactive-only t))
+    (interactive)
+    (unless (bound-and-true-p symbol-overlay-mode)
+      (symbol-overlay-mode +1))
+    (symbol-overlay-remove-all))
+  (defun entropy/emacs-hl-symbol-overlay-jump-next ()
+    ""
+    (declare (interactive-only t))
+    (interactive)
+    (unless (bound-and-true-p symbol-overlay-mode)
+      (symbol-overlay-mode +1))
+    (symbol-overlay-jump-next))
+  (defun entropy/emacs-hl-symbol-overlay-jump-prev ()
+    ""
+    (declare (interactive-only t))
+    (interactive)
+    (unless (bound-and-true-p symbol-overlay-mode)
+      (symbol-overlay-mode +1))
+    (symbol-overlay-jump-prev))
+
 ;; *** __end__
   )
 
@@ -271,7 +275,7 @@ dead and duplicated ones."
   :init
   ;; when under emacs 28, we need to manually toggle it on since
   ;; emacs-28 enable it defaultly
-  (when (version< emacs-version "28")
+  (when (< emacs-major-version 28)
     (entropy/emacs-lazy-initial-advice-before
      '(find-file switch-to-buffer)
      "show-paren-mode" "show-paren-mode"
@@ -452,9 +456,7 @@ dead and duplicated ones."
         :enable t
         :eemacs-top-bind t
         :toggle
-        (if (bound-and-true-p rainbow-delimiters-mode)
-            t
-          nil)))))))
+        (bound-and-true-p rainbow-delimiters-mode)))))))
 
 ;; ** Highlight TODO and similar keywords in comments and strings
 ;;
