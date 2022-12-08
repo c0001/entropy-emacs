@@ -305,7 +305,7 @@ configuration.")
                  entropy/emacs-pdumper--loads-log-file))
             (with-current-buffer (find-file-noselect entropy/emacs-pdumper--loads-log-file)
               (goto-char (point-max))
-              (when (looking-back "^.+")
+              (when (looking-back "^.+" (line-beginning-position))
                 (insert "\n"))
               (insert (format ":file '%s' :file-loadmethod '%s' :file-loadpath '%s'"
                               file file-loadmethod file-loadpath))
