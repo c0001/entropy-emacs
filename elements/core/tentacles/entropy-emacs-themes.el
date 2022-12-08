@@ -365,14 +365,11 @@ for tui emacs session."
 progress."
   (mapc #'disable-theme custom-enabled-themes)
   (condition-case err
-      (progn
-        (entropy/emacs-themes-strictly-load-theme
-         entropy/emacs-theme-options t)
-        ;; this redisplay is indeed needed
-        (redisplay t))
-    (t
-     (error "Problem loading theme %s with error %S"
-            entropy/emacs-theme-options err)))
+      (entropy/emacs-themes-strictly-load-theme entropy/emacs-theme-options t)
+    (t (warn "Problem loading theme `%s' with error: %S"
+             entropy/emacs-theme-options err)))
+  ;; this redisplay is indeed needed
+  (redisplay t)
   (when (and (fboundp 'powerline-reset)
              (string-match-p
               "space\\|powerline"
@@ -386,8 +383,14 @@ progress."
     'enable-theme
     ;; (redisplay t)
     (if (null (daemonp))
-        ;; common status theme load process
-        (entropy/emacs-themes-init-setup-user-theme)
+        ;; common status theme load process that load theme in idle
+        ;; hook which do not enlarge init duration.
+        (add-hook 'entropy/emacs-after-startup-idle-hook
+                  #'entropy/emacs-themes-init-setup-user-theme
+                  ;; add at every of idle hook but before font set
+                  ;; since theme load will reconfigure font set in
+                  ;; `entropy/emacs-theme-load-after-hook'
+                  90)
       ;; --------------------
       ;; Daemon theme load specifications
       ;; --------------------

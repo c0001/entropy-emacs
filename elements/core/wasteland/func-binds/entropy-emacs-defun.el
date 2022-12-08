@@ -8894,6 +8894,9 @@ when USE-APPEND is non-nil. Return the defined function name symbol.
 When USE-LOCAL is set, then the function is inject into to HOOK's
 buffer-local variant where invoked from.
 
+USE-APPEND and USE-LOCAL are compatible with the means as DEPTH and
+LOCAL of `add-hook'.
+
 USE-HOOK can either be a hook symbol or a list of thus in which case
 injects function into all of them with specifications.
 
@@ -8912,11 +8915,9 @@ WITH-LEXICAL-BINDINGS has same meaning of that, also with SYMBOL as.
        (let* ((fname (car ,optvarnm))
               (pl (cdr ,optvarnm))
               (hooks (plist-get pl :use-hook))
-              (_ (and hooks (atom hooks)
-                      (setq hooks (list hooks)))))
+              (_ (and hooks (atom hooks) (setq hooks (list hooks)))))
          (dolist (hook hooks)
-           (add-hook hook fname
-                     (plist-get pl :use-append)
+           (add-hook hook fname (plist-get pl :use-append)
                      (plist-get pl :use-local)))))
      (cdr args))))
 

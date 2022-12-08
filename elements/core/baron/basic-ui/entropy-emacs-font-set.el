@@ -367,21 +367,29 @@ fontset using `entropy/emacs-font-set-setfont-core'."
     (setq entropy/emacs-font-set--var-watcher-initial-done t)))
 
 (defun entropy/emacs-font-set--setfont-initial ()
-  (unless (or (daemonp) entropy/emacs-fall-love-with-pdumper)
-    ;; use the idle timer to prevent eemacs startup redisplay lag
-    (add-hook 'entropy/emacs-after-startup-idle-hook
-              #'(lambda () (entropy/emacs-font-set-setfont-core)
-                  (entropy/emacs-font-set--var-watcher-initial))))
-  (when entropy/emacs-fall-love-with-pdumper
+  (if (not (or (daemonp) entropy/emacs-fall-love-with-pdumper))
+      (entropy/emacs-add-hook-with-lambda
+        (cons t '__eemacs_initial-font-set-for-common-start) nil
+        ;; use the idle timer to prevent eemacs startup redisplay lag
+        :use-hook 'entropy/emacs-after-startup-idle-hook
+        ;; we should initial at very end where at least be after
+        ;; the initial theme load
+        :use-append 100
+        (let ((inhibit-quit t))
+          (entropy/emacs-font-set-setfont-core)
+          (add-hook 'entropy/emacs-theme-load-after-hook
+                    #'entropy/emacs-font-set-setfont-core)
+          (entropy/emacs-font-set--var-watcher-initial)))
+    (when entropy/emacs-fall-love-with-pdumper
+      (entropy/emacs-add-hook-with-lambda
+        (cons t '__eemacs_initial-font-set-for-pdumper) nil
+        :use-hook 'entropy/emacs-pdumper-load-hook
+        (entropy/emacs-font-set-setfont-core)))
     (entropy/emacs-add-hook-with-lambda
-      (cons t '__eemacs_initial-font-set-for-pdumper) nil
-      :use-hook 'entropy/emacs-pdumper-load-hook
-      (entropy/emacs-font-set-setfont-core)))
-  (entropy/emacs-add-hook-with-lambda
-    (cons t '__eemacs-initial-font-set-pre-sets) nil
-    :use-hook 'entropy/emacs-after-startup-hook
-    (add-hook 'entropy/emacs-theme-load-after-hook
-              #'entropy/emacs-font-set-setfont-core)
-    (entropy/emacs-font-set--var-watcher-initial)))
+      (cons t '__eemacs-initial-font-set-pre-sets) nil
+      :use-hook 'entropy/emacs-after-startup-hook
+      (add-hook 'entropy/emacs-theme-load-after-hook
+                #'entropy/emacs-font-set-setfont-core)
+      (entropy/emacs-font-set--var-watcher-initial))))
 
 (provide 'entropy-emacs-font-set)
