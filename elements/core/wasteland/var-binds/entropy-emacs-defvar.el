@@ -179,12 +179,24 @@ The max size of this ring is charged by
 
 See also `entropy/emacs-current-commands-continuous-p'.")
 
+(defvar entropy/emacs-current-commands-ring--put-new-use-locus-p nil)
+(defvar-local entropy/emacs-current-commands-ring--put-new-nodup-p nil)
+;; Ticktok put new command to ring since we've use buffer local
+;; `pre-command-hook' bind if
+;; `entropy/emacs-current-commands-ring--put-new-use-locus-p' enabled
+;; by eemacs maintainer, where this can prevent double insert for same
+;; command in per-command stroked.
 (defun entropy/emacs-current-commands-ring--put-new
     (&optional cur-time)
-  (ring-insert
-   entropy/emacs-current-commands-ring
-   (list (or cur-time (current-time))
-         this-command real-this-command)))
+  (if (and entropy/emacs-current-commands-ring--put-new-use-locus-p
+           entropy/emacs-current-commands-ring--put-new-nodup-p
+           (variable-binding-locus 'pre-command-hook))
+      (setq entropy/emacs-current-commands-ring--put-new-nodup-p nil)
+    (ring-insert
+     entropy/emacs-current-commands-ring
+     (list (or cur-time (current-time))
+           this-command real-this-command))
+    (setq entropy/emacs-current-commands-ring--put-new-nodup-p t)))
 
 (defun entropy/emacs-current-commands-continuous-p
     (command len time-duration-limit &optional consider-as-prop use-real)
@@ -360,8 +372,8 @@ wrong type of type: %s"
     (setq entropy/emacs-current-session-is-active-p (current-time)))
   (entropy/emacs-current-commands-ring--put-new)
   (when
-      ;; we just reset status just when reocovery from last idle
-      ;; status for preventing redundant invocation
+      ;; We just reset status just when the first time recovering from
+      ;; last idle status for preventing redundant invocation
       entropy/emacs-current-session-is-idle-p
     (let (
           ;; NOTE: protect as atomic manupulation
@@ -470,6 +482,8 @@ after its local binding which implicitly in the `run-hooks' C
 code."
               (add-hook 'pre-command-hook #'entropy/emacs--reset-idle-signal
                         -100 'local))))
+;; EEMACS_MAINTENANCE: indicate we've use the buffer local regists
+(setq entropy/emacs-current-commands-ring--put-new-use-locus-p t)
 
 ;; We must update modeline since it has lazy redisplay interval which
 ;; can not refresh the visual feedback immediately.

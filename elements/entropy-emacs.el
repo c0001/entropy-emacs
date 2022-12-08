@@ -337,6 +337,17 @@ If FRAME is omitted or nil use `selected-frame' as default."
   (and (frame-parameter frame 'client)
        (not (entropy/emacs-child-frame-p frame))))
 
+(defun entropy/emacs-buffer-local-value (variable &optional buffer)
+  "Like `buffer-local-value' but return nil when VARIABLE doesn't
+has a local binding for BUFFER.
+
+BUFFER defaults to `current-buffer' if ignored or omitted."
+  (if buffer
+      (with-current-buffer buffer
+        (when (variable-binding-locus variable)
+          (buffer-local-value variable (current-buffer))))
+    (when (variable-binding-locus variable)
+      (buffer-local-value variable (current-buffer)))))
 
 ;; *** eemacs def*
 
