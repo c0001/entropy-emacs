@@ -188,9 +188,10 @@ See also `entropy/emacs-current-commands-continuous-p'.")
 ;; command in per-command stroked.
 (defun entropy/emacs-current-commands-ring--put-new
     (&optional cur-time)
-  (if (and entropy/emacs-current-commands-ring--put-new-use-locus-p
-           entropy/emacs-current-commands-ring--put-new-nodup-p
-           (variable-binding-locus 'pre-command-hook))
+  (if (and
+       entropy/emacs-current-commands-ring--put-new-nodup-p
+       entropy/emacs-current-commands-ring--put-new-use-locus-p
+       (variable-binding-locus 'pre-command-hook))
       (setq entropy/emacs-current-commands-ring--put-new-nodup-p nil)
     (ring-insert
      entropy/emacs-current-commands-ring
