@@ -494,8 +494,6 @@ only one for thus."
 
 ;; *** eemacs-require-func
 
-(defvar entropy/emacs-common-require-feature--use-source-p
-  (entropy/emacs-suggest-startup-with-elisp-source-load-p))
 (defun entropy/emacs-common-require-feature
     (feature &optional filename noerror)
   "eemacs spec `require' facility , to prefer load the elisp
@@ -504,7 +502,7 @@ source rather than its compiled version in some cases.
 NOTE: not support load dynamic module"
   (let (_)
     (cond
-     (entropy/emacs-common-require-feature--use-source-p
+     ((entropy/emacs-suggest-startup-with-elisp-source-load-p)
       (require feature (or filename (format "%s.el" feature)) noerror))
      (t (require feature filename noerror)))))
 

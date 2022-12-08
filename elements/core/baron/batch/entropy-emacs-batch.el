@@ -627,7 +627,7 @@ faild with hash '%s' which must match '%s'"
             (green label)
             (green host))
            (unless entropy/emacs-batch--bytecompile-eemacs-core-utils-frameworks/pkg-init-p
-             (entropy/emacs-package-common-start)
+             (entropy/emacs-package-common-start 'use-full)
              (setq entropy/emacs-batch--bytecompile-eemacs-core-utils-frameworks/pkg-init-p
                    t))
            (dolist (feature require-features)
@@ -636,7 +636,7 @@ faild with hash '%s' which must match '%s'"
            (entropy/emacs-batch--byte-compile-dir dir)
            (let* ((log-buff-name "*Compile-Log*")
                   (log-buff (get-buffer log-buff-name)))
-             (when (bufferp log-buff)
+             (when (buffer-live-p log-buff)
                (with-current-buffer log-buff
                  (when (> (buffer-size (current-buffer)) 0)
                    (entropy/emacs-write-file log-file t))

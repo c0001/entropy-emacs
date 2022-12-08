@@ -701,7 +701,7 @@ the :eemacs-adrequrie has been loaded and the related form is banned."
 
 ;; ** common start
 
-(defun entropy/emacs-package-common-start ()
+(defun entropy/emacs-package-common-start (&optional use-full)
   (if
       ;; Do not check extensions when boot from bytecode to speedup
       ;; startup process.
@@ -718,7 +718,9 @@ the :eemacs-adrequrie has been loaded and the related form is banned."
            ;; are compiled? Or use a function put in every eemacs
            ;; configs head to initialize use-pacakge when it's not
            ;; compiled.
-           (not entropy/emacs-package-src-load-bytecode-p))
+           (or (not entropy/emacs-package-src-load-bytecode-p)
+               ;; but if invoking as specifying forcely
+               use-full))
     (condition-case error
         (entropy/emacs-package-init-use-package)
       (error
