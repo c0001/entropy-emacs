@@ -11709,19 +11709,19 @@ stuffs on `entropy/emacs-solaire-mode' when
                   "#333340"))))))
      (t nil))
     ;; downgrade `company-tooltip' face when needed
-    (entropy/emacs-face-bg-scale-when-same
-     'company-tooltip 'solaire-default-face
-     (cond
-      ((or (eq (frame-parameter nil 'background-mode) 'light)
-           (string-match-p "\\(light\\|day\\)"
-                           (symbol-name entropy/emacs-theme-sticker)))
-       0.95)
-      ((eq (frame-parameter nil 'background-mode) 'dark)
-       0.5))
-     nil
-     (when (member (face-attribute 'company-tooltip :background)
-                   '(unspecified nil))
-       t))))
+    (entropy/emacs-eval-after-load-only-once 'company
+      (entropy/emacs-face-bg-scale-when-same
+       'company-tooltip 'solaire-default-face
+       (cond
+        ((or (eq (frame-parameter nil 'background-mode) 'light)
+             (string-match-p "\\(light\\|day\\)"
+                             (symbol-name entropy/emacs-theme-sticker)))
+         0.95)
+        ((eq (frame-parameter nil 'background-mode) 'dark)
+         0.5))
+       nil
+       (member (face-attribute 'company-tooltip :background)
+               '(nil unspecified "unspecified-bg"))))))
 
 ;; *** Case fold search specification
 (defun entropy/emacs-case-fold-focely-around-advice (old-func &rest args)
