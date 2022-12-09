@@ -1637,7 +1637,7 @@ in `window-configuration-change-hook'."
             #'entropy/emacs-window-center-mode-hydra-hollow-build)
 
 (entropy/emacs-lazy-initial-for-hook
- '(entropy/emacs-hydra-hollow-call-before-hook)
+ '(entropy/emacs-after-startup-idle-hook)
  "align-buffer-hydra-hollow-extra-init"
  "align-buffer-hydra-hollow-extra-init"
  :prompt-type 'prompt-echo
