@@ -801,7 +801,8 @@ This is for use in `ivy-re-builders-alist'."
       :enable t :exit t))))
 
   :eemacs-indhc
-  (((:enable t :defer t)
+  (((:enable t :defer (:data (:adfors (entropy/emacs-after-startup-idle-hook)
+                                      :adtype hook :pdumper-no-end t)))
     (counsel-mode (counsel counsel-mode-map) nil (2 2 2)))
    (
     ;; FILE group -- prefix 'f'
