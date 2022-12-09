@@ -323,6 +323,16 @@ return nil"
              :face 'all-the-icons-maroon))
            (t
             (all-the-icons-icon-for-mode major-mode :v-adjust 0.001))))
+         ((eq major-mode 'elfeed-search-mode)
+          (all-the-icons-icon-for-mode
+           major-mode
+           :v-adjust -0.08
+           :face 'all-the-icons-maroon))
+         ((eq major-mode 'elfeed-show-mode)
+          (all-the-icons-icon-for-mode
+           major-mode
+           :v-adjust -0.15
+           :face 'all-the-icons-maroon))
          (t
           (all-the-icons-icon-for-mode major-mode)))
    (entropy/emacs-modeline--origin-mdl-propertize-face
