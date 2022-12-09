@@ -107,7 +107,7 @@
 (defvar company-en-words/var--wudao-required
   (company-en-words/lib--require-wudao))
 
-(defun company-en-words (command &optional arg &rest ignored)
+(defun company-en-words (command &optional arg &rest _ignored)
   (interactive (list 'interactive))
   (cl-case command
     (interactive (company-begin-backend 'company-en-words))
