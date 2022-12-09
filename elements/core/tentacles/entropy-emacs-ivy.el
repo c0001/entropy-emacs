@@ -666,7 +666,20 @@ unwind occasion.")
             rtn)
         (unless entropy/emacs-ivy--swiper-all-complete-did-p
           (set-window-configuration cur-wfg)
-          (goto-char cur-pt)))))
+          (goto-char cur-pt)
+          ;; if `ivy-occur' occurred, then we should display that
+          ;; buffer since we restored wcfg which coverred last wcfg
+          ;; which displayed that occur buffer.
+          ;;
+          ;; EEMACS_MAINTENANCE: the occur buffer is retrieved by
+          ;; `next-error-last-buffer' which is set by `ivy-occur'
+          ;; function's internal procedure where is not an exposed
+          ;; API, so we should track the updates with upstream.
+          (when (and (eq this-command 'ivy-occur)
+                     (buffer-live-p next-error-last-buffer)
+                     (string-match-p "\\*ivy-occur.*swiper-all"
+                                     (buffer-name next-error-last-buffer)))
+            (display-buffer next-error-last-buffer))))))
 
   ;; make `swiper-all' restore origin window-configuration when unwind
   (advice-add 'swiper-all :around #'entropy/emacs-ivy--swiper-all-restore-wfg)
