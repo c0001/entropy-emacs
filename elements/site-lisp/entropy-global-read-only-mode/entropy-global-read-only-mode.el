@@ -472,19 +472,18 @@ risk. ('M-x read-only-mode' for forcely)"
   "Do body after FEATURE required if available, FEATURE can be a
 single one or a list of thus. "
   (declare (indent defun))
-  `(let (feature-get
-         (feature-sets-p (listp ',feature))
-         (fatal nil))
-     (if feature-sets-p
-         (setq feature-get ',feature)
-       (setq feature-get (list ',feature)))
-     (mapc (lambda (fr)
-             (unless (or (featurep fr)
-                         (ignore-errors (require fr)))
-               (setq fatal t)))
-           feature-get)
-     (unless fatal
-       ,@body)))
+  (macroexp-let2* ignore
+      ((fts-sym nil)
+       (ftlp-sym nil)
+       (fatp-sym nil))
+    `(let* ((,fts-sym ,feature) ,fatp-sym
+            (_ (unless (consp ,fts-sym)
+                 (setq ,fts-sym (list ,fts-sym)))))
+       (mapc (lambda (fr)
+               (unless (or (featurep fr)
+                           (ignore-errors (require fr)))
+                 (setq ,fatp-sym t))) ,fts-sym)
+       (unless ,fatp-sym ,(macroexp-progn body)))))
 
 (defun entropy/grom--enable-patcher ()
   (dolist (patcher entropy/grom--external-patch-register)
@@ -676,7 +675,7 @@ readonly mode is on."
   (when
       (or (string= entropy/grom-readonly-type "all")
           (string= entropy/grom-readonly-type "modes"))
-    (entropy/grom--with-require-feature org-agenda
+    (entropy/grom--with-require-feature 'org-agenda
       (define-key org-agenda-mode-map (kbd "C-d")
         #'entropy/grom--unlock-actived-agenda-file-buffers)
 
@@ -708,7 +707,7 @@ readonly mode is on."
   (when
       (or (string= entropy/grom-readonly-type "all")
           (string= entropy/grom-readonly-type "modes"))
-    (entropy/grom--with-require-feature org-capture
+    (entropy/grom--with-require-feature 'org-capture
       (defun entropy/grom--org-capture-place-template (&optional inhibit-wconf-store)
         "Insert the template at the target location, and display
 the buffer.  When `inhibit-wconf-store', don't store the window
@@ -754,7 +753,7 @@ This func was advice for func
        'org-capture-put-target-region-and-position
        :after #'entropy/grom--org-capture-put-target-region-and-position-after-advice))
 
-    (entropy/grom--with-require-feature org-datetree
+    (entropy/grom--with-require-feature 'org-datetree
       (defun entropy/grom--org-datetree-before-advice ()
         (if buffer-read-only
             (entropy/grom--readonly-1&0 0)))
