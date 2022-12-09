@@ -263,7 +263,7 @@ cons cell of (file_truename . buffer).")
 (defvar entropy/grom--external-patch-register nil
   "Register of sets of grom-patch information.
 
-A grom-patch is a plist with bellow falid key slots:
+A grom-patch is a plist with bellow valid key slots:
 - ':init' : a function to enable the patcher or nil.
 - ':setoff' : a function to disable the patcher or nil.
 
