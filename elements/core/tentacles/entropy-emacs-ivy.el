@@ -1642,7 +1642,15 @@ currnt fontset."
           counsel-fonts
           (:columns
            (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-font-icon)
-            (ivy-rich-candidate))
+            (ivy-rich-candidate
+             (:width 30)
+             (:delimiter " "))
+            ;; inspired by `counsel--font-with-sample'.
+            (,(lambda (font-name)
+                (format
+                 "%s"
+                 (propertize "世界你好abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                             'face (list :family font-name))))))
            :delimiter "\t")
           ;; --------------------
           counsel-find-library
