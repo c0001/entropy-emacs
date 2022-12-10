@@ -386,29 +386,28 @@ its doc for more details."
     (pretty-hydra-head-notation type &optional not-beautify-notation)
   "Hydra head notation handler for patching it with faces adding
 with specified indicator."
-  (dolist (feature '(faces))
-    (unless (featurep feature)
-      (require feature)))
+  (entropy/emacs-require-only-needed 'faces)
   (let* ((nface 'entropy/emacs-defface-face-for-hydra-grey-face)
          (match-map
           `((global-map-inject
              :format "%s%s"
-             :icon (lambda () (propertize "g" 'face 'error))
-             :notation (lambda (notation) (propertize notation 'face ',nface)))
+             :icon ,(lambda () (propertize "g" 'face 'error))
+             :notation ,(lambda (notation) (propertize notation 'face nface)))
             (mode-map-inject
              :format "%s%s"
-             :icon (lambda () (propertize "m" 'face 'error))
-             :notation (lambda (notation) (propertize notation 'face ',nface)))
+             :icon ,(lambda () (propertize "m" 'face 'error))
+             :notation ,(lambda (notation) (propertize notation 'face nface)))
             (eemacs-top-keymap-inject
              :format "%s%s"
-             :icon (lambda () (propertize "e" 'face 'success))
-             :notation (lambda (notation) (propertize notation 'face ',nface)))))
+             :icon ,(lambda () (propertize "e" 'face 'success))
+             :notation ,(lambda (notation) (propertize notation 'face nface)))))
          (matched (alist-get type match-map))
          (fmstr (plist-get matched :format))
          (icon (funcall (plist-get matched :icon)))
          (notation (or (when not-beautify-notation
                          pretty-hydra-head-notation)
-                       (funcall (plist-get matched :notation) pretty-hydra-head-notation))))
+                       (funcall (plist-get matched :notation)
+                                pretty-hydra-head-notation))))
     (format fmstr icon notation)))
 
 ;; ***** category framework
@@ -809,7 +808,8 @@ hand, either 't' or 'nil' is for that.
 
 (defun entropy/emacs-hydra-hollow-category-concat-title-for-nav
     (title depth &rest nav)
-  (let* ((title-str (substring-no-properties (entropy/emacs-eval-with-lexical title)))
+  (let* ((title-str (substring-no-properties
+                     (entropy/emacs-eval-with-lexical title)))
          (up-hint (car nav))
          (down-hint (cadr nav))
          (fmstr "[%s]: %s page")
@@ -845,8 +845,7 @@ hand, either 't' or 'nil' is for that.
                (or up-hint down-hint))
       (let ((num-fmstr (rx line-start "[" (group (any "0-9")) "] ")))
         (unless (string-match-p num-fmstr title-str)
-          (unless (featurep 'face)
-            (require 'faces))
+          (entropy/emacs-require-only-needed 'faces)
           (setq title `(concat (propertize (format "[%s]" ,depth)
                                            'face 'show-paren-mismatch)
                                " " ,title)))))
@@ -1774,7 +1773,7 @@ The normalizing procedure provided by
 
 ;; ****** library
 ;; ******* extra define key
-(defun entropy/emacs-hydra-hollow-define-key (keymap key form)
+(entropy/emacs-!cl-defun entropy/emacs-hydra-hollow-define-key (keymap key form)
   "Bind KEY to KEYMAP with FORM.
 
 If FORM is not a symbol then define a function with unique name via
@@ -1795,8 +1794,10 @@ KEYMAP was a keymap, a keymap symbol or for some meaningful usage:
         (when (fboundp func-name)
           (error "Function '%s' has been existed, random function creating fatal!"
                  (symbol-name func-name)))
-        (entropy/emacs-eval-with-lexical `(defun ,func-name () (interactive) ,form))
-        (setq command func-name))))
+        (entropy/emacs-eval-with-lexical
+         `(defun ,func-name () (interactive) ,form))
+        (setq command func-name)))
+     (t (entropy/emacs-!error "Not listp or symbolp form: %S" form)))
     ;; inject command to map
     (pcase keymap
       ('global-map (global-set-key (kbd key) command))
