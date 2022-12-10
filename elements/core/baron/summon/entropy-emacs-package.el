@@ -393,11 +393,11 @@ building procedure while invoking INSTALL-COMMANDS."
         (push pkg-for pkg-pre)))
     ;; do installing
     (dolist (pkg pkg-pre)
-      (ignore-errors
-        (entropy/emacs-package-install-package
-         nil
-         (format "[%s/%s(general)]" count (length pkg-pre))
-         pkg))
+      (entropy/emacs-without-debugger
+       (entropy/emacs-package-install-package
+        nil
+        (format "[%s/%s(general)]" count (length pkg-pre))
+        pkg))
       (cl-incf count)))
   ;; show fails
   (entropy/emacs-package-prompt-install-fails)
@@ -439,7 +439,8 @@ building procedure while invoking INSTALL-COMMANDS."
                         " will be updated after 5 seconds")))
         (sleep-for 5)
         (dolist (pkg-desc updates)
-          (entropy/emacs-package-install-package t nil pkg-desc))
+          (entropy/emacs-without-debugger
+           (entropy/emacs-package-install-package t nil pkg-desc)))
         (entropy/emacs-package-prompt-install-fails)
           ;;; FIXME: package reinitialize after updates cause error
           ;;; for `yasnippet-snippets' that for autroload deleted old

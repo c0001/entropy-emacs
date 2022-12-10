@@ -108,6 +108,15 @@
 ;; ** eemacs top APIs
 ;; Top declared functions used for eemacs.
 
+(unless (fboundp 'always)
+  ;; FIXME: invention from emacs 28 and above, so we should defined as
+  ;; top.
+  (defun always (&rest _arguments)
+    "Do nothing and return t.
+This function accepts any number of ARGUMENTS, but ignores them.
+Also see `ignore'."
+    t))
+
 (defun entropy/emacs-macroexp-progn (exps)
   "Return EXPS (a list of expressions) with `progn' prepended.
 If EXPS is a list with a single expression, `progn' is not
