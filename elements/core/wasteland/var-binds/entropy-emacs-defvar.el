@@ -249,6 +249,22 @@ If USE-REAL is non-nil, then all of those commands are obtained by
                 time-duration-limit)))
       (error (message "[eemacs-cmds-seq-p] error: %S" err)))))
 
+(defun entropy/emacs-get-recent-two-inputs-interval (old-n new-n)
+  "Return the time duration (in float seconds) between two previous
+commands from the oldest one which is from OLD-N times to
+`this-command' to the most recent one which is NEW-N times counts
+to thus.
+
+Always return nil either when the oldest or recent one's record
+is missing. Where the most oldest N is
+`entropy/emacs-current-commands-ring-size' minus one."
+  (when-let*
+      (((and (< old-n entropy/emacs-current-commands-ring-size)
+             (< new-n entropy/emacs-current-commands-ring-size)))
+       (olt (car-safe (ring-ref entropy/emacs-current-commands-ring old-n)))
+       (newt (car-safe (ring-ref entropy/emacs-current-commands-ring new-n))))
+    (entropy/emacs-time-subtract olt newt 'use-float)))
+
 (defvar entropy/emacs-session-idle-trigger-debug
   entropy/emacs-startup-with-Debug-p
   "Debug mode ran `entropy/emacs-session-idle-trigger-hook'."

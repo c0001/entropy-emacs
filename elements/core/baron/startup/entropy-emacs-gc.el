@@ -95,7 +95,7 @@ origin, since each set to the `gc-threshold' or
 
 (defvar entropy/emacs-gc--adjust-cons-threshold-did-res-p nil)
 (defun entropy/emacs-gc--adjust-cons-threshold ()
-  (let (prop thr per)
+  (let (rt prop thr per)
     (cond (entroy/emacs-inhibit-automatic-gc-adjust nil)
           (
            ;; -------------------- restrict status --------------------
@@ -109,11 +109,18 @@ origin, since each set to the `gc-threshold' or
 
             ;; we hope all procedure during `eval-expression' are gc
             ;; restricted
-            (when (and (entropy/emacs-setf-by-body prop
-                         (entropy/emacs-get-symbol-prop
-                          this-command 'eemacs-gc-res-cmd-p))
-                       (entropy/emacs-current-commands-continuous-p
-                        'eemacs-gc-res-cmd-p 15 0.5 'as-prop))
+            (when (or
+                   ;; prevent duplicated continuous judgement although
+                   ;; it's fast enough but we still need to save cost
+                   (and entropy/emacs-gc--adjust-cons-threshold-did-res-p
+                        (eq this-command last-command)
+                        (and (setq rt (entropy/emacs-get-recent-two-inputs-interval 1 0))
+                             (< rt 0.1)))
+                   (and (entropy/emacs-setf-by-body prop
+                          (entropy/emacs-get-symbol-prop
+                           this-command 'eemacs-gc-res-cmd-p))
+                        (entropy/emacs-current-commands-continuous-p
+                         'eemacs-gc-res-cmd-p 15 0.5 'as-prop)))
               (if entropy/emacs-gc--adjust-cons-threshold-did-res-p t
                 (setq thr (car-safe prop) per (cdr-safe prop))
                 (when thr
