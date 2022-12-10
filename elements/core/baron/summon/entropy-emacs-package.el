@@ -171,20 +171,23 @@ Return t for exists status or nil for otherwise.
 
 If optional TRY-GET in non-nil then run
 `package-refresh-contents' after checking if the result is nil
-and the return is the rechecking result like above."
+and the return is the rechecking result like above.
+
+Addtionally, if TRY-GET is `eq' to `refresh' then always refresh
+the contents whatever whether it was existed before, and the
+return is as common usage."
   (entropy/emacs-package-prepare-foras)
-  (let* ((pkg-archive-dir (expand-file-name "archives" package-user-dir))
-         (rtn
-          (if (and (file-exists-p pkg-archive-dir)
-                   (entropy/emacs-list-dir-subfiles-recursively-for-list pkg-archive-dir))
-              nil
-            t)))
-    (cond ((and try-get
-                rtn)
-           (package-refresh-contents)
-           (entropy/emacs-package-package-archive-empty-p))
-          (t
-           rtn))))
+  (if (eq try-get 'refresh) (progn (package-refresh-contents)
+                                   (entropy/emacs-package-package-archive-empty-p))
+    (let* ((pkg-archive-dir (expand-file-name "archives" package-user-dir))
+           (rtn
+            (if (and (file-exists-p pkg-archive-dir)
+                     (entropy/emacs-list-dir-subfiles-recursively-for-list
+                      pkg-archive-dir)) nil t)))
+      (cond ((and try-get (not rtn))
+             (package-refresh-contents)
+             (entropy/emacs-package-package-archive-empty-p))
+            (t rtn)))))
 
 (defun entropy/emacs-package-pkg-installed-p (pkg &optional no-multi)
   "Like `package-installed-p' but when PKG is `package-desc',
@@ -365,7 +368,7 @@ building procedure while invoking INSTALL-COMMANDS."
 ;; *** install
 (defun entropy/emacs-package-install-all-packages ()
   (entropy/emacs-package-prepare-foras)
-  (entropy/emacs-package-package-archive-empty-p 'try-get)
+  (entropy/emacs-package-package-archive-empty-p 'refresh)
   (entropy/emacs-message-do-message
    (blue "Checking extensions satisfied status ...")
    :force-message-while-eemacs-init t)
@@ -405,7 +408,7 @@ building procedure while invoking INSTALL-COMMANDS."
 ;; *** update
 (defun entropy/emacs-package-update-all-packages ()
   (entropy/emacs-package-prepare-foras)
-  (entropy/emacs-package-package-archive-empty-p 'try-get)
+  (entropy/emacs-package-package-archive-empty-p 'refresh)
   (let ((current-pkgs (copy-tree package-alist))
         (new-pkgs (progn (package-refresh-contents)
                          (copy-tree package-archive-contents)))
