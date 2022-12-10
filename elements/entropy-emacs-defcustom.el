@@ -809,6 +809,7 @@ designation."
 (defcustom entropy/emacs-search-web-engines-internal
   '(("php-manual" "http://php.net/manual-lookup.php?pattern=%s" In-Emacs)
     ("MOZILA MDN" "http://developer.mozilla.org/en-US/search?q=%s" In-Emacs)
+    ("ArchWiki" "http://wiki.archlinux.org/index.php?search=%s" In-Emacs)
     ("baidu" "http://www.baidu.com/s?wd=%s" In-Emacs)
     ("google" "http://www.google.com/search?q=%s" In-Emacs)
     ("google ja" "http://www.google.com/search?hl=ja&q=%s&ie=utf-8&oe=utf-8&gbv=1" In-Emacs)
@@ -829,6 +830,7 @@ designation."
   '(("MOZILA MDN" "https://developer.mozilla.org/en-US/search?q=%s" External)
     ("php-manual" "https://php.net/manual-lookup.php?pattern=%s" External)
     ("github-external" "https://github.com/search?&q=%s" External)
+    ("ArchWiki-external" "https://wiki.archlinux.org/index.php?search=%s" External)
     ("baidu" "http://www.baidu.com/s?wd=%s" External)
     ("google" "https://www.google.com/search?q=%s" External)
     ("google ja" "https://www.google.com/search?hl=ja&q=%s&ie=utf-8&oe=utf-8&gbv=1" External)
