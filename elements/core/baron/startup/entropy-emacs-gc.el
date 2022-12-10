@@ -93,6 +93,7 @@ origin, since each set to the `gc-threshold' or
               (message "[%s] `%s' change from %s to %s"
                        this-command ',symbol oval newval))))))))
 
+(defvar entropy/emacs-gc--adjust-cons-threshold-did-res-p nil)
 (defun entropy/emacs-gc--adjust-cons-threshold ()
   (let (prop thr per)
     (cond (entroy/emacs-inhibit-automatic-gc-adjust nil)
@@ -112,36 +113,41 @@ origin, since each set to the `gc-threshold' or
                          (entropy/emacs-get-symbol-prop
                           this-command 'eemacs-gc-res-cmd-p))
                        (entropy/emacs-current-commands-continuous-p
-                        'eemacs-gc-res-cmd-p 8 1 'as-prop))
-              (setq thr (car-safe prop) per (cdr-safe prop))
-              (when thr
-                (setq thr (cond ((functionp thr)
-                                 (ignore-errors (funcall thr)))
-                                ((symbolp thr)
-                                 (ignore-errors (symbol-value thr)))
-                                (t thr))
-                      thr (and (numberp thr) thr)))
-              (when per
-                (setq per (cond ((functionp per)
-                                 (ignore-errors (funcall per)))
-                                ((symbolp per)
-                                 (ignore-errors (symbol-value per)))
-                                (t per))
-                      per (and (numberp per) per)))
-              prop))
+                        'eemacs-gc-res-cmd-p 15 0.5 'as-prop))
+              (if entropy/emacs-gc--adjust-cons-threshold-did-res-p t
+                (setq thr (car-safe prop) per (cdr-safe prop))
+                (when thr
+                  (setq thr (cond ((functionp thr)
+                                   (ignore-errors (funcall thr)))
+                                  ((symbolp thr)
+                                   (ignore-errors (symbol-value thr)))
+                                  (t thr))
+                        thr (and (numberp thr) thr)))
+                (when per
+                  (setq per (cond ((functionp per)
+                                   (ignore-errors (funcall per)))
+                                  ((symbolp per)
+                                   (ignore-errors (symbol-value per)))
+                                  (t per))
+                        per (and (numberp per) per)))
+                ;; true
+                t)))
            ;; restrict the gc threshold when matching above condidtions
-           (__ya/gc-threshold_setq
-            gc-cons-threshold
-            (or thr entropy/emacs-gc-threshold-basic))
-           (__ya/gc-threshold_setq
-            gc-cons-percentage
-            (or per entropy/emacs-gc-percentage-basic)))
+           (unless entropy/emacs-gc--adjust-cons-threshold-did-res-p
+             (__ya/gc-threshold_setq
+              gc-cons-threshold
+              (or thr entropy/emacs-gc-threshold-basic))
+             (__ya/gc-threshold_setq
+              gc-cons-percentage
+              (or per entropy/emacs-gc-percentage-basic))
+             (setq entropy/emacs-gc--adjust-cons-threshold-did-res-p t)))
           ;; -------------------- high performance mode --------------------
           (t
            (__ya/gc-threshold_setq
             gc-cons-threshold entropy/emacs-gc-thread-max)
            (__ya/gc-threshold_setq
-            gc-cons-percentage entropy/emacs-gc-percentage-max)))))
+            gc-cons-percentage entropy/emacs-gc-percentage-max)
+           (setq entropy/emacs-gc--adjust-cons-threshold-did-res-p nil)))))
 
 (defun entropy/emacs-gc--init-idle-gc (&optional sec)
   (entropy/emacs-cancel-timer-var entropy/emacs-garbage-collect-idle-timer)
