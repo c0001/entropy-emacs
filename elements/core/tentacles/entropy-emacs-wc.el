@@ -1072,7 +1072,7 @@ saved by
 
   (setq winner-boring-buffers
         `("*Completions*"
-          "*Compile-Log*"
+          ,byte-compile-log-buffer
           "*inferior-lisp*"
           "*Fuzzy Completions*"
           "*Apropos*"
@@ -1093,7 +1093,6 @@ saved by
           "*Occur*"
           "*xref*"
           "*compilation*"
-          "*Compile-Log*"
           "*Warnings*"
           "*Completions*"
           "*Shell Command Output*"
@@ -1429,7 +1428,7 @@ used for `entropy/emacs-window-center-mode' internally only.")
   )
 
 ;; *** Using olivetti
-
+(defvar olivetti-body-width)            ;escape byte-comp warning
 (use-package olivetti
   :if (eq entropy/emacs-window-center-mode-use-backend 'olivetti)
   ;; compatible for nox session where no `mwheel' preloaded.
@@ -1440,27 +1439,14 @@ used for `entropy/emacs-window-center-mode' internally only.")
    olivetti-set-width
    olivetti-shrink
    olivetti-expand)
-  :preface
-  (defun entropy/emacs-wc--calc-olivetti-body-width (&rest _)
-    "Calculate the centerred window body width rely on
-`entropy/emacs-window-center-calc-body-width'."
-    (let (_)
-      (setq-local
-       olivetti-body-width
-       (entropy/emacs-window-center-calc-body-width))))
-
   :init
   (setq olivetti-minimum-body-width 10)
   (setq-default olivetti-body-width 0.8)
-  (advice-add 'olivetti-mode
-              :before
-              #'entropy/emacs-wc--calc-olivetti-body-width)
 
   (setq entropy/emacs-wc--center-window-function
         #'(lambda ()
             (let ((tcl truncate-lines))
-              (prog1
-                  (olivetti-mode 1)
+              (prog1 (olivetti-mode 1)
                 ;; FIXME: why enalble `olivetti-mode' will reset
                 ;; `truncate-lines' var even we can not find any
                 ;; setting in olivetti source code.
@@ -1471,6 +1457,17 @@ used for `entropy/emacs-window-center-mode' internally only.")
   (setq entropy/emacs-wc--shrink-center-window-function #'olivetti-shrink)
 
   :config
+
+  (defun entropy/emacs-wc--calc-olivetti-body-width (&rest _)
+    "Calculate the centerred window body width rely on
+`entropy/emacs-window-center-calc-body-width'."
+    (setq-local
+     olivetti-body-width
+     (entropy/emacs-window-center-calc-body-width)))
+  (advice-add 'olivetti-mode
+              :before
+              #'entropy/emacs-wc--calc-olivetti-body-width)
+
   (defun entropy/emacs-wc--olivetti-around-advice-for-window-toggle-side-windows
       (orig-func &rest orig-args)
     "The around advice for `window-toggle-side-windows' placed by

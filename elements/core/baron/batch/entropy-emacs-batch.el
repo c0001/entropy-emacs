@@ -628,7 +628,7 @@ faild with hash '%s' which must match '%s'"
              ;; require the feature in source
              (entropy/emacs-batch-require-prefer-use-source feature))
            (entropy/emacs-batch--byte-compile-dir dir)
-           (let* ((log-buff-name "*Compile-Log*")
+           (let* ((log-buff-name byte-compile-log-buffer)
                   (log-buff (get-buffer log-buff-name)))
              (when (buffer-live-p log-buff)
                (with-current-buffer log-buff
@@ -758,8 +758,15 @@ faild with hash '%s' which must match '%s'"
 
 (defvar entropy/emacs-batch--check-packages-done-p nil)
 (defun entropy/emacs-batch--check-packages nil
-  (unless (or entropy/emacs-batch--check-packages-done-p
-              (entropy/emacs-is-make-all-session))
+  (if (or entropy/emacs-batch--check-packages-done-p
+          ;; NOTE: we have no need to calling pkgs checker under a
+          ;; eemacs make-all session, since we've always made "Intall"
+          ;; make section be the top of the make-all chains head
+          (entropy/emacs-is-make-all-session))
+      (unless entropy/emacs-batch--check-packages-done-p
+        ;; but we should always init eemacs `use-package' additionals
+        ;; at least for macro expansion.
+        (entropy/emacs-package-init-use-package))
     (entropy/emacs-package-common-start 'use-full)
     (when entropy/emacs-package-install-success-list
       (entropy/emacs-message-do-error
@@ -771,7 +778,7 @@ since we solved deps broken")))))
     (cond
      ((equal type "Install")
       (entropy/emacs-batch--prompts-for-ext-install-section
-       (entropy/emacs-package-install-all-packages)))
+       (entropy/emacs-package-common-start 'use-full)))
      ((equal type "Compile")
       ;; we must check all depedencies firstly while compile
       (entropy/emacs-batch--check-packages)

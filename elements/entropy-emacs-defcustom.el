@@ -3149,7 +3149,7 @@ as.")
 ;; ** entropy-emacs initialize
 ;; *** basic setting
 ;; **** make sure gpg pinentry passphrase prompt using emacs minibuffer
-(setq epa-pinentry-mode 'loopback)
+(setq epg-pinentry-mode 'loopback)
 ;; The pinentry-emacs interface
 ;; >>> https://github.com/ecraven/pinentry-emacs
 (defun pinentry-emacs (desc prompt _ok _error)

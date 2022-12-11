@@ -94,11 +94,11 @@
 
 (defvar entropy/emacs-popwin-regists)
 (setq entropy/emacs-popwin-regists
-      '(;; Emacs
+      `(;; Emacs
         ("*Help*"                      :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
         ("*Messages*"                  :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
         ("*compilation*"               :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
-        ("*Compile-Log*"               :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
+        (,byte-compile-log-buffer      :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
         ("*Warnings*"                  :regexp nil :dedicated t :align bottom :size 0.2 :autoclose t   :select nil)
         ("*Completions*"               :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
         ("*Shell Command Output*"      :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)

@@ -5451,6 +5451,7 @@ described variable."
 (unless (version< emacs-version "28")
   ;; Enable outline view mode for long line keybindings description
   ;; help when emacs version -le emacs 28.
+  (defvar describe-bindings-outline)
   (setq describe-bindings-outline t))
 
 ;; **** Minibuffer Setup

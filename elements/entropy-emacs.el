@@ -124,7 +124,8 @@ Also see `ignore'."
 always return non-nil when BUFFER is not lived.
 
 BUFFER defaults to `current-buffer' if ommitted or nil."
-      (when (buffer-live-p (or buffer (current-buffer)))
+      (if live (and (buffer-live-p (or buffer (current-buffer)))
+                    (minibufferp buffer))
         (minibufferp buffer)))
   (defalias 'entropy/emacs-minibufferp #'minibufferp))
 

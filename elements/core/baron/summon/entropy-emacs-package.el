@@ -452,6 +452,7 @@ building procedure while invoking INSTALL-COMMANDS."
 ;; Required by `use-package'
 (defvar entropy/emacs-package-init-use-packge-after-hook nil)
 (defun entropy/emacs-package-init-use-package ()
+  (entropy/emacs-package-prepare-foras)
   (require 'use-package)
   (if entropy/emacs-fall-love-with-pdumper
       (setq use-package-always-ensure nil)
