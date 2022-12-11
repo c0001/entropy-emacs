@@ -381,7 +381,7 @@ building procedure while invoking INSTALL-COMMANDS."
         pkg-for
         (count 1))
     ;; calulate packages need to be installing
-    (dolist (pkgreqptr entropy-emacs-packages)
+    (dolist (pkgreqptr (bound-and-true-p entropy-emacs-packages))
       (unless (or (null pkgreqptr)
                   (entropy/emacs-package-pkg-installed-p
                    (entropy/emacs-setf-by-body pkg-for
