@@ -438,7 +438,7 @@ wrong type of type: %s"
                (setq ,idle-hook-name nil))
              (setq ,idle-hook-ran-done-p-var-name t)))
          ,doc-sym)
-       (unless entropy/emacs-session-in-byte-compile-emacs-core-p
+       (unless (compiled-function-p (symbol-function ',idle-func-name))
          (byte-compile ',idle-func-name)))))
 
 (entropy/emacs--generate-idle-signal-setter-func
