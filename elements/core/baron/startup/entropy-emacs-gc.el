@@ -45,15 +45,18 @@
 
 (defvar entropy/emacs-gc-records nil)
 
-(eval-and-compile
-  (defvar entropy/emacs-gc-thread-max
-    (if (< emacs-major-version 29) (* 100 (expt 1024 2))
-      ;; FIXME: emacs-29's gc inner optimization has collision with the
-      ;; traditional enlarging value, thus we attempt to use a tiny
-      ;; value approaching to the default one to reduce gc time
-      ;; duration. Is this theory right?
-      (* 10 (expt 1024 2))))
-  (defvar entropy/emacs-gc-percentage-max 0.8))
+
+(defvar entropy/emacs-gc-thread-max
+  (if (< emacs-major-version 29) (* 100 (expt 1024 2))
+    ;; FIXME: emacs-29's gc inner optimization has collision with the
+    ;; traditional enlarging value, thus we attempt to use a tiny
+    ;; value approaching to the default one to reduce gc time
+    ;; duration. Is this theory right?
+    (* (if entropy/emacs-fall-love-with-pdumper
+           ;; FIXME: why pdumper session gc more frequently
+           50 10)
+       (expt 1024 2))))
+(defvar entropy/emacs-gc-percentage-max 0.8)
 
 (defmacro entropy/emacs-gc--with-record (&rest body)
   (declare (indent defun))
@@ -220,7 +223,7 @@ delay seconds SECS."
        ;; while normal init mode.
 
        ;; NOTE: do not use `most-positive-fixnum' here since its may make emacs hang
-       (let ((emtn-p (= emacs-major-version 29)))
+       (let ((emtn-p (>= emacs-major-version 29)))
          ;; FIXME: [2022-10-30 Sun 06:11:57] emacs-29.0.50's gc is so
          ;; frequently than 28, so I find a sweet point for thus.
          (setq gc-cons-threshold (* (if emtn-p 50 100) (expt 1024 2)))

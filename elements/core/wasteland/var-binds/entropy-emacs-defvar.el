@@ -1574,7 +1574,12 @@ with the base file name of FILE to speedup in most of cases."
   "Non-nil indicate eemacs automatically gc adjusting should
 be under suppressed.")
 
-(defvar entropy/emacs-gc-threshold-basic (* 1 1024 1024)
+(defvar entropy/emacs-gc-threshold-basic
+  (* (if entropy/emacs-fall-love-with-pdumper
+         ;; FIXME: why pdumper session gc more frequently
+         (if (< emacs-major-version 29) 20 15)
+       1)
+     (expt 1024 2))
   "The basic thredshold for the growth for `gc-cons-threshold'")
 
 (defvar entropy/emacs-gc-percentage-basic 0.1
