@@ -540,6 +540,8 @@ faild with hash '%s' which must match '%s'"
 
 ;; **** byte compile tentacles
 
+;; FIXME: supress large coding neglects' byte-compile warning in
+;; eemacs which we should fix in future.
 (setq byte-compile-warnings
       '(not
         unresolved
