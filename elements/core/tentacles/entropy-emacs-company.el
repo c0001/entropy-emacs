@@ -215,11 +215,14 @@ eemacs specifications"
   (entropy/emacs-company--make-auto-handy-backend
     entropy/emacs-company-files)
 
-  (defun entropy/emacs-company--core-subr-is-nacomp-p nil
-    "return non-nil when current use company package with
-native-compiled subr."
-    (entropy/emacs-func-is-native-comp-p
-     (entropy/emacs-get-func-origin-def 'company-call-backend)))
+  (defun entropy/emacs-company--core-subr-nuse-restrict-p nil
+    "Return non-nil when we currently shouldn't restrict company core
+render functions for reducing laggy, where we trust current emacs
+sessions performance."
+    (or (>= emacs-major-version 28)
+        (entropy/emacs-func-is-native-comp-p
+         (entropy/emacs-get-func-origin-def
+          'company-call-backend))))
 
 ;; *** bind-key
   :bind (:map company-active-map
@@ -588,7 +591,7 @@ canididates which makes emacs laggy for each post-command while
       (apply orig-func orig-args)))
   ;; we just escape annotation for not native compiled origin def
   ;; since the letter is performance satisfied.
-  (unless (entropy/emacs-company--core-subr-is-nacomp-p)
+  (unless (entropy/emacs-company--core-subr-nuse-restrict-p)
     (advice-add 'company-call-backend
                 :around
                 #'entropy/emacs-company--pseudo-no-annotation))
@@ -610,7 +613,7 @@ EEMACS_MAINTENANCE: stick to upstream udpate"
         (add-face-text-property 0 width 'company-tooltip-selection t line))
       (add-face-text-property 0 width 'company-tooltip t line)
       line))
-  (unless (entropy/emacs-company--core-subr-is-nacomp-p)
+  (unless (entropy/emacs-company--core-subr-nuse-restrict-p)
     (advice-add 'company-fill-propertize
                 :override #'__ya/company-fill-propertize))
 
@@ -914,7 +917,7 @@ in `entropy/emacs-company-frontend-sticker'."
            'company-pseudo-tooltip-frontend
            (when (display-graphic-p)
              (list 'company-quickhelp-frontend)))
-    (if (entropy/emacs-company--core-subr-is-nacomp-p)
+    (if (entropy/emacs-company--core-subr-nuse-restrict-p)
         (entropy/emacs-setf-by-body company-format-margin-function
           (cond ((display-graphic-p) 'company-vscode-dark-icons-margin)
                 (t 'company-text-icons-margin)))
