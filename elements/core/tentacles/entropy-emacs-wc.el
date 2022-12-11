@@ -981,7 +981,7 @@ saved by
 `entropy/emacs-wc-eyebrowse-savecfg--daemon-client-guard'."
     (let* (miniw
            (minibuff
-            (if (minibufferp nil t) (current-buffer)
+            (if (entropy/emacs-minibufferp nil t) (current-buffer)
               (and (setq miniw (active-minibuffer-window))
                    (window-buffer miniw)))))
       (when minibuff

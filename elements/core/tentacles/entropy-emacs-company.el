@@ -695,7 +695,8 @@ with `shackle'."
            (doc-contents (and doc-buffer
                               (with-current-buffer doc-buffer
                                 (buffer-substring (point-min) (point-max)))))
-           (doc-buffer-new (get-buffer-create "*eemacs-company-doc*")))
+           (doc-buffer-new (entropy/emacs-get-buffer-create
+                            " *eemacs-company-doc*" 'inhibit-buffer-hooks)))
 
       ;; NOTE: abort the origin window buffer company-status when used
       ;; since its emulation keymap is still activated.
@@ -1228,7 +1229,8 @@ And also with some other bugs fix."
            (bufflp (get-buffer buffname))
            buff)
       (if bufflp (setq buff bufflp)
-        (setq buff (get-buffer-create buffname 'inhibit-buffer-hooks)))
+        (setq buff (entropy/emacs-get-buffer-create
+                    buffname 'inhibit-buffer-hooks)))
       (unless bufflp
         ;; NOTE: inhibit buffer local features to this un-commonly
         ;; used buffer since messy may be raised up.

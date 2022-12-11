@@ -108,6 +108,7 @@
 ;; ** eemacs top APIs
 ;; Top declared functions used for eemacs.
 
+;; *** compatible refine
 (unless (fboundp 'always)
   ;; FIXME: invention from emacs 28 and above, so we should defined as
   ;; top.
@@ -117,6 +118,28 @@ This function accepts any number of ARGUMENTS, but ignores them.
 Also see `ignore'."
     t))
 
+(if (< emacs-major-version 28)
+    (defun entropy/emacs-minibufferp (&optional buffer live)
+      "emacs 28 and higher `minibufferp' backport for 27 and lower where
+always return non-nil when BUFFER is not lived.
+
+BUFFER defaults to `current-buffer' if ommitted or nil."
+      (when (buffer-live-p (or buffer (current-buffer)))
+        (minibufferp buffer)))
+  (defalias 'entropy/emacs-minibufferp #'minibufferp))
+
+(if (< emacs-major-version 28)
+    (defun entropy/emacs-get-buffer-create
+        (buffer-or-name &optional _inhibit-buffer-hooks)
+      "emacs 28 and higher `get-buffer-create' backport for 27 and lower
+where the INHBIT-BUFFER-HOOKS is ignored since lower emacs
+version doesn't has such feature.
+
+\(fn buffer-or-name &optional inhibit-buffer-hooks)"
+      (get-buffer-create buffer-or-name))
+  (defalias 'entropy/emacs-get-buffer-create #'get-buffer-create))
+
+;; *** subr*
 (defun entropy/emacs-macroexp-progn (exps)
   "Return EXPS (a list of expressions) with `progn' prepended.
 If EXPS is a list with a single expression, `progn' is not

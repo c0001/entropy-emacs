@@ -247,7 +247,7 @@ upstream and may be make risky follow the ivy updates.
   (defvar-local __idle/ivy-queue-exhited-done nil)
   ;; EEMACS_MAINTENANCE: patching follow upstream please!
   (entropy/emacs-define-idle-function __ya/ivy--queue-exhibit/idle-func 0.12
-    (when (minibufferp nil t)
+    (when (entropy/emacs-minibufferp nil t)
       (let* (
              ;; binding `this-command' to the
              ;; `entropy/emacs-current-session-this-command-before-idle'
