@@ -711,7 +711,14 @@ the :eemacs-adrequrie has been loaded and the related form is banned."
       ;; startup process.
       entropy/emacs-package-src-load-bytecode-p
       (entropy/emacs-package-prepare-foras)
-    (entropy/emacs-package-install-all-packages))
+    (cond
+     ((entropy/emacs-is-make-all-session)
+      ;; just query for install all packages once for a eemacs make
+      ;; all session, since it's no need to do duplicated invocation
+      ;; for non-"install" make section.
+      (and (equal "Install" (entropy/emacs-is-make-session))
+           (entropy/emacs-package-install-all-packages)))
+     (t (entropy/emacs-package-install-all-packages))))
   (when
       ;; just init `use-package' while no installing procedure sine
       ;; `use-package' may not be detected in dependencies deficiency.

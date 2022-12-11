@@ -769,10 +769,12 @@ faild with hash '%s' which must match '%s'"
        (entropy/emacs-package-install-all-packages)))
      ((equal type "Compile")
       ;; we must check all depedencies firstly while compile
-      (entropy/emacs-package-install-all-packages)
-      (when entropy/emacs-package-install-success-list
-        (entropy/emacs-message-do-error
-         (red "Please re-do current make operation since we solved deps broken")))
+      (unless (entropy/emacs-is-make-all-session)
+        (entropy/emacs-package-install-all-packages)
+        (when entropy/emacs-package-install-success-list
+          (entropy/emacs-message-do-error
+           (red "Please re-do current make operation \
+since we solved deps broken"))))
       (entropy/emacs-batch--prompts-for-byte-compile-eemacs-internal
        (entropy/emacs-batch--do-bytecompile-eemacs-core)))
      ((equal type "Compile-Clean")
