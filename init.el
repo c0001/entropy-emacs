@@ -177,21 +177,6 @@ emacs upstream")
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-DEBUG)
 
-(defun entropy/emacs-suggest-startup-with-elisp-source-load-p nil
-  (or
-   (and noninteractive
-        (not (bound-and-true-p entropy/emacs-fall-love-with-pdumper))
-        (not (daemonp)))
-   (and entropy/emacs-startup-with-Debug-p
-        ;; We just guarantee load source when in a debug
-        ;; session invoked by make env, since that's clear to
-        ;; show that this indeed is. In other words, we allow
-        ;; debug on byte-compiled eemacs core.
-        (let ((env-p (getenv "EEMACS_DEBUG")))
-          (cond ((or (null env-p) (string-empty-p env-p)) nil)
-                (t env-p))))
-   (entropy/emacs-env-init-with-pure-eemacs-env-p)))
-
 (defcustom entropy/emacs-startup-jit-lock-debug-mode nil
   "Enable `jit-lock-debug-mode' at eemacs startup time?
 
@@ -212,12 +197,25 @@ renderred after init this.)"
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-pdumper)
 
-(defcustom entropy/emacs-fall-love-with-pdumper nil
-  "The emacs running type indication for pdumper."
-  :type 'boolean
-  :group 'entropy/emacs-customize-group-for-pdumper)
-
 ;; ** Startup entropy-emacs
+
+(defvar entropy/emacs-fall-love-with-pdumper
+  (equal (getenv "EEMACS_MAKE") "Dump")
+  "The emacs running type indication for pdumper.")
+(defun entropy/emacs-suggest-startup-with-elisp-source-load-p nil
+  (or
+   (and noninteractive
+        (not entropy/emacs-fall-love-with-pdumper)
+        (not (daemonp)))
+   (and entropy/emacs-startup-with-Debug-p
+        ;; We just guarantee load source when in a debug
+        ;; session invoked by make env, since that's clear to
+        ;; show that this indeed is. In other words, we allow
+        ;; debug on byte-compiled eemacs core.
+        (let ((env-p (getenv "EEMACS_DEBUG")))
+          (cond ((or (null env-p) (string-empty-p env-p)) nil)
+                (t env-p))))
+   (entropy/emacs-env-init-with-pure-eemacs-env-p)))
 
 (defvar __inited-p? nil)
 
