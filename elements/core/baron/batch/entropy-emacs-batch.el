@@ -569,8 +569,6 @@ faild with hash '%s' which must match '%s'"
        "Dir %s is not an elisp source dir"
        dir))))
 
-(defvar entropy/emacs-batch--bytecompile-eemacs-core-utils-frameworks/pkg-init-p
-  nil)
 (defvar entropy/emacs-batch--bytecompile-eemacs-core-utils-frameworks/timestamp
   (format-time-string "%Y%m%d%H%M%S"))
 (defun entropy/emacs-batch--bytecompile-eemacs-core-utils-frameworks
@@ -626,10 +624,6 @@ faild with hash '%s' which must match '%s'"
             "\n==================== compile eemacs %s/%s ... ===================="
             (green label)
             (green host))
-           (unless entropy/emacs-batch--bytecompile-eemacs-core-utils-frameworks/pkg-init-p
-             (entropy/emacs-package-common-start 'use-full)
-             (setq entropy/emacs-batch--bytecompile-eemacs-core-utils-frameworks/pkg-init-p
-                   t))
            (dolist (feature require-features)
              ;; require the feature in source
              (entropy/emacs-batch-require-prefer-use-source feature))
@@ -761,6 +755,17 @@ faild with hash '%s' which must match '%s'"
              (if clean (append item '(t)) item)))))
 
 ;; ** interactive
+
+(defvar entropy/emacs-batch--check-packages-done-p nil)
+(defun entropy/emacs-batch--check-packages nil
+  (unless (or entropy/emacs-batch--check-packages-done-p
+              (entropy/emacs-is-make-all-session))
+    (entropy/emacs-package-common-start 'use-full)
+    (when entropy/emacs-package-install-success-list
+      (entropy/emacs-message-do-error
+       (red "Please re-do current make operation \
+since we solved deps broken")))))
+
 (when (entropy/emacs-ext-main)
   (let ((type entropy/emacs-batch--make-env-type))
     (cond
@@ -769,12 +774,7 @@ faild with hash '%s' which must match '%s'"
        (entropy/emacs-package-install-all-packages)))
      ((equal type "Compile")
       ;; we must check all depedencies firstly while compile
-      (unless (entropy/emacs-is-make-all-session)
-        (entropy/emacs-package-install-all-packages)
-        (when entropy/emacs-package-install-success-list
-          (entropy/emacs-message-do-error
-           (red "Please re-do current make operation \
-since we solved deps broken"))))
+      (entropy/emacs-batch--check-packages)
       (entropy/emacs-batch--prompts-for-byte-compile-eemacs-internal
        (entropy/emacs-batch--do-bytecompile-eemacs-core)))
      ((equal type "Compile-Clean")
@@ -803,7 +803,7 @@ since we solved deps broken"))))
      ((and (ignore-errors (native-comp-available-p))
            (equal type "Native-Comp"))
       ;; we must prepare for `package-user-dir' before native-comp
-      (entropy/emacs-package-install-all-packages)
+      (entropy/emacs-batch--check-packages)
       (entropy/emacs-batch--prompts-for-native-compile
        (entropy/emacs-batch--native-compile-package-dir)))
      (t
