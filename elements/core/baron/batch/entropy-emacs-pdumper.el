@@ -172,6 +172,8 @@ configuration.")
                                       line-end)
                                  (seq "pkg.el" line-end)))))
          (inc-filters `(,(rx (seq line-start "entropy-" (* any))
+                             (seq (or ".el" ".elc") line-end))
+                        ,(rx (seq line-start "company-en-words")
                              (seq (or ".el" ".elc") line-end)))))
     (entropy/emacs-pdumper--extract-files-with-dir
      eemacs-deps-top-dir
