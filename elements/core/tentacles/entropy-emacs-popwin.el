@@ -184,8 +184,7 @@
         ("^\\*entropy/cpmv"            :regexp t   :dedicated t :align bottom :size 0.4 :autoclose nil :select nil)
         ("^\\*entropy/cndt"            :regexp t   :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
         ("^\\*entropy/sdcv"            :regexp t   :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
-        ("^\\*eemacs"                  :regexp t   :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
-        ("^ +\\*eemacs"                :regexp t   :dedicated t :align bottom :size 0.2 :autoclose t   :select t)
+        ("^ *\\*eemacs"                :regexp t   :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
 
         ;; sbcl-mode
         ("^\\*slime-"                  :regexp t   :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
