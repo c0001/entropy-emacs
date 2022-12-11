@@ -554,18 +554,24 @@ notation.
 ;; *** start up warns
 ;; **** linux DE IME warning
 
-(defvar entropy/emacs-start--linux-DE-IME-detected-p nil)
+(defvar entropy/emacs-start--linux-DE-IME-last-check-rtn nil)
 (defvar entropy/emacs-start--linux-DE-IME-checked-p nil)
 (defun entropy/emacs-start-linux-DE-IME-warning (&optional force pop-warn)
   ;; we just check those envs at startup time since after that there's
   ;; no problem for this emacs main process as what we can use those
   ;; envs in spawn processes.
   (prog1 (entropy/emacs-start-linux-DE-IME-warning-1
-          force pop-warn entropy/emacs-start--linux-DE-IME-checked-p)
+          force pop-warn
+          (and
+           ;; if pdumper indicator is signed then we shouldn't use the
+           ;; cache result since its just a dump for the env where
+           ;; dumping ran in but not the actual usage session.
+           (not entropy/emacs-fall-love-with-pdumper)
+           entropy/emacs-start--linux-DE-IME-checked-p))
     (setq entropy/emacs-start--linux-DE-IME-checked-p t)))
 
-(defvar entropy/emacs-start--linux-DE-IME-old-warn-str nil)
-(defun entropy/emacs-start-linux-DE-IME-warning-1 (&optional force pop-warn use-old-warn)
+(defun entropy/emacs-start-linux-DE-IME-warning-1
+    (&optional force pop-warn use-last-result)
   "Warnning for linux desktop IME bug of eemacs bug
 [h-12379f67-4311-4433-86e3-a6fdfd886112].
 
@@ -606,18 +612,18 @@ as ~EXEC=env GTL_IM_MODULE= GTK_IM_MODULE= QT_IM_MODULE= XMODIFIERS= emacs %F~ o
 ~env GTL_IM_MODULE= GTK_IM_MODULE= QT_IM_MODULE= XMODIFIERS= emacs~.
 
 Currently detected env variables:")
-          (msg "") rtn)
-      (if use-old-warn (setq msg entropy/emacs-start--linux-DE-IME-old-warn-str
-                             rtn (not (null msg)))
+          msg rtn)
+      (if use-last-result
+          (setq msg entropy/emacs-start--linux-DE-IME-last-check-rtn
+                rtn (not (null msg)))
         (dolist (env envars)
           (let ((val (getenv env)))
             (when (and val (not (string-empty-p val)))
-              (setq msg (format "%s\n%s=%s" msg env val)
+              (setq msg (format "%s\n%s=%s" (or msg "") env val)
                     rtn t))))
-        (setq entropy/emacs-start--linux-DE-IME-old-warn-str msg))
-      (setq entropy/emacs-start--linux-DE-IME-detected-p
-            (prog1 rtn
-              (if (and rtn pop-warn) (warn "%s" (concat warn-head msg))))))))
+        (setq entropy/emacs-start--linux-DE-IME-last-check-rtn msg))
+      (prog1 rtn
+        (if (and rtn pop-warn) (warn "%s" (concat warn-head msg)))))))
 
 (defvar entropy/emacs-start-linux-DE-IME-warning-idle-timer nil)
 (defvar entropy/emacs-start-linux-DE-IME-warning-idle-is-prompting-p nil)
@@ -674,7 +680,11 @@ Currently detected env variables:")
               nil)))))
 
 ;; init detection
-(when (entropy/emacs-start-linux-DE-IME-warning 'force)
+(when (or
+       ;; NOTE: we should always add init checker for pdumper session
+       ;; since it's ran with environment independent
+       entropy/emacs-fall-love-with-pdumper
+       (entropy/emacs-start-linux-DE-IME-warning 'force))
   ;; further popup warn
   (cond
    ((daemonp)
