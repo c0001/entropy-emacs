@@ -48,48 +48,46 @@
 ;; ** library
 (defvar entropy/emacs-popwin-union-rule-map)
 (setq entropy/emacs-popwin-union-rule-map
-      '((:regexp
-         :all (lambda (x rule) (list :regexp x)))
+      `((:regexp
+         :all ,(lambda (x _rule) (list :regexp x)))
         (:select
-         :shackle (lambda (x rule) (list :select x)))
+         :shackle ,(lambda (x _rule) (list :select x)))
         (:align
-         :shackle (lambda (x rule)
-                    (list :align
-                          (cl-case x
-                            (bottom 'below)
-                            (top 'above)
-                            (t
-                             x)))))
+         :shackle
+         ,(lambda (x _rule)
+            (list :align
+                  (cl-case x
+                    (bottom 'below)
+                    (top 'above)
+                    (t x)))))
         (:size
-         :shackle (lambda (x rule) (list :size x)))
+         :shackle ,(lambda (x _rule) (list :size x)))
         (:autoclose
-         :shackle (lambda (x rule) (list :autoclose x)))
+         :shackle ,(lambda (x _rule) (list :autoclose x)))
         (:dedicated
-         :shackle (lambda (x rule) (list :popup (null x))))))
+         :shackle ,(lambda (x _rule) (list :popup (null x))))))
 
 (defun entropy/emacs-popwin-make-rule-spec
     (type eemacs-popwin-rule-list)
   (let (rtn)
     (dolist (rule eemacs-popwin-rule-list)
       (let* ((condition (car rule))
-             (attrs (cdr rule))
-             (cnt 0)
-             (maxlen (length attrs))
-             (rule-transed (list condition)))
+             (attrs     (cdr rule))
+             (maxlen    (length attrs))
+             (rule-transed (list condition))
+             (cnt 0))
         (while (<= cnt (- maxlen 2))
           (let* ((slot (nth cnt attrs))
                  (slot-value (nth (+ 1 cnt) attrs))
-                 (trans-func (or (plist-get
-                                  (alist-get slot entropy/emacs-popwin-union-rule-map)
-                                  type)
-                                 (plist-get
-                                  (alist-get slot entropy/emacs-popwin-union-rule-map)
-                                  :all))))
-            (setq rule-transed
-                  (append rule-transed
-                          (funcall trans-func slot-value rule))
-                  cnt (+ 2 cnt))))
-        (setq rtn (append rtn (list rule-transed)))))
+                 (mth (alist-get slot entropy/emacs-popwin-union-rule-map))
+                 (trans-func (or (plist-get mth type) (plist-get mth :all))))
+            (when trans-func
+              (entropy/emacs-nconc-with-setvar-use-rest rule-transed
+                (funcall trans-func slot-value rule)))
+            (setq cnt (+ 2 cnt))))
+        (entropy/emacs-nconc-with-setvar-use-rest rtn
+          (list rule-transed))))
+    ;; return
     rtn))
 
 (defvar entropy/emacs-popwin-regists)
