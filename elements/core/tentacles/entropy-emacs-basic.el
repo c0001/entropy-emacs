@@ -704,21 +704,23 @@ symbolic link."
     (interactive nil dired-mode)
     (unless (eq major-mode 'dired-mode)
       (user-error "Can not invoke this command out of `dired-mode'."))
-    (let* ((current-relfname (or (let ((f (dired-get-filename nil t)))
-                                   (ignore-errors
-                                     (entropy/emacs-make-relative-filename
-                                      f
-                                      ;; NOTE: we can not use
-                                      ;; `dired-current-directory' since
-                                      ;; it has been hacked by
-                                      ;; `dired-subtree' which also
-                                      ;; recognize the subtree item path
-                                      default-directory)))
-                                 (user-error "No on an dired file line!")))
-           (file-use-external-p (and
-                                 (not (file-directory-p current-relfname))
-                                 (entropy/emacs-find-file-judge-filename-need-open-with-external-app-p
-                                  current-relfname)))
+    (let* ((current-relfname
+            (or (let ((f (dired-get-filename nil t)))
+                  (ignore-errors
+                    (entropy/emacs-make-relative-filename
+                     f
+                     ;; NOTE: we can not use
+                     ;; `dired-current-directory' since
+                     ;; it has been hacked by
+                     ;; `dired-subtree' which also
+                     ;; recognize the subtree item path
+                     default-directory)))
+                (user-error "No on an dired file line!")))
+           (file-use-external-p
+            (and
+             (not (file-directory-p current-relfname))
+             (entropy/emacs-find-file-judge-filename-need-open-with-external-app-p
+              current-relfname)))
            current-relfname-symlink-p)
       (if file-use-external-p
           (find-file current-relfname)
