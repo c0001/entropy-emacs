@@ -4051,90 +4051,99 @@ so that there's no need to call the checker again."
     (entropy/emacs-filesystem-node-exists-p
      filesystem-node-name return-file-attributes)))
 
-(cl-defun entropy/emacs-filesystem-node-is-symlink-p
+(entropy/emacs-!cl-defun entropy/emacs-filesystem-node-is-symlink-p
     (filesystem-node-name
-     &optional attributes
-     &key
-     with-validation with-chase-all-validation
-     validation-with-file-attributes)
-  "Return the FILESYSTEM-NODE-NAME pointed FILESYSTEM-NODE's
-=first-target= only when FILESYSTEM-NODE is a symbolic link, nil
-otherwise.
+     &optional attributes &key with-chase-all)
+  "Return LINK-DESC when FILESYSTEM-NODE-NAME pointed FILESYSTEM-NODE is
+a symbolic link. Or nil if it's not of thus.
 
-=first-target= is obtained by `file-truename' with
-FILESYSTE-NODE-NAME.
+The LINK-DESC is a list of elements orderred as:
+1) the target filesystem node name which FILESYSTEM-NODE linked
+   to. (or cons of it and its absolute name when it is a relative
+   name. This exists since this function's internal need to retrieve
+   the absolute name for getting its `file-attributes', and then
+   return for user which then no need to calculated that again in the
+   rule for what we did so what we should return)
+2) the target filesystem node's `file-attribtues' when it's existed or
+   nil otherwise.
+3) FILESYSTEM-NODE-NAME
+4) FILESYSTEM-NODE's `file-attribtues'.
 
-When FILESYSTEM-NODE is a symbolic link, if either or both of
-WITH-VALIDATION and/or WITH-CHASE-ALL-VALIDATION is set, the return is
-a cons of =first-target= and a plist =target-desc-plist=.
+If ATTRIBUTES is non-nil, it is used as the `file-attributes' for
+FILESYSTEM-NODE-NAME where in which case FILESYSTEM-NODE-NAME is
+ignored. This optional argument exists for preventing duplicated
+invoking `file-attributes' for that file where indeed the internal of
+this function needs to did thus if ATTRIBUTES is nil.
 
-When WITH-VALIDATION is set non-nil , which has two keys used with
-meaningful to =target-desc-plist=:
+If WHICH-CHASE-ALL is non-nil, then return a LINK-CHASE-DESC, which is
+a cons of car of a integer called CHASE-TIMES inidcates how many
+chasing is did thru FILESYSTEM-NODE and cdr of a list of LINK-DESCs
+which orderred from the latest chasing one to
+FILESYSTEM-NODE. WITH-CHASE-ALL can be either a non-zero `natnump'
+integer which indicates the max chasing restriction or any other
+non-nil object which say chasing to the last one who is a symbolic
+link.  When WHICH-CHASE-ALL is set as thus restriction integer,
+CHASE-TIMES is always `<=' it (of `<' when the chasing end times is
+still smaller than the restriction), otherwise that CHASE-TIMES is
+increased as possible as the reality allowed. Whatever WHICH-CASE-ALL
+is, CHASE-TIMES is always `=' the length of the `cdr' of the returned
+LINK-CHASE-DESC as it's designed for.
 
-1. `:symlink-first-target-absolute-path':
+NOTE:
 
-   the absolute path of =first-target=.
-
-2. `symlink-first-target-existence':
-
-   non-nil while `:symlink-first-target-absolute-path' is existed, nil
-   otherwise.
-
-When WITH-CHASE-ALL-VALIDATION is set, two keys will be used with
-meaningfull to =target-desc-plist= and they are:
-1. `:symlink-final-target-absolute-path':
-
-   `null' when the =first-target= is not a symbolic link or
-   the symbolic linkage's chasing end path of the FILESYSTEM-NODE.
-
-2. `:symlink-final-target-existence':
-
-   non-nil while ':symlink-final-target-absolute-path' is existed, nil
-   otherwise.
-
-When VALIDATION-WITH-FILE-ATTRIBUTES is set non-nil, for
-=target-desc-plist='s both `:symlink-first-target-existence' and
-`:symlink-final-target-existence' are set to their absolute path's
-`file-attributes' or nil while corresponding path is not existed.
-
-All the existence check is powered by `entropy/emacs-filesystem-node-exists-p'.
-
-If optional argument ATTRIBUTES is set, it should be the non-nil
-return of `file-attributes' of FILESYSTEM-NODE-NAME, and we use it
-internally to reduce the duplicated `file-attributes' computation.
-"
-  (unless (directory-name-p filesystem-node-name)
-    (let ((general-result (or (and attributes (file-attribute-type attributes))
-                              (file-symlink-p filesystem-node-name)))
-          first-dest-abs-path first-dest-fattrs
-          final-dest-abs-path final-dest-fattrs)
-      (when general-result
-        (if (not (or with-validation with-chase-all-validation)) general-result
-          (when with-validation
-            (setq first-dest-abs-path
-                  (if (file-name-absolute-p general-result)
-                      general-result
-                    (expand-file-name
-                     general-result
-                     (file-name-directory filesystem-node-name)))
-                  first-dest-fattrs
-                  (entropy/emacs-filesystem-node-exists-p
-                   first-dest-abs-path validation-with-file-attributes)))
-          (when with-chase-all-validation
-            (setq final-dest-abs-path
-                  (file-truename filesystem-node-name)
-                  final-dest-fattrs
-                  (entropy/emacs-filesystem-node-exists-p
-                   final-dest-abs-path validation-with-file-attributes)))
-          (cons general-result
-                (list :symlink-first-target-absolute-path
-                      first-dest-abs-path
-                      :symlink-first-target-existence
-                      first-dest-fattrs
-                      :symlink-final-target-absolute-path
-                      final-dest-abs-path
-                      :symlink-final-target-existence
-                      final-dest-fattrs)))))))
+For non-limited chasing, user should note the infinitely loop for
+nested linkage."
+  (entropy/emacs-when-let*-firstn 4
+      ((top-fname filesystem-node-name)
+       (top-fattr (entropy/emacs--filesystem-node-exists-p
+                   top-fname t attributes))
+       (top-ftype (file-attribute-type top-fattr))
+       ((setq top-ftype (and (stringp top-ftype) top-ftype)))
+       (top-ftype-abs
+        (when (and with-chase-all (not (file-name-absolute-p top-ftype)))
+          (expand-file-name top-ftype (file-name-directory top-fname))))
+       (func
+        (lambda (x xattr nx nx-abs nxattr)
+          (list (if nx-abs (cons nx nx-abs) nx) nxattr
+                x xattr))))
+    (if (not with-chase-all)
+        (funcall func top-fname top-fattr top-ftype top-ftype-abs
+                 (file-attributes (or top-ftype-abs top-ftype)))
+      (let* ((times (cond
+                     ((integerp with-chase-all)
+                      (if (> with-chase-all 0) with-chase-all
+                        (entropy/emacs-!error
+                         "chase times %s is not larger than 0"
+                         with-chase-all)))
+                     (t 'all)))
+             (ntimes 0)
+             (chase-all (eq times 'all))
+             (nfunc
+              (lambda (x xattr)
+                (entropy/emacs-when-let*-firstn 3
+                    ((extp xattr)
+                     (fnnm (file-attribute-type extp))
+                     ((setq fnnm (and (stringp fnnm) fnnm)))
+                     (fnnm-abs
+                      (when (not (file-name-absolute-p fnnm))
+                        (expand-file-name fnnm (file-name-directory x))))
+                     (fnextp (entropy/emacs-filesystem-node-exists-p
+                              (or fnnm-abs fnnm) t)))
+                  (cl-incf ntimes)
+                  (unless chase-all (cl-decf times))
+                  (funcall func x xattr fnnm fnnm-abs fnextp))))
+             (nfunc-rtn (funcall nfunc top-fname top-fattr))
+             (regl (list nfunc-rtn))
+             tmpvar)
+        (while (and (or chase-all (> times 0))
+                    (entropy/emacs-setf-by-body nfunc-rtn
+                      (funcall nfunc
+                               (or (and (consp (setq tmpvar (car nfunc-rtn)))
+                                        (cdar nfunc-rtn))
+                                   tmpvar)
+                               (cadr nfunc-rtn))))
+          (push nfunc-rtn regl))
+        (cons ntimes regl)))))
 
 (cl-defun entropy/emacs-filesystem-node--match-type-p
     (filesystem-node-type
