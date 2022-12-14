@@ -695,7 +695,11 @@ contents."
 ;; ******* Yet another `dired-find-file-other-window'
 
   (defun entropy/emacs-basic-dired-find-file-other-window ()
-    "Like `dired-find-file-other-window' but tied toi eemacs spec."
+    "Like `dired-find-file-other-window' but tied to eemacs spec.
+
+If `current-prefix-arg' is non-nil then chase the symbolic link
+target place while the selected item is a directory and also is a
+symbolic link."
     (declare (interactive-only t))
     (interactive nil dired-mode)
     (unless (eq major-mode 'dired-mode)
@@ -714,7 +718,8 @@ contents."
            (file-use-external-p (and
                                  (not (file-directory-p current-relfname))
                                  (entropy/emacs-find-file-judge-filename-need-open-with-external-app-p
-                                  current-relfname))))
+                                  current-relfname)))
+           current-relfname-symlink-p)
       (if file-use-external-p
           (find-file current-relfname)
         (unless (entropy/emacs-window-auto-center-mode-base-condition-satisfied-judge)
@@ -727,7 +732,15 @@ contents."
                        (frame-width))))
           (other-window 1)
           (if (file-directory-p current-relfname)
-              (dired current-relfname)
+              (if (and current-prefix-arg
+                       (setq current-relfname-symlink-p
+                             (car
+                              (entropy/emacs-filesystem-node-is-symlink-p
+                               current-relfname))))
+                  (dired (if (consp current-relfname-symlink-p)
+                             (car current-relfname-symlink-p)
+                           current-relfname-symlink-p))
+                (dired current-relfname))
             (find-file current-relfname))))))
 
 ;; ******* Delete directory with force actions
