@@ -141,42 +141,6 @@ version doesn't has such feature.
   (defalias 'entropy/emacs-get-buffer-create #'get-buffer-create))
 
 ;; *** subr*
-(defun entropy/emacs-macroexp-progn (exps)
-  "Return EXPS (a list of expressions) with `progn' prepended.
-If EXPS is a list with a single expression, `progn' is not
-prepended, but that expression is returned instead. Return nil if
-EXPS is nil.
-
-See also `entropy/emacs-macroexp-rest'."
-  (if (cdr exps) `(progn ,@exps) (car exps)))
-
-(defsubst entropy/emacs-macroexp-rest (args)
-  "Return ARGS when it's not `null' or a new list as `(nil)' otherwise.
-
-This function exists for preventing omitting ARGS expanded in `&rest',
-BODY or FORMS requested context by `,@' in `backquote' forms.
-
-See also `entropy/emacs-macroexp-progn'."
-  (or args (list nil)))
-
-(defmacro entropy/emacs-setf-by-body (var &rest body)
-  "Run BODY and using its last form's evaluated value set to a
-generalized variable VAR i.e rely on `setf'. Return VAR's new
-value.
-
-The main exist reason for this macro is used to clear out the
-lisp coding indentation."
-  (declare (indent defun))
-  (when body `(setf ,var ,(entropy/emacs-macroexp-progn body))))
-
-(defmacro entropy/emacs-setf-by-func (var func &rest args)
-  "Call FUNCTION with its ARGS and set its value to variable VAR by
-`setf'. Return FUNC's evaluated value.
-
-The main exist reason for this macro is used to clear out the
-lisp coding indentation."
-  (declare (indent defun))
-  `(setf ,var (apply ,func ,@(entropy/emacs-macroexp-rest args))))
 
 (cl-defun entropy/emacs--get-def-body (list-var &optional with-safe)
   "Get BODY inside of plist like list LIST-VAR, commonly is the
@@ -207,6 +171,54 @@ To get the real-body in BODY use
           (throw 'break
                  (if (not with-safe) it
                    (or it (list nil)))))))))
+
+(defun entropy/emacs-macroexp-progn (exps)
+  "Return EXPS (a list of expressions) with `progn' prepended.
+If EXPS is a list with a single expression, `progn' is not
+prepended, but that expression is returned instead. Return nil if
+EXPS is nil.
+
+See also `entropy/emacs-macroexp-rest'."
+  (if (cdr exps) `(progn ,@exps) (car exps)))
+
+(defsubst entropy/emacs-macroexp-rest (args)
+  "Return ARGS when it's not `null' or a new list as `(nil)' otherwise.
+
+This function exists for preventing omitting ARGS expanded in `&rest',
+BODY or FORMS requested context by `,@' in `backquote' forms.
+
+See also `entropy/emacs-macroexp-progn'."
+  (or args (list nil)))
+
+(cl-defmacro entropy/emacs-let-it-as
+    (exp &rest body &key with-it-as &allow-other-keys)
+  "Bind EXP's value as `let' local var `it' then evaluate BODY and
+return its value.
+
+If WITH-IT-AS set non-nil, it should be explicitly set as a
+symbol used instead of `it'."
+  (declare (indent 1))
+  (let ((it-sym (or with-it-as 'it)))
+    `(let ((,it-sym ,exp)) ,@(entropy/emacs--get-def-body body))))
+
+(defmacro entropy/emacs-setf-by-body (var &rest body)
+  "Run BODY and using its last form's evaluated value set to a
+generalized variable VAR i.e rely on `setf'. Return VAR's new
+value.
+
+The main exist reason for this macro is used to clear out the
+lisp coding indentation."
+  (declare (indent defun))
+  (when body `(setf ,var ,(entropy/emacs-macroexp-progn body))))
+
+(defmacro entropy/emacs-setf-by-func (var func &rest args)
+  "Call FUNCTION with its ARGS and set its value to variable VAR by
+`setf'. Return FUNC's evaluated value.
+
+The main exist reason for this macro is used to clear out the
+lisp coding indentation."
+  (declare (indent defun))
+  `(setf ,var (apply ,func ,@(entropy/emacs-macroexp-rest args))))
 
 (defun entropy/emacs-keywordp (object &optional can-be-var can-be-func)
   "Like `keywordp' but extended with eemacs terms. Return non-nil
