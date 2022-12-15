@@ -4092,7 +4092,10 @@ LINK-CHASE-DESC as it's designed for.
 NOTE:
 
 For non-limited chasing, user should note the infinitely loop for
-nested linkage."
+nested linkage. Where see
+`entropy/emacs-with-symbolic-filesystem-node' and
+`entropy/emacs-filesystem-node-is-circular-symlink-p' for more
+details."
   (entropy/emacs-when-let*-firstn 4
       ((top-fname filesystem-node-name)
        (top-fattr (entropy/emacs--filesystem-node-exists-p
@@ -4100,7 +4103,7 @@ nested linkage."
        (top-ftype (file-attribute-type top-fattr))
        ((setq top-ftype (and (stringp top-ftype) top-ftype)))
        (top-ftype-abs
-        (when (and with-chase-all (not (file-name-absolute-p top-ftype)))
+        (when (not (file-name-absolute-p top-ftype))
           (expand-file-name top-ftype (file-name-directory top-fname))))
        (func
         (lambda (x xattr nx nx-abs nxattr)
@@ -4144,6 +4147,111 @@ nested linkage."
                                (cadr nfunc-rtn))))
           (push nfunc-rtn regl))
         (cons ntimes regl)))))
+
+(cl-defmacro entropy/emacs-with-symbolic-filesystem-node
+    (filesystem-node-name &optional attributes
+                          &rest body
+                          &key with-it-as with-exit
+                          &allow-other-keys)
+  "Do BODY with all chased symbolic links subjected by a symbolic link
+FILESYSTEM-NODE pointed by FILESYSTEM-NODE-NAME. Optional ARRTRIBUTES
+is the `file-attributes' of FILESYSTEM-NODE which if is not given will
+be calculated internally.
+
+If FILESYSTEM-NODE is not a symbolic link which can be predicated by
+`entropy/emacs-filesystem-node-is-symlink-p' (termed as PRED), do
+nothing.
+
+From the FILESYSTEM-NODE, bind each symbolic link node predicated
+result by PRED to a symbol `it' (or any other symbol explicitly set by
+WITH-IT-AS), which can be used for any part of BODY. Terminated the
+loop while BODY return non-nil only when WITH-EXIT set and return
+non-nil. Thus the BODY's value is meaningful in that case.
+
+NOTE:
+
+Do not modify `it' or do any side-effects on it since `it''s value
+also used for next chasing preparation, thus the modification may be a
+messy."
+  (declare (indent 2))
+  (let ((it-sym (or with-it-as 'it))
+        (tfname-sym (make-symbol "tfname"))
+        (tfattr-sym (make-symbol "tfattr"))
+        (cfname-sym (make-symbol "cfname"))
+        (cfattr-sym (make-symbol "cfattr"))
+        (wexit-sym   (make-symbol "exit"))
+        (tmpvar-sym (make-symbol "tmpvar"))
+        (bdval-sym  (make-symbol "body-value")))
+    `(let ((,tfname-sym ,filesystem-node-name)
+           (,tfattr-sym ,attributes)
+           (,cfname-sym nil) (,cfattr-sym nil)
+           (,it-sym nil) (,tmpvar-sym nil)
+           (,wexit-sym ,with-exit)
+           (,bdval-sym nil))
+       (while (and (if ,wexit-sym (not ,bdval-sym) t)
+                   (entropy/emacs-setf-by-body ,it-sym
+                     (entropy/emacs-filesystem-node-is-symlink-p
+                      (or ,cfname-sym ,tfname-sym)
+                      (if ,cfname-sym ,cfattr-sym ,tfattr-sym))))
+         (setq ,cfname-sym
+               (if (consp (setq ,tmpvar-sym (car ,it-sym)))
+                   (cdr ,tmpvar-sym) ,tmpvar-sym)
+               ,cfattr-sym (cadr ,it-sym))
+         (entropy/emacs-setf-by-body ,bdval-sym
+           ,@(entropy/emacs-defun--get-real-body body t))))))
+
+(defun entropy/emacs-filesystem-node-is-circular-symlink-p
+    (filesystem-node-name &optional attributes)
+  "Return non-nil when the FILESYSTEM-NODE pointed by
+FILESYSTEM-NODE-NAME is a circular symbolic link, return nil
+otherwise. Optional ARRTRIBUTES is the `file-attributes' of
+FILESYSTEM-NODE which if is not given will be calculated internally.
+
+A circular symbolic link has a subject who is either a symbolic link
+but point to a already chased filesystem node via one of the previous
+symbolic link in the whole chasing procedure, thus called as circular
+linkage.
+
+The non-nil return is termed as LINK-CIRCULAR-DESC which is a cons
+where the cdr is a list of chased links' LINK-DESCs (see
+`entropy/emacs-filesystem-node-is-symlink-p') from the one of
+FILESYSTEM-NODE to the one (termed as LINK-DESC-CIRCULAR-END) of the
+node begin circular and that list termed as
+LINK-CIRCULAR-DESC-PATH. The car of that non-nil return was the
+indexes `cons' whose car is the index of LINK-CIRCULAR-DESC-PATH where
+LINK-DESC-CIRCULAR-END point to i.e. that LINK-DESC is termed as
+LINK-DESC-CIRCULAR-BEGIN, and the cdr is the index of
+LINK-CIRCULAR-DESC-PATH where that LINK-DESC is indeed the
+LINK-DESC-CIRCULAR-END i.e. the last item of LINK-CIRCULAR-DESC-PATH.
+
+#+begin_quote
+Although there's no need to given out the tail index of a circular in
+LINK-CIRCULAR-DESC but we did and ensure that's necessary since we've
+tracked that as the `length' of LINK-CIRCULAR-DESC-PATH so that the
+return must has that information what prevents duplicated calculation
+in context, and in other words, the region given style can be used in
+various emacs lisp list APIs' \"from to\" parameters.
+#+end_quote
+"
+  (let* (regl
+         (tcnt -1) hcnt
+         (func
+          (lambda (x)
+            (let ((indx 0))
+              (cl-dolist (y regl)
+                (cl-incf indx)
+                (when (entropy/emacs-existed-filesystem-nodes-equal-p
+                       (nth 2 x) (nth 2 y) nil
+                       (nth 3 x) (nth 3 y))
+                  (setq hcnt (- (length regl) indx))
+                  (cl-return (cons x y)))))))
+         rtn)
+    (entropy/emacs-with-symbolic-filesystem-node
+        filesystem-node-name attributes
+      :with-exit t
+      (prog1 (setq rtn (funcall func it))
+        (unless rtn (cl-incf tcnt) (push it regl))))
+    (if rtn (cons (cons hcnt tcnt) (nreverse regl)))))
 
 (cl-defun entropy/emacs-filesystem-node--match-type-p
     (filesystem-node-type
@@ -6370,7 +6478,10 @@ type:
     rtn))
 
 (defun entropy/emacs-existed-filesystem-nodes-equal-p
-    (filesystem-node1 filesystem-node2 &optional chase-link)
+    (filesystem-node1 filesystem-node2
+                      &optional chase-link
+                      filesystem-node1-attributes
+                      filesystem-node2-attributes)
   "Alternative to `file-equal-p' but using `file-attributes' and
 `file-remote-p' to distinguish the return.
 
@@ -6391,7 +6502,13 @@ case symlinks to a same node is also recognize as same node.
 
 Always return nil, when any of FILESYSTEM-NODE1 or
 FILESYSTEM-NODE2 is not predicated by
-`entropy/emacs-filesystem-node-exists-p'."
+`entropy/emacs-filesystem-node-exists-p'.
+
+Optional arguments FILESYSTEM-NODE1-ATTRIBUTES and
+FILESYSTEM-NODE2-ATTRIBUTES are `file-attributes' of FILESYSTEM-NODE1
+and FILESYSTEM-NODE2 respectively, used to prevent duplicate invoking
+that if context has calculated yet which indeed this function's
+internal maybe used which will be generated if not given by caller."
   (catch :exit
     (let ((f1-rp (file-remote-p filesystem-node1))
           (f2-rp (file-remote-p filesystem-node2)))
@@ -6411,8 +6528,10 @@ FILESYSTEM-NODE2 is not predicated by
       (when chase-link
         (setq filesystem-node1 (file-truename filesystem-node1)
               filesystem-node2 (file-truename filesystem-node2)))
-      (let ((f1-p (entropy/emacs-filesystem-node-exists-p filesystem-node1 t))
-            (f2-p (entropy/emacs-filesystem-node-exists-p filesystem-node2 t)))
+      (let ((f1-p (entropy/emacs--filesystem-node-exists-p
+                   filesystem-node1 t filesystem-node1-attributes))
+            (f2-p (entropy/emacs--filesystem-node-exists-p
+                   filesystem-node2 t filesystem-node2-attributes)))
         (when (and f1-p f2-p)
           (and
            ;; same device judge
