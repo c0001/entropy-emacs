@@ -2207,6 +2207,21 @@ window point not shown in nice place e.g. at window bottom."
   )
 
 ;; *** Image-mode
+
+;; inhibit `buffer-undo-list' bind in below buffers since:
+;; 1. its unnecessary for a image display buffer
+;; 2. the `buffer-undo-list' will became huge when images switched
+;;    times since it records all displayed images raw data!
+(setq image-dired-thumbnail-buffer
+      " *image-dired*")
+(setq image-dired-display-image-buffer
+      " *image-dired-display-image*")
+;; TODO: use `buffer-disable-undo' for hacking above referred buffer
+;; creation image-dired subroutines. Since we hack with a unusual
+;; buffer name which can not directly switched via candidates by most
+;; of `completing-read' based functions, because they are temporal
+;; buffer now.
+
 ;; **** union framework
 
 (use-package image-file

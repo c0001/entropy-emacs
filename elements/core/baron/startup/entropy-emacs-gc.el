@@ -177,7 +177,19 @@ origin, since each set to the `gc-threshold' or
      msg
      :with-temp-message t
      :ignore-current-messages (lambda (x) (string-match-p (regexp-quote msg) x))
-     (entropy/emacs-gc--with-record (garbage-collect)
+     (entropy/emacs-gc--with-record
+       ;; the `values' is a global host for all evaluations via `read'
+       ;; in current emacs session, thus is will be increased step by
+       ;; step til a huge one while encountering a large production
+       ;; expression be evaluated. So we should reset it to release
+       ;; its space.
+       (and
+        ;; but its just declared as obsolete above emacs-27, thus we
+        ;; still need to think about referred compatibility issues.
+        (> emacs-major-version 27)
+        (setq values (list t)))
+       ;; main
+       (garbage-collect)
        ;; FIXME: Since gc seems doesn't return the unsed heap to
        ;; system, so we must do it manually since for a days used
        ;; emacs session whose memory size used is crazy.
