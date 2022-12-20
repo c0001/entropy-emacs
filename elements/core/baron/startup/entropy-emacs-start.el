@@ -446,7 +446,6 @@ notation.
    :force-message-while-eemacs-init t
    (white "⮞")
    (blue "Loading minimal ......"))
-  (advice-add 'require :around #'entropy/emacs-start--advice-for-require-prompt)
 
   ;; external depedencies scan and loading
   (when entropy/emacs-fall-love-with-pdumper
@@ -481,8 +480,6 @@ notation.
   (entropy/emacs-start--require-with-duration-log 'entropy-emacs-structure)
 
   ;; ends for minimal start
-  (advice-remove 'require #'entropy/emacs-start--advice-for-require-prompt)
-
   (fmakunbound 'entropy/emacs-start-M-enable)
   (entropy/emacs-message-do-message
    "%s %s"
@@ -493,7 +490,6 @@ notation.
 ;; **** x enable
 (defun entropy/emacs-start-X-enable ()
   (interactive)
-  (advice-add 'require :around #'entropy/emacs-start--advice-for-require-prompt)
   (entropy/emacs-message-do-message
    "%s %s"
    :force-message-while-eemacs-init t
@@ -542,8 +538,6 @@ notation.
   ;; For game
   (entropy/emacs-start--require-with-duration-log 'entropy-emacs-game)
   ;; end
-  (advice-remove 'require #'entropy/emacs-start--advice-for-require-prompt)
-
   (fmakunbound 'entropy/emacs-start-X-enable)
   (entropy/emacs-message-do-message
    "%s %s"
@@ -711,11 +705,14 @@ Currently detected env variables:")
   (entropy/emacs-start-M-enable))
 
 (defun entropy/emacs-start--init-bingo ()
-  (cond
-   ((not entropy/emacs-minimal-start)
-    (entropy/emacs-start--init-X))
-   (entropy/emacs-minimal-start
-    (entropy/emacs-start--init-M))))
+  (advice-add 'require :around #'entropy/emacs-start--advice-for-require-prompt)
+  (unwind-protect
+      (cond
+       ((not entropy/emacs-minimal-start)
+        (entropy/emacs-start--init-X))
+       (entropy/emacs-minimal-start
+        (entropy/emacs-start--init-M)))
+    (advice-remove 'require #'entropy/emacs-start--advice-for-require-prompt)))
 
 ;; On win10 there's default global utf-8 operation system based
 ;; language environment setting supporting option. As when it enable,
