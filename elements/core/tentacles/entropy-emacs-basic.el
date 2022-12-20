@@ -2208,6 +2208,9 @@ window point not shown in nice place e.g. at window bottom."
 
 ;; *** Image-mode
 
+(defvar image-dired-thumbnail-buffer)
+(defvar image-dired-display-image-buffer)
+
 ;; inhibit `buffer-undo-list' bind in below buffers since:
 ;; 1. its unnecessary for a image display buffer
 ;; 2. the `buffer-undo-list' will became huge when images switched
