@@ -72,7 +72,7 @@ was using melpa upstream to give the default ignorance to
 =entropy-emacs-extension= manually download trouble, but in this case
 should notice the above mentioned compatible issues.
 
-Current =entropy-emacs-extensions= release version required: =1.0.1=
+Current =entropy-emacs-extensions= release version required: =3.0.7=
 
 *Make entropy-emacs*
 
