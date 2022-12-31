@@ -3942,8 +3942,11 @@ formatted in American style, e.g. Tuesday, November 15, 2022."
    ;; undo-tree can not enabled while pdumper
    :pdumper-no-end nil
    (global-undo-tree-mode t)
-   (global-set-key (kbd "C-x u") #'entropy/emacs-basic-do-undo)
-   (define-key undo-tree-map (kbd "\C-x u") nil))
+   (dolist (k (list "C-x u" "C-/"))
+     (global-set-key (kbd k) #'entropy/emacs-basic-do-undo)
+     ;; NOTE: Disbale the same keybindings overrided by undotree
+     ;; global mode map.
+     (define-key undo-tree-map (kbd k) nil)))
 
   :config
 
@@ -3957,6 +3960,11 @@ formatted in American style, e.g. Tuesday, November 15, 2022."
     "Do `undo' properly with eemacs spec."
     (declare (interactive-only t))
     (interactive)
+    (if (eq major-mode 'undo-tree-visualizer-mode)
+        (user-error "Has non meaning for this command in \
+`undo-tree-visualizer-mode'.")
+      (entropy/emacs-basic--do-undo-1)))
+  (defun entropy/emacs-basic--do-undo-1 nil
     (let* ((untree-ngc-p (entropy/emacs-basic--undotree-shouldnt-gc-p))
            (use-undotree-p
             ;; we just use `undo-tree' when there's no need to did gc
