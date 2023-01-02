@@ -945,13 +945,30 @@ This function is as the origin `outline-promote' but using
 
   (defun entropy/emacs-structure--outshine-gen-face-keywords (outline-regexp-spec times)
     (let ((outline-regex-head
+           ;; EEMACS_MAINTENANCE&FIXME:
+           ;;
+           ;; this regex head extractor assume that a
+           ;; `outline-regexp-spec' is formed as:
+           ;; #+begin_example
+           ;; <xxx>[\\{1,MAXNUM\\}][comment-panding]
+           ;; #+end_example
+           ;; Where =<>= notation stands for must presented string and
+           ;; =[]= as optional.
+           ;;
+           ;; Which this is the default output format of
+           ;; `outshine-calc-outline-regexp' where is not an API and
+           ;; maybe changed of upstream's updates althouth `outshine'
+           ;; seems archived without activities anymore.
            (substring outline-regexp-spec
                       0
                       (- 0
-                         (+ 7
+                         (+ 6           ;base "\{1,\}" iterator length
+                            ;; the length of repeater "*" for what "\{1,X\}"'s X place
                             (length
                              (number-to-string
-                              outshine-max-level))))))
+                              outshine-max-level))
+                            ;; and the tail padding length
+                            (length (or (outshine-calc-comment-padding) ""))))))
           func rtn)
       (setq func
             (lambda (level)
@@ -983,9 +1000,9 @@ This function is as the origin `outline-promote' but using
   (defvar entropy/emacs-structure--outshine-level-face-has-generated nil)
   (defun entropy/emacs-structure--outshine-batch-gen-outshine-level-faces ()
     "Batch generate outshine-level face according to `outshine-max-level'."
-    (when (and (> outshine-max-level
-                  entropy/emacs-structure--outshine-face-level-max-level)
-               (null entropy/emacs-structure--outshine-level-face-has-generated))
+    (when (and (null entropy/emacs-structure--outshine-level-face-has-generated)
+               (> outshine-max-level
+                  entropy/emacs-structure--outshine-face-level-max-level))
       (let* ((max-face-level entropy/emacs-structure--outshine-face-level-max-level)
              (top-map (cl-loop for step from (+ max-face-level 1) to outshine-max-level
                                collect step))
@@ -1004,18 +1021,16 @@ This function is as the origin `outline-promote' but using
             (cl-incf turn)))
         (setq maplist (reverse maplist))
         (dolist (map maplist)
-          (let ((face-inherit-indicator 1))
+          (let ((face-inherit-indicator 1) face-name)
             (dolist (face-suffix map)
+              (setq face-name (intern (format "outshine-level-%s" face-suffix)))
               (funcall
                `(lambda ()
-                  (defface ,(intern (format "outshine-level-%s" face-suffix))
-                    '((t ()))
+                  (defface ,face-name '((t ()))
                     ,(format "Face used for level %s headlines"
                              face-suffix))
                   (set-face-attribute
-                   ',(intern (format "outshine-level-%s" face-suffix))
-                   nil
-                   :inherit
+                   ',face-name nil :inherit
                    ',(intern (format "outshine-level-%s"
                                      face-inherit-indicator)))))
               (cl-incf face-inherit-indicator))))))
