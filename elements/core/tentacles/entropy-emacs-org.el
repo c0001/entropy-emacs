@@ -1267,9 +1267,9 @@ normally while that."
      ("C-c C-x C-p" org-previous-link
       "Move backward to the previous link"
       :enable t :map-inject t :exit t) ;; All the other keys
-     ("<f2>" org-toggle-link-display
+     ("C-x C-l" org-toggle-link-display
       "Toggle the literal or descriptive display of links"
-      :enable t :map-inject nil :exit t)
+      :enable t :map-inject t :exit t)
      )))
 
 

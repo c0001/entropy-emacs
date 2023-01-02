@@ -473,9 +473,9 @@ overflow hr line e.g. display in eldoc."
      ("C-c C-x C-i" markdown-toggle-inline-images
       "Toggle inline image overlays in the buffer"
       :enable t :exit t :map-inject t)
-     ("<f2>" markdown-toggle-url-hiding
+     ("C-x C-l" markdown-toggle-url-hiding
       "Toggle the display or hiding of URLs"
-      :enable t :exit t :map-inject nil)
+      :enable t :exit t :map-inject t)
      ("C-c C-x C-m" markdown-toggle-markup-hiding
       "Toggle the display or hiding of markup"
       :enable t :exit t :map-inject t))
