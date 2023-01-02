@@ -34,7 +34,12 @@
 (use-package outline
   :ensure nil
   :preface
-  (defvar outline-regexp))
+  (defvar outline-regexp)
+  :init
+  ;; make `outline-minor-mode' enabled in markdown mode since its
+  ;; based on thus so that we can invoke some eemacs outline specs for
+  ;; markdown as well.
+  (add-hook 'markdown-mode-hook #'outline-minor-mode))
 
 ;; ** libraries
 ;; function for universal code folding
@@ -423,7 +428,8 @@ want to preserve the source demo."
     nil)
   (defun entropy/emacs-outshine-cycle-buffer (&optional arg)
     "Like `outshine-cycle-bufer' but only based on `outline' so that it can
-be used in `org-mode' too.
+be used in `org-mode' and even for `markdown-mode' which also
+based on `outline' too.
 
 Rotate the visibility state of the buffer through 3 states:
 
@@ -434,7 +440,7 @@ Rotate the visibility state of the buffer through 3 states:
 - SHOW ALL: Show everything.
 
 With a numeric prefix ARG and is numberic, show all headlines up to
-that level i.e. matched show type OVERVIEW, show 'SHOW ALL' if the the
+that level i.e. matched show type `OVERVIEW', show `SHOW ALL' if the the
 prefix ARG is the pure single `C-u' type, further more show CONTENTS
 if it is double prefix type, and any other prefix type fallback to
 OVERVIEW status use `prefix-numeric-value' and `log' base on 4 to
@@ -445,37 +451,57 @@ recalc the specified head level specification.
             (bound-and-true-p outshine-mode)
             (bound-and-true-p outline-minor-mode)
             (derived-mode-p 'outline-mode))
-        (let ((outline-level-get-func
-               (cond
-                ((bound-and-true-p outshine-mode)
-                 'outshine-calc-outline-level)
-                ((eq major-mode 'org-mode)
-                 'org-outline-level)
-                (t
-                 (lambda ()
-                   (save-excursion
-                     (save-restriction
-                       (widen)
-                       (forward-line 0)
-                       (progn (outline-back-to-heading)
-                              (outline-level))))))))
-              (lscmd-eq-func
-               (lambda (type)
-                 (and (null current-prefix-arg)
-                      (eq entropy/emacs-outshine-current-buffer-visibility-state
-                          type))))
-              (cycle-type-msg-func
-               (lambda (type &optional other-msg)
-                 (let ((type-assoc
-                        '((overview . "OVERVIEW")
-                          (contents . "CONTENTS")
-                          (all      . "SHOW ALL"))))
-                   (message "[Outline cycle for type] \"%s\" done. (%s)"
-                            (or (alist-get type type-assoc)
-                                (error "wrong type of outline cycle type '%s'"
-                                       type))
-                            (or other-msg
-                                "-v-"))))))
+        (let* ((headp-judge-func
+                (lambda nil
+                  (save-excursion
+                    (funcall
+                     (cond ((derived-mode-p 'markdown-mode)
+                            (lambda nil
+                              (when-let ((mt (markdown-on-heading-p)))
+                                ;; EEMACS_MAINTENANCE&NOTE&FIXME:
+                                ;; `markdown-on-heading-p' return
+                                ;; non-nil as its API declaration but
+                                ;; it indeed a `match-data' by inspect
+                                ;; its source code, but that's not
+                                ;; guaranteed always of thus for
+                                ;; future updates.
+                                (goto-char (car mt))
+                                ;; generate match-data for outline-level calculation
+                                (re-search-forward outline-regexp nil t))))
+                           (t 'outline-on-heading-p))))))
+               (outline-level-get-func
+                (lambda (&optional nojudge)
+                  ;; we always check whether it's a header line first
+                  ;; since `outline-level' need the former's match
+                  ;; data, but for variants as for org mode internally
+                  ;; judged so we provide a `nojudge' arg for skip
+                  ;; this check.
+                  (and (or nojudge (funcall headp-judge-func))
+                       (save-excursion
+                         (funcall
+                          (cond
+                           ((bound-and-true-p outshine-mode)
+                            'outshine-calc-outline-level)
+                           ((derived-mode-p 'org-mode)
+                            'org-outline-level)
+                           (t 'outline-level)))))))
+               (lscmd-eq-func
+                (lambda (type)
+                  (and (null current-prefix-arg)
+                       (eq entropy/emacs-outshine-current-buffer-visibility-state
+                           type))))
+               (cycle-type-msg-func
+                (lambda (type &optional other-msg)
+                  (let ((type-assoc
+                         '((overview . "OVERVIEW")
+                           (contents . "CONTENTS")
+                           (all      . "SHOW ALL"))))
+                    (message "[Outline cycle for type] \"%s\" done. (%s)"
+                             (or (alist-get type type-assoc)
+                                 (error "wrong type of outline cycle type '%s'"
+                                        type))
+                             (or other-msg
+                                 "-v-"))))))
           (save-excursion
             (cond
              ;; -------------------- condition (1) with numberic prefix arg
@@ -498,7 +524,7 @@ recalc the specified head level specification.
               ;; NOTE: firstly we must fold to top-level since the
               ;; fully expanded children will not be fold while
               ;; `outline-show-branches'
-              (condition-case nil
+              (condition-case err
                   (outline-hide-sublevels
                    ;; found the first head as the toplevel result since we
                    ;; can not cycle through abnormal head structure.
@@ -506,12 +532,12 @@ recalc the specified head level specification.
                      (save-match-data
                        (goto-char (point-min))
                        (when (re-search-forward outline-regexp nil t)
-                         (beginning-of-line)
-                         (funcall outline-level-get-func)))))
+                         (funcall outline-level-get-func 'nojudge)))))
                 (error
                  (user-error
-                  "No outline heading found in this buffer according to `outline-regexp': %s"
-                  outline-regexp)))
+                  "No outline heading found in this buffer according to \
+`outline-regexp': %s (error: %S)"
+                  outline-regexp err)))
 
               ;; Visit all headings and show their offspring
               (goto-char (point-max))
@@ -547,11 +573,9 @@ recalc the specified head level specification.
                        ;; since 1 or 2 reflects `current-prefix-arg'
                        ;; is mapped with condition(3) and condition(2)
                        (floor (log (prefix-numeric-value current-prefix-arg) 4)))
-                      ((save-excursion
-                         ;; use current heading level as matches
-                         (beginning-of-line)
-                         (looking-at outline-regexp))
-                       (max 1 (save-excursion (beginning-of-line) (funcall outline-level))))
+                      (;; use current heading level as matches
+                       (funcall headp-judge-func)
+                       (max 1 (funcall outline-level-get-func 'nojudge)))
                       (t
                        ;; NOTE:
                        ;; judge first head level if current buffer doesn't
@@ -561,8 +585,7 @@ recalc the specified head level specification.
                                 (save-match-data
                                   (goto-char (point-min))
                                   (when (re-search-forward outline-regexp nil t)
-                                    (beginning-of-line)
-                                    (funcall outline-level-get-func))))))
+                                    (funcall outline-level-get-func 'nojudge))))))
                          (or first-level 1))))))
                 (outline-hide-sublevels toplevel)
                 (setq
@@ -1081,10 +1104,12 @@ Otherwise, fallback to the original binding of %s in the current mode."
              which))
 
   (outshine-define-key outshine-mode-map
-    (kbd "M-S-<left>") 'entropy/emacs-structure-outshine-promote-command
+    (kbd entropy/emacs-ukrd-ouline-promote-sutree)
+    'entropy/emacs-structure-outshine-promote-command
     (outline-on-heading-p))
   (outshine-define-key outshine-mode-map
-    (kbd "M-S-<right>") 'entropy/emacs-structure-outshine-demote-command
+    (kbd entropy/emacs-ukrd-ouline-demote-sutree)
+    'entropy/emacs-structure-outshine-demote-command
     (outline-on-heading-p))
 
   (outshine-define-key outshine-mode-map
@@ -1096,13 +1121,13 @@ Otherwise, fallback to the original binding of %s in the current mode."
     (kbd "C-c C-p")
     #'entropy/outshine-previous-visible-heading)
   (define-key outshine-mode-map
-    [M-up]
+    entropy/emacs-ukrd-ouline-prev-head
     #'entropy/outshine-previous-visible-heading)
   (define-key outshine-mode-map
     (kbd "C-c C-n")
     #'outline-next-visible-heading)
   (define-key outshine-mode-map
-    [M-down]
+    entropy/emacs-ukrd-ouline-next-head
     #'outline-next-visible-heading)
 
 ;; **** sepcial hooks defination

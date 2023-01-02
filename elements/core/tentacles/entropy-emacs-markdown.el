@@ -310,7 +310,7 @@ overflow hr line e.g. display in eldoc."
 ;; ***** hydra heads define
 
 (defvar entropy/emacs-markdown-pretty-hydra-heads-group-for-markdown-mode-map
-  '(
+  `(
 ;; ****** Markup insertion & removal
 
     "Markup insertion & removal"
@@ -392,10 +392,10 @@ overflow hr line e.g. display in eldoc."
 ;; ****** Heading and list navigation
 
     "Heading and list navigation"
-    (("C-c C-n" markdown-outline-next
+    ((,entropy/emacs-ukrd-ouline-next-head markdown-outline-next
       "Move to next list item, when in a list, or next visible heading"
       :enable t :exit t :map-inject t)
-     ("C-c C-p" markdown-outline-previous
+     (,entropy/emacs-ukrd-ouline-prev-head markdown-outline-previous
       "Move to previous list item, when in a list, or previous visible heading"
       :enable t :exit t :map-inject t)
      ("C-c C-f" markdown-outline-next-same-level
@@ -411,13 +411,17 @@ overflow hr line e.g. display in eldoc."
 ;; ****** Subtree, list, and table editing
 
     "Subtree, list, and table editing"
-    (("C-c <up>" markdown-move-up "Move thing at point up"
+    ((,entropy/emacs-ukrd-outline-move-subtree-up
+      markdown-move-up "Move thing at point up"
       :enable t :exit t :map-inject t)
-     ("C-c <down>" markdown-move-down "Move thing at point down"
+     (,entropy/emacs-ukrd-outline-move-subtree-down
+      markdown-move-down "Move thing at point down"
       :enable t :exit t :map-inject t)
-     ("C-c <left>" markdown-promote "Promote or move element at point to the left"
+     (,entropy/emacs-ukrd-ouline-promote-sutree
+      markdown-promote "Promote or move element at point to the left"
       :enable t :exit t :map-inject t)
-     ("C-c <right>" markdown-demote "Demote or move element at point to the right"
+     (,entropy/emacs-ukrd-ouline-demote-sutree
+      markdown-demote "Demote or move element at point to the right"
       :enable t :exit t :map-inject t)
      ("C-c S-<up>" markdown-table-delete-row "Delete row or horizontal line at point from the table"
       :enable t :exit t :map-inject t)
@@ -473,7 +477,7 @@ overflow hr line e.g. display in eldoc."
      ("C-c C-x C-i" markdown-toggle-inline-images
       "Toggle inline image overlays in the buffer"
       :enable t :exit t :map-inject t)
-     ("C-x C-l" markdown-toggle-url-hiding
+     (,entropy/emacs-ukrd-toggle-link-display markdown-toggle-url-hiding
       "Toggle the display or hiding of URLs"
       :enable t :exit t :map-inject t)
      ("C-c C-x C-m" markdown-toggle-markup-hiding
@@ -483,18 +487,19 @@ overflow hr line e.g. display in eldoc."
 ;; ****** Alternative keys (in case of problems with the arrow keys)
 
     "Alternative keys (in case of problems with the arrow keys)"
-    (("C-c C-x u" markdown-move-up
-      "Move thing at point up"
-      :enable t :exit t :map-inject t)
-     ("C-c C-x d" markdown-move-down
-      "Move thing at point down"
-      :enable t :exit t :map-inject t)
-     ("C-c C-x l" markdown-promote
-      "Promote or move element at point to the left"
-      :enable t :exit t :map-inject t)
-     ("C-c C-x r" markdown-demote
-      "Demote or move element at point to the right"
-      :enable t :exit t :map-inject t))
+    (;; ("C-c C-x u" markdown-move-up
+     ;;  "Move thing at point up"
+     ;;  :enable t :exit t :map-inject t)
+     ;; ("C-c C-x d" markdown-move-down
+     ;;  "Move thing at point down"
+     ;;  :enable t :exit t :map-inject t)
+     ;; ("C-c C-x l" markdown-promote
+     ;;  "Promote or move element at point to the left"
+     ;;  :enable t :exit t :map-inject t)
+     ;; ("C-c C-x r" markdown-demote
+     ;;  "Demote or move element at point to the right"
+     ;;  :enable t :exit t :map-inject t)
+     )
 
     ))
 

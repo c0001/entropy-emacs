@@ -885,26 +885,32 @@ normally while that."
 ;; ********** common move
 
 (defvar entropy/emacs-org-keymap-group-$common-move
-  '("Common move"
+  `("Common move"
     (("C-M-t" org-transpose-element
       "Transpose current and previous elements, keeping blank lines between"
       :enable t :map-inject t :exit t) ;; All the other keys
-     ("M-<down>" org-metadown
-      "Move subtree down or move table row down"
-      :enable t :map-inject t :exit t) ;; Cursor keys with modifiers
-     ("M-<up>" org-metaup
+
+     ;; NOTE: comment the origin M-<up|down|left|right> binding since
+     ;; we use eemacs specs
+     ;;
+     ;; ("M-<left>" org-metaleft
+     ;;  "Promote heading, list item at point or move table column left"
+     ;;  :enable t :map-inject t :exit t) ;; Cursor keys with modifiers
+     ;; ("M-<right>" org-metaright
+     ;;  "Demote heading, list item at point or move table column right"
+     ;;  :enable t :map-inject t :exit t) ;; Cursor keys with modifiers
+
+     (,entropy/emacs-ukrd-outline-move-subtree-up org-metaup
       "Move subtree up or move table row up"
       :enable t :map-inject t :exit t) ;; Cursor keys with modifiers
-     ("M-<left>" org-metaleft
-      "Promote heading, list item at point or move table column left"
+     (,entropy/emacs-ukrd-outline-move-subtree-down org-metadown
+      "Move subtree down or move table row down"
       :enable t :map-inject t :exit t) ;; Cursor keys with modifiers
-     ("M-<right>" org-metaright
-      "Demote heading, list item at point or move table column right"
-      :enable t :map-inject t :exit t) ;; Cursor keys with modifiers
-     ("C-c C->" org-demote-subtree
+
+     (,entropy/emacs-ukrd-ouline-demote-sutree org-demote-subtree
       "Demote the entire subtree."
       :enable t :map-inject t :exit t)
-     ("C-c C-<" org-promote-subtree
+     (,entropy/emacs-ukrd-ouline-promote-sutree org-promote-subtree
       "Promote the entire subtree"
       :enable t :map-inject t :exit t))))
 
@@ -1251,7 +1257,7 @@ normally while that."
 ;; ******** link
 
 (defvar entropy/emacs-org-keymap-group-$link
-  '("Link"
+  `("Link"
     (("C-c C-l" org-insert-link
       "Insert a link.  At the prompt, enter the link"
       :enable t :map-inject t :exit t) ;; All the other keys
@@ -1267,7 +1273,7 @@ normally while that."
      ("C-c C-x C-p" org-previous-link
       "Move backward to the previous link"
       :enable t :map-inject t :exit t) ;; All the other keys
-     ("C-x C-l" org-toggle-link-display
+     (,entropy/emacs-ukrd-toggle-link-display org-toggle-link-display
       "Toggle the literal or descriptive display of links"
       :enable t :map-inject t :exit t)
      )))
@@ -1366,7 +1372,7 @@ when prefix arg was '(4) i.e. the single `C-u' type."
      (prefix-numeric-value arg)))))
 
 (defvar entropy/emacs-org-keymap-group-$goto
-  '("Goto"
+  `("Goto"
     (("C-c C-j" org-goto
       "Look up a different location in the current file, keeping current visibility"
       :enable t :map-inject t :exit t) ;; All the other keys
@@ -1376,13 +1382,13 @@ when prefix arg was '(4) i.e. the single `C-u' type."
      ("C-c C-p" entropy/emacs-org-previous-visible-heading
       "Move to the previous visible heading"
       :enable t :map-inject t :exit t)
-     ("<M-up>" entropy/emacs-org-previous-visible-heading
+     (,entropy/emacs-ukrd-ouline-prev-head entropy/emacs-org-previous-visible-heading
       "Move to the previous visible heading"
       :enable t :map-inject t :exit t)
      ("C-c C-n" org-next-visible-heading
       "Move to the next visible heading"
       :enable t :map-inject t :exit t)
-     ("<M-down>" org-next-visible-heading
+     (,entropy/emacs-ukrd-ouline-next-head org-next-visible-heading
       "Move to the next visible heading"
       :enable t :map-inject t :exit t)
      ("C-<up>" org-previous-item "Move to the beginning of the previous item"

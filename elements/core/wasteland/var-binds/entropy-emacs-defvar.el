@@ -902,6 +902,18 @@ commands.")
 
 It is a string used for `kbd'.")
 
+;; ** unified keybinding reflects defination
+;; *** outline
+(defvar entropy/emacs-ukrd-ouline-demote-sutree "C->")
+(defvar entropy/emacs-ukrd-ouline-promote-sutree "C-<")
+(defvar entropy/emacs-ukrd-ouline-prev-head "M-<up>")
+(defvar entropy/emacs-ukrd-ouline-next-head "M-<down>")
+(defvar entropy/emacs-ukrd-outline-move-subtree-up "C-c C-x u")
+(defvar entropy/emacs-ukrd-outline-move-subtree-down "C-c C-x d")
+
+;; *** individuals
+(defvar entropy/emacs-ukrd-toggle-link-display "C-x C-l")
+
 ;; ** startup done refer
 (defvar entropy/emacs-startup-done nil
   "while nil in startup procedure or t indicates the startup done
