@@ -684,14 +684,13 @@ Usually an buffer just indicate one value to the `comment-start', but
 in some case we should use another when we use multi-comments style
 `major-mode', thus this variable existed.")
 
-  (defun outshine-calc-outline-level ()
-    "Calculate the right outline level for the outshine-regexp.
-
-NOTE: This function has been redefined to fix its bug for
-compatible with =entropy-emacs=."
+  (defun __ya/outshine-calc-outline-level ()
+    "Patch for `outshine-calc-outline-level' to fix bugs and make
+compatible for eemacs."
     (save-excursion
       (save-match-data
         (and
+         (progn (forward-line 0) t)
          (looking-at (outshine-calc-outline-regexp))
          (let* ((m-strg (match-string-no-properties 0))
                 (comment-start
@@ -716,6 +715,9 @@ compatible with =entropy-emacs=."
                             ""
                             m-strg)))
            (length (car (split-string head-indc nil 'omit-null))))))))
+  (advice-add 'outshine-calc-outline-level
+              :override
+              #'__ya/outshine-calc-outline-level)
 
 
 
