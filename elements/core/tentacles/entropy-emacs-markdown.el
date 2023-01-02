@@ -70,11 +70,17 @@ package management!"))
     (setq truncate-lines nil)
     ;; hide the url source link as default
     (setq markdown-hide-urls t)
-    )
+    ;; use asymmetric header type since it's wildly used for most of
+    ;; markdown files.
+    (setq-local markdown-asymmetric-header t))
   (add-hook 'markdown-mode-hook
             #'entropy/emacs-markdown--mdmode-core-specifed)
 
   :config
+
+  ;; disable some keys since they are conflicts with eemacs specs
+  (dolist (key (list "C-c <up>" "C-c <down>" "C-c <left>"  "C-c <right>"))
+    (define-key markdown-mode-map (kbd key) nil))
 
   ;; Change face for markdown code,pre,inline-code face for using
   ;; `entropy/emacs-fontsets-used-latin-font'
