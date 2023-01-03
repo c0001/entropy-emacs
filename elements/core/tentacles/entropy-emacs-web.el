@@ -327,7 +327,7 @@ set of `entropy/emacs-browse-url-function-get-for-web-preview'."
 ;; Improved JavaScript editing mode
 (use-package js2-mode
   :commands (js2-mode)
-  :mode "\\.js$"
+  :mode "\\.\\(js\\|ts\\)$"
   :interpreter "node"
   :eemacs-mmphc
   (((:enable t :defer t)
