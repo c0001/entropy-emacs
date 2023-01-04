@@ -511,7 +511,8 @@ The non-nil return is the SYN-LIST-REGION."
                                   (when (face-list-p face) (reverse face))
                                 (list face))
                      when (or (memq f comment-faces)
-                              (memq (face-attribute f :inherit) comment-faces))
+                              (memq (entropy/emacs-ambiguous-face-attribtue f :inherit)
+                                    comment-faces))
                      return f))
           (save-excursion
             (let ((state (syntax-ppss)))

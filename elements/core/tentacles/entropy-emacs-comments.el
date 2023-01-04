@@ -210,6 +210,19 @@ region with error throw out in region selected occasion."
   ;;  '(when (or (derived-mode-p 'prog-mode)
   ;;             (memq major-mode '(gfm-mode markdown-mode org-mode)))
   ;;     (condition-case nil (separedit--comment-region) (user-error nil))))
+
+;; **** `separedit--point-at-comment' bug fix
+
+  ;; EEMACS_MAINTENANCE: `face-attribute' just can operates on a
+  ;; `facep' face while many text propertize of `face' is just a plist
+  ;; where error poped out. NOTE&FIXME follow with upstream updates or
+  ;; taking up an issue for it?
+  (advice-patch 'separedit--point-at-comment
+                '(memq (entropy/emacs-ambiguous-face-attribtue f :inherit)
+                       comment-faces)
+                '(memq (face-attribute f :inherit) comment-faces))
+
+;; *** __end__
   )
 
 ;; * provide

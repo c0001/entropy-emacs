@@ -9198,6 +9198,28 @@ Optional DIGITS-PER-COMPONENT has same meaning as it be for
 
 ;; *** Face manipulation
 
+(defun entropy/emacs-ambiguous-face-attribtue
+    (face attribute &optional frame inherit)
+  "Like `face-attribute' but also support an ambiguous FACE type
+i.e. a plist representation of `facep' FACE."
+  (if (facep face)
+      (face-attribute face attribute frame inherit)
+    (if (entropy/emacs-strict-plistp face)
+        (let ((sym nil))
+          (if (and (not inherit) (not frame)) (plist-get face attribute)
+            (setq sym (make-symbol "__tmp_face__"))
+            (condition-case err
+                (progn
+                  (entropy/emacs-eval-with-lexical
+                   `(defface ,sym nil ""))
+                  (apply 'set-face-attribute sym frame face))
+              (error
+               (signal 'wrong-type-argument
+                       (list 'ambiguous-facep face err))))
+            (face-attribute sym attribute frame inherit)))
+      (signal 'wrong-type-argument
+              (list 'ambiguous-facep face)))))
+
 (defun entropy/emacs-face-attribute-trim-unspecified
     (face attribute &optional frame inherit)
   "Same as `face-attribute' but resolve any unspecified or
