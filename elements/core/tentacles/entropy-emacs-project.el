@@ -37,7 +37,8 @@
 (use-package projectile
   :diminish
   :commands (projectile-find-file
-             projectile-mode)
+             projectile-mode
+             entropy/emacs-project-projectile-update-project-root-cache)
   :bind
   :init
   (setq
@@ -102,7 +103,18 @@ can not globally enable that hook and WHY?."
 
   ;; Support Perforce project
   (let ((val (or (getenv "P4CONFIG") ".p4config")))
-    (add-to-list 'projectile-project-root-files-bottom-up val)))
+    (add-to-list 'projectile-project-root-files-bottom-up val))
+
+  (defalias 'entropy/emacs-project-projectile-update-project-root-cache
+    'projectile-invalidate-cache
+    "Update the projects' root path hash cache in
+`projectile-project-root-cache'.
+
+This operation is needed for cases when a normal child folder
+became a new project where its project root is still cached as an
+subdirectory.")
+
+  )
 
 ;; *** counsel projectile
 (use-package counsel-projectile
