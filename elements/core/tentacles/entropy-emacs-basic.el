@@ -1035,6 +1035,8 @@ the current line filename to the `kill-ring'.")))))
 application handler when exist, according to the `xdg-mime'
 command.
 
+Optionally show the FILE's human readable size as message prefix.
+
 With prefix arg, also save the result to `kill-ring'
 respectively."
     (interactive (list (dired-get-filename t)))
@@ -1043,6 +1045,8 @@ respectively."
           (show-default-app-p
            ;; TODO: shell we need to set this as an option?
            t)
+          (file-size (file-size-human-readable
+                      (file-attribute-size (file-attributes file))))
           the-mime-type the-default-app)
       (condition-case err
           (with-temp-buffer
@@ -1069,7 +1073,8 @@ respectively."
                   (kill-new the-default-app))))
             (cond
              (the-default-app
-              (message "mime-type: %s default-appliction: %s"
+              (message "%s mime-type: %s default-appliction: %s"
+                       file-size
                        (propertize
                         the-mime-type   'face
                         'entropy/emacs-defface-simple-color-face-yellow)
@@ -1077,8 +1082,7 @@ respectively."
                         the-default-app 'face
                         'entropy/emacs-defface-simple-color-face-green)))
              (t
-              (message "%s"
-                       the-mime-type))))
+              (message "%s %s" file-size the-mime-type))))
         (error
          (user-error "%s" err)))))
 
