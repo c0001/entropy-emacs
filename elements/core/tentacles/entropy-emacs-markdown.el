@@ -145,6 +145,14 @@ overflow hr line e.g. display in eldoc."
               :override
               '__ya/markdown-fontify-hrs)
 
+  ;; FIXME: `markdown-imenu-create-nested-index' will fake via
+  ;; native-comp since its weak let binding.
+  ;;
+  ;; See issue: https://github.com/jrblevin/markdown-mode/issues/578
+  (advice-patch 'markdown-imenu-create-nested-index
+                '(root (cons nil nil))
+                '(root '(nil . nil)))
+
   )
 
 
