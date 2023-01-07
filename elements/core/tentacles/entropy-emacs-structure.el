@@ -1138,13 +1138,13 @@ Otherwise, fallback to the original binding of %s in the current mode."
     (kbd "C-c C-p")
     #'entropy/outshine-previous-visible-heading)
   (define-key outshine-mode-map
-    entropy/emacs-ukrd-ouline-prev-head
+    (kbd entropy/emacs-ukrd-ouline-prev-head)
     #'entropy/outshine-previous-visible-heading)
   (define-key outshine-mode-map
     (kbd "C-c C-n")
     #'outline-next-visible-heading)
   (define-key outshine-mode-map
-    entropy/emacs-ukrd-ouline-next-head
+    (kbd entropy/emacs-ukrd-ouline-next-head)
     #'outline-next-visible-heading)
 
 ;; **** sepcial hooks defination
