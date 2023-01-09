@@ -497,7 +497,63 @@ format."
     (dolist (mode '(js-mode js2-mode css-mode html-mode web-mode))
       (advice-add mode
                   :before
-                  #'entropy/emacs-web--check-js-beautify-coworker))))
+                  #'entropy/emacs-web--check-js-beautify-coworker)))
+
+  (defun entropy/emacs/web-beautify--interactive-warn (&rest _)
+    "Prompt user when use `web-beautify-*' interactive command in
+non-proper buffer."
+    (let ((cmd this-command) (buf (current-buffer)))
+      (when (and (called-interactively-p 'interactive)
+                 (not (derived-mode-p 'css-mode 'js-mode 'js2-mode 'web-mode)))
+        (unless (yes-or-no-p
+                 (format "Really invoke `%s' in buffer `%s' \
+whose major-mode is `%s' which may make messy?"
+                         cmd buf major-mode))
+          (user-error "Abort command `%s' for buffer `%s'"
+                      cmd buf)))))
+
+  (dolist (func (list 'web-beautify-html 'web-beautify-css 'web-beautify-js))
+    (advice-add func :before #'entropy/emacs/web-beautify--interactive-warn))
+
+  (defun entropy/emacs-web/web-beautify-file (file)
+    "Do web-beautify-* for FILE."
+    (interactive
+     (list
+      (entropy/emacs-read-file-name-only-for
+       "choose file: "
+       :with-only-for
+       (lambda (x)
+         (if (and (file-exists-p x) (not (file-directory-p x))) t
+           "(not a existed file) choose file: ")))))
+    (let ((f file)
+          (inhibit-read-only t)
+          (make-backup-files t)
+          (write-contents-functions nil)
+          (write-file-functions nil)
+          (before-save-hook nil)
+          ftype)
+      (cond
+       ((string-match-p "\\.\\(js\\|ts\\|json\\)$" f)
+        (setq ftype "js"))
+       ((string-match-p "\\.\\(css\\|sass\\)$" f)
+        (setq ftype "css"))
+       ((string-match-p "\\.\\(html?\\|xml\\)$" f)
+        (setq ftype "html"))
+       (t (setq ftype (completing-read
+                       "Which type of this file is?: "
+                       (list "css" "html" "jss")
+                       nil t))))
+      (setq ftype (cond
+                   ((string= "js" ftype) 'web-beautify-js-buffer)
+                   ((string= "css" ftype) 'web-beautify-css-buffer)
+                   ((string= "html" ftype) 'web-beautify-html-buffer)))
+      (entropy/emacs-message-simple-progress-message
+       (format "do `%s' for file %s" ftype f)
+       :with-temp-message t
+       (with-current-buffer (find-file-noselect f)
+         (funcall ftype) (save-buffer) (kill-buffer)))))
+
+  )
 
 ;; ** web backend technologies
 ;; *** php

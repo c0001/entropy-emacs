@@ -10532,6 +10532,86 @@ details of arguments description on its function docstring."
              final-prompt-str))
      rtn)))
 
+;; **** read filename enhanced
+
+(entropy/emacs-!cl-defun entropy/emacs-read-file-name-only-for
+    (prompt
+     &rest args
+     &key with-only-for
+     &allow-other-keys)
+  "Same as `read-file-name' but only return valid value which is
+predicated by WITH-ONLY-FOR.
+
+WITH-ONLY-FOR is a function which take the input string as its only
+argument, it should return t when the input is considered valid, or
+any other return value where we will used it to prompt user to input
+anothehr one until a valid input is arrived if that return is a string
+or use inner pre-sets. The returned new prompt string is required with
+format as:
+#+begin_example
+\"(.+) .+: \"
+#+end_example
+Where in the parenthesis, is the prev error type msg an rest is the
+main prompt.
+
+WITH-ONLY-FOR also can be a abbreviation of:
+- `file': the input predicated both `file-directory-p' and
+  `directory-name-p'
+- `dir': inverse predication of `file' type.
+
+\(fn PROMPT &key WITH-ONLY-FOR \
+&optional DIR DEFAULT-FILENAME MUSTMATCH INITIAL PREDICATE)"
+  (setq args (entropy/emacs-defun--get-real-body args)
+        with-only-for (or with-only-for 'file))
+  (let* (f (prmpt prompt) (dir (car args))
+           (defn (or (nth 1 args)
+                     ;; FIXME: `ivy' always treat the default first
+                     ;; canid "./" as non-selected to follow the
+                     ;; DEFAULT-FILENAME convention of
+                     ;; `read-file-name' when the invoke
+                     ;; `read-file-name', so we should manually set it
+                     ;; as to as usual `ivy-read' invocation.
+                     (and (bound-and-true-p ivy-mode) "./")))
+           (msmt (nth 2 args)) (ini (nth 3 args)) (pred (nth 4 args))
+           (nprmpt prmpt)
+           (pfunc
+            (lambda (x)
+              (cond ((bound-and-true-p ivy-mode)
+                     (setq nprmpt (concat "(" x ")" " " prmpt)))
+                    (t (entropy/emacs-setf-by-body nprmpt
+                         (concat (propertize (concat "(" x ")")
+                                             'face 'error)
+                                 " " prmpt))))
+              ;; ensure return non-nil
+              t))
+           (func
+            (lambda nil
+              (setq f (read-file-name nprmpt dir defn msmt ini pred))))
+           (ivy-set-prompt-text-properties-function
+            (lambda (x p)
+              (let ((head (string-match "^.+\\((.*)\\).*$" x)))
+                (ivy-set-prompt-text-properties-default
+                 (if (not head) x
+                   (add-text-properties
+                    (match-beginning 1) (match-end 1)
+                    '(face error) x) x) p)))))
+    (funcall func)
+    (while (cond ((eq with-only-for 'file)
+                  (and (or (file-directory-p f) (directory-name-p f))
+                       (funcall pfunc "do not choose direcory name")))
+                 ((eq with-only-for 'dir)
+                  (and (not (or (file-directory-p f) (directory-name-p f)))
+                       (funcall pfunc "do not choose file name")))
+                 ((functionp with-only-for)
+                  (let ((judge (funcall with-only-for f)))
+                    (and (not (eq judge t))
+                         (setq nprmpt
+                               (or (and (stringp judge) judge)
+                                   (funcall pfunc "(invalid input)"))))))
+                 (t (entropy/emacs-!error
+                     "invalid type of with-only-for `%s'" with-only-for)))
+      (funcall func)) f))
+
 ;; *** Operation status checker
 
 (defun entropy/emacs-operation-status/running-auto-completion-op-p ()
