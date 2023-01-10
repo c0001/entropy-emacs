@@ -439,6 +439,115 @@ large buffer."
 ;; one arg.
 
 
+;; **** workaround for `ivy--insert-prompt'
+
+  (entropy/emacs--api-restriction-uniform 'ivy--insert-prompt-hack
+      'package-version-incompatible
+    :when t :do-error t
+    :detector
+    (not (version=
+          "3.0.7"
+          (substring
+           entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-version
+           1)))
+    :signal
+    (signal
+     entropy/emacs-package-version-incompatible-error-symbol
+     (list 'entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-version
+           entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-version
+           "require: v3.0.7"))
+    (defun __ya/ivy--insert-prompt ()
+      "EEMACS_MAINTENANCE&FIXME Overriden advice for
+`ivy--insert-prompt'.
+
+For:
+
+inhibit very long line (exceed for minibuffer's `window-width') prompt
+string while use `ivy--directory' which is usually used when the
+collection table is `read-file-name-internal'. Since in TUI session,
+thus prompt will not be displayed and the exhibition of thus is messy
+upon emacs 28.2 due to emacs new minibuffer resize mechanism while
+`ivy' seems dropped its following step for."
+      (when (setq ivy--prompt (ivy-prompt))
+        (unless (memq this-command '(ivy-done ivy-alt-done ivy-partial-or-done
+                                              counsel-find-symbol))
+          (setq ivy--prompt-extra ""))
+        (let (head tail)
+          (if (string-match "\\(.*?\\)\\(:? ?\\)\\'" ivy--prompt)
+              (progn
+                (setq head (match-string 1 ivy--prompt))
+                (setq tail (match-string 2 ivy--prompt)))
+            (setq head ivy--prompt)
+            (setq tail ""))
+          (let ((inhibit-read-only t)
+                (std-props '(front-sticky t rear-nonsticky t field t read-only t))
+                (n-str
+                 (concat
+                  (if (and (bound-and-true-p minibuffer-depth-indicate-mode)
+                           (> (minibuffer-depth) 1))
+                      (format "[%d] " (minibuffer-depth))
+                    "")
+                  (concat
+                   (if (string-match "%d.*%d" ivy-count-format)
+                       (format head
+                               (1+ ivy--index)
+                               (or (and (ivy-state-dynamic-collection ivy-last)
+                                        ivy--full-length)
+                                   ivy--length))
+                     (format head
+                             (or (and (ivy-state-dynamic-collection ivy-last)
+                                      ivy--full-length)
+                                 ivy--length)))
+                   ivy--prompt-extra
+                   tail)))
+                d-str)
+            (save-excursion
+              (goto-char (point-min))
+              (delete-region (point-min) (minibuffer-prompt-end))
+              (let ((wid-n (string-width n-str))
+                    (wid-d (if ivy--directory nil 0))
+                    (ww (window-width)))
+                (setq d-str
+                      (if ivy--directory
+                          (let* ((dir (file-name-nondirectory
+                                       (directory-file-name ivy--directory)))
+                                 (ddir (abbreviate-file-name ivy--directory))
+                                 (_ (setq wid-d (string-width dir)))
+                                 (wid-dd (string-width ddir)))
+                            (if (> (+ wid-n wid-d) ww) "./"
+                              (if (> (+ wid-n wid-dd) ww) (concat " " dir "/")
+                                ddir)))
+                        ""))
+                (setq n-str
+                      (cond ((> (+ wid-n wid-d) ww)
+                             (concat n-str "\n" d-str "\n"))
+                            ((> (+ wid-n wid-d (string-width ivy-text)) ww)
+                             (concat n-str d-str "\n"))
+                            (t
+                             (concat n-str d-str)))))
+              (when ivy-pre-prompt-function
+                (setq n-str (concat (funcall ivy-pre-prompt-function) n-str)))
+              (when ivy-add-newline-after-prompt
+                (setq n-str (concat n-str "\n")))
+              (setq n-str (ivy--break-lines n-str (window-width)))
+              (set-text-properties 0 (length n-str)
+                                   `(face minibuffer-prompt ,@std-props)
+                                   n-str)
+              (setq n-str (funcall ivy-set-prompt-text-properties-function
+                                   n-str std-props))
+              (insert n-str))
+            ;; Mark prompt as selected if the user moves there or it is the only
+            ;; option left.  Since the user input stays put, we have to manually
+            ;; remove the face as well.
+            (when ivy--use-selectable-prompt
+              (if (= ivy--index -1)
+                  (add-face-text-property
+                   (minibuffer-prompt-end) (line-end-position) 'ivy-prompt-match)
+                (remove-list-of-text-properties
+                 (minibuffer-prompt-end) (line-end-position) '(face))))
+            ;; get out of the prompt area
+            (constrain-to-field nil (point-max))))))
+    (advice-add 'ivy--insert-prompt :override '__ya/ivy--insert-prompt))
 ;; **** __end___
   )
 
