@@ -505,19 +505,20 @@ upon emacs 28.2 due to emacs new minibuffer resize mechanism while
               (goto-char (point-min))
               (delete-region (point-min) (minibuffer-prompt-end))
               (let ((wid-n (string-width n-str))
-                    (wid-d (if ivy--directory nil 0))
+                    (wid-d nil)
                     (ww (window-width)))
                 (setq d-str
                       (if ivy--directory
                           (let* ((dir (file-name-nondirectory
                                        (directory-file-name ivy--directory)))
                                  (ddir (abbreviate-file-name ivy--directory))
-                                 (_ (setq wid-d (string-width dir)))
+                                 (wid-ds (string-width dir))
                                  (wid-dd (string-width ddir)))
-                            (if (> (+ wid-n wid-d) ww) "./"
+                            (if (> (+ wid-n wid-ds) ww) "./"
                               (if (> (+ wid-n wid-dd) ww) (concat " " dir "/")
                                 ddir)))
-                        ""))
+                        "")
+                      wid-d (string-width d-str))
                 (setq n-str
                       (cond ((> (+ wid-n wid-d) ww)
                              (concat n-str "\n" d-str "\n"))
