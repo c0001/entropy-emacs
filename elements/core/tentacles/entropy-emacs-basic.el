@@ -3946,7 +3946,7 @@ formatted in American style, e.g. Tuesday, November 15, 2022."
    ;; undo-tree can not enabled while pdumper
    :pdumper-no-end nil
    (global-undo-tree-mode t)
-   (dolist (k (list "C-x u" "C-/"))
+   (dolist (k (list "C-x u" "C-/" "C-_"))
      (global-set-key (kbd k) #'entropy/emacs-basic-do-undo)
      ;; NOTE: Disbale the same keybindings overrided by undotree
      ;; global mode map.
