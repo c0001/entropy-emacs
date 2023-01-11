@@ -898,15 +898,15 @@ unwind occasion.")
   ;;             :around
   ;;             #'__ya/swiper--isearch-same-line-p)
 
-  ;; (defun __ya/swiper--isearch-candidate-pos (orig-func &rest orig-args)
-  ;;   (let ((cand (car orig-args)))
-  ;;     ;; prevent args-out-of-range
-  ;;     (unless (and (integer-or-marker-p cand)
-  ;;                  (with-ivy-window (>= cand (point-max))))
-  ;;       (apply orig-func orig-args))))
-  ;; (advice-add 'swiper--isearch-candidate-pos
-  ;;             :around
-  ;;             #'__ya/swiper--isearch-candidate-pos)
+  (defun __ya/swiper--isearch-candidate-pos (orig-func &rest orig-args)
+    (let ((cand (car orig-args)))
+      ;; prevent args-out-of-range
+      (unless (and (integer-or-marker-p cand)
+                   (with-ivy-window (>= cand (point-max))))
+        (apply orig-func orig-args))))
+  (advice-add 'swiper--isearch-candidate-pos
+              :around
+              #'__ya/swiper--isearch-candidate-pos)
 
   ;; (defun __ya/swiper--isearch-occur-cands (cands)
   ;;   (let* ((last-pt (get-text-property 0 'point (car cands)))
