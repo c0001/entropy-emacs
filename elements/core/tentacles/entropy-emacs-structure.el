@@ -377,6 +377,7 @@ want to preserve the source demo."
    (python-mode . outshine-mode)
    (web-mode . outshine-mode)
    (css-mode . outshine-mode)
+   (js-mode . outshine-mode)
    (js2-mode . outshine-mode)
    (gitignore-mode . outshine-mode)
    (gitconfig-mode . outshine-mode)
