@@ -843,7 +843,11 @@ unwind occasion.")
 
   (defun __ya/swiper-isearch-function (orig-func &rest orig-args)
     (condition-case err
-        (apply orig-func orig-args)
+        (funcall orig-func
+                 ;; FIXME: why `ivy--dynamic-collection-cands' will try
+                 ;; another (nil nil) two external arguments for failed
+                 ;; retry in `condition-case'?
+                 (car orig-args))
       ;; since `re-search-*' throw error when invaid regexp detected
       ;; even if the NOERROR arg is set.
       (invalid-regexp
@@ -857,6 +861,28 @@ unwind occasion.")
   (advice-add 'swiper-isearch-function
               :around
               #'__ya/swiper-isearch-function)
+
+  (defun __ya/swiper-all-function (orig-func &rest orig-args)
+    (condition-case err
+        (funcall orig-func
+                 ;; FIXME: why `ivy--dynamic-collection-cands' will try
+                 ;; another (nil nil) two external arguments for failed
+                 ;; retry in `condition-case'?
+                 (car orig-args))
+      ;; Since `re-search-*' throw error when invaid regexp detected
+      ;; even if the NOERROR arg is set.  Also since
+      ;; `put-text-property' can not operated on an empty string where
+      ;; above wrong regexp caused.
+      (error
+       (message "[%s] [swiper-all-function]: %s"
+                (format-time-string "%Y-%m-%d %a %H:%M:%S") err)
+       ;; ensure null return which let ivy consider the collection is
+       ;; empty since `swiper-all-function' the collection
+       ;; function for `ivy-read' used for caller `swiper-isearch'.
+       nil)))
+  (advice-add 'swiper-all-function
+              :around
+              #'__ya/swiper-all-function)
 
   ;; (defun __ya/swiper--isearch-same-line-p (orig-func &rest orig-args)
   ;;   ;; since the orig func doesn't deal with non `point' prop occasion
