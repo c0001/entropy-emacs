@@ -43,6 +43,22 @@
 (entropy/emacs-common-require-feature 'entropy-emacs-message)
 (eval-when-compile (require 'rx))
 
+(defvar shr-color-html-colors-alist)
+(defvar ivy--prompt)
+(defvar ivy-last)
+(defvar ivy-count-format)
+(defvar ivy-set-prompt-text-properties-function)
+(defvar xclip-method)
+(defvar xclip-program)
+(declare-function term-send-raw-string "term")
+(declare-function xterm-paste "xterm")
+(declare-function org-shifttab "org")
+(declare-function outline-on-heading-p "outline")
+(declare-function async-start "ext:async")
+(declare-function ivy-state-prompt "ext:ivy")
+(declare-function doom-modeline-refresh-bars "ext:doom-modeline")
+(declare-function xclip-mode "xclip")
+
 ;; ** internal libs
 
 (defalias 'entropy/emacs-defun--get-real-body #'entropy/emacs--get-def-body)
@@ -5407,8 +5423,6 @@ last-modified time with fatal"
                               lnm)))))
     rtn))
 
-(declare-function org-shifttab "org")
-(declare-function outline-on-heading-p "outline")
 (define-minor-mode entropy/emacs-do-directory-mirror/log-mode
   "Minor mode for `entropy/emacs-do-directory-mirror' log buffer,
 simpley enable `outline-minor-mode' and binds its interactive
@@ -9065,7 +9079,6 @@ string. Return `color-values' of it if thus, or nil otherwise.
       (entropy/emacs-require-only-once 'faces)
       (color-values color-hex-str-maybe))))
 
-(defvar shr-color-html-colors-alist)
 (eval-when-compile (unless (boundp 'x-colors) (defvar x-colors)))
 (defun entropy/emacs-color-string-p
     (object &optional use-shr-color-also do-error)
@@ -10252,7 +10265,6 @@ object which can be used for `eval'."
                         ,proc-name)))))))
     proc))
 
-(declare-function async-start "ext:async")
 (defun entropy/emacs-run-batch-with-eemacs-pure-env
     (start-form finish-form &optional with-default-directory-as)
   "Invoke eemacs in batch-mode (i.e. `noninteractive' was non-nil)
@@ -10454,10 +10466,6 @@ what current acceptable type is for as a part of PROMPT of
 
 ;; **** ivy multiread framework
 
-(defvar ivy--prompt)
-(defvar ivy-last)
-(defvar ivy-count-format)
-(declare-function ivy-state-prompt "ext:ivy")
 (defun entropy/emacs-ivy-read-repeatedly-function
     (read candidates-recorder-symbol prompt-abbrev &optional selected-shorten-function)
   "Common repeatedly read core component used for building `ivy-read''s ':action' function.
@@ -11669,8 +11677,6 @@ units number specfied by OFFSET (defaults to 0)."
 
 ;; *** Theme loading specification
 
-(declare-function doom-modeline-refresh-bars "ext:doom-modeline")
-
 (defun entropy/emacs--set-fixed-pitch-serif-face-to-monospace ()
   "Set face `fixed-pitch-serif' to entropy-emacs specific monospace
 style.
@@ -11968,12 +11974,6 @@ stuffs on `entropy/emacs-solaire-mode' when
 ;; *** Cli compatibale specification
 ;; **** `xterm-paste' wrappers
 
-;; pre declaration
-(defvar xclip-method)
-(defvar xclip-program)
-(declare-function term-send-raw-string "term")
-(declare-function xterm-paste "xterm")
-
 (defvar entropy/emacs--xterm-clipboard-head nil
   "The string of the the last event paste part of `xterm-paste',
 setted by `entropy/emacs-xterm-paste-core'.")
@@ -11994,8 +11994,6 @@ within `entropy/emacs-xterm-paste'.
 Which each car of the pattern was a condition, may be 'nil' or
 't' or a function for be evaluated for the boolean result, and
 the cdr was the replacement yank function")
-
-(declare-function xclip-mode "xclip")
 
 (defun entropy/emacs-xterm-cut-or-yank-sync-with-system/functional-env-statisfied-p ()
   "Return non-nil when current non-gui emacs session support sync

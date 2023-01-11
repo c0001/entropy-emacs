@@ -60,7 +60,9 @@
   :diminish ivy-mode
   :commands (ivy-mode ivy-switch-buffer ivy-resume)
   :bind (("C-c C-r" . ivy-resume)
-         ("C-x b" . ivy-switch-buffer))
+         ("C-x b" . ivy-switch-buffer)
+         :map ivy-minibuffer-map
+         (("C-c o" . entropy/emacs-ivy-use-re-builer)))
 
 ;; *** ivy init
   :init
@@ -147,6 +149,29 @@
 
 ;; *** ivy config
   :config
+;; **** more re-builders hack
+
+  (defun entropy/emacs-ivy-use-re-builer nil
+    "Set `ivy--regex-function' via eemacs collections."
+    (interactive)
+    (let ((sel (completing-read
+                "Choose re-buider: "
+                (list "identity" "pure" "plus" "fuzzy" "ignore-order")
+                nil t)))
+      (setq
+       ;; FIXME: or we should respect caller's :re-buler specs or may
+       ;; be messy but `ivy--reset-state' seems just ran at each
+       ;; caller invoke time so that this spec will not messy like
+       ;; what `ivy-rotate-preferred-builders' also set
+       ;; `ivy--regex-function' directly.
+       ivy--regex-function
+       (pcase sel
+         ('"identity" 'regexp-quote)
+         ('"pure" 'identity)
+         ('"plus" 'ivy--regex-plus)
+         ('"fuzzy" 'ivy--regex-fuzzy)
+         ('"ignore-order" 'ivy--regex-ignore-order)))
+      (message "Set current ivy re-builder to `%s'" ivy--regex-function)))
 
 ;; **** exit ivy procedure immediatly after the dispatch actions
   ;; FIXME: do not use for all ivy caller, add filter for specified caller
@@ -282,17 +307,30 @@ upstream and may be make risky follow the ivy updates.
   (defun __ya/ivy--queue-exhibit ()
     "The override advice for `ivy--queue-exhibit' to exhibit the
 canidates idle after input event done by 0.2 seconds."
-    (setq __idle/ivy-queue-exhited-done nil)
-    (let ((eemacs-dym-p (not (entropy/emacs-ivy-patch/inhibit-dynamic-exhibit-p)))
-          (ivy-dym-p (and (> ivy-dynamic-exhibit-delay-ms 0)
-                          (ivy-state-dynamic-collection ivy-last))))
-      (and ivy-dym-p
-           (entropy/emacs-cancel-timer-var ivy--exhibit-timer))
-      (if (and
-           eemacs-dym-p
-           (entropy/emacs-get-symbol-prop
-            this-command '__eemacs-ivy-dynamic-command-p))
-          (funcall __ya/ivy--queue-exhibit/idle-func) (ivy--exhibit))))
+    (condition-case err
+        (progn
+          (setq __idle/ivy-queue-exhited-done nil)
+          (let ((eemacs-dym-p
+                 (not (entropy/emacs-ivy-patch/inhibit-dynamic-exhibit-p)))
+                (ivy-dym-p
+                 (and
+                  ;; NOTE: prevent mistake set of `ivy-dynamic-exhibit-delay-ms'
+                  (numberp ivy-dynamic-exhibit-delay-ms)
+                  (> ivy-dynamic-exhibit-delay-ms 0)
+                  (ivy-state-dynamic-collection ivy-last)))
+                ;; since it's a post-command that `inhibit-debugger'
+                ;; is always pressed, so we should reopen the debug
+                ;; for debug convention.
+                inhibit-debugger)
+            (and ivy-dym-p
+                 (entropy/emacs-cancel-timer-var ivy--exhibit-timer))
+            (if (and
+                 eemacs-dym-p
+                 (entropy/emacs-get-symbol-prop
+                  this-command '__eemacs-ivy-dynamic-command-p))
+                (funcall __ya/ivy--queue-exhibit/idle-func) (ivy--exhibit))))
+      ;; debug
+      ((debug error) (signal (car err) (cdr err)))))
 
   (advice-add 'ivy--queue-exhibit :override #'__ya/ivy--queue-exhibit)
 
@@ -793,6 +831,75 @@ unwind occasion.")
 
   ;; make `swiper-all' restore origin window-configuration when unwind
   (advice-add 'swiper-all :around #'entropy/emacs-ivy--swiper-all-restore-wfg)
+
+;; ***** messy handles
+
+  (defun __ya/swiper-match-usable-p (orig-func &rest orig-args)
+    ;; since messy search via `re-search-*' may be cross line which is
+    ;; unusable.
+    (unless (looking-at-p "^$") (apply orig-func orig-args)))
+  (advice-add 'swiper-match-usable-p
+              :around #'__ya/swiper-match-usable-p)
+
+  (defun __ya/swiper-isearch-function (orig-func &rest orig-args)
+    (condition-case err
+        (apply orig-func orig-args)
+      ;; since `re-search-*' throw error when invaid regexp detected
+      ;; even if the NOERROR arg is set.
+      (invalid-regexp
+       (message "[%s] [swiper-isearch-function]: %s"
+                (format-time-string "%Y-%m-%d %a %H:%M:%S") err)
+       ;; ensure null return which let ivy consider the collection is
+       ;; empty since `swiper-isearch-function' the collection
+       ;; function for `ivy-read' used for caller `swiper-isearch'.
+       nil)
+      (error (signal (car err) (cdr err)))))
+  (advice-add 'swiper-isearch-function
+              :around
+              #'__ya/swiper-isearch-function)
+
+  ;; (defun __ya/swiper--isearch-same-line-p (orig-func &rest orig-args)
+  ;;   ;; since the orig func doesn't deal with non `point' prop occasion
+  ;;   ;; on `count-lines' usage.
+  ;;   (condition-case err
+  ;;       (apply orig-func orig-args)
+  ;;     (error
+  ;;      (message "[swiper--isearch-same-line-p]: %s" err)
+  ;;      ;; ensure null return which to emulate null boolean return
+  ;;      ;; since we are failed to judge
+  ;;      nil)))
+  ;; (advice-add 'swiper--isearch-same-line-p
+  ;;             :around
+  ;;             #'__ya/swiper--isearch-same-line-p)
+
+  ;; (defun __ya/swiper--isearch-candidate-pos (orig-func &rest orig-args)
+  ;;   (let ((cand (car orig-args)))
+  ;;     ;; prevent args-out-of-range
+  ;;     (unless (and (integer-or-marker-p cand)
+  ;;                  (with-ivy-window (>= cand (point-max))))
+  ;;       (apply orig-func orig-args))))
+  ;; (advice-add 'swiper--isearch-candidate-pos
+  ;;             :around
+  ;;             #'__ya/swiper--isearch-candidate-pos)
+
+  ;; (defun __ya/swiper--isearch-occur-cands (cands)
+  ;;   (let* ((last-pt (get-text-property 0 'point (car cands)))
+  ;;          line res pt)
+  ;;     (unless last-pt
+  ;;       (catch :break
+  ;;         (dolist (cand cands)
+  ;;           (when (setq last-pt (get-text-property 0 'point cand))
+  ;;             (throw :break nil)))))
+  ;;     (when last-pt
+  ;;       (setq line (1+ (line-number-at-pos last-pt)))
+  ;;       (dolist (cand cands)
+  ;;         (when (setq pt (get-text-property 0 'point cand))
+  ;;           (cl-incf line (1- (count-lines last-pt pt)))
+  ;;           (push (cons line cand) res)
+  ;;           (setq last-pt pt)))
+  ;;       (nreverse res))))
+  ;; (advice-add 'swiper--isearch-occur-cands
+  ;;             :override #'__ya/swiper--isearch-occur-cands)
 
 ;; *** __end___
   )

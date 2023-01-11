@@ -2243,8 +2243,10 @@ conditions and consider that should be inhibited.")
 `entropy/emacs-ivy-common-re-builder'.
 
 If non-nil, it should be list of functions which can be used in
-`ivy-re-builders-alist', and only its car is used since this
-variable commonly used as a stack, thus use `push' to add items.")
+`ivy-re-builders-alist', and only its car is used since this variable
+commonly used as a stack, thus you commonly should use it in a `let'
+environment where use a cons of car of your spec and remain the
+originals as the cdr to prevent pollute the global usages.")
 (defun entropy/emacs-ivy-common-re-builder (str)
   "Use `ivy--regex-plus' as default unless
 `entropy/emacs-ivy-common-re-builder-should-use' is non-nil in
