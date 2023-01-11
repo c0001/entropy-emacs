@@ -133,6 +133,11 @@ version upper than 28.")
 All the files are stripped their extensions so can be loaded by chosen
 needed extension type.")
 
+(defvar entropy/emacs-company-shouldnot-idle-post nil
+  "Non-nil that turn off eemacs company post idle hack.
+
+Should always used in a let-binding.")
+
 ;; ** byte compile refer
 
 (defvar entropy/emacs-session-in-byte-compile-emacs-core-p nil

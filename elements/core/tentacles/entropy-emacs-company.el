@@ -128,8 +128,9 @@ using."
                       ;; only for interatively backend call
                       (called-interactively-p 'interactive)
                       (entropy/emacs-operation-status/running-auto-completion-op-p))
-                 (progn (company-abort)
-                        (call-interactively #',backend-name)))
+                 (let ((entropy/emacs-company-shouldnot-idle-post t))
+                   (company-abort)
+                   (call-interactively #',backend-name)))
              (apply orig-func orig-args))
            (format "The handy began advice for the company-backend `%s'.
 
@@ -508,7 +509,8 @@ re-calculation."
     ;; FIXME: prevent duplicated timer delay show since it may cause
     ;; eemacs bug h:c5b6bd90-0662-4daa-877f-5be88c04ce2a.
     (entropy/emacs-cancel-timer-var company-timer)
-    (if (or entropy/emacs-current-session-is-idle-p
+    (if (or entropy/emacs-company-shouldnot-idle-post
+            entropy/emacs-current-session-is-idle-p
             (not company-candidates)
             (entropy/emacs-get-symbol-prop this-command 'eemacs-company-special-key)
             (entropy/emacs-get-symbol-prop last-command 'eemacs-company-special-key)
