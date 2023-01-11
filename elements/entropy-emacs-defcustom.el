@@ -511,7 +511,7 @@ will combined with =entropy-emacs= internal specification."
   "Eemacs editor tab-width configuration customizable group."
   :group 'entropy-emacs-customize-top-group)
 
-(defcustom entropy/emacs-custom-tab-enable nil
+(defcustom entropy/emacs-custom-tab-enable t
   "Enable indent-tab-mode"
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-editor-tab-width)
@@ -1498,7 +1498,7 @@ option."
     go-mode
     rust-mode
     python-mode php-mode
-    js2-mode json-mode css-mode web-mode nxml-mode
+    js-mode js2-mode json-mode css-mode web-mode nxml-mode
     sh-mode powershell-mode))
 
 (defvar entropy/emacs-use-ide-conditions nil)

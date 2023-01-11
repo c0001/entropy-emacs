@@ -324,8 +324,23 @@ set of `entropy/emacs-browse-url-function-get-for-web-preview'."
       :enable t :map-inject t :exit t)))))
 
 ;; *** js-mode
+
+;; emacs builtin `js-mode'
+(use-package js
+  ;; default use emacs builtin js modes for emacs upper than 28 since
+  ;; it seems take advantages over decades already.
+  :if (>= emacs-major-version 28)
+  :ensure nil
+  :mode ("\\.\\(js\\|ts\\)$" . js-mode)
+  ;; using union xref specs
+  (dolist (k (list "M-." "M-,"))
+    (define-key js-mode-map (kbd k) nil)))
+
 ;; Improved JavaScript editing mode
 (use-package js2-mode
+  ;; default use js2-mode for emacs lower than 28 since the emacs
+  ;; builtin js utils seems weak in older emacs ver.?
+  :if (< emacs-major-version 28)
   :commands (js2-mode)
   :mode "\\.\\(js\\|ts\\)$"
   :interpreter "node"
@@ -363,7 +378,12 @@ set of `entropy/emacs-browse-url-function-get-for-web-preview'."
       :use-hook 'js2-mode-hook
       :use-append t
       (setq-local js2-basic-offset 4)
-      (js2-imenu-extras-mode 1))))
+      (js2-imenu-extras-mode 1)))
+
+  :config
+  ;; using union xref specs
+  (dolist (k (list "M-." "M-,"))
+    (define-key js2-mode-map (kbd k) nil)))
 
 ;; **** js2-refactor
 (use-package js2-refactor

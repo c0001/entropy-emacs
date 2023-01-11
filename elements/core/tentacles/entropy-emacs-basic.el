@@ -3874,9 +3874,9 @@ NOTE: this is a advice wrapper for any function."
 
 ;; Do not use `indent-tabs-mode' by default for compatibility meaning
 ;; that tabs visualization are not unified accorss editor.
-(if entropy/emacs-custom-tab-enable
-    (setq-default tab-width entropy/emacs-custom-tab-width)
-  (setq-default indent-tabs-mode nil))
+(setq-default indent-tabs-mode nil)
+(when entropy/emacs-custom-tab-enable
+  (setq-default tab-width entropy/emacs-custom-tab-width))
 
 ;; **** Buffer operations
 ;; ***** Initiative operations
