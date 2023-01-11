@@ -332,6 +332,7 @@ set of `entropy/emacs-browse-url-function-get-for-web-preview'."
   :if (>= emacs-major-version 28)
   :ensure nil
   :mode ("\\.\\(js\\|ts\\)$" . js-mode)
+  :config
   ;; using union xref specs
   (dolist (k (list "M-." "M-,"))
     (define-key js-mode-map (kbd k) nil)))
