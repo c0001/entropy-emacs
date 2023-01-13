@@ -120,7 +120,7 @@
            :enable ,(not (null bookmark-library-view))
            ,@(funcall map-get-func bookmark-library-view)
            :exit t)
-          ("a" ,(funcall cmd-get-func bookmark-add)
+          ("C-d" ,(funcall cmd-get-func bookmark-add)
            "Add Bookmark"
            :enable ,(not (null bookmark-add))
            ,@(funcall map-get-func bookmark-add)
@@ -149,7 +149,8 @@
         ("<down>" . next-line)
         ("<up>" . previous-line)
         ("<left>" . left-char)
-        ("<right>" . right-char))
+        ("<right>" . right-char)
+        ("a" . nil))
 
 ;; **** init
   :init
