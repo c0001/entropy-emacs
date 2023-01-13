@@ -834,6 +834,8 @@ unwind occasion.")
 
 ;; ***** messy handles
 
+  ;; EEMACS_MAINTENANCE: follow upstreams updates
+
   (defun __ya/swiper-match-usable-p (orig-func &rest orig-args)
     ;; since messy search via `re-search-*' may be cross line which is
     ;; unusable.
