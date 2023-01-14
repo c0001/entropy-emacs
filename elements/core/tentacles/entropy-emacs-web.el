@@ -331,7 +331,7 @@ set of `entropy/emacs-browse-url-function-get-for-web-preview'."
   ;; it seems take advantages over decades already.
   :if (>= emacs-major-version 28)
   :ensure nil
-  :mode ("\\.\\(js\\|ts\\)$" . js-mode)
+  :mode ("\\.\\(m?js\\|ts\\)$" . js-mode)
   :config
   ;; using union xref specs
   (dolist (k (list "M-." "M-,"))
@@ -343,7 +343,7 @@ set of `entropy/emacs-browse-url-function-get-for-web-preview'."
   ;; builtin js utils seems weak in older emacs ver.?
   :if (< emacs-major-version 28)
   :commands (js2-mode)
-  :mode "\\.\\(js\\|ts\\)$"
+  :mode "\\.\\(m?js\\|ts\\)$"
   :interpreter "node"
   :eemacs-mmphc
   (((:enable t :defer t)
