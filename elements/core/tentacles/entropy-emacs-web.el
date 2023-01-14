@@ -464,7 +464,8 @@ format."
    web-beautify-html
    web-beautify-html-buffer
    web-beautify-js
-   web-beautify-js-buffer)
+   web-beautify-js-buffer
+   entropy/emacs-web/web-beautify-file)
   :preface
   (defun entropy/emacs-web--check-js-beautify-coworker ()
     (interactive)
