@@ -701,7 +701,7 @@ Browser chosen based on variable
 "
     (interactive nil eww-mode)
     (unless (not (equal major-mode 'eww-mode))
-      (let ((url (eww-copy-page-url))
+      (let ((url (eww-current-url))
             (browse-url-browser-function
              (let (rtn choices)
                (when (functionp entropy/emacs-browse-url-function)
