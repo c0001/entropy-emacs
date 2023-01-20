@@ -136,7 +136,9 @@ needed extension type.")
 (defvar entropy/emacs-company-shouldnot-idle-post nil
   "Non-nil that turn off eemacs company post idle hack.
 
-Should always used in a let-binding.")
+Should always set as dynamically since it used as a indicator for
+`post-command-hook' where we will auto reset it without influence
+next command.")
 
 ;; ** byte compile refer
 

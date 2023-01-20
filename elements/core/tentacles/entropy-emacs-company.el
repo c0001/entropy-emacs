@@ -124,13 +124,16 @@ using."
       `(progn
          (defalias ',name
            (lambda (orig-func &rest orig-args)
-             (if (and (eq this-command ',backend-name)
-                      ;; only for interatively backend call
-                      (called-interactively-p 'interactive)
-                      (entropy/emacs-operation-status/running-auto-completion-op-p))
-                 (let ((entropy/emacs-company-shouldnot-idle-post t))
-                   (company-abort)
-                   (call-interactively #',backend-name)))
+             (if
+                 ;; only for interatively backend call
+                 (called-interactively-p 'interactive)
+                 (progn
+                   ;; we should set it dynamically as its designation
+                   (setq entropy/emacs-company-shouldnot-idle-post t)
+                   (entropy/emacs-message-simple-progress-message
+                    (format "Manually begin company backend `%s'" ',backend-name)
+                    (company-abort)
+                    (call-interactively orig-func))))
              (apply orig-func orig-args))
            (format "The handy began advice for the company-backend `%s'.
 
@@ -212,9 +215,8 @@ eemacs specifications"
             )
       (unless (bound-and-true-p company-mode)
         (company-mode))
-      (company-files command)))
-  (entropy/emacs-company--make-auto-handy-backend
-    entropy/emacs-company-files)
+      (funcall-interactively 'company-files command)))
+  (entropy/emacs-company--make-auto-handy-backend company-files)
 
   (defun entropy/emacs-company--core-subr-nuse-restrict-p nil
     "Return non-nil when we currently shouldn't restrict company core
@@ -430,7 +432,7 @@ sessions performance."
   (defvar __ya/company-post-command/idle-port)
   (defun entropy/emacs-company--define-idle-post-command ()
     (progn
-      (setq company-idle-delay 0)
+      (setq company-idle-delay nil)
       (if (not entropy/emacs-company-idle-delay-internal)
           (setq __ya/company-post-command/idle-port
                 __ya/company-post-command/orig-func)
@@ -459,9 +461,9 @@ This function is useless unless emacs idle reached
 
   (defun entropy/emacs-company--company-idle-delay-reset-guard
       (_varsym newval op _wh)
-    "We should always ensure that `company-idle-delay' is zero since
+    "We should always ensure that `company-idle-delay' is nil since
 we use eemacs specified idle trigger mechanism."
-    (when (and (eq op 'set) (not (eq 0 newval)))
+    (when (and (eq op 'set) newval)
       (user-error "Should not manually modifie `company-idle-delay' to %s"
                   newval)))
   (add-variable-watcher 'company-idle-delay
@@ -509,13 +511,16 @@ re-calculation."
     ;; FIXME: prevent duplicated timer delay show since it may cause
     ;; eemacs bug h:c5b6bd90-0662-4daa-877f-5be88c04ce2a.
     (entropy/emacs-cancel-timer-var company-timer)
-    (if (or entropy/emacs-company-shouldnot-idle-post
+    (if (or (and entropy/emacs-company-shouldnot-idle-post
+                 ;; NOTE: reset the indicator to nil so that do not influence next command
+                 (progn (setq entropy/emacs-company-shouldnot-idle-post nil)
+                        t))
             entropy/emacs-current-session-is-idle-p
             (not company-candidates)
             (entropy/emacs-get-symbol-prop this-command 'eemacs-company-special-key)
-            (entropy/emacs-get-symbol-prop last-command 'eemacs-company-special-key)
+            ;; (entropy/emacs-get-symbol-prop last-command 'eemacs-company-special-key)
             (entropy/emacs-get-symbol-prop real-this-command 'eemacs-company-special-key)
-            (entropy/emacs-get-symbol-prop real-last-command 'eemacs-company-special-key)
+            ;; (entropy/emacs-get-symbol-prop real-last-command 'eemacs-company-special-key)
             (current-idle-time)
             ;; FIXME: if we using idle in `delete' char cases, company
             ;; will not working properly and may cause emacs hang?
@@ -526,9 +531,15 @@ re-calculation."
                  (> (- __ya/company-post-command/previous-point
                        __ya/company-post-command/current-point)
                     3)))
-        (let ((company-idle-delay entropy/emacs-company-idle-delay-internal))
-          (apply orig-func orig-args)
-          (setq __ya/company-post-command/idle-cancel-p t))
+        (let ((company-idle-delay
+               ;; FIXME: when `company-idle-delay' is nil the
+               ;; `company-pseudo-tooltip-frontend' will not show and
+               ;; why?  thus we temporarily use 0 as for emulation of
+               ;; immediate status.
+               (if entropy/emacs-company-shouldnot-idle-post 0
+                 entropy/emacs-company-idle-delay-internal)))
+          (setq __ya/company-post-command/idle-cancel-p t)
+          (apply orig-func orig-args))
       (funcall __ya/company-post-command/idle-port)
       ;; EEMACS_MAINTENANCE&TODO: ensure no duplicate for above idle
       ;; progress but seemes company has its own preventing condition
@@ -756,7 +767,7 @@ with `shackle'."
 
   :config
   (defun entropy/emacs-company-dabbrev
-      (command &optional arg &rest ignored)
+      (command &optional arg &rest _ignored)
     "Same as `company-dabbrev' but enlarge its restriction since this
 command is used interactively only (i.e. not a
 `company-backends') in which case no need to restrict its
@@ -772,9 +783,8 @@ performance."
           ;; lag since `company-dabbrev' use `looking-back' to search
           ;; matching.
           (company-dabbrev-char-regexp "[-_/a-zA-Z0-9.><]"))
-      (apply 'company-dabbrev command arg ignored)))
-  (entropy/emacs-company--make-auto-handy-backend
-    entropy/emacs-company-dabbrev))
+      (funcall-interactively 'company-dabbrev command arg)))
+  (entropy/emacs-company--make-auto-handy-backend company-dabbrev))
 
 (use-package company-files     :ensure nil :after company :commands company-files)
 (use-package company-yasnippet :ensure nil :after company :commands company-yasnippet)
@@ -1754,8 +1764,7 @@ that for en-words candi recognized "
                    (:foreground "yellow")))
     )
   :config
-  (entropy/emacs-company--make-auto-handy-backend
-    company-en-words))
+  (entropy/emacs-company--make-auto-handy-backend company-en-words))
 
 ;; *** shell
 (use-package company-shell
