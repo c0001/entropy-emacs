@@ -476,12 +476,14 @@ large buffer."
 ;; `wrong-type-arguments' error since it just declared as accepting
 ;; one arg.
 
+;; **** TODO workaround for ivy window height
 
 ;; **** workaround for `ivy--insert-prompt'
 
   (entropy/emacs--api-restriction-uniform 'ivy--insert-prompt-hack
       'package-version-incompatible
-    :when t :do-error t
+    :when (> emacs-major-version 27)
+    :do-error t
     :detector
     (not (version=
           "3.0.7"
@@ -510,7 +512,7 @@ upon emacs 28.2 due to emacs new minibuffer resize mechanism while
         (unless (memq this-command '(ivy-done ivy-alt-done ivy-partial-or-done
                                               counsel-find-symbol))
           (setq ivy--prompt-extra ""))
-        (let (head tail)
+        (let (head tail (winww (window-width)))
           (if (string-match "\\(.*?\\)\\(:? ?\\)\\'" ivy--prompt)
               (progn
                 (setq head (match-string 1 ivy--prompt))
@@ -539,12 +541,37 @@ upon emacs 28.2 due to emacs new minibuffer resize mechanism while
                    ivy--prompt-extra
                    tail)))
                 d-str)
+            (when-let* (((not (display-graphic-p)))
+                        (n-str-len (string-width n-str))
+                        ((> n-str-len winww))
+                        ;; FIXME: why tui emacs can not display
+                        ;; equaled window-width string like some one
+                        ;; include CJK chars as usual which may have
+                        ;; extra newlines followed after? (thus why we
+                        ;; need to `substring' more chars)
+                        (lov (- winww n-str-len))
+                        (winww-pp (- winww 10)))
+              (unless (> winww-pp 0) (setq winww-pp winww))
+              (setq n-str
+                    (concat
+                     (truncate-string-to-width
+                      n-str winww-pp nil nil "… : ")))
+              ;; FIXME: if we do not do this (i.e. follow
+              ;; `ivy-truncate-lines') the left edge of minibuffer
+              ;; will be '$' ( i.e. display as overflow) when input
+              ;; chars overflow the window width
+              (setq truncate-lines nil))
+            ;; ensure comfortable input experience
+            (when-let* ((n-str-len (string-width n-str))
+                        ((or (>= n-str-len winww)
+                             (> (/ n-str-len (* winww 1.0)) 0.25))))
+              (setq-local ivy-add-newline-after-prompt t))
             (save-excursion
               (goto-char (point-min))
               (delete-region (point-min) (minibuffer-prompt-end))
               (let ((wid-n (string-width n-str))
                     (wid-d nil)
-                    (ww (window-width)))
+                    (ww winww))
                 (setq d-str
                       (if ivy--directory
                           (let* ((dir (file-name-nondirectory
@@ -569,6 +596,24 @@ upon emacs 28.2 due to emacs new minibuffer resize mechanism while
               (when ivy-add-newline-after-prompt
                 (setq n-str (concat n-str "\n")))
               (setq n-str (ivy--break-lines n-str (window-width)))
+              ;; TODO&&EEMACS_TEMPORALLY_HACK: ensure enough mini
+              ;; window height given, although it's the job of
+              ;; `ivy--minibuffer-setup' but it's buggy.
+              (when-let* ((n-str-llen (length (split-string n-str "\n")))
+                          ((> n-str-llen 1)))
+                (setq-local max-mini-window-height
+                            (+ (- ivy-height
+                                  ;; FIXME: we remain further more one
+                                  ;; line since when as equal for thus
+                                  ;; (i.e. theory as minus extra 1
+                                  ;; line which is the origin prompt
+                                  ;; line place should be also enough
+                                  ;; for drawing what we given), the
+                                  ;; mini buffer not show the first
+                                  ;; prompt line?
+                                  ;;(if ivy-add-newline-after-prompt 2 1)
+                                  (if ivy-add-newline-after-prompt 1 0))
+                               n-str-llen)))
               (set-text-properties 0 (length n-str)
                                    `(face minibuffer-prompt ,@std-props)
                                    n-str)
