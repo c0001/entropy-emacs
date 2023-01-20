@@ -108,32 +108,11 @@
           (t . entropy/emacs-ivy-common-re-builder)))
 
   ;; prompt newline set
-  (let* ((with-nl-func
-          #'(lambda ()
-              ;; enable newline for initial prompt for preventing long line
-              ;; prompt messy up candi exhibits Use limit candi exhibits to
-              ;; prevent visual messy.
-              (setq ivy-add-newline-after-prompt t)
-              (setq ivy-height 7)))
-         (without-nl-func
-          #'(lambda ()
-              (setq ivy-add-newline-after-prompt nil)
-              (setq ivy-height 6)))
-         (hack-func
-          #'(lambda ()
-              (if (display-graphic-p)
-                  (funcall with-nl-func)
-                ;; Disable newline for terminal mode emacs session
-                ;; while in emacs 28 or higher version, since it can
-                ;; not be fully displayed in minibuffer prompt area.
-                (funcall without-nl-func)))))
-    (if (version< emacs-version "28")
-        (funcall with-nl-func)
-      (if (daemonp)
-          (entropy/emacs-with-daemon-make-frame-done
-           'ivy-height-and-prompt-newline-set (&rest _)
-           (funcall hack-func))
-        (funcall hack-func))))
+  ;;
+  ;; NOTE: eemacs has its inner auto prompt newline adding patch for
+  ;; `ivy--insert-prompt' so we just comment it.
+  ;;
+  ;; (setq ivy-add-newline-after-prompt t)
 
   ;; GC restrictions:
   ;;
@@ -496,7 +475,12 @@ large buffer."
      (list 'entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-version
            entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-version
            "require: v3.0.7"))
-    (defun __ya/ivy--insert-prompt ()
+
+    (defvar eemacs/ivy--prompt-cache nil)
+    (defvar eemacs/ivy--insert-prompt-lazy-commands
+      (list 'ivy-next-line 'ivy-previous-line 'left-char 'right-char
+            'ivy-forward-char))
+    (defun __ya/ivy--insert-prompt-1 ()
       "EEMACS_MAINTENANCE&FIXME Overriden advice for
 `ivy--insert-prompt'.
 
@@ -619,7 +603,7 @@ upon emacs 28.2 due to emacs new minibuffer resize mechanism while
                                    n-str)
               (setq n-str (funcall ivy-set-prompt-text-properties-function
                                    n-str std-props))
-              (insert n-str))
+              (insert (setq eemacs/ivy--prompt-cache n-str)))
             ;; Mark prompt as selected if the user moves there or it is the only
             ;; option left.  Since the user input stays put, we have to manually
             ;; remove the face as well.
@@ -631,7 +615,39 @@ upon emacs 28.2 due to emacs new minibuffer resize mechanism while
                  (minibuffer-prompt-end) (line-end-position) '(face))))
             ;; get out of the prompt area
             (constrain-to-field nil (point-max))))))
+
+    (entropy/emacs-make-alist-with-symbol-prop-set
+        'eemacs/ivy--insert-prompt-lazy-commands
+        '__eemacs-command-is-ivy-insert-prompt-lazy-p
+      :with-single t)
+    (defun __ya/ivy--insert-prompt ()
+      "See `__ya/ivy--insert-prompt-1' for details."
+      (if (and eemacs/ivy--prompt-cache
+               this-command
+               (entropy/emacs-get-symbol-prop
+                this-command
+                '__eemacs-command-is-ivy-insert-prompt-lazy-p))
+          (progn
+            (save-excursion
+              (let ((inhibit-read-only t))
+                (goto-char (point-min))
+                (delete-region (point-min) (minibuffer-prompt-end))
+                (insert eemacs/ivy--prompt-cache)))
+            ;; Mark prompt as selected if the user moves there or it is the only
+            ;; option left.  Since the user input stays put, we have to manually
+            ;; remove the face as well.
+            (when ivy--use-selectable-prompt
+              (if (= ivy--index -1)
+                  (add-face-text-property
+                   (minibuffer-prompt-end) (line-end-position) 'ivy-prompt-match)
+                (remove-list-of-text-properties
+                 (minibuffer-prompt-end) (line-end-position) '(face))))
+            ;; get out of the prompt area
+            (constrain-to-field nil (point-max)))
+        (__ya/ivy--insert-prompt-1)))
+
     (advice-add 'ivy--insert-prompt :override '__ya/ivy--insert-prompt))
+
 ;; **** __end___
   )
 
