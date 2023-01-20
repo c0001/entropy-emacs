@@ -626,7 +626,8 @@ upon emacs 28.2 due to emacs new minibuffer resize mechanism while
                this-command
                (entropy/emacs-get-symbol-prop
                 this-command
-                '__eemacs-command-is-ivy-insert-prompt-lazy-p))
+                '__eemacs-command-is-ivy-insert-prompt-lazy-p)
+               (setq ivy--prompt (ivy-prompt)))
           (progn
             (save-excursion
               (let ((inhibit-read-only t))
