@@ -241,7 +241,7 @@ accessible portion is outside of that position."
           (let ((ring
                  ;; bypass byte-compile warning in emacs-29
                  (bound-and-true-p xref--marker-ring)))
-            (when (ring-empty-p ring)
+            (when (or (null ring) (ring-empty-p ring))
               (user-error "Marker stack is empty"))
             (let ((marker (ring-remove ring 0)))
               (switch-to-buffer (or (marker-buffer marker)
