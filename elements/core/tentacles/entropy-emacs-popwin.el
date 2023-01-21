@@ -132,6 +132,7 @@
         ("*Colors*"                    :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
         ("*Process List*"              :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
         ("*Process-Environment*"       :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
+        ("*Proced*"                    :regexp nil :dedicated t :align bottom :size 0.5 :autoclose t   :select t)
 
         ;; Search
         ("*grep*"                      :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
@@ -199,6 +200,7 @@
         ("^\\*Error\\*$"               :regexp t   :dedicated t :align bottom :size 0.2 :autoclose t   :select nil)
         ("^\\*macro expansion\\*"      :regexp t   :dedicated t :align bottom :size 0.5 :autoclose t   :select t)
         ("*Calendar*"                  :regexp nil :dedicated t :align bottom :size 0.3 :autoclose nil :select t)
+        ("^\\*edit-indirect"           :regexp t   :dedicated t :align bottom :size 0.5 :autoclose nil :select t)
 
         ;; proc buffers
         ;;  --- emacs async ---
