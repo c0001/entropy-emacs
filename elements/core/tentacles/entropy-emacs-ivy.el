@@ -493,16 +493,24 @@ thus prompt will not be displayed and the exhibition of thus is messy
 upon emacs 28.2 due to emacs new minibuffer resize mechanism while
 `ivy' seems dropped its following step for."
       (when (setq ivy--prompt (ivy-prompt))
+        ;; FIXME:
+        ;; we should always truncate the drawer since we've patched
+        ;; this function for fixing sets of bugs but the problem for
+        ;; mini window height display messy when not truncate lines in
+        ;; TUI
+        (setq-local truncate-lines t)
         (unless (memq this-command '(ivy-done ivy-alt-done ivy-partial-or-done
                                               counsel-find-symbol))
           (setq ivy--prompt-extra ""))
-        (let (head tail (winww (window-width)))
+        (let (head tail tail-not-empty-p (winww (window-width))
+                   (ellipse-str "…"))
           (if (string-match "\\(.*?\\)\\(:? ?\\)\\'" ivy--prompt)
               (progn
                 (setq head (match-string 1 ivy--prompt))
                 (setq tail (match-string 2 ivy--prompt)))
             (setq head ivy--prompt)
             (setq tail ""))
+          (setq tail-not-empty-p (not (string-empty-p tail)))
           (let ((inhibit-read-only t)
                 (std-props '(front-sticky t rear-nonsticky t field t read-only t))
                 (n-str
@@ -524,6 +532,7 @@ upon emacs 28.2 due to emacs new minibuffer resize mechanism while
                                  ivy--length)))
                    ivy--prompt-extra
                    tail)))
+                n-str-end-with-newline-p
                 d-str)
             (when-let* (((not (display-graphic-p)))
                         (n-str-len (string-width n-str))
@@ -539,17 +548,21 @@ upon emacs 28.2 due to emacs new minibuffer resize mechanism while
               (setq n-str
                     (concat
                      (truncate-string-to-width
-                      n-str winww-pp nil nil "… : ")))
-              ;; FIXME: if we do not do this (i.e. follow
-              ;; `ivy-truncate-lines') the left edge of minibuffer
-              ;; will be '$' ( i.e. display as overflow) when input
-              ;; chars overflow the window width
-              (setq truncate-lines nil))
+                      n-str winww-pp nil nil
+                      (concat
+                       ellipse-str
+                       (cond ((and ivy--directory
+                                   (string-match-p "Copy .+ to:" n-str))
+                              "to: ")
+                             (t
+                              (if tail-not-empty-p tail " : "))))))))
             ;; ensure comfortable input experience
             (when-let* ((n-str-len (string-width n-str))
                         ((or (>= n-str-len winww)
                              (> (/ n-str-len (* winww 1.0)) 0.25))))
-              (setq-local ivy-add-newline-after-prompt t))
+              (setq-local ivy-add-newline-after-prompt t)
+              (setq n-str-end-with-newline-p t)
+              (setq n-str (concat n-str "\n")))
             (save-excursion
               (goto-char (point-min))
               (delete-region (point-min) (minibuffer-prompt-end))
@@ -558,28 +571,36 @@ upon emacs 28.2 due to emacs new minibuffer resize mechanism while
                     (ww winww))
                 (setq d-str
                       (if ivy--directory
-                          (let* ((dir (file-name-nondirectory
-                                       (directory-file-name ivy--directory)))
-                                 (ddir (abbreviate-file-name ivy--directory))
-                                 (wid-ds (string-width dir))
-                                 (wid-dd (string-width ddir)))
-                            (if (> (+ wid-n wid-ds) ww) "./"
-                              (if (> (+ wid-n wid-dd) ww) (concat " " dir "/")
-                                ddir)))
+                          (let* ((sdir (file-name-as-directory
+                                        (file-name-nondirectory
+                                         (directory-file-name ivy--directory))))
+                                 (mdir (abbreviate-file-name ivy--directory))
+                                 (wid-df (string-width ivy--directory))
+                                 (wid-ds (string-width sdir))
+                                 (wid-dm (string-width mdir))
+                                 (wid-prefix (if n-str-end-with-newline-p 0 wid-n)))
+                            (if (> (+ wid-prefix wid-df) ww)
+                                (if (> (+ wid-prefix wid-dm) ww)
+                                    (if (not (> (+ wid-prefix wid-ds) ww)) sdir
+                                      (truncate-string-to-width
+                                       sdir (- ww 2) nil nil (concat ellipse-str "/")))
+                                  mdir) ivy--directory))
                         "")
                       wid-d (string-width d-str))
                 (setq n-str
-                      (cond ((> (+ wid-n wid-d) ww)
+                      (cond ((and (not n-str-end-with-newline-p)
+                                  (> (+ wid-n wid-d) ww))
                              (concat n-str "\n" d-str "\n"))
-                            ((> (+ wid-n wid-d (string-width ivy-text)) ww)
+                            ((and (not n-str-end-with-newline-p)
+                                  (> (+ wid-n wid-d (string-width ivy-text)) ww))
                              (concat n-str d-str "\n"))
-                            (t
-                             (concat n-str d-str)))))
+                            (t (concat n-str d-str)))))
               (when ivy-pre-prompt-function
                 (setq n-str (concat (funcall ivy-pre-prompt-function) n-str)))
-              (when ivy-add-newline-after-prompt
+              (when (and ivy-add-newline-after-prompt (not (string-match-p "\n$" n-str)))
                 (setq n-str (concat n-str "\n")))
               (setq n-str (ivy--break-lines n-str (window-width)))
+
               ;; TODO&&EEMACS_TEMPORALLY_HACK: ensure enough mini
               ;; window height given, although it's the job of
               ;; `ivy--minibuffer-setup' but it's buggy.
