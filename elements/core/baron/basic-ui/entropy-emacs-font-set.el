@@ -118,6 +118,13 @@ it.
 
 (defun entropy/emacs-font-set-setfont-core (&optional frame)
   (interactive)
+  ;; it's useless to setfont for a tui session and may cause buggy
+  ;; like hang the new opened daemon client when injeting to
+  ;; `entropy/emacs-daemon-server-after-make-frame-hook'.
+  (when (display-graphic-p)
+    (entropy/emacs-font-set-setfont-core-1 frame)))
+
+(defun entropy/emacs-font-set-setfont-core-1 (&optional frame)
   (let ((after-do (and entropy/emacs-font-setting-enable
                        (plist-get (alist-get entropy/emacs-font-setting-enable
                                              entropy/emacs-fontsets-fonts-collection-alias)

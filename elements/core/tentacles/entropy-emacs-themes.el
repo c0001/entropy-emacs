@@ -427,11 +427,14 @@ progress."
               ;; created daemon frame even for the same display type
               ;; since the new frame didn't inherit the previous one's
               ;; font spec.
-              (entropy/emacs-message-simple-progress-message
-               (if entropy/emacs-font-setting-enable
-                   "Daemon enable eemacs font spec"
-                 "Daemon enable font size spec")
-               (entropy/emacs-font-set-setfont-core))))
+              (when (display-graphic-p)
+                ;; useless for setfont for tui session and may cause
+                ;; buggy like hang the new client
+                (entropy/emacs-message-simple-progress-message
+                 (if entropy/emacs-font-setting-enable
+                     "Daemon enable eemacs font spec"
+                   "Daemon enable font size spec")
+                 (entropy/emacs-font-set-setfont-core)))))
            (t
             nil)))))
 
