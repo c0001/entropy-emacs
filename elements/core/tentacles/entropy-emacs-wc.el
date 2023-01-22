@@ -979,11 +979,13 @@ stored the eyebrowse config user focused."
     "Restore the eyebrowse config for dameon client's frame FAME
 saved by
 `entropy/emacs-wc-eyebrowse-savecfg--daemon-client-guard'."
-    (let* (miniw
-           (minibuff
-            (if (entropy/emacs-minibufferp nil t) (current-buffer)
-              (and (setq miniw (active-minibuffer-window))
-                   (window-buffer miniw)))))
+    (entropy/emacs-when-let*-first
+        (((entropy/emacs-daemon-current-is-main-client))
+         miniw
+         (minibuff
+          (if (entropy/emacs-minibufferp nil t) (current-buffer)
+            (and (setq miniw (active-minibuffer-window))
+                 (window-buffer miniw)))))
       (when minibuff
         ;; quit minibuffer firstly since we can not restore
         ;; window-configuration while thus actived. Using idle timer
@@ -994,18 +996,18 @@ saved by
          #'entropy/emacs-wc-eyebrowse-savecfg--daemon-restore-saved-config
          frame)
         (with-current-buffer minibuff
-          (abort-minibuffers))))
-    (let* ((inhibit-quit t) log)
-      (when entropy/emacs-wc-eyebrowse-savecfg-current-config
-        (with-selected-frame frame
-          (message "Restore eyebrowse config from previous daemon client ...")
-          (progn
-            (setq log (entropy/emacs-wc-eyebrowes-savecfg--restore-previous-config
-                       nil t))
-            (if (eq log t)
-                (message "Restore eyebrowse config from previous daemon client done")
-              (message "Not restore eyebrowse config for current daemon client (%s)"
-                       log)))))))
+          (abort-minibuffers)))
+      (let* ((inhibit-quit t) log)
+        (when entropy/emacs-wc-eyebrowse-savecfg-current-config
+          (with-selected-frame frame
+            (message "Restore eyebrowse config from previous daemon client ...")
+            (progn
+              (setq log (entropy/emacs-wc-eyebrowes-savecfg--restore-previous-config
+                         nil t))
+              (if (eq log t)
+                  (message "Restore eyebrowse config from previous daemon client done")
+                (message "Not restore eyebrowse config for current daemon client (%s)"
+                         log))))))))
 
   (when (daemonp)
     ;; inject the delete frame function
