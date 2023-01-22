@@ -9284,7 +9284,7 @@ unspecified attribute is not collected into the return."
 ;; see the function `custom-push-theme' body details.
 (put 'eemacs-cover-theme-0 'theme-immediate t)
 
-(defun entropy/emacs-defun--theme-cover-0-rest ()
+(defun entropy/emacs-defun--theme-cover-0-reset (&optional no-renable)
   (when entropy/emacs-set-face-attribute--internal-log-for-setted-faces
     (let (log)
       (dolist (fre entropy/emacs-set-face-attribute--internal-log-for-setted-faces)
@@ -9297,12 +9297,13 @@ unspecified attribute is not collected into the return."
   (setq entropy/emacs-set-face-attribute--internal-log-for-setted-faces nil)
   (disable-theme 'eemacs-cover-theme-0)
   ;; idle delay guard for re-enable eemacs cover theme
-  (run-with-idle-timer
-   0.001 nil
-   #'entropy/emacs--advice-priority-eemacs-cover-them-0-timer))
+  (unless no-renable
+    (run-with-idle-timer
+     0.001 nil
+     #'entropy/emacs--advice-priority-eemacs-cover-them-0-timer)))
 ;; disable the internal cover theme must before any hooks running so
 (add-hook 'entropy/emacs-theme-load-before-hook-head-1
-          #'entropy/emacs-defun--theme-cover-0-rest)
+          #'entropy/emacs-defun--theme-cover-0-reset)
 
 (defun entropy/emacs--advice-priority-eemacs-cover-them-0-timer ()
   "Take advanced priority for the `eemacs-cover-theme-0' in
@@ -11821,7 +11822,30 @@ corresponding stuffs."
     (when (facep 'solaire-default-face)
       (entropy/emacs-set-face-attribute
        'solaire-default-face frame
-       :background "unspecified-bg")))
+       :background "unspecified-bg"))
+    (when (and (daemonp) (> emacs-major-version 28))
+      ;; FIXME: unspecified-bg value is only adopted for TUI session
+      ;; i.e.  while set, the GUI daemon client can not be raised up
+      ;; successfully anymore in emacs-29 and above version, is that
+      ;; the updates of emacs is not backward compatible or a bug?
+      (add-to-list 'entropy/emacs-delete-frame-functions
+                   (entropy/emacs-defalias
+                       'eemacs/disable-cover0-theme-for-last-tui-daemon-client/because-of-tui-unspecifed-bg-set
+                     (lambda (&rest _)
+                       (let ((inhibit-read-only t))
+                         (when (= 1 (length entropy/emacs-daemon--legal-clients))
+                           (entropy/emacs-defun--theme-cover-0-reset 'no-renable))))))
+      (warn "You should consider that the non-bg TUI daemon client will block
+emacs's ability to open a simulation GUI client in the same daemon
+session since procedure that launching GUI client can not preserving
+`unspecified-bg' before the GUI frame made done.
+
+If you want to use a GUI client in this daemon session, you always
+need to close all TUI daemon clients before to do that. Or thru the
+way of disabling
+`entropy/emacs-theme-inhibit-bg-of-default-face-for-tui' and reload
+current theme.")))
+
   ;; other spec
   ;; --- magit diff hunk highlight spec
   ;;
