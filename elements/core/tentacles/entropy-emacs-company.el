@@ -360,6 +360,20 @@ sessions performance."
         (entropy/emacs-double-list 'company-candidates))
 
 ;; **** advices
+;; ***** `company-perform' performance adjusting
+
+  (defun __ya/company--perfom/while-no-input (orig-func &rest orig-args)
+    "Run `company--perfom' in `while-no-input' wrapper for preventing
+large computation occurred while user input arrived to reduce
+inputing lag experience."
+    (let ((nmrtn 'success) orig-rtn)
+      (if (eq (while-no-input
+                (setq orig-rtn (apply orig-func orig-args))
+                nmrtn) nmrtn) orig-rtn
+        (entropy/emacs-error-without-debugger
+         "-> eemacs: company perform cancled due to user input arrived"))))
+  (advice-add 'company--perform :around '__ya/company--perfom/while-no-input)
+
 ;; ***** `company-post-command' idle trigger
 
   (defvar entropy/emacs-company--company-special-keys
