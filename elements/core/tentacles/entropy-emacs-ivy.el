@@ -82,8 +82,14 @@
       (add-to-list 'ivy-initial-inputs-alist
                    (cons cmd "^")))
     ;; printable M-x candi sort default type by string less
-    (add-to-list 'ivy-sort-functions-alist
-                 '(counsel-M-x . ivy-string<)))
+    (entropy/emacs-alist-set
+        'counsel-M-x ivy-sort-functions-alist
+      'ivy-string<)
+    ;; always show recent added the-mark in head chosen of candidates
+    ;; list, where the original counsel defined reversed.
+    (entropy/emacs-alist-set
+        'counsel-mark-ring ivy-sort-functions-alist
+      'ignore))
 
   ;; ivy details
   (setq enable-recursive-minibuffers t) ;Allow commands in minibuffers
