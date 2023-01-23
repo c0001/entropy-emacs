@@ -389,10 +389,9 @@ inputing lag experience."
   (advice-add 'company--perform :around '__ya/company--perfom/while-no-input)
 
   (defun eemacs/company--perform-interrupt-silent (orig-func &rest orig-args)
-    (let ((inhibit-message (not entropy/emacs-startup-debug-on-error))
-          (message-log-max
-           (if entropy/emacs-startup-debug-on-error message-log-max
-             nil)))
+    (let* ((show-msg-p (or debug-on-error entropy/emacs-startup-debug-on-error))
+           (inhibit-message (not show-msg-p))
+           (message-log-max (if show-msg-p message-log-max nil)))
       (apply orig-func orig-args)))
   (dolist (func (list 'company-auto-begin 'company-pre-command
                       'company-post-command))
