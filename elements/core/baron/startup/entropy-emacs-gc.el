@@ -45,7 +45,6 @@
 
 (defvar entropy/emacs-gc-records nil)
 
-
 (defvar entropy/emacs-gc-thread-max
   (if (< emacs-major-version 29) (* 100 (expt 1024 2))
     ;; FIXME: emacs-29's gc inner optimization has collision with the
@@ -54,7 +53,7 @@
     ;; duration. Is this theory right?
     (* (if entropy/emacs-fall-love-with-pdumper
            ;; FIXME: why pdumper session gc more frequently
-           50 10)
+           50 20)
        (expt 1024 2))))
 (defvar entropy/emacs-gc-percentage-max 0.8)
 

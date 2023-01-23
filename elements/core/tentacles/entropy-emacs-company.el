@@ -362,17 +362,41 @@ sessions performance."
 ;; **** advices
 ;; ***** `company-perform' performance adjusting
 
+  (defvar eemacs/company--perform-input-commands
+    (list 'self-insert-command))
+  (entropy/emacs-make-alist-with-symbol-prop-set
+      'eemacs/company--perform-input-commands
+      '__eemacs/company--perform-input-command-p
+    :with-single t)
+
   (defun __ya/company--perfom/while-no-input (orig-func &rest orig-args)
     "Run `company--perfom' in `while-no-input' wrapper for preventing
 large computation occurred while user input arrived to reduce
 inputing lag experience."
-    (let ((nmrtn 'success) orig-rtn)
-      (if (eq (while-no-input
-                (setq orig-rtn (apply orig-func orig-args))
-                nmrtn) nmrtn) orig-rtn
-        (entropy/emacs-error-without-debugger
-         "-> eemacs: company perform cancled due to user input arrived"))))
+    (if (or buffer-read-only
+            ;; NOTE: only interrupt for those keys like
+            ;; `self-insert-command' since otherwise is meaningless.
+            (not (entropy/emacs-get-symbol-prop
+                  this-command
+                  '__eemacs/company--perform-input-command-p)))
+        (apply orig-func orig-args)
+      (let ((nmrtn 'success) orig-rtn)
+        (if (eq (while-no-input
+                  (setq orig-rtn (apply orig-func orig-args))
+                  nmrtn) nmrtn) orig-rtn
+          (entropy/emacs-error-without-debugger
+           "-> eemacs: company perform cancled due to user input arrived")))))
   (advice-add 'company--perform :around '__ya/company--perfom/while-no-input)
+
+  (defun eemacs/company--perform-interrupt-silent (orig-func &rest orig-args)
+    (let ((inhibit-message (not entropy/emacs-startup-debug-on-error))
+          (message-log-max
+           (if entropy/emacs-startup-debug-on-error message-log-max
+             nil)))
+      (apply orig-func orig-args)))
+  (dolist (func (list 'company-auto-begin 'company-pre-command
+                      'company-post-command))
+    (advice-add func :around #'eemacs/company--perform-interrupt-silent))
 
 ;; ***** `company-post-command' idle trigger
 
