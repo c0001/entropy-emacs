@@ -108,6 +108,19 @@
 ;; ** eemacs top APIs
 ;; Top declared functions used for eemacs.
 
+(defmacro entropy/emacs-with-lexical-binding-check
+    (should-enable &rest body)
+  "Error when BODY is (or *is not* when SHOULD-ENABLE is non-nil)
+ran in an `lexical-binding' environment.
+
+Return BODY's value if thus of OK is be."
+  (declare (indent 1))
+  `(if (if ,should-enable (not lexical-binding) lexical-binding)
+       (error "lexical-binding %s for body:\n%S"
+              (if lexical-binding "should not be enabled"
+                "should be enabled") ',body)
+     ,(if (cdr body) `(progn ,@body) (car body))))
+
 ;; *** compatible refine
 (unless (fboundp 'always)
   ;; FIXME: invention from emacs 28 and above, so we should defined as
@@ -393,6 +406,37 @@ BUFFER defaults to `current-buffer' if ignored or omitted."
           (buffer-local-value variable (current-buffer))))
     (when (variable-binding-locus variable)
       (buffer-local-value variable (current-buffer)))))
+
+(defmacro entropy/emacs-alist-set
+    (key alist &optional val no-add testfn)
+  "Set KEY of ALIST of value VAL.
+
+(ALIST should be a alist variable name or a PLACE which can be prepared by `gv-ref')
+
+If KEY is not existed in ALIST than add it to the ALIST unless
+NO-ADD is non-nil in which case nothing is did.
+
+KEY member checking thru TESTFN which is used as same argument as
+what named in `assoc' and default to `equal'.
+
+If VAL is omitted, default to nil.
+
+Return the value of ALIST after modification (or as original if
+such NO-ADD is happened)."
+  (declare (indent 2))
+  (entropy/emacs-with-lexical-binding-check t
+    (macroexp-let2* ignore
+        ((alist-place-sym `(gv-ref ,alist)) (key-sym key) (testfn-sym testfn)
+         (assoc-place-sym `(gv-ref (assoc ,key-sym (gv-deref ,alist-place-sym)
+                                          (or ,testfn-sym 'equal))))
+         (memqp-sym `(gv-deref ,assoc-place-sym))
+         (val-sym val) (no-add-sym no-add))
+      `(progn
+         (when (if ,no-add-sym ,memqp-sym t)
+           (if (not ,memqp-sym)
+               (push (cons ,key-sym ,val-sym) (gv-deref ,alist-place-sym))
+             (setcdr ,memqp-sym ,val-sym)))
+         (gv-deref ,alist-place-sym)))))
 
 ;; *** eemacs def*
 
