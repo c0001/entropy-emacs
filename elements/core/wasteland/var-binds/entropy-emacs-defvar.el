@@ -2295,7 +2295,11 @@ in proper occasions, do not set it manually or messy up.")
     delete-forward-char
     kill-ring-save
     kill-region
-    kill-line)
+    kill-line
+    indent-for-tab-command
+    outshine-kbd-TAB
+    outshine-kbd-M-RET
+    newline)
   "List of command symbols for each to follow
 `entropy/emacs-should-be-read-only' suggestion where each hint (i.e
 interactive-only) of those commands will throw an warning instead of
