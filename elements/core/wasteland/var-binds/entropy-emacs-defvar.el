@@ -2293,6 +2293,8 @@ in proper occasions, do not set it manually or messy up.")
   '(self-insert-command
     delete-backward-char
     delete-forward-char
+    kill-ring-save
+    kill-region
     kill-line)
   "List of command symbols for each to follow
 `entropy/emacs-should-be-read-only' suggestion where each hint (i.e
