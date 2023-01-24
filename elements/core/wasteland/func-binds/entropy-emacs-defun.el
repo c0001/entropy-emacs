@@ -7075,6 +7075,13 @@ can be used into your form:
      synchronously with it.
    * limitation: both async and sync process calling type
    * Slots support: `:after', `:cleanup', `:sentinel', `:error'
+
+4) =$sentinel/proc-exit-status=
+   * description: the process exit code for =$sentinel/proc=, it's
+     returned from `process-exit-status'.
+   * limitation: just usable for sync process since any async process
+     can visit arbitrary process status via =$sentinel/proc=.
+   * Slot support: `:after', `:error', `cleanup'
 "
   (let ((prepare-form
          (or (entropy/emacs-get-plist-form
@@ -7206,8 +7213,9 @@ can be used into your form:
                                ((entropy/emacs-process-exit-with-fatal-p
                                  $sentinel/proc $sentinel/event)
                                 (setq ran-out-p
-                                      (list :exit-code (process-exit-status $sentinel/proc)))
-                                (entropy/emacs-eval-with-lexical error-form lcb-env))))
+                                      (list :exit-status (process-exit-status $sentinel/proc)))
+                                (unless synchronously
+                                  (entropy/emacs-eval-with-lexical error-form lcb-env)))))
                      ;; do ran out procedures
                      (when ran-out-p
                        (cond
@@ -7223,12 +7231,16 @@ can be used into your form:
             ;; NOTE: do not set to 0 since its same as ran without waiting.
             (sleep-for 0.00000000000000000001))
           (entropy/emacs-funcall-with-lambda nil
-            (let ((lcb-env `(($sentinel/destination . ,thiscur_proc_buffer)))
+            (let ((lcb-env `(($sentinel/destination . ,thiscur_proc_buffer)
+                             ($sentinel/proc-exit-status
+                              . ,(let ((st (symbol-value thiscur_sync_sym)))
+                                   (if (eq st t) 0 (plist-get st :exit-status))))))
                   (inhibit-quit t))
               (unwind-protect
-                  (when (eq (symbol-value thiscur_sync_sym) t)
-                    ;; just ran after form when this process ran out successfully
-                    (entropy/emacs-eval-with-lexical after-form lcb-env))
+                  (if (eq (symbol-value thiscur_sync_sym) t)
+                      ;; just ran after form when this process ran out successfully
+                      (entropy/emacs-eval-with-lexical after-form lcb-env)
+                    (entropy/emacs-eval-with-lexical error-form lcb-env))
                 ;; run clean form
                 (entropy/emacs-eval-with-lexical clean-form lcb-env)))))
         ;; return the processor
@@ -7236,13 +7248,14 @@ can be used into your form:
        (t
         (entropy/emacs-funcall-with-lambda nil
           (let ((lcb-env `(($sentinel/destination . ,$call_proc_destination)))
-                (inhibit-quit t))
+                (inhibit-quit t) exit-code)
+            (setq exit-code
+                  (apply 'call-process $call_proc_command $call_proc_infile
+                         $call_proc_destination $call_proc_display
+                         $call_proc_args)
+                  lcb-env (cons (cons '$sentinel/proc-exit-status exit-code) lcb-env))
             (unwind-protect
-                (if (funcall
-                     call-proc-exit-status-zerop
-                     (apply 'call-process $call_proc_command $call_proc_infile
-                            $call_proc_destination $call_proc_display
-                            $call_proc_args))
+                (if (funcall call-proc-exit-status-zerop exit-code)
                     ;; just ran after form when this process ran out successfully
                     (entropy/emacs-eval-with-lexical after-form lcb-env)
                   (entropy/emacs-eval-with-lexical error-form lcb-env))
@@ -9404,13 +9417,14 @@ return t otherwise for nil. "
 ;; *** Newtork manipulation
 ;; **** network status checker
 
-(defun entropy/emacs-network-url-canbe-connected-p (url &optional timeout use-curl)
+(defun entropy/emacs-network-url-canbe-connected-p
+    (url &optional timeout use-curl silent)
   "Check URL whether can be connecated and return non-nil if canbe thus.
 
 Optional argument TIMEOUT is an integer used to restrict the test
 timeout seconds range, default to 1 second.
 
-Throw an error when the command 'curl' not found in system PATH if
+Throw an error when the command `curl' not found in system PATH if
 USE-CURL is non-nil (but with some restriction as below description).
 
 About USE-CURL:
@@ -9434,28 +9448,35 @@ judgement as:
 
 So that, emacs will stuck while `make-network-process' return the
 data buffer but wait for an connection building (as dns or other
-fake data recieved by GFW) which is the realting the TIMEOUT care
+fake data recieved by GFW) which is the real thing the TIMEOUT care
 about.
 
-Thus, defaulty this function will forcely using the system 'curl'
-command to be the main subroutine when the 'curl' command existed in
-your system. Unless its `eq' to an symbol 'force-not'."
+Thus, defaulty this function will forcely using the system `curl'
+command to be the main subroutine when the `curl' command existed in
+your system. Unless its `eq' to an symbol `force-not'.
+
+When SILENT is non-nil, then inhbit any inner reports via `message'."
   (let* ((timeout (or (and (integerp timeout) timeout) 1))
          (cbksym (entropy/emacs-make-new-symbol nil))
          (use-curl (or (and (and use-curl (not (eq use-curl 'force-not)))
-                            (if (executable-find "curl")
-                                t
+                            (if (executable-find "curl") t
                               (user-error "command 'curl' not found in your PATH")))
-                       (and
-                        (not (eq use-curl 'force-not))
-                        (executable-find "curl"))))
+                       (and (not (eq use-curl 'force-not))
+                            (executable-find "curl"))))
+         (_ (when use-curl
+              (entropy/emacs-require-only-once 'url-util)
+              ;; FIXME: Why we should escape invalid url chars for command
+              ;; line arguments transferring to `curl' for emacs 29 and
+              ;; above, where there's no problem for emacs 28 and lower
+              ;; vers.
+              (setq url (url-hexify-string url entropy/emacs-url-allowed-chars))))
          (native-func
-          '(lambda (x tout)
-             "Like `url-http-head' but be silent and no cookie used."
-             (entropy/emacs-require-only-once 'url-http)
-             (let ((url-request-method "HEAD")
-                   (url-request-data nil))
-               (url-retrieve-synchronously x t t tout))))
+          (lambda (x tout)
+            "Like `url-http-head' but be silent and no cookie used."
+            (entropy/emacs-require-only-once 'url-http)
+            (let ((url-request-method "HEAD")
+                  (url-request-data nil))
+              (url-retrieve-synchronously x t t tout))))
          (cmd-args
           `("curl"
             ;; NOTE: just get the server response head so we do not stuck in an download link.
@@ -9484,11 +9505,15 @@ your system. Unless its `eq' to an symbol 'force-not'."
            `(:name
              ,(format "eemacs network url canbe connected test for '%s'" url)
              :synchronously t
-             :command ',cmd-args
+             :command (list ,@cmd-args)
              :buffer nil
-             :after
-             (setq ,cbksym t)))
-          (symbol-value cbksym))
+             :error
+             (unless ,silent
+               (message "error: (exit status: %s) can not conntecting to `%s'"
+                        $sentinel/proc-exit-status
+                        ,url))
+             :after (setq ,cbksym t)))
+          (and (symbol-value cbksym) t))
       (message "Use `url-http-head' to test url '%s' (warn: it may stuck emacs while GFW.) ..."
                url)
       (condition-case error
