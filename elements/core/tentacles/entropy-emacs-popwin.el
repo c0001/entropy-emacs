@@ -198,6 +198,7 @@
         ("*Memory Explorer*"           :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
         ("^ \\*Marked Files\\*$"       :regexp t   :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
         ("^\\*Error\\*$"               :regexp t   :dedicated t :align bottom :size 0.2 :autoclose t   :select nil)
+        ("^\\*Org-Babel Error Output"  :regexp t   :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
         ("^\\*macro expansion\\*"      :regexp t   :dedicated t :align bottom :size 0.5 :autoclose t   :select t)
         ("*Calendar*"                  :regexp nil :dedicated t :align bottom :size 0.3 :autoclose nil :select t)
         ("^\\*edit-indirect"           :regexp t   :dedicated t :align bottom :size 0.5 :autoclose nil :select t)
