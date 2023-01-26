@@ -6,7 +6,7 @@
 ;; Changed by: Entropy
 ;; URL:
 ;; Version: 0.1.0
-;; Package-Requires: ((company "0.8.0")(cl-lib "0.5.0"))
+;; Package-Requires: ((company "0.8.0") (cl-lib "0.5.0") (trie "0.5") (memoize "20200103.2036"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
