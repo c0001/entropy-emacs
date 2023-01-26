@@ -59,6 +59,11 @@
               rtn)))
     rtn))
 
+(cl-defun entropy/emacs-pkgreq-make-pkgreqptr
+    (&key under name pkg-desc)
+  (unless (and under (>= emacs-major-version under))
+    (list :name name :pkg-desc pkg-desc)))
+
 (defvar entropy/emacs--base-packges
   `(
     ac-php
@@ -124,11 +129,13 @@
     doom-themes
     edit-indirect
     ;; force use new version of `eglot'
-    ,(list
+    ,(entropy/emacs-pkgreq-make-pkgreqptr
+      :under 29
       :name 'eglot
       :pkg-desc (lambda () (__entropy/emacs-requirements/pkgs_desc_get_statble 'eglot)))
     ;; force use new version of `eldoc' for new version of `eglot'
-    ,(list
+    ,(entropy/emacs-pkgreq-make-pkgreqptr
+      :under 29
       :name 'eldoc
       :pkg-desc (lambda () (__entropy/emacs-requirements/pkgs_desc_get_statble 'eldoc)))
     eldoc-eval
@@ -147,7 +154,8 @@
     find-file-in-project
     flycheck
     ;; force use new version of `flymake' for new version of `eglot'
-    ,(list
+    ,(entropy/emacs-pkgreq-make-pkgreqptr
+      :under 29
       :name 'flymake
       :pkg-desc (lambda () (__entropy/emacs-requirements/pkgs_desc_get_statble 'flymake)))
     ghub
@@ -230,7 +238,8 @@
     prescient
     pretty-hydra
     ;; forcely install newer version of `project' since newer version flymake needed
-    ,(list
+    ,(entropy/emacs-pkgreq-make-pkgreqptr
+      :under 29
       :name 'project
       :pkg-desc (lambda () (__entropy/emacs-requirements/pkgs_desc_get_statble 'project)))
     projectile
@@ -306,14 +315,14 @@
                            ;; disable maple preview as pre-request since its obsolete
                            ;; maple-preview
                            )))
-            (pkgs-rtn entropy/emacs--base-packges))
+            (pkgs-rtn (delete nil entropy/emacs--base-packges)))
         (when use-posframe
           (setq pkgs-rtn (append pkgs-rtn (list use-posframe))))
         (when use-vterm
           (setq pkgs-rtn (append pkgs-rtn (list use-vterm))))
         (when use-extras
           (setq pkgs-rtn (append pkgs-rtn use-extras)))
-	(setq entropy-emacs-packages pkgs-rtn)))
+        (setq entropy-emacs-packages pkgs-rtn)))
 
 
 (provide 'entropy-emacs-package-requirements)
