@@ -911,12 +911,12 @@ It is a string used for `kbd'.")
 
 ;; ** unified keybinding reflects defination
 ;; *** outline
-(defvar entropy/emacs-ukrd-ouline-demote-sutree "C->")
-(defvar entropy/emacs-ukrd-ouline-promote-sutree "C-<")
+(defvar entropy/emacs-ukrd-ouline-demote-sutree "M-S-<right>")
+(defvar entropy/emacs-ukrd-ouline-promote-sutree "M-S-<left>")
 (defvar entropy/emacs-ukrd-ouline-prev-head "M-<up>")
 (defvar entropy/emacs-ukrd-ouline-next-head "M-<down>")
-(defvar entropy/emacs-ukrd-outline-move-subtree-up "C-c C-x u")
-(defvar entropy/emacs-ukrd-outline-move-subtree-down "C-c C-x d")
+(defvar entropy/emacs-ukrd-outline-move-subtree-up "M-S-<up>")
+(defvar entropy/emacs-ukrd-outline-move-subtree-down "M-S-<down>")
 
 ;; *** individuals
 (defvar entropy/emacs-ukrd-toggle-link-display "C-x C-l")

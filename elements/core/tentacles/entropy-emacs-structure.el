@@ -35,11 +35,51 @@
   :ensure nil
   :preface
   (defvar outline-regexp)
+
+  (defun entropy/outline-previous-visible-heading (&optional arg)
+    "Like `outline-previous-visible-heading' but goto to parent
+heading as `entropy/emacs-org-previous-visible-heading' when
+prefix arg was `(4)' i.e. the single `C-u' type."
+    (declare (interactive-only t))
+    (interactive "P")
+    (cond
+     ((equal arg '(4))
+      (outline-up-heading 1))
+     (t
+      (outline-previous-visible-heading
+       (prefix-numeric-value arg)))))
+
   :init
   ;; make `outline-minor-mode' enabled in markdown mode since its
   ;; based on thus so that we can invoke some eemacs outline specs for
   ;; markdown as well.
-  (add-hook 'markdown-mode-hook #'outline-minor-mode))
+  (add-hook 'markdown-mode-hook #'outline-minor-mode)
+
+  :config
+  (define-key outline-mode-map
+              (kbd "C-c C-p")
+              #'entropy/outline-previous-visible-heading)
+  (define-key outline-mode-map
+              (kbd entropy/emacs-ukrd-ouline-prev-head)
+              #'entropy/outline-previous-visible-heading)
+  (define-key outline-mode-map
+              (kbd "C-c C-n")
+              #'outline-next-visible-heading)
+  (define-key outline-mode-map
+              (kbd entropy/emacs-ukrd-ouline-next-head)
+              #'outline-next-visible-heading)
+  (define-key outline-mode-map
+              (kbd entropy/emacs-ukrd-ouline-promote-sutree)
+              'outline-promote)
+  (define-key outline-mode-map
+              (kbd entropy/emacs-ukrd-ouline-demote-sutree)
+              'outline-demote)
+  (define-key outline-mode-map
+              (kbd entropy/emacs-ukrd-outline-move-subtree-up)
+              'outline-move-subtree-up)
+  (define-key outline-mode-map
+              (kbd entropy/emacs-ukrd-outline-move-subtree-down)
+              'outline-move-subtree-down))
 
 ;; ** libraries
 ;; function for universal code folding
@@ -599,18 +639,8 @@ recalc the specified head level specification.
           (recenter-top-bottom '(middle)))
       (user-error "Not in an outline based buffer!")))
 
-  (defun entropy/outshine-previous-visible-heading (&optional arg)
-    "Like `outline-previous-visible-heading' but goto to parent
-heading as `entropy/emacs-org-previous-visible-heading' when
-prefix arg was '(4) i.e. the single `C-u' type."
-    (declare (interactive-only t))
-    (interactive "P")
-    (cond
-     ((equal arg '(4))
-      (outline-up-heading 1))
-     (t
-      (outline-previous-visible-heading
-       (prefix-numeric-value arg)))))
+  (defalias 'entropy/outshine-previous-visible-heading
+    #'entropy/outline-previous-visible-heading)
 
   (defun entropy/emacs-structure-outshine-pop-imenu (&optional args)
     "Call `imenu' defautly unless `prefix-arg' is non-nil and
@@ -1136,17 +1166,23 @@ Otherwise, fallback to the original binding of %s in the current mode."
         (error "Using it out of the headline was not supported.")))
 
   (define-key outshine-mode-map
-    (kbd "C-c C-p")
-    #'entropy/outshine-previous-visible-heading)
+              (kbd "C-c C-p")
+              #'entropy/outshine-previous-visible-heading)
   (define-key outshine-mode-map
-    (kbd entropy/emacs-ukrd-ouline-prev-head)
-    #'entropy/outshine-previous-visible-heading)
+              (kbd entropy/emacs-ukrd-ouline-prev-head)
+              #'entropy/outshine-previous-visible-heading)
   (define-key outshine-mode-map
-    (kbd "C-c C-n")
-    #'outline-next-visible-heading)
+              (kbd "C-c C-n")
+              #'outline-next-visible-heading)
   (define-key outshine-mode-map
-    (kbd entropy/emacs-ukrd-ouline-next-head)
-    #'outline-next-visible-heading)
+              (kbd entropy/emacs-ukrd-ouline-next-head)
+              #'outline-next-visible-heading)
+  (define-key outline-mode-map
+              (kbd entropy/emacs-ukrd-outline-move-subtree-up)
+              'outline-move-subtree-up)
+  (define-key outline-mode-map
+              (kbd entropy/emacs-ukrd-outline-move-subtree-down)
+              'outline-move-subtree-down)
 
 ;; **** sepcial hooks defination
 
