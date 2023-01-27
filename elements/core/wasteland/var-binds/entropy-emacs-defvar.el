@@ -2293,7 +2293,6 @@ in proper occasions, do not set it manually or messy up.")
   '(self-insert-command
     delete-backward-char
     delete-forward-char
-    kill-ring-save
     kill-region
     kill-line
     indent-for-tab-command
