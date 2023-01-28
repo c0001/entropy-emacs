@@ -504,6 +504,8 @@ building procedure while invoking INSTALL-COMMANDS."
 ;; *** extra `use-package' keywords definition
 ;; **** :eemacs-functions
 
+;; same as builtin `:functions' but always autoload even in non-compile session
+
 (entropy/emacs-add-hook-with-lambda 'use-pakcage:eemacs-functions nil
   :use-hook 'entropy/emacs-package-init-use-packge-after-hook
   (entropy/emacs-package--use-package-add-keyword
@@ -531,6 +533,9 @@ are recognized as a normal function."
 
 ;; **** :eemacs-macros
 
+;; same as builtin `:functions' but for macaros and always autoload
+;; even in non-compile session
+
 (entropy/emacs-add-hook-with-lambda 'use-pakcage:eemacs-macros nil
   :use-hook 'entropy/emacs-package-init-use-packge-after-hook
   (entropy/emacs-package--use-package-add-keyword
@@ -555,6 +560,8 @@ recognized as a normal macro."
    (use-package-process-keywords name rest state)))
 
 ;; **** :eemacs-defvars
+
+;; same as builtin `:defines' but always defined even in non-compile session
 
 (entropy/emacs-add-hook-with-lambda 'use-pakcage:eemacs-defvars nil
   :use-hook 'entropy/emacs-package-init-use-packge-after-hook
