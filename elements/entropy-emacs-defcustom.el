@@ -1640,14 +1640,19 @@ rich enhanced purpose there are one another option:
           (const :tag "Rich-hence (company-box)" company-box))
   :group 'entropy/emacs-customize-group-for-company-mode)
 
-(defcustom entropy/emacs-company-idle-delay-default 0.65
+(defcustom entropy/emacs-company-idle-delay-default 0.2
   "Default eemacs specified set for `company-idle-delay`.
 
 NOTE: must set larger than `entropy/emacs-safe-idle-minimal-secs'.
 
 Commonly each company calculation is perfomance lag on, so we should
 always get it larger than the human typing repeating speed, so that we
-can not feeling that lag."
+can not feeling that lag, e.g. set to 0.65s. But in eemacs, we've
+hacked each completion computation via `company-backend' respect user
+input statement thru `while-no-input' where any long time computation
+is break while user inputs arrived, thus we can set this variable
+shorter but still need to consider the garbage-collection laggy, thus
+we set to 0.2 defaultly but maybe 0.3 is better for gc."
   :type 'number
   :group 'entropy/emacs-customize-group-for-company-mode)
 
