@@ -26,16 +26,18 @@
 (require 'cl-lib)
 (require 'company)
 (require 'memoize)
-(require 'trie)
+;; inhibit require trie directly when byte-compile since it relying on
+;; an old compat package `tNFA' which use obsolete cl-* functions,
+;; while many obsolete warnings will popup when in compilation.
+(declare-function make-trie     "ext:trie")
+(declare-function trie-insert   "ext:trie")
+(declare-function trie-complete "ext:trie")
 (require 'company-en-words-data "./company-en-words-data.el")
 
 (defvar company-en-words/var--doc-buffer-name "*company-en-words-doc*")
 
 (defvar company-en-words/var--candi-max-len
   (length company-en-words-data/en-words-simple-list))
-
-(defvar company-en-words/lib--en-words-trie-obj
-  (make-trie '<))
 
 (defun company-en-words/lib--require-wudao ()
   (let* ((wd-path (executable-find "wd"))
@@ -48,12 +50,12 @@
       (add-to-list 'load-path (expand-file-name "emacs" wd-host))
       (require 'wudao-query nil t))))
 
+(defvar company-en-words/lib--en-words-trie-obj nil)
 (defvar company-en-words/var--trie-inited nil)
 (defun company-en-words/lib--init-trie ()
   (unless company-en-words/var--trie-inited
-    ;; reset trie obj since previous aborting
-    (setq company-en-words/lib--en-words-trie-obj
-          (make-trie '<))
+    ;; reset trie obj since previous aborting, or just initilize trie table
+    (setq company-en-words/lib--en-words-trie-obj (make-trie '<))
     (let* ((inhibit-message nil)        ;make sure message workable
            (pgm (prog1
                     (progn

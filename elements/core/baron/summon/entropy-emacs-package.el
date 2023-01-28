@@ -507,7 +507,7 @@ building procedure while invoking INSTALL-COMMANDS."
 (entropy/emacs-add-hook-with-lambda 'use-pakcage:eemacs-functions nil
   :use-hook 'entropy/emacs-package-init-use-packge-after-hook
   (entropy/emacs-package--use-package-add-keyword
-   :eemacs-functions))
+   :eemacs-functions :if))
 
 (defalias 'use-package-normalize/:eemacs-functions
   'use-package-normalize-symlist)
@@ -523,13 +523,9 @@ are recognized as a normal function."
      (cl-mapcan
       #'(lambda (command)
           (when (symbolp command)
-            (append
-             (unless (plist-get state :demand)
-               `((unless (fboundp ',command)
-                   (autoload #',command ,name-string))))
-             (when (bound-and-true-p byte-compile-current-file)
-               `((eval-when-compile
-                   (declare-function ,command ,name-string)))))))
+            (unless (plist-get state :demand)
+              `((unless (fboundp ',command)
+                  (autoload #',command ,name-string))))))
       (delete-dups arg)))
    (use-package-process-keywords name rest state)))
 
@@ -538,7 +534,7 @@ are recognized as a normal function."
 (entropy/emacs-add-hook-with-lambda 'use-pakcage:eemacs-macros nil
   :use-hook 'entropy/emacs-package-init-use-packge-after-hook
   (entropy/emacs-package--use-package-add-keyword
-   :eemacs-macros))
+   :eemacs-macros :if))
 
 (defalias 'use-package-normalize/:eemacs-macros
   'use-package-normalize-symlist)
@@ -552,14 +548,35 @@ recognized as a normal macro."
      (cl-mapcan
       #'(lambda (command)
           (when (symbolp command)
-            (append
-             (unless (plist-get state :demand)
-               `((unless (fboundp ',command)
-                   (autoload #',command ,name-string nil nil t))))
-             nil)))
+            (unless (plist-get state :demand)
+              `((unless (fboundp ',command)
+                  (autoload #',command ,name-string nil nil t))))))
       (delete-dups arg)))
    (use-package-process-keywords name rest state)))
 
+;; **** :eemacs-defvars
+
+(entropy/emacs-add-hook-with-lambda 'use-pakcage:eemacs-defvars nil
+  :use-hook 'entropy/emacs-package-init-use-packge-after-hook
+  (entropy/emacs-package--use-package-add-keyword
+   :eemacs-defvars :if))
+
+(defalias 'use-package-normalize/:eemacs-defvars
+  'use-package-normalize-symlist)
+
+(defun use-package-handler/:eemacs-defvars (name _keyword arg rest state)
+  "The `use-package' handler for key ':eemacs-defvars' which place
+can host a macro symbol or a list of thus. All symbols are
+recognized as a normal macro."
+  (use-package-concat
+   (let (_)
+     (cl-mapcan
+      #'(lambda (var)
+          (unless (or (plist-get state :demand)
+                      (not (symbolp var)))
+            `((unless (boundp ',var) (defvar ,var)))))
+      (delete-dups arg)))
+   (use-package-process-keywords name rest state)))
 
 ;; **** :eemacs-adrequire
 

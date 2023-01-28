@@ -100,8 +100,22 @@
 ;; ** trie
 
 (use-package trie
-  :commands
-  (make-trie trie-insert trie-complete))
+  ;; inhibit require when byte-compile since it relying on an old
+  ;; compat package `tNFA' which use obsolete cl-* functions, while
+  ;; many obsolete warnings will popup when in compilation.
+  :no-require t
+  :eemacs-functions
+  (make-trie
+   ;; FIXME: we need to auto load `trie--create' since it's not edited
+   ;; as autoloaded by `trie' maintainer in source, thus emacs can not
+   ;; find api `make-trie(-*)?' autoloads definations since they are
+   ;; alias of `trie--create' which is an `defstruct' auto generated
+   ;; function. (i.e. the if we autoload `make-trie' but it's still
+   ;; not work since its just declared as an alias in autoload file.)
+   ;;
+   ;; EEMACS_MAINTENANCE: push a bug issue for upstream.
+   trie--create
+   trie-insert trie-complete))
 
 ;; ** prescient
 (use-package prescient
