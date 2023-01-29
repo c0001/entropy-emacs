@@ -1115,6 +1115,7 @@ saved by
           )
         winner-boring-buffers-regexp
         (rx (or
+             " *which-key"
              " *company-box-"
              "*eemacs-"
              "*eemacs eval with byte-compile*"
