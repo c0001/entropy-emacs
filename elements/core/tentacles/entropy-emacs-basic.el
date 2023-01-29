@@ -5676,19 +5676,25 @@ DO-KILL applied while prefix hinted."
 (setq x-select-request-type '(UTF8_STRING COMPOUND_TEXT TEXT STRING))
 
 ;; ******* Force setting specific file type which must be opened with utf-8-unix encoding system.
-(dolist (suffix
-         '(;; document file
-           "\\.org$" "\\.md$"
-           ;; source file
-           "\\.html" "\\.css$" "\\.php$" "\\.js$" "\\.ts$"
-           "\\.c\\(p+\\)?$" "\\.py$" "\\.lisp$" "\\.el$"
-           "\\.sh$" "\\.bat$"
-           ))
-  (modify-coding-system-alist 'file suffix 'utf-8-unix))
+
+;; NOTE: use `prefer-utf-8' as utf-8 unified setting, since it's will
+;; auto choose proper coding system when the utf-8 can not do the
+;; correct coding set for some cases, where if we hardly set `utf-8'
+;; which won't have such fallback ability.
+
+;; (dolist (suffix
+;;          '(;; document file
+;;            "\\.org$" "\\.md$"
+;;            ;; source file
+;;            "\\.html" "\\.css$" "\\.php$" "\\.js$" "\\.ts$"
+;;            "\\.c\\(p+\\)?$" "\\.py$" "\\.lisp$" "\\.el$"
+;;            "\\.sh$" "\\.bat$"
+;;            ))
+;;   (modify-coding-system-alist 'file suffix 'prefer-utf-8))
 
 ;; ========================================================================
-;; Prompt: If you want all file to be one coding system you should do below
-;;(modify-coding-system-alist 'file "" 'utf-8-unix)
+;; prompt: if you want all file to be one coding system you should do below
+;; (modify-coding-system-alist 'file "" 'prefer-utf-8)
 ;; ========================================================================
 
 ;; ******* let diff-buffer-with-file force run with unicode language environment

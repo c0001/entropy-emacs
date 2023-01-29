@@ -11446,8 +11446,8 @@ thus."))
     (cond
      ((string= lang "UTF-8")
       (set-language-environment "UTF-8")
-      (prefer-coding-system 'utf-8-unix)
-      (message "Setting language environment to 'utf-8-unix'."))
+      (prefer-coding-system 'prefer-utf-8)
+      (message "Setting language environment to `prefer-utf-8'."))
      ((string= lang "LOCAL")
       (when (and (not (null entropy/emacs-custom-language-environment-enable))
                  (not (null entropy/emacs-locale-language-environment))
@@ -11455,7 +11455,7 @@ thus."))
                  (member entropy/emacs-locale-coding-system coding-system-list))
         (set-language-environment entropy/emacs-locale-language-environment)
         (prefer-coding-system entropy/emacs-locale-coding-system)
-        (setq default-file-name-coding-system 'utf-8-unix)
+        (setq default-file-name-coding-system 'prefer-utf-8)
         (message "Setting language environment to '%s'." entropy/emacs-locale-language-environment)))
      (t (user-error "Invalid LANG arg")))))
 
@@ -11496,8 +11496,8 @@ For temporally usage of this functional case, see
 (defun entropy/emacs-lang-use-utf-8-ces-around-advice (old-func &rest args)
   "Common around advice for wrapper function into utf-8
 environment."
-  (let* ((coding-system-for-read 'utf-8)
-         (coding-system-for-write 'utf-8))
+  (let* ((coding-system-for-read 'prefer-utf-8)
+         (coding-system-for-write 'prefer-utf-8))
     (apply old-func args)))
 
 (defun entropy/emacs-lang-use-locale-ces-around-advice (old-func &rest args)
@@ -11510,8 +11510,8 @@ environment, determined by `entropy/emacs-locale-coding-system'."
 ;; the 'with' macro
 (defmacro entropy/emacs-lang-with-utf-8-ces (&rest body)
   "Do BODY within a utf-8 coding system environment."
-  `(let* ((coding-system-for-read 'utf-8)
-          (coding-system-for-write 'utf-8))
+  `(let* ((coding-system-for-read 'prefer-utf-8)
+          (coding-system-for-write 'prefer-utf-8))
      ,(entropy/emacs-macroexp-progn body)))
 
 (defmacro entropy/emacs-lang-with-locale-ces (&rest body)
