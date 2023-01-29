@@ -268,6 +268,15 @@
     (add-to-list 'all-the-icons-mode-icon-alist
                  el))
 
+  ;; Set tree-sitter variant prog-modes' icon as what their traditional modes have
+  (let (tr-fnm oc)
+    (dolist (m entropy/emacs-ide-for-them)
+      (when (entropy/emacs-setf-by-body tr-fnm
+              (plist-get (entropy/emacs-ide-get-lang-mode-info m)
+                         :traditional-mode))
+        (when (setq oc (alist-get tr-fnm all-the-icons-mode-icon-alist))
+          (push (cons m oc) all-the-icons-mode-icon-alist)))))
+
 ;; *** memoize internal icon render
 
   ;; ;; FIXME: memoize all-the-icons-* casue emacs input lag

@@ -1178,6 +1178,31 @@ style which defined in `entropy/emacs-modeline-style'."
   :commands (hide-mode-line-mode)
   :hook (((completion-list-mode completion-in-region-mode) . hide-mode-line-mode)))
 
+;; ** builtin segments spec
+
+(when entropy/emacs-ide-is-treesit-generally-adapted-p
+  (defvar-local modeline--miscinfo/treesit-mode-indicator nil)
+  (defvar-local modeline--miscinfo/treesit-mode-indicator/setted-p nil)
+  (defun entropy/emacs-modeline--miscinfo/treesit-mode-indicator nil
+    (if modeline--miscinfo/treesit-mode-indicator/setted-p
+        modeline--miscinfo/treesit-mode-indicator
+      (entropy/emacs-when-let*-first
+          ;; only show indictor for graphical mode since TUI directly
+          ;; show in major-mode segment because it can not show icon.
+          (((display-graphic-p)))
+        (entropy/emacs-setf-by-body modeline--miscinfo/treesit-mode-indicator
+          (if (plist-get (entropy/emacs-ide-get-lang-mode-info major-mode)
+                         :treesit-mode-p)
+              (if (entropy/emacs-icons-displayable-p)
+                  (all-the-icons-faicon
+                   "tree" :height 0.8 :v-adjust 0.05 :face 'all-the-icons-green)
+                [treesit]) ""))
+        (setq modeline--miscinfo/treesit-mode-indicator/setted-p t)
+        modeline--miscinfo/treesit-mode-indicator)))
+  (entropy/emacs-setf-by-body mode-line-misc-info
+    (cons '(:eval (entropy/emacs-modeline--miscinfo/treesit-mode-indicator))
+          mode-line-misc-info)))
+
 ;; ** init procedure
 (entropy/emacs-lazy-with-load-trail
   'eemacs-modeline-init

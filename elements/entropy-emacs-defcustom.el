@@ -1499,26 +1499,34 @@ in generally meaning range which says that basically can did so.")
 
 (defvar entropy/emacs-ide--lang-mode-info-alist
   '((js-mode      :lang javascript :treesit-mode-p nil :treesit-variant-mode js-ts-mode)
-    (js-ts-mode   :lang javascript :treesit-mode-p t)
+    (js-ts-mode   :lang javascript :treesit-mode-p t   :traditional-mode js-mode)
     (js2-mode     :lang javascript :treesit-mode-p nil :treesit-variant-mode js-ts-mode)
-    (sh-mode      :lang bash       :treesit-mode-p nil :treesit-variant-mode bash-ts-mode)))
+    (sh-mode      :lang bash       :treesit-mode-p nil :treesit-variant-mode bash-ts-mode)
+    (bash-ts-mode :lang bash       :treesit-mode-p t   :traditional-mode sh-mode)))
 (defun entropy/emacs-ide-get-lang-mode-info (mode)
   (or (alist-get mode entropy/emacs-ide--lang-mode-info-alist)
       (let* ((nm-str (symbol-name mode))
              (tsp (string-match-p "ts-mode$" nm-str))
-             lnm-str ts-fnm)
-        (if tsp (setq lnm-str
-                      (replace-regexp-in-string
-                       "^\\(.+\\)-ts-mode$" "\\1" nm-str))
-          (setq lnm-str
-                (replace-regexp-in-string
-                 "^\\(.+\\)-mode$" "\\1" nm-str)))
+             lnm-str ts-fnm tr-fnm)
+        (entropy/emacs-setf-by-body lnm-str
+          (if tsp
+              (replace-regexp-in-string
+               "^\\(.+\\)-ts-mode$" "\\1" nm-str)
+            (replace-regexp-in-string
+             "^\\(.+\\)-mode$" "\\1" nm-str)))
         (list :lang (intern lnm-str)
               :treesit-mode-p tsp
               :treesit-variant-mode
               (unless tsp
                 (setq ts-fnm (intern (format "%s-ts-mode" lnm-str)))
-                (and (fboundp ts-fnm) ts-fnm))))))
+                (and (fboundp ts-fnm) ts-fnm))
+              :traditional-mode
+              (when tsp
+                (setq tr-fnm (intern (format "%s-mode" lnm-str)))
+                (and (fboundp tr-fnm) tr-fnm))))))
+;; memoize to speedup query since this is a frequently invoked function
+(with-eval-after-load 'memoize
+  (memoize 'entropy/emacs-ide-get-lang-mode-info))
 
 (defvar entropy/emacs-ide-for-them
   (let ((ts-avl-p entropy/emacs-ide-is-treesit-generally-adapted-p))
