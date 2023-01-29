@@ -160,6 +160,7 @@
         (magit-status-mode             :regexp nil :dedicated t :align bottom :size 0.5 :autoclose t   :select t)
         (magit-diff-mode               :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
         (magit-revision-mode           :regexp nil :dedicated t :align bottom :size 0.5 :autoclose t   :select t)
+        (magit-log-mode                :regexp nil :dedicated t :align bottom :size 0.6 :autoclose t   :select t)
 
         ;; Script
         ("*shell*"                     :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
