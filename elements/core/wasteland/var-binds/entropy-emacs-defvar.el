@@ -2335,10 +2335,10 @@ its origin defination.")
        ((not (plist-get linfo :treesit-mode-p)))
        (tsm-nm
         (or (plist-get linfo :treesit-variant-mode)
-            (progn (warn
-                    "treesit variant for major-mode `%s' of lang %s is not find"
+            (when entropy/emacs-startup-with-Debug-p
+              (warn "treesit variant for major-mode `%s' of lang `%s' is not find"
                     prog-mode-name lnm)
-                   nil)))
+              nil)))
        ;; prepare
        (pnm-str (symbol-name prog-mode-name))
        (prefix-str
