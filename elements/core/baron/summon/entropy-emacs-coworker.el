@@ -507,10 +507,24 @@ EXIT /b
 ;; **** web
 (defun entropy/emacs-coworker-check-web-lsp (&rest _)
   (interactive)
+  ;; NOTE: Obsolete (public archived not mantained) vscode web referred lsp servers
+  ;; (entropy/emacs-coworker--coworker-isolate-bins-install-by-npm
+  ;;  "html-lsp-server" '("html-languageserver") "vscode-html-languageserver-bin")
+  ;; (entropy/emacs-coworker--coworker-isolate-bins-install-by-npm
+  ;;  "css-lsp-server" '("css-languageserver") "vscode-css-languageserver-bin")
+
+  ;; use extracted (from vscode) builtin maintained ver. (see
+  ;; https://github.com/hrsh7th/vscode-langservers-extracted)
   (entropy/emacs-coworker--coworker-isolate-bins-install-by-npm
-   "html-lsp-server" '("html-languageserver") "vscode-html-languageserver-bin")
-  (entropy/emacs-coworker--coworker-isolate-bins-install-by-npm
-   "css-lsp-server" '("css-languageserver") "vscode-css-languageserver-bin"))
+   "vscode-web-lsp-server"
+   '("vscode-html-language-server"
+     "vscode-css-language-server"
+     "vscode-json-language-server"
+     "vscode-eslint-language-server"
+     ;; TODO: not yet published via upstream
+     ;; "vscode-markdown-language-server"
+     )
+   "vscode-langservers-extracted"))
 
 ;; **** js
 (defun entropy/emacs-coworker-check-js-lsp (&rest _)
