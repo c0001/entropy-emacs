@@ -1500,13 +1500,15 @@ in generally meaning range which says that basically can did so.")
 (defvar entropy/emacs-ide--lang-mode-info-alist
   '((js-mode      :lang javascript :treesit-mode-p nil :treesit-variant-mode js-ts-mode)
     (js-ts-mode   :lang javascript :treesit-mode-p t   :traditional-mode js-mode)
+    (typescript-ts-mode
+                  :lang typescript :treesit-mode-p t   :traditional-mode js-mode)
     (js2-mode     :lang javascript :treesit-mode-p nil :treesit-variant-mode js-ts-mode)
     (sh-mode      :lang bash       :treesit-mode-p nil :treesit-variant-mode bash-ts-mode)
     (bash-ts-mode :lang bash       :treesit-mode-p t   :traditional-mode sh-mode)))
 (defun entropy/emacs-ide-get-lang-mode-info (mode)
   (or (alist-get mode entropy/emacs-ide--lang-mode-info-alist)
       (let* ((nm-str (symbol-name mode))
-             (tsp (string-match-p "ts-mode$" nm-str))
+             (tsp (string-match-p "-ts-mode$" nm-str))
              lnm-str ts-fnm tr-fnm)
         (entropy/emacs-setf-by-body lnm-str
           (if tsp

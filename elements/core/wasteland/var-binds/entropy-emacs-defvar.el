@@ -2365,17 +2365,27 @@ its origin defination.")
                (when-let (((buffer-live-p curbuff))
                           (inhibit-quit t))
                  (with-current-buffer curbuff
-                   (entropy/emacs-message-simple-progress-message
-                    "%s `%s' %s %s"
-                    :with-message-color-args
-                    `((green  "Enable tree-sitter sibling major-mode for")
-                      (yellow ,pnm-str)
-                      (green  "for buffer")
-                      (white  ,(buffer-name curbuff)))
-                    ;; TODO&&FIXME: the traditon mode args may not proper
-                    ;; for its ts-mode function, so we should find a
-                    ;; comprehensive way to solve this problem.
-                    (apply tsm-nm orig-args)))))))))
+                   (let* ((bffnm (buffer-name))
+                          (_ (when-let (((fboundp 'uniquify-buffer-base-name))
+                                        (bfunm (uniquify-buffer-base-name)))
+                               (setq bffnm bfunm)))
+                          (bfffnm (buffer-file-name))
+                          (_ (and (fboundp 'typescript-ts-mode)
+                                  (string-match-p "\\.ts$" (or bfffnm bffnm ""))
+                                  (setq tsm-nm 'typescript-ts-mode))))
+                     (entropy/emacs-message-simple-progress-message
+                      "%s `%s' %s `%s' %s %s"
+                      :with-message-color-args
+                      `((green  "Enable tree-sitter variant mode")
+                        (yellow ',tsm-nm)
+                        (green "for")
+                        (yellow ,pnm-str)
+                        (green  "in buffer")
+                        (white  ,(buffer-name curbuff)))
+                      ;; TODO&&FIXME: the traditon mode args may not proper
+                      ;; for its ts-mode function, so we should find a
+                      ;; comprehensive way to solve this problem.
+                      (apply tsm-nm orig-args))))))))))
       (format "Automatically switch to `%s' when available for any invocations to `%s'"
               tsm-nm prog-mode-name))
     (advice-add prog-mode-name :around adv-func-name)))
