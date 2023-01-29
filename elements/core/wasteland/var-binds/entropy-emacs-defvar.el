@@ -2324,5 +2324,63 @@ its origin defination.")
  'entropy/emacs-follow-read-only-suggestion-commands
  #'__eemacs-follow-read-only-suggest/var-guard)
 
+;; ** prog-modes
+
+(defun entropy/emacs-enable-prog-mode-prefer-treesit (prog-mode-name)
+  (when-let*
+      ;; justice conditions
+      ((entropy/emacs-ide-is-treesit-generally-adapted-p)
+       (linfo (entropy/emacs-ide-get-lang-mode-info prog-mode-name))
+       (lnm (plist-get linfo :lang))
+       ((not (plist-get linfo :treesit-mode-p)))
+       (tsm-nm
+        (or (plist-get linfo :treesit-variant-mode)
+            (progn (warn
+                    "treesit variant for major-mode `%s' of lang %s is not find"
+                    prog-mode-name lnm)
+                   nil)))
+       ;; prepare
+       (pnm-str (symbol-name prog-mode-name))
+       (prefix-str
+        (replace-regexp-in-string "^\\(.+\\)-mode$" "\\1" pnm-str))
+       (adv-func-name
+        (intern (format "__adv/around/auto-treesit-enable-for/%s"
+                        prog-mode-name))))
+    (defalias adv-func-name
+      (lambda (orig-func &rest orig-args)
+        (let ((curbuff (current-buffer)))
+          (if (not (treesit-language-available-p lnm)) (apply orig-func orig-args)
+            ;; disable its mode indicator first
+            (when (and (boundp prog-mode-name)
+                       (symbol-value prog-mode-name))
+              (eval `(setq ,prog-mode-name nil)))
+            ;; NOTE: use an idle timer to ensure that we've start a
+            ;; fresh new `major-mode', where left the original
+            ;; major-mode's rest ran out although it's faked out by
+            ;; this hack but we don't know how many advices and inner
+            ;; procedures are defined for it.
+            (run-with-idle-timer
+             0.12 nil
+             (lambda nil
+               (when-let (((buffer-live-p curbuff))
+                          (inhibit-quit t))
+                 (with-current-buffer curbuff
+                   (entropy/emacs-message-simple-progress-message
+                    "%s `%s' for buffer %s"
+                    :with-message-color-args
+                    `((green "Enable tree-sitter sibling major-mode for")
+                      (yellow ,pnm-str)
+                      (white (buffer-name ,curbuff)))
+                    ;; TODO&&FIXME: the traditon mode args may not proper
+                    ;; for its ts-mode function, so we should find a
+                    ;; comprehensive way to solve this problem.
+                    (apply tsm-nm orig-args)))))))))
+      (format "Automatically switch to `%s' when available for any invocations to `%s'"
+              tsm-nm prog-mode-name))
+    (advice-add prog-mode-name :around adv-func-name)))
+
+(dolist (mm entropy/emacs-ide-for-them)
+  (entropy/emacs-enable-prog-mode-prefer-treesit mm))
+
 ;; * provide
 (provide 'entropy-emacs-defvar)

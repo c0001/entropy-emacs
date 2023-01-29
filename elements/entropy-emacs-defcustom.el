@@ -1492,14 +1492,56 @@ option."
           (const :tag "Individual language servers (traditional way)" traditional))
   :group 'entropy/emacs-customize-group-for-IDE-configuration)
 
+(defvar entropy/emacs-ide-is-treesit-generally-adapted-p
+  (and (fboundp 'treesit-available-p) (treesit-available-p))
+  "Non-nil when current emacs-session can use tree-sitter features
+in generally meaning range which says that basically can did so.")
+
+(defvar entropy/emacs-ide--lang-mode-info-alist
+  '((js-mode      :lang javascript :treesit-mode-p nil :treesit-variant-mode js-ts-mode)
+    (js-ts-mode   :lang javascript :treesit-mode-p t)
+    (js2-mode     :lang javascript :treesit-mode-p nil :treesit-variant-mode js-ts-mode)
+    (sh-mode      :lang bash       :treesit-mode-p nil :treesit-variant-mode bash-ts-mode)))
+(defun entropy/emacs-ide-get-lang-mode-info (mode)
+  (or (alist-get mode entropy/emacs-ide--lang-mode-info-alist)
+      (let* ((nm-str (symbol-name mode))
+             (tsp (string-match-p "ts-mode$" nm-str))
+             lnm-str ts-fnm)
+        (if tsp (setq lnm-str
+                      (replace-regexp-in-string
+                       "^\\(.+\\)-ts-mode$" "\\1" nm-str))
+          (setq lnm-str
+                (replace-regexp-in-string
+                 "^\\(.+\\)-mode$" "\\1" nm-str)))
+        (list :lang (intern lnm-str)
+              :treesit-mode-p tsp
+              :treesit-variant-mode
+              (unless tsp
+                (setq ts-fnm (intern (format "%s-ts-mode" lnm-str)))
+                (and (fboundp ts-fnm) ts-fnm))))))
+
 (defvar entropy/emacs-ide-for-them
-  '(c-mode java-mode
-    c++-mode cmake-mode
-    go-mode
-    rust-mode
-    python-mode php-mode
-    js-mode js2-mode json-mode css-mode web-mode nxml-mode
-    sh-mode powershell-mode))
+  (let ((ts-avl-p entropy/emacs-ide-is-treesit-generally-adapted-p))
+    (delete
+     nil
+     `(c-mode
+       ,(and ts-avl-p 'c-ts-mode)
+       java-mode ,(and ts-avl-p 'java-ts-mode)
+       c++-mode ,(and ts-avl-p 'c++-ts-mode)
+       cmake-mode ,(and ts-avl-p 'cmake-ts-mode)
+       go-mode ,(and ts-avl-p 'go-ts-mode)
+       rust-mode ,(and ts-avl-p 'rust-ts-mode)
+       python-mode ,(and ts-avl-p 'python-ts-mode)
+       php-mode
+       js-mode ,(and ts-avl-p 'js-ts-mode)
+       ,(and ts-avl-p 'typescript-ts-mode)
+       js2-mode
+       json-mode ,(and ts-avl-p 'json-ts-mode)
+       css-mode ,(and ts-avl-p 'css-ts-mode)
+       html-mode web-mode
+       nxml-mode
+       sh-mode ,(and ts-avl-p 'bash-ts-mode)
+       powershell-mode))))
 
 (defvar entropy/emacs-use-ide-conditions nil)
 (defun entropy/emacs-get-ide-condition-symbol (for-major-mode)
