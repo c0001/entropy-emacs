@@ -11446,7 +11446,15 @@ thus."))
     (cond
      ((string= lang "UTF-8")
       (set-language-environment "UTF-8")
-      (prefer-coding-system 'prefer-utf-8)
+      ;; NOTE: we prefer as `utf-8' instead of `prefer-utf-8' since
+      ;; `prefer-coding-system' can not specified auto-detective
+      ;; coding-system as its docstring says that:
+      ;;
+      ;; #+begin_quote
+      ;; A coding system that requires automatic detection of text+encoding
+      ;; (e.g. undecided, unix) can’t be preferred.
+      ;; #+end_quote
+      (prefer-coding-system 'utf-8)
       (message "Setting language environment to `prefer-utf-8'."))
      ((string= lang "LOCAL")
       (when (and (not (null entropy/emacs-custom-language-environment-enable))
