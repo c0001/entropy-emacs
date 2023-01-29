@@ -2366,11 +2366,12 @@ its origin defination.")
                           (inhibit-quit t))
                  (with-current-buffer curbuff
                    (entropy/emacs-message-simple-progress-message
-                    "%s `%s' for buffer %s"
+                    "%s `%s' %s %s"
                     :with-message-color-args
-                    `((green "Enable tree-sitter sibling major-mode for")
+                    `((green  "Enable tree-sitter sibling major-mode for")
                       (yellow ,pnm-str)
-                      (white (buffer-name ,curbuff)))
+                      (green  "for buffer")
+                      (white  ,(buffer-name curbuff)))
                     ;; TODO&&FIXME: the traditon mode args may not proper
                     ;; for its ts-mode function, so we should find a
                     ;; comprehensive way to solve this problem.
