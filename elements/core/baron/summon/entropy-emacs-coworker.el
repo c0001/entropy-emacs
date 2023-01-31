@@ -258,6 +258,8 @@ EXIT /b
             ,server-name-string)
            (condition-case error
                (progn
+                 (unless (executable-find "npm")
+                   (error "Command npm not found in your system!"))
                  (mkdir entropy/emacs-coworker-bin-host-path t)
                  (mkdir (expand-file-name "node_modules" ,this-npm-prefix) t)
                  ;; (funcall ',pkg-json-del)
@@ -362,6 +364,8 @@ EXIT /b
            (progn
              (condition-case error
                  (progn
+                   (unless (executable-find "pip ")
+                     (error "Command pip not found in your system!"))
                    (mkdir entropy/emacs-coworker-bin-host-path t)
                    (mkdir entropy/emacs-coworker-lib-host-root t)
                    (mkdir ,this-pip-prefix t)
