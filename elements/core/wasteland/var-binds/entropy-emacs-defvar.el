@@ -930,6 +930,12 @@ within `entropy/emacs-startup-end-hook' are running done.")
 (defvar entropy/emacs-run-startup-duration nil
   "The object represent eemacs startup time duration")
 
+;; TODO: Exposed this declaration became a customizable variable.
+(defvar entropy/emacs-log-startup-duration-details nil
+  "Non-nil to enable details refer to
+`entropy/emacs-run-startup-duration', logged into
+`entropy/emacs-start--load-duration-log'.")
+
 (defvar entropy/emacs-run-startup-config-load-init-timestamp nil
   "Time-stamp eemacs init load for all configs")
 (defvar entropy/emacs-run-startup-trail-hooks-init-timestamp nil

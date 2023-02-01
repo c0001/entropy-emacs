@@ -47,7 +47,8 @@
       (name &rest body)
     (macroexp-let2* ignore
         ((do-name name))
-      `(if (bound-and-true-p entropy/emacs-startup-with-Debug-p)
+      `(if (or (bound-and-true-p entropy/emacs-log-startup-duration-details)
+               (bound-and-true-p entropy/emacs-startup-with-Debug-p))
            (let* ((inhibit-quit t)
                   (before-time (current-time)))
              (prog1 ,(entropy/emacs-macroexp-progn body)
@@ -744,7 +745,8 @@ Currently detected env variables:")
 (entropy/emacs-start--run-with-duration-log
  'form/start-tentacles-and-all-hooks
  (entropy/emacs-start-do-load)
- (when entropy/emacs-startup-with-Debug-p
+ (when (or (bound-and-true-p entropy/emacs-log-startup-duration-details)
+           (bound-and-true-p entropy/emacs-startup-with-Debug-p))
    (run-with-idle-timer
     0.1 nil
     #'entropy/emacs-start--sort-duration-log)))
