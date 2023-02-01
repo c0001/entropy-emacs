@@ -364,7 +364,7 @@ EXIT /b
            (progn
              (condition-case error
                  (progn
-                   (unless (executable-find "pip ")
+                   (unless (executable-find "pip")
                      (error "Command pip not found in your system!"))
                    (mkdir entropy/emacs-coworker-bin-host-path t)
                    (mkdir entropy/emacs-coworker-lib-host-root t)
