@@ -149,13 +149,16 @@ This function is simpley inspired from magit source as:
     "The user prompts for unsafe `magit' commands like
 `magit-sparse-checkout-enable' i.e. they may do messy repository
 files destroying."
-    (if (yes-or-no-p
-         (format
-          "Do you really want to run the dangerous command `%s'?"
-          this-command))
+    (if (or (not (called-interactively-p 'any))
+            (yes-or-no-p
+             (format
+              "Do you really want to run the dangerous magit command `%s'?"
+              this-command)))
         (apply orig-func orig-args)
       (user-error "Abort!")))
-  (dolist (func '(magit-sparse-checkout-enable))
+  (dolist (func '(magit-sparse-checkout-enable
+                  magit-cherry-apply
+                  magit-apply))
     (advice-add func
                 :around
                 #'entropy/emacs-vcs--magit-safe-command-advice))
