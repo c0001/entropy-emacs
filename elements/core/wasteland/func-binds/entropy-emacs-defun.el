@@ -11197,7 +11197,6 @@ invoked after."
              (cons ',list-var-sym ,list-var-sym)
              (cons ',adder-type-sym ,adder-type-sym)
              (cons ',adder-flag-sym ,adder-flag-sym)
-             (cons ',func-lambda-sym ,func-lambda-sym)
              (cons ',func-body-lambda-sym ,func-body-lambda-sym)
              (cons ',prompt-type-sym ,prompt-type)
              (cons ',initial-func-suffix-name-sym ,initial-func-suffix-name-sym))
