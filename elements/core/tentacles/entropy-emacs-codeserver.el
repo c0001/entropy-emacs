@@ -890,6 +890,33 @@ shutdown since it is managed by the customize variable
    '((file . lsp-file-watch-ignored-files)
      (dir  . lsp-file-watch-ignored-directories)))
 
+;; ******** add more language ids
+
+  (entropy/emacs--api-restriction-uniform 'hahaa
+      'package-version-incompatible
+    :when (>= emacs-major-version 29)
+    :do-error t
+    :detector
+    (not
+     (let ((ver (substring
+                 entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-version
+                 1)))
+       (and (entropy/emacs-version-compare
+             '<= ver "3.0.8")
+            (entropy/emacs-version-compare
+             '>= ver "3.0.7"))))
+    (defun __adv/lsp-bash-check-sh-shell/enable-for-bash-ts-mode
+        (orig-func &rest orig-args)
+      "Let `lsp-mode' known `bash-ts-mode' as same as `sh-mode' in emacs-29."
+      (or (apply orig-func orig-args)
+          (eq major-mode 'bash-ts-mode)))
+    (with-eval-after-load 'lsp-bash
+      (advice-add 'lsp-bash-check-sh-shell
+                  :around
+                  '__adv/lsp-bash-check-sh-shell/enable-for-bash-ts-mode))
+    (add-to-list 'lsp-language-id-configuration '(bash-ts-mode . "shellscript"))
+    (add-to-list 'lsp--formatting-indent-alist '(bash-ts-mode . sh-basic-offset)))
+
 ;; ******** advices
 ;; ********* require extra clients
   (advice-add 'lsp
