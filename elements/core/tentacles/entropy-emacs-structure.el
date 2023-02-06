@@ -404,34 +404,6 @@ want to preserve the source demo."
 
 (use-package outshine
   :commands (outshine-mode)
-  :hook
-  ((emacs-lisp-mode . outshine-mode)
-   (lisp-interaction-mode . outshine-mode)
-   (lisp-data-mode . outshine-mode)
-   (yaml-mode . outshine-mode)
-   (sh-mode . outshine-mode)
-   (c-mode . outshine-mode)
-   (c++-mode . outshine-mode)
-   (java-mode . outshine-mode)
-   (php-mode . outshine-mode)
-   (python-mode . outshine-mode)
-   (web-mode . outshine-mode)
-   (css-mode . outshine-mode)
-   (js-mode . outshine-mode)
-   (js2-mode . outshine-mode)
-   (gitignore-mode . outshine-mode)
-   (gitconfig-mode . outshine-mode)
-   (conf-colon-mode . outshine-mode)
-   (conf-desktop-mode . outshine-mode)
-   (conf-javaprop-mode . outshine-mode)
-   (conf-ppd-mode . outshine-mode)
-   (conf-space-mode . outshine-mode)
-   (conf-toml-mode . outshine-mode)
-   (conf-unix-mode . outshine-mode)
-   (conf-windows-mode . outshine-mode)
-   (conf-xdefaults-mode . outshine-mode)
-   (makefile-mode . outshine-mode)
-   (cmake-mode . outshine-mode))
   :bind
   (:map org-mode-map
    ("C-c M-t" . nil)
@@ -672,6 +644,29 @@ call `outshine-imenu' instead."
 ;; *** init
 
   :init
+
+  (let ((omodes entropy/emacs-ide-for-them)
+        (mmodes
+         '(emacs-lisp-mode
+           lisp-interaction-mode
+           lisp-data-mode
+           gitignore-mode
+           gitconfig-mode
+           conf-colon-mode
+           conf-desktop-mode
+           conf-javaprop-mode
+           conf-ppd-mode
+           conf-space-mode
+           conf-toml-mode
+           conf-unix-mode
+           conf-windows-mode
+           conf-xdefaults-mode
+           makefile-mode))
+        hooknm)
+    (dolist (m (append omodes mmodes))
+      (setq hooknm (intern (concat (symbol-name m) "-hook")))
+      (add-hook hooknm 'outshine-mode)))
+
   (entropy/emacs-lazy-initial-advice-before
    '(switch-to-buffer find-file)
    "enable-outshine-for-opened-buffer"
