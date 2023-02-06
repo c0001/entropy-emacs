@@ -296,7 +296,7 @@ interactive session."
                (window-height
                 .
                 ,(if (bound-and-true-p entropy/emacs-startup-done)
-                     0.15 0.22))))
+                     0.1 0.22))))
             (selected-frame))))
        (if (window-live-p (setq the-window (get-buffer-window the-buff)))
            (progn
@@ -541,7 +541,9 @@ used with MESSAGE together apply to
 set as a format string. Used to build a colored MESSAGE.
 
 If WITH-EITHER-POPUP is set and return non-nil, then MESSAGE is also
-displayed via `entropy/emacs-message--do-message-popup'."
+displayed via `entropy/emacs-message--do-message-popup'. (NOTE: for
+eemacs developer use `force' value to forced popup the display since
+eemacs may not use popup display obeyed the eemacs api modification)"
   (let ((body (entropy/emacs-message--get-plist-body body))
         (with-tmpmsg-sym (make-symbol "with-temp-message-p"))
         (message-sym (make-symbol "message"))
@@ -576,8 +578,9 @@ displayed via `entropy/emacs-message--do-message-popup'."
                (prog1 (make-progress-reporter (format "%s ... " ,message-sym))
                  (setq ,progmsg-sym (current-message))))))
        (when (and ,message-sym ,use-popup-p-sym
-                  entropy/emacs-startup-with-Debug-p
-                  (not entropy/emacs-startup-done))
+                  (or (eq ,use-popup-p-sym 'force)
+                      (and entropy/emacs-startup-with-Debug-p
+                           (not entropy/emacs-startup-done))))
          (entropy/emacs-message--do-message-popup
           (format "%s ..." ,message-sym)
           :without-log-message-before-eemacs-init-done t))
