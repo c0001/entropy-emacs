@@ -11100,7 +11100,9 @@ prompts."
                              (eq (ivy-state-caller ivy-last)
                                  'counsel-M-x))))
               (entropy/emacs-message-simple-progress-message
-               "Injecting initial minibuffer lazy loading"
+               "%s"
+               :with-message-color-args
+               (list '(yellow "Injecting initial minibuffer lazy loading"))
                ;; ensure prompt shown up since, minibuffer message may
                ;; coverred by minibuffer prompts or the redisplay is
                ;; not freshed.
