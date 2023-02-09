@@ -439,7 +439,8 @@ EXIT /b
 ;; **** archive download
 
 (defun entropy/emacs-coworker--coworker-install-by-archive-get
-    (server-name-string server-archive-name server-host-url server-archive-type)
+    (server-name-string server-archive-name server-host-url server-archive-type
+                        &optional no-success-msg)
   (let* (download-cbk
          (tmp-download-host
           (expand-file-name
@@ -453,9 +454,10 @@ EXIT /b
           (expand-file-name
            tmp-download-basename
            tmp-download-host))
-         (server-extract-dir (expand-file-name
-                              server-archive-name
-                              entropy/emacs-coworker-archive-host-root)))
+         (server-extdir-or-dest
+          (expand-file-name
+           server-archive-name
+           entropy/emacs-coworker-archive-host-root)))
     ;; Firstly make stuff directory
     (unless (file-exists-p entropy/emacs-coworker-archive-host-root)
       (make-directory entropy/emacs-coworker-archive-host-root t))
@@ -463,8 +465,14 @@ EXIT /b
       (make-directory tmp-download-host t))
     ;; begin downloading
     (entropy/emacs-coworker--coworker-message-do-task server-name-string)
-    (if (file-exists-p server-extract-dir)
-        (entropy/emacs-coworker--coworker-message-existed server-name-string)
+    (if (and (file-exists-p server-extdir-or-dest)
+             (if (eq server-archive-type 'identity) t
+               ;; unless the old extract dir is empty so as not existed
+               ;; since we can reuse it for the new extraction.
+               (entropy/emacs-list-dir-lite server-extdir-or-dest)))
+        (progn (entropy/emacs-coworker--coworker-message-existed server-name-string)
+               ;; return
+               'exist)
       (message "Downloading lsp archive for '%s' ..." server-name-string)
       (setq download-cbk
             (entropy/emacs-network-download-file
@@ -476,20 +484,25 @@ EXIT /b
          server-name-string
          (get download-cbk 'error-type)))
       (cond ((eq server-archive-type 'identity)
-             (rename-file
-              tmp-download-file
-              (expand-file-name
-               server-archive-name
-               entropy/emacs-coworker-archive-host-root)))
+             (rename-file tmp-download-file server-extdir-or-dest))
             (t
-             (make-directory server-extract-dir t)
+             (make-directory server-extdir-or-dest t)
              (entropy/emacs-archive-dowith
               server-archive-type
               tmp-download-file
-              server-extract-dir
+              (cond ((eq server-archive-type 'gzip)
+                     ;; NOTE gzip just support single file
+                     ;; com/decom-press, so we recognize the
+                     ;; `server-archive-name' as the sub-filename of
+                     ;; the extract dir and extract that as-is.
+                     (expand-file-name server-archive-name server-extdir-or-dest))
+                    (t server-extdir-or-dest))
               :extract)))
-      (entropy/emacs-coworker--coworker-message-install-success
-       server-name-string))))
+      (unless no-success-msg
+        (entropy/emacs-coworker--coworker-message-install-success
+         server-name-string))
+      ;; return
+      t)))
 
 ;; **** advice them using http proxy
 
@@ -604,7 +617,7 @@ EXIT /b
   (entropy/emacs-coworker--coworker-install-by-archive-get
    "pwsh lsp"
    "pwsh-lsp"
-   "https://github.com/PowerShell/PowerShellEditorServices/releases/download/v2.1.0/PowerShellEditorServices.zip"
+   "https://github.com/PowerShell/PowerShellEditorServices/releases/latest/download/PowerShellEditorServices.zip"
    'zip))
 
 (defvar lsp-pwsh-log-path)
@@ -619,6 +632,47 @@ EXIT /b
         (expand-file-name
          "pwsh-lsp/PowerShellEditorServices"
          entropy/emacs-coworker-archive-host-root)))
+
+;; **** rust-analyzer
+(defun entropy/emacs-coworker-check-rust-analyzer (&rest _)
+  (let (status)
+    (entropy/emacs-setf-by-body status
+      (entropy/emacs-coworker--coworker-install-by-archive-get
+       "rust-analyzer"
+       "rust-analyzer"
+       (let* ((arch (cond ((string-match-p "^x86_64" system-configuration)
+                           "x86_64")
+                          (t
+                           (user-error "unknow system architecture `%s'"
+                                       system-configuration))))
+              (sys (cond (sys/linuxp "unknown-linux-gnu")
+                         (sys/win32p "pc-windows-msvc")
+                         (t
+                          (user-error "unkown system type `%s'" system-type))))
+              (url (format "https://github.com/rust-lang/rust-analyzer/releases/\
+latest/download/rust-analyzer-%s-%s.gz"
+                           arch sys)))
+         url)
+       'gzip 'no-success-msg))
+    (unless (eq status 'exist)
+      (let ((f
+             (expand-file-name "rust-analyzer/rust-analyzer"
+                               entropy/emacs-coworker-archive-host-root))
+            (lf (expand-file-name "rust-analyzer" entropy/emacs-coworker-bin-host-path)))
+        (condition-case err
+            (chmod f
+                   (file-modes-symbolic-to-number
+                    "u+x" (file-modes f)))
+          (error
+           (entropy/emacs-error-without-debugger
+            "chmod `%s' as X with fatal" f)))
+        (condition-case err
+            (make-symbolic-link f lf 'of-if-exists)
+          (error
+           (entropy/emacs-error-without-debugger
+            "make symbolic for `%s' to `%s' with fatal" f lf)))
+        (entropy/emacs-coworker--coworker-message-install-success
+         "rust-analyzer")))))
 
 ;; **** python
 ;; ***** python language server types
@@ -779,6 +833,7 @@ EXIT /b
                      (:name "cmake-lsp"      :pred entropy/emacs-coworker-check-cmake-lsp   :enable (EEMACS-DT-IDENTITY t))
                      (:name "java-lsp"       :pred entropy/emacs-coworker-check-java-lsp    :enable (EEMACS-DT-IDENTITY t))
                      (:name "clangd-lsp"     :pred entropy/emacs-coworker-check-clangd-lsp  :enable (EEMACS-DT-IDENTITY t))
+                     (:name "rust-analyzer"  :pred entropy/emacs-coworker-check-rust-analyzer :enable (EEMACS-DT-IDENTITY t))
                      (:name "wsl-open"       :pred entropy/emacs-coworker-check-wsl-open    :enable (EEMACS-DT-FORM sys/wsl2-env-p))
                      (:name "pwsh-lsp"       :pred entropy/emacs-coworker-check-pwsh-lsp    :enable (EEMACS-DT-FORM (and (executable-find "pwsh")
                                                                                                                          (executable-find "dotnet"))))

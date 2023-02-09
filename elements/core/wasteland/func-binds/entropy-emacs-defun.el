@@ -9858,33 +9858,41 @@ are (key . command) paire formed list."
      :extract  ,#'(lambda (i o) (format "7z x -so %s | tar -xf - -C %s" i o)))
     (zip
      :compress ,#'(lambda (i o) (format "zip %s -r --filesync %s" o i))
-     :extract  ,#'(lambda (i o) (format "unzip %s -d %s" i o)))))
+     :extract  ,#'(lambda (i o) (format "unzip %s -d %s" i o)))
+    (gzip
+     :compress ,#'(lambda (i o) (format "gzip -c %s > %s" i o))
+     :extract  ,#'(lambda (i o) (format "gzip -cd %s > %s" i o)))
+    ))
 
 (defun entropy/emacs-gen-archive-dowith-shell-command
     (archive-type input output dowith)
-  "Generate a shell command to do with an archive dealing
-procedure type DOWITH for archive type ARCHIVE-TYPE of the input
-file name INPUT. The shell command also want a output file name
-OUTPUT.
+  "Return a plist of value of functions which generate shell-commands to
+do with an archive dealing procedure type DOWITH for archive type
+ARCHIVE-TYPE of INPUT/OUTPUT (determine as INPUT when DOWITH is
+`:compress' or as OUTPUT when DOWITH is `:extract'). The returned
+plist has valid keys as same names as what DOWITH has.
 
 The ARCHVE-TYPE can be one of internal support archive type that:
-1) 'tar' type: in which case, INPUT was a tar file commonly named
-   with \".tar\" as its suffix name.
+1) 'tar' type: in which case, INPUT/OUTPUT was a tar file commonly
+   named with \".tar\" as its suffix name.
 
-2) 'tgz' type: in which case, INPUT was a tar file compressed with
-   \"gzip\" method and commonly named with \".tgz\" or \".tar.gz\"
-   as its suffix name.
+2) 'tgz' type: in which case, INPUT/OUTPUT was a tar file compressed
+   with \"gzip\" method and commonly named with \".tgz\" or \".tar.gz\" as
+   its suffix name.
 
-3) 'txz' type: in which case, INPUT was a tar file compressed with
-   \"xz\" method and commonly named with \".txz\" or \".tar.xz\"
-   as its suffix name.
+3) 'txz' type: in which case, INPUT/OUTPUT was a tar file compressed
+   with \"xz\" method and commonly named with \".txz\" or \".tar.xz\" as its
+   suffix name.
 
-4) 't7z' type: in which case, INPUT was a tar file compressed with
-   \"7z\" method and commonly named with \".t7z\" or \".tar.7z\"
-   as its suffix name.
+4) 't7z' type: in which case, INPUT/OUTPUT was a tar file compressed
+   with \"7z\" method and commonly named with \".t7z\" or \".tar.7z\" as its
+   suffix name.
 
-5) 'zip' type: in which case, INPUT was a zipper compressed file
-   commonly named with \".zip\" as its suffix name.
+5) 'zip' type: in which case, INPUT/OUTPUT was a zipper compressed
+   file commonly named with \".zip\" as its suffix name.
+
+6) 'gzip' type: in which case, INPUT/OUTPUT was a gzip compressed file
+   commonly named with \".gz\" as its suffix name.
 "
   (let* ((archive-dowith-plist
           (alist-get archive-type
