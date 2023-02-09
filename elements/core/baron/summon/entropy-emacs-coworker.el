@@ -821,24 +821,56 @@ latest/download/rust-analyzer-%s-%s.gz"
   (let ((count 1)
         (newhost (when prefix
                    (read-directory-name "Coworker Host: " nil nil t)))
-        (task-list '((:name "tern"           :pred entropy/emacs-coworker-check-tern-server :enable (EEMACS-DT-IDENTITY t))
-                     (:name "web-lsp"        :pred entropy/emacs-coworker-check-web-lsp     :enable (EEMACS-DT-IDENTITY t))
-                     (:name "js-lsp"         :pred entropy/emacs-coworker-check-js-lsp      :enable (EEMACS-DT-IDENTITY t))
-                     (:name "json-lsp"       :pred entropy/emacs-coworker-check-json-lsp    :enable (EEMACS-DT-IDENTITY t))
-                     (:name "xml-lsp"        :pred entropy/emacs-coworker-check-xml-lsp     :enable (EEMACS-DT-IDENTITY t))
-                     (:name "php-lsp"        :pred entropy/emacs-coworker-check-php-lsp     :enable (EEMACS-DT-IDENTITY t))
-                     (:name "bash-lsp"       :pred entropy/emacs-coworker-check-bash-lsp    :enable (EEMACS-DT-IDENTITY t))
-                     (:name "python-lsp"     :pred entropy/emacs-coworker-check-python-lsp  :enable (EEMACS-DT-IDENTITY t))
-                     (:name "python-pyright" :pred entropy/emacs-coworker-check-pyright-lsp :enable (EEMACS-DT-IDENTITY t))
-                     (:name "cmake-lsp"      :pred entropy/emacs-coworker-check-cmake-lsp   :enable (EEMACS-DT-IDENTITY t))
-                     (:name "java-lsp"       :pred entropy/emacs-coworker-check-java-lsp    :enable (EEMACS-DT-IDENTITY t))
-                     (:name "clangd-lsp"     :pred entropy/emacs-coworker-check-clangd-lsp  :enable (EEMACS-DT-IDENTITY t))
-                     (:name "rust-analyzer"  :pred entropy/emacs-coworker-check-rust-analyzer :enable (EEMACS-DT-IDENTITY t))
-                     (:name "wsl-open"       :pred entropy/emacs-coworker-check-wsl-open    :enable (EEMACS-DT-FORM sys/wsl2-env-p))
-                     (:name "pwsh-lsp"       :pred entropy/emacs-coworker-check-pwsh-lsp    :enable (EEMACS-DT-FORM (and (executable-find "pwsh")
-                                                                                                                         (executable-find "dotnet"))))
-                     (:name "python-lsp-ms"  :pred entropy/emacs-coworker-check-pyls-ms-lsp :enable (EEMACS-DT-FORM
-                                                                                                     (executable-find "dotnet")))
+        fail-list
+        (task-list '((:name "tern"
+                            :pred entropy/emacs-coworker-check-tern-server
+                            :enable (EEMACS-DT-IDENTITY t))
+                     (:name "web-lsp"
+                            :pred entropy/emacs-coworker-check-web-lsp
+                            :enable (EEMACS-DT-IDENTITY t))
+                     (:name "js-lsp"
+                            :pred entropy/emacs-coworker-check-js-lsp
+                            :enable (EEMACS-DT-IDENTITY t))
+                     (:name "json-lsp"
+                            :pred entropy/emacs-coworker-check-json-lsp
+                            :enable (EEMACS-DT-IDENTITY t))
+                     (:name "xml-lsp"
+                            :pred entropy/emacs-coworker-check-xml-lsp
+                            :enable (EEMACS-DT-IDENTITY t))
+                     (:name "php-lsp"
+                            :pred entropy/emacs-coworker-check-php-lsp
+                            :enable (EEMACS-DT-IDENTITY t))
+                     (:name "bash-lsp"
+                            :pred entropy/emacs-coworker-check-bash-lsp
+                            :enable (EEMACS-DT-IDENTITY t))
+                     (:name "python-lsp"
+                            :pred entropy/emacs-coworker-check-python-lsp
+                            :enable (EEMACS-DT-IDENTITY t))
+                     (:name "python-pyright"
+                            :pred entropy/emacs-coworker-check-pyright-lsp
+                            :enable (EEMACS-DT-IDENTITY t))
+                     (:name "cmake-lsp"
+                            :pred entropy/emacs-coworker-check-cmake-lsp
+                            :enable (EEMACS-DT-IDENTITY t))
+                     (:name "java-lsp"
+                            :pred entropy/emacs-coworker-check-java-lsp
+                            :enable (EEMACS-DT-IDENTITY t))
+                     (:name "clangd-lsp"
+                            :pred entropy/emacs-coworker-check-clangd-lsp
+                            :enable (EEMACS-DT-IDENTITY t))
+                     (:name "rust-analyzer"
+                            :pred entropy/emacs-coworker-check-rust-analyzer
+                            :enable (EEMACS-DT-IDENTITY t))
+                     (:name "wsl-open"
+                            :pred entropy/emacs-coworker-check-wsl-open
+                            :enable (EEMACS-DT-FORM sys/wsl2-env-p))
+                     (:name "pwsh-lsp"
+                            :pred entropy/emacs-coworker-check-pwsh-lsp
+                            :enable (EEMACS-DT-FORM t))
+                     (:name "python-lsp-ms"
+                            :pred entropy/emacs-coworker-check-pyls-ms-lsp
+                            :enable (EEMACS-DT-FORM
+                                     (executable-find "dotnet")))
                      ))
         (entropy/emacs-message-non-popup nil))
     (entropy/emacs-with-coworker-host
@@ -850,7 +882,26 @@ latest/download/rust-analyzer-%s-%s.gz"
            (cyan (format ">> %s: " count))
            (yellow (format "'%s'" (plist-get el :name)))
            (green "installing ..."))
-          (funcall (plist-get el :pred))
-          (cl-incf count))))))
+          (condition-case err
+              (funcall (plist-get el :pred))
+            (error (push (cons (plist-get el :name) err) fail-list)
+                   (entropy/emacs-message-do-message
+                    "%s since %s"
+                    (red "✕ FAILED") (red err))))
+          (cl-incf count)))
+      (when fail-list
+        (setq count 0)
+        (entropy/emacs-message-do-warn
+         "%s"
+         (red "========== eemacs install all coworkers with fatals =========="))
+        (dolist (el fail-list)
+          (entropy/emacs-message-do-warn
+           "[%s] %s installed with %s since %s"
+           (yellow (format "%2s" count))
+           (red (format "%20s" (car el)))
+           (red "fatal")
+           (red (cdr el)))
+          (cl-incf count))
+        (entropy/emacs-silent-abort)))))
 
 (provide 'entropy-emacs-coworker)
