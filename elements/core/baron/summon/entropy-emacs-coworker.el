@@ -665,12 +665,12 @@ latest/download/rust-analyzer-%s-%s.gz"
                     "u+x" (file-modes f)))
           (error
            (entropy/emacs-error-without-debugger
-            "chmod `%s' as X with fatal" f)))
+            "chmod `%s' as X with fatal (%s)" f err)))
         (condition-case err
             (make-symbolic-link f lf 'of-if-exists)
           (error
            (entropy/emacs-error-without-debugger
-            "make symbolic for `%s' to `%s' with fatal" f lf)))
+            "make symbolic for `%s' to `%s' with fatal (%s)" f lf err)))
         (entropy/emacs-coworker--coworker-message-install-success
          "rust-analyzer")))))
 
