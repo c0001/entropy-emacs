@@ -514,13 +514,6 @@ format."
   ;; Set indent size to 2
   (setq web-beautify-args '("-s" "2" "-f" "-"))
 
-  ;; install `js-beautify' coworker
-  (when entropy/emacs-install-coworker-immediately
-    (dolist (mode '(js-mode js2-mode css-mode html-mode web-mode))
-      (advice-add mode
-                  :before
-                  #'entropy/emacs-web--check-js-beautify-coworker)))
-
   (defun entropy/emacs/web-beautify--interactive-warn (&rest _)
     "Prompt user when use `web-beautify-*' interactive command in
 non-proper buffer."

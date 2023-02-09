@@ -1436,13 +1436,6 @@ There're three valid key slots:
   "Eemacs coworkers integrated configuration customizable group."
   :group 'entropy-emacs-customize-top-group)
 
-(defcustom entropy/emacs-install-coworker-immediately nil
-  "Install coworker immediatly in needed while.
-
-Also see `entropy/emacs-coworker-host-root'."
-  :type 'boolean
-  :group 'entropy/emacs-customize-group-for-coworkers)
-
 (defcustom entropy/emacs-coworker-host-root
   (expand-file-name "entropy-emacs-local" __eemacs-ext-union-host)
   "The coworker host root dir.

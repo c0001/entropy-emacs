@@ -505,13 +505,6 @@ It is the recommendation of irony-mode official introduction."
 (when (eq (entropy/emacs-get-use-ide-type 'php-mode) 'traditional)
   (entropy/emacs-codeserver-usepackage-ac-php))
 
-(when (and entropy/emacs-install-coworker-immediately
-           (eq (entropy/emacs-get-use-ide-type 'js2-mode) 'traditional))
-  (entropy/emacs-lazy-load-simple 'js2-mode
-    (advice-add 'js2-mode
-                :before
-                #'entropy/emacs-coworker-check-tern-server)))
-
 ;; ** microsoft language server
 ;; *** lsp-client
 
@@ -1945,93 +1938,6 @@ let eglot do completion with interface argument injection."
               #'__ya/eglot--highlight-piggyback/disable)
 
   )
-
-
-;; *** lsp instances
-
-(defmacro entropy/emacs-codeserver--ide-with-lsp-p?-and-immediately
-    (hook-mode &rest body)
-  (declare (indent defun))
-  `(when (and (memq (entropy/emacs-get-use-ide-type ',hook-mode)
-                    '(lsp eglot))
-              entropy/emacs-install-coworker-immediately)
-     ,(entropy/emacs-macroexp-progn body)))
-
-;; **** lsp html&css
-(entropy/emacs-codeserver--ide-with-lsp-p?-and-immediately web-mode
-  (entropy/emacs-lazy-load-simple 'web-mode
-    (advice-add 'web-mode
-                :before
-                #'entropy/emacs-coworker-check-web-lsp)))
-
-(entropy/emacs-codeserver--ide-with-lsp-p?-and-immediately css-mode
-  (entropy/emacs-lazy-load-simple 'css-mode
-    (advice-add 'css-mode
-                :before
-                #'entropy/emacs-coworker-check-web-lsp)))
-
-;; **** lsp javascript
-(entropy/emacs-codeserver--ide-with-lsp-p?-and-immediately js2-mode
-  (entropy/emacs-lazy-load-simple 'js2-mode
-    (advice-add 'js2-mode :before #'entropy/emacs-coworker-check-js-lsp)))
-
-;; **** lsp json
-(entropy/emacs-codeserver--ide-with-lsp-p?-and-immediately json-mode
-  (entropy/emacs-lazy-load-simple 'json-mode
-    (advice-add 'json-mode :before #'entropy/emacs-coworker-check-json-lsp)))
-
-;; **** lsp xml
-(entropy/emacs-codeserver--ide-with-lsp-p?-and-immediately nxml-mode
-  (entropy/emacs-lazy-load-simple 'nxml-mode
-    (advice-add 'nxml-mode :before #'entropy/emacs-coworker-check-xml-lsp)))
-
-;; **** lsp bash
-(entropy/emacs-codeserver--ide-with-lsp-p?-and-immediately sh-mode
-  (entropy/emacs-lazy-load-simple 'sh-mode
-    (advice-add 'sh-mode :before #'entropy/emacs-coworker-check-bash-lsp)))
-
-;; **** lsp php
-(entropy/emacs-codeserver--ide-with-lsp-p?-and-immediately php-mode
-  (entropy/emacs-lazy-load-simple 'php-mode
-    (advice-add 'php-mode :before #'entropy/emacs-coworker-check-php-lsp)))
-
-;; **** lsp clangd
-(entropy/emacs-codeserver--ide-with-lsp-p?-and-immediately c-mode
-  (entropy/emacs-lazy-load-simple 'cc-mode
-    (advice-add 'c-mode
-                :before
-                #'entropy/emacs-coworker-check-clangd-lsp)
-    (advice-add 'c++-mode
-                :before
-                #'entropy/emacs-coworker-check-clangd-lsp)))
-
-;; **** lsp cmake
-(entropy/emacs-codeserver--ide-with-lsp-p?-and-immediately cmake-mode
-  (entropy/emacs-lazy-load-simple 'cmake-mode
-    (advice-add 'cmake-mode
-                :before
-                #'entropy/emacs-coworker-check-cmake-lsp)))
-
-;; **** lsp python
-(entropy/emacs-codeserver--ide-with-lsp-p?-and-immediately python-mode
-  (entropy/emacs-lazy-load-simple 'python
-    (advice-add 'python-mode
-                :before
-                #'entropy/emacs-coworker-check-python-lsp)))
-
-;; **** lsp powershell
-(entropy/emacs-codeserver--ide-with-lsp-p?-and-immediately powershell-mode
-  (entropy/emacs-lazy-load-simple 'powershell
-    (advice-add 'powershell-mode
-                :before
-                #'entropy/emacs-coworker-check-pwsh-lsp)))
-
-;; **** lsp java
-(entropy/emacs-codeserver--ide-with-lsp-p?-and-immediately java-mode
-  (entropy/emacs-lazy-load-simple 'cc-mode
-    (advice-add 'java-mode
-                :before
-                #'entropy/emacs-coworker-check-java-lsp)))
 
 
 ;; * provide
