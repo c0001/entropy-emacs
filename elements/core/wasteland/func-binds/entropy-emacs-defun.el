@@ -9843,25 +9843,55 @@ are (key . command) paire formed list."
 
 ;; *** Compress or decompress file
 
+(defun __eemacs/archive--dowith-execfind_error (&rest execs)
+  (dolist (el execs)
+    (unless (executable-find el)
+      (entropy/emacs-error-without-debugger
+       "No command `%s' found in your PATH" el))))
+
 (defconst entropy/emacs-archive-dowith-alist
   `((tar
-     :compress ,#'(lambda (i o) (format "tar -cf %s %s" o i))
-     :extract  ,#'(lambda (i o) (format "tar -xf %s -C %s" i o)))
+     :compress ,#'(lambda (i o)
+                    (__eemacs/archive--dowith-execfind_error "tar")
+                    (format "tar -cf %s %s" o i))
+     :extract  ,#'(lambda (i o)
+                    (__eemacs/archive--dowith-execfind_error "tar")
+                    (format "tar -xf %s -C %s" i o)))
     (tgz
-     :compress ,#'(lambda (i o) (format "tar -zcf %s %s" o i))
-     :extract  ,#'(lambda (i o) (format "tar -zxf %s -C %s" i o)))
+     :compress ,#'(lambda (i o)
+                    (__eemacs/archive--dowith-execfind_error "tar" "gzip")
+                    (format "tar -zcf %s %s" o i))
+     :extract  ,#'(lambda (i o)
+                    (__eemacs/archive--dowith-execfind_error "tar" "gzip")
+                    (format "tar -zxf %s -C %s" i o)))
     (txz
-     :compress ,#'(lambda (i o) (format "tar -Jcf %s %s" o i))
-     :extract  ,#'(lambda (i o) (format "tar -Jxf %s -C %s" i o)))
+     :compress ,#'(lambda (i o)
+                    (__eemacs/archive--dowith-execfind_error "tar" "xz")
+                    (format "tar -Jcf %s %s" o i))
+     :extract  ,#'(lambda (i o)
+                    (__eemacs/archive--dowith-execfind_error "tar" "xz")
+                    (format "tar -Jxf %s -C %s" i o)))
     (t7z
-     :compress ,#'(lambda (i o) (format "tar -cf - %s | 7z a -si %s" i o))
-     :extract  ,#'(lambda (i o) (format "7z x -so %s | tar -xf - -C %s" i o)))
+     :compress ,#'(lambda (i o)
+                    (__eemacs/archive--dowith-execfind_error "tar" "7z")
+                    (format "tar -cf - %s | 7z a -si %s" i o))
+     :extract  ,#'(lambda (i o)
+                    (__eemacs/archive--dowith-execfind_error "tar" "7z")
+                    (format "7z x -so %s | tar -xf - -C %s" i o)))
     (zip
-     :compress ,#'(lambda (i o) (format "zip %s -r --filesync %s" o i))
-     :extract  ,#'(lambda (i o) (format "unzip %s -d %s" i o)))
+     :compress ,#'(lambda (i o)
+                    (__eemacs/archive--dowith-execfind_error "zip")
+                    (format "zip %s -r --filesync %s" o i))
+     :extract  ,#'(lambda (i o)
+                    (__eemacs/archive--dowith-execfind_error "unzip")
+                    (format "unzip %s -d %s" i o)))
     (gzip
-     :compress ,#'(lambda (i o) (format "gzip -c %s > %s" i o))
-     :extract  ,#'(lambda (i o) (format "gzip -cd %s > %s" i o)))
+     :compress ,#'(lambda (i o)
+                    (__eemacs/archive--dowith-execfind_error "gzip")
+                    (format "gzip -c %s > %s" i o))
+     :extract  ,#'(lambda (i o)
+                    (__eemacs/archive--dowith-execfind_error "gzip")
+                    (format "gzip -cd %s > %s" i o)))
     ))
 
 (defun entropy/emacs-gen-archive-dowith-shell-command
@@ -9917,19 +9947,19 @@ otherwise.
 The arguments list is the same as thus of
 `entropy/emacs-gen-archive-dowith-shell-command', see it for
 their usage."
-  (if (= 0 (call-process-shell-command
-            (entropy/emacs-gen-archive-dowith-shell-command
-             archive-type input output dowith)))
-      (message "%s file %s to %s successfully"
-               (if (eq dowith :compress)
-                   "Compress"
-                 "Uncompress")
-               input output)
-    (user-error "%s file %s to %s with fatal ⚠"
-                (if (eq dowith :compress)
-                    "Compress"
-                  "Uncompress")
-                input output)))
+  (condition-case err
+      (let ((op (if (eq dowith :compress) "Compress" "Uncompress"))
+            exit-code)
+        (if (= 0
+               (entropy/emacs-setf-by-body exit-code
+                 (call-process-shell-command
+                  (entropy/emacs-gen-archive-dowith-shell-command
+                   archive-type input output dowith))))
+            (message "%s file `%s' to `%s' successfully"
+                     op input output)
+          (user-error "%s file `%s' to `%s' with fatal with exit code (%s)"
+                      op input output exit-code)))
+    (error (entropy/emacs-error-without-debugger "%s" err))))
 
 ;; *** Frame manupulation
 (defun entropy/emacs-frame-is-fullscreen-p (&optional frame)
