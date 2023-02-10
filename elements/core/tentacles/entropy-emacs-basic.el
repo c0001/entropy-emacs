@@ -4287,11 +4287,16 @@ as thus."
                (with-current-buffer (window-buffer win-is-2hp)
                  (if (and
                       (eq major-mode 'dired-mode)
-                      (entropy/emacs-existed-filesystem-nodes-equal-p
-                       default-directory current-defdir))
-                     nil
-                   t))
-             t)))
+                      (or
+                       ;; if location is equalized
+                       (entropy/emacs-existed-filesystem-nodes-equal-p
+                        default-directory current-defdir)
+                       ;; or the file's host is a nested subpath of
+                       ;; the side dired window
+                       (entropy/emacs-make-relative-filename
+                        (directory-file-name current-defdir)
+                        default-directory)))
+                     nil t)) t)))
     (call-interactively #'entropy/emacs-basic-kill-buffer-and-show-its-dired)
     (message "Revert to the dired of current buffer's `default-directory' done."))
    (t
