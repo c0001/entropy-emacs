@@ -774,7 +774,7 @@ current emacs session."
                         (with-current-buffer buff
                           (erase-buffer)
                           buff))
-                   (generate-new-buffer " *eemacs-sexp-enc*")))
+                   (entropy/emacs-generate-new-buffer " *eemacs-sexp-enc*")))
          (print-level nil)
          (print-length nil)
          (print-escape-nonascii t)
@@ -6423,7 +6423,7 @@ as the origin one <%s> at the first mirror turn."
     (when op-log
       (cond
        (use-log-buffer
-        (let* ((buffer (generate-new-buffer
+        (let* ((buffer (entropy/emacs-generate-new-buffer
                         (format " *[entropy/emacs-do-directory-mirror] '%s' to '%s'*"
                                 srcdir destdir)
                         t)))
@@ -9658,7 +9658,7 @@ so that following keys are supported:
                (put cbk-symbol 'error-type 'move)
                (put cbk-symbol 'temp-file tmp-file)
                (funcall tmp-file-del-func))))))
-    (let* ((proc-buffer (generate-new-buffer "*---eemacs-url-donwload---*" t))
+    (let* ((proc-buffer (entropy/emacs-generate-new-buffer "*---eemacs-url-donwload---*" t))
            ;; '-L' option is required so that we can follow url
            ;; redirection for such as download from sourceforge.net
            (curl-args `("-L" "--connect-timeout"
@@ -10232,7 +10232,7 @@ not set, else using that as `invocation-name' for as."
   (setq forms (entropy/emacs-get-plist-body forms))
   (let* (proc
          (proc-buffer
-          (generate-new-buffer
+          (entropy/emacs-generate-new-buffer
            (format "*entropy/emacs-test-emacs-with-vanilla-setup/%s*"
                    proc-name)))
          ;; -------------------- the read func --------------------

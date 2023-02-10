@@ -1255,7 +1255,7 @@ interaction hint."
           did-items)
       (setq do-func
             (lambda (dirs level)
-              (let ((buffer (generate-new-buffer
+              (let ((buffer (entropy/emacs-generate-new-buffer
                              (format "*eemacs-dired-print-tree (using level %s)*"
                                      level)))
                     (inhibit-read-only t))
@@ -1359,7 +1359,7 @@ in current `dired' buffer. Use symbolic link type defautly unless
             (lambda ()
               (and (= 0 log-fatal-files)
                    (= 0 log-fatal-dirs))))
-           (log-buffer (generate-new-buffer
+           (log-buffer (entropy/emacs-generate-new-buffer
                         (format "*eemacs-dired-do-hardlink-<%s>*"
                                 default-directory)))
            log-string-list
@@ -3402,7 +3402,7 @@ displayed image as same operated mechanism as
   "Display one temp-buffer with `artist-mode' enabled."
   (declare (interactive-only t))
   (interactive)
-  (let ((buffer (generate-new-buffer "*eemacs-artist-mode-temp-buffer*")))
+  (let ((buffer (entropy/emacs-generate-new-buffer "*eemacs-artist-mode-temp-buffer*")))
     (with-current-buffer buffer
       (artist-mode)
       (insert (make-string 100 ?\n))
@@ -5339,7 +5339,7 @@ from."
          (orig-buffer
           (if current-prefix-arg
               (prog1
-                  (generate-new-buffer "*temp*" t)
+                  (entropy/emacs-generate-new-buffer "*temp*" t)
                 (setq orig-buffer-temp-p t))
             (let (rtn)
               (if help-mode-p

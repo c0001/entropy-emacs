@@ -153,6 +153,17 @@ version doesn't has such feature.
       (get-buffer-create buffer-or-name))
   (defalias 'entropy/emacs-get-buffer-create #'get-buffer-create))
 
+(if (< emacs-major-version 28)
+    (defun entropy/emacs-generate-new-buffer
+        (buffer-or-name &optional _inhibit-buffer-hooks)
+      "emacs 28 and higher `generate-new-buffer' backport for 27 and
+lower where the INHBIT-BUFFER-HOOKS is ignored since lower emacs
+version doesn't has such feature.
+
+\(fn buffer-or-name &optional inhibit-buffer-hooks)"
+      (generate-new-buffer buffer-or-name))
+  (defalias 'entropy/emacs-generate-new-buffer #'generate-new-buffer))
+
 ;; *** subr*
 
 (cl-defun entropy/emacs--get-def-body (list-var &optional with-safe)

@@ -225,7 +225,7 @@ byte-code into a popup buffer.
                  (let ((buffnm "*eemacs eval with byte-compile*")
                        buff win confirm-p bytecmp-result)
                    (display-buffer
-                    (setq buff (generate-new-buffer buffnm))
+                    (setq buff (entropy/emacs-generate-new-buffer buffnm))
                     `((display-buffer-at-bottom) .
                       ((inhibit-switch-frame . t)
                        ;; let this window be dedicated to the form

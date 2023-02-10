@@ -110,7 +110,7 @@ external COMMAND with ARGLIST."
            (proc-name (format "openwith-process_%s:%s"
                               command
                               (mapconcat 'identity arglist "_")))
-           (proc-buff (generate-new-buffer "*openwith-process*"))
+           (proc-buff (entropy/emacs-generate-new-buffer "*openwith-process*"))
            (proc-sentinel
             (lambda (proc _event)
               (let ((proc-name (process-name proc))
