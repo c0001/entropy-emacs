@@ -866,13 +866,30 @@ shutdown since it is managed by the customize variable
 
 ;; ******** lsp server init args specifications
 
-  (defvar lsp-clients-typescript-server-args)
-  (setq lsp-clients-typescript-server-args
-        `("--stdio"
-          "--tsserver-log-file"
-          ,(expand-file-name
-            ".tsserver-log-file"
-            entropy/emacs-temporary-file-directory)))
+  ;; + [2023-02-11 Sat 16:36:45]
+  ;; Obsolete since typescript language server has removed
+  ;; =--tsserver-log-file= option, and the *tsserver* will caught the
+  ;; usage of this option as an error.
+  ;; #+begin_src elisp
+  ;; (defvar lsp-clients-typescript-server-args)
+  ;; (setq lsp-clients-typescript-server-args
+  ;;       `("--stdio"
+  ;;         "--tsserver-log-file"
+  ;;         ,(expand-file-name
+  ;;           ".tsserver-log-file"
+  ;;           entropy/emacs-temporary-file-directory)))
+  ;; #+end_src
+  ;;
+  ;; + TODO :
+  ;; Instead we use var =lsp-typescript-tsserver-log= to disable the
+  ;; server inner bug verbosity to avoid create the log file in
+  ;; workspace, but its the rude way that we should use the
+  ;; =logDirectory= initial setting of tsserver to let user customie
+  ;; the expection. But package =lsp-javascript= has harded coded its
+  ;; initial option to tsserver without any custmizable setting of
+  ;; =logDirectory= as what its =logVerbosity= option's defcustom var
+  ;; =lsp-clients-typescript-log-verbosity= does.
+  (setq lsp-typescript-tsserver-log "off")
 
 ;; ******* config
   :config
