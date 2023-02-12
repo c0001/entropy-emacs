@@ -2409,8 +2409,9 @@ its origin defination.")
               tsm-nm prog-mode-name))
     (advice-add prog-mode-name :around adv-func-name)))
 
-(dolist (mm entropy/emacs-ide-for-them)
-  (entropy/emacs-enable-prog-mode-prefer-treesit mm))
+(when entropy/emacs-ide-is-treesit-generally-adapted-p
+  (dolist (mm entropy/emacs-ide-for-them)
+    (entropy/emacs-enable-prog-mode-prefer-treesit mm)))
 
 ;; * provide
 (provide 'entropy-emacs-defvar)
