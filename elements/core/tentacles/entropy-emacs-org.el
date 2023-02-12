@@ -294,7 +294,7 @@ find-file-other-window"
     (declare (interactive-only t))
     (interactive nil org-mode)
     (let ((org-link-frame-setup `((file . find-file) ,@org-link-frame-setup)))
-      (org-open-at-point)))
+      (call-interactively #'org-open-at-point)))
 
   ;; using entropy-open-with to open org link
   (defun entropy/emacs-org-eow ()
