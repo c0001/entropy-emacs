@@ -2351,11 +2351,21 @@ its origin defination.")
         (replace-regexp-in-string "^\\(.+\\)-mode$" "\\1" pnm-str))
        (adv-func-name
         (intern (format "__adv/around/auto-treesit-enable-for/%s"
+                        prog-mode-name)))
+       (adv-avar-name
+        (intern (format "__adv/around/auto-treesit-enable-for/%s/avar"
                         prog-mode-name))))
+    (eval `(defvar ,adv-avar-name nil))
     (defalias adv-func-name
       (lambda (orig-func &rest orig-args)
         (let ((curbuff (current-buffer)))
-          (if (not (treesit-language-available-p lnm)) (apply orig-func orig-args)
+          (if (or (not (treesit-language-available-p lnm))
+                  ;; NOTE: prevent nested invocation from `tsm-nm'
+                  ;; function like what `bash-ts-mode' did which has
+                  ;; an advice for fallbacking to `sh-mode' for some
+                  ;; cases.
+                  (entropy/emacs-bound-and-true-p adv-avar-name))
+              (apply orig-func orig-args)
             ;; disable its mode indicator first
             (when (and (boundp prog-mode-name)
                        (symbol-value prog-mode-name))
@@ -2369,6 +2379,7 @@ its origin defination.")
              0.12 nil
              (lambda nil
                (when-let (((buffer-live-p curbuff))
+                          ((not (entropy/emacs-bound-and-true-p adv-avar-name)))
                           (inhibit-quit t))
                  (with-current-buffer curbuff
                    (let* ((bffnm (buffer-name))
@@ -2391,7 +2402,9 @@ its origin defination.")
                       ;; TODO&&FIXME: the traditon mode args may not proper
                       ;; for its ts-mode function, so we should find a
                       ;; comprehensive way to solve this problem.
-                      (apply tsm-nm orig-args))))))))))
+                      (entropy/emacs-eval-with-lexical
+                       `(let ((,adv-avar-name t))
+                          (apply ',tsm-nm ',orig-args))))))))))))
       (format "Automatically switch to `%s' when available for any invocations to `%s'"
               tsm-nm prog-mode-name))
     (advice-add prog-mode-name :around adv-func-name)))
