@@ -110,7 +110,7 @@
 ;; are used currently, this *pointer* was used to briefly popping out the
 ;; shellpop buffer without items chosen operation.
 
-;; Var =entropy/shellpop--type-register= was one implementation instance
+;; Var =entropy/shellpop--type-registers= was one implementation instance
 ;; used for thus, its a alist which key was the =shellpop-type-name= a
 ;; string, and the cdr was the plist whose slots are:
 
@@ -153,7 +153,7 @@
 ;; case, there's infinite shellpop buffers exists in the same time,
 ;; exists or inexists as the top level concept.
 
-;; Each shellpop buffer registed in =entropy/shellpop--type-register= was
+;; Each shellpop buffer registed in =entropy/shellpop--type-registers= was
 ;; a index with its description, but without any status recorded, and for
 ;; that the register were not background upate in real-time as a service
 ;; running for watching as 'watch-dog'. For thus, =entropy-sdcv= gives a
@@ -404,7 +404,7 @@ Slot description:
 
 ;;;; defvar
 
-(defvar entropy/shellpop--type-register nil)
+(defvar entropy/shellpop--type-registers nil)
 
 (defvar entropy/shellpop--top-wcfg-register nil
   "The window configuratio register for recovering for maximized
@@ -509,13 +509,13 @@ return them into list ordered as original case."
 (defun entropy/shellpop--delete-window (window)
   (catch :exit
     (unless (one-window-p)
-      (apply 'delete-window `(,window))
+      (delete-window window)
       (throw :exit nil))
     (progn
       (cond ((window-configuration-p entropy/shellpop--top-wcfg-register)
              (set-window-configuration
               entropy/shellpop--top-wcfg-register)
-             (apply 'delete-window `(,window)))
+             (delete-window window))
             (t
              (message
               "can not restore window-configuration \
@@ -636,7 +636,7 @@ for current maximized pop-shell."))))))
     (t (concat "entropy/shellpop-user-" shellpop-type-name "-shellpop"))))
 
 (defun entropy/shellpop--parse-buffer-name-type (buffer-name)
-  (let* ((type-names (mapcar (lambda (x) (car x)) entropy/shellpop--type-register))
+  (let* ((type-names (mapcar (lambda (x) (car x)) entropy/shellpop--type-registers))
          (type-name-regexs (mapcar (lambda (x)
                                      (cons x (entropy/shellpop--gen-buffn-regexp x)))
                                    type-names))
@@ -713,7 +713,7 @@ for current maximized pop-shell."))))))
 
 ;;;;; close all actived shellpop window
 (defun entropy/shellpop--close-all-active-shellpop-window ()
-  (let* ((type-names (mapcar (lambda (x) (car x)) entropy/shellpop--type-register))
+  (let* ((type-names (mapcar (lambda (x) (car x)) entropy/shellpop--type-registers))
          shellpop-buffns
          closed)
     (dolist (type-name type-names)
@@ -774,7 +774,7 @@ for current maximized pop-shell."))))))
           (plist-put type-plist :indexs type-indexs))))
 
 (defun entropy/shellpop--prune-type-register ()
-  (dolist (shellpop-type-register entropy/shellpop--type-register)
+  (dolist (shellpop-type-register entropy/shellpop--type-registers)
     (entropy/shellpop--prune-type-register-core shellpop-type-register)))
 
 ;;;;; registering shellpop type
@@ -788,7 +788,7 @@ for current maximized pop-shell."))))))
 (defun entropy/shellpop--put-index
     (shellpop-type-name buff-index &optional when-available no-new-desc)
   (let* ((type-name shellpop-type-name)
-         (shellpop-type-register (assoc type-name entropy/shellpop--type-register))
+         (shellpop-type-register (assoc type-name entropy/shellpop--type-registers))
          (cur-type-plist (cdr shellpop-type-register))
          (cur-type-indexs (plist-get cur-type-plist :indexs))
          (cur-type-pointer (plist-get cur-type-plist :pointer))
@@ -857,7 +857,7 @@ for current maximized pop-shell."))))))
                (buff-isnew (plist-get buffer-ob :isnew))
                (buff-index (plist-get buffer-ob :index))
                (buff (get-buffer-create buffn))
-               (old-type-register (copy-tree (assoc ,type-name entropy/shellpop--type-register)))
+               (old-type-register (copy-tree (assoc ,type-name entropy/shellpop--type-registers)))
                unwind-trigger buffn-not-eq)
           (unwind-protect
               (progn
@@ -884,7 +884,7 @@ for current maximized pop-shell."))))))
                   (entropy/shellpop--cd-to-cwd cur-workdir buff))
                 (setq unwind-trigger t))
             (unless unwind-trigger
-              (setf (alist-get ,type-name entropy/shellpop--type-register)
+              (setf (alist-get ,type-name entropy/shellpop--type-registers)
                     (cdr old-type-register))
               (when buff-isnew
                 (kill-buffer buff))))))
@@ -892,7 +892,7 @@ for current maximized pop-shell."))))))
      `(defun ,(intern func-name) (prompt)
         (interactive "P")
         (entropy/shellpop--prune-type-register)
-        (let* ((type-reg (assoc ,type-name entropy/shellpop--type-register))
+        (let* ((type-reg (assoc ,type-name entropy/shellpop--type-registers))
                (type-plist (cdr type-reg))
                (type-pointer (plist-get type-plist :pointer))
                (type-indexs (plist-get type-plist :indexs)))
@@ -928,7 +928,7 @@ for current maximized pop-shell."))))))
                   (copy-tree
                    `(:type-func ,(list :core type-func-core :interact type-func)
                                 :indexs nil :pointer nil)))
-            entropy/shellpop--type-register))))
+            entropy/shellpop--type-registers))))
 
 
 ;;;;; shellpop minor mode
@@ -981,7 +981,7 @@ for current maximized pop-shell."))))))
   (interactive)
   (let* ((buffn (buffer-name))
          (buffn-parse (entropy/shellpop--parse-buffer-name-type buffn))
-         (type-register (assoc (car buffn-parse) entropy/shellpop--type-register)))
+         (type-register (assoc (car buffn-parse) entropy/shellpop--type-registers)))
     (entropy/shellpop--rename-index-desc-core
      (cdr buffn-parse)
      type-register)))
@@ -989,7 +989,7 @@ for current maximized pop-shell."))))))
 (defun entropy/shellpop-get-index-desc-within-mode ()
   (let* ((buffn (buffer-name))
          (buffn-parse (entropy/shellpop--parse-buffer-name-type buffn))
-         (type-register (assoc (car buffn-parse) entropy/shellpop--type-register)))
+         (type-register (assoc (car buffn-parse) entropy/shellpop--type-registers)))
     (entropy/shellpop--get-index-desc-core
      (cdr buffn-parse)
      type-register)))
@@ -1105,7 +1105,7 @@ for current maximized pop-shell."))))))
 =shellpop-type-register=, just used for
 `entropy/shellpop-replace-type-registers-pointer-as'."
   (let (rtn type-name pointer)
-    (dolist (el entropy/shellpop--type-register)
+    (dolist (el entropy/shellpop--type-registers)
       (setq type-name (car el)
             pointer (plist-get (cdr el) :pointer))
       (when pointer
