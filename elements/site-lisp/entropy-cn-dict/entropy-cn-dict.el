@@ -66,8 +66,11 @@ buffer."
      (with-current-buffer (url-retrieve-synchronously url)
        (set-buffer-multibyte t)
        (goto-char (point-min))
+       ;; delete the http request header meta data
        (when (re-search-forward "^$" nil t)
          (delete-region (point-min) (point)))
+       ;; use eww subroutine to render the retrieved DOM so that we
+       ;; can treat it a eww buffer as usually did as via `eww'.
        (eww-mode)
        (eww-display-html nil url nil nil (current-buffer))
        ;; cross referrence navigation history enable via `eww-data'
