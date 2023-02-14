@@ -63,7 +63,14 @@ buffer."
     (fundamental-mode)
     (erase-buffer)
     (insert
-     (with-current-buffer (url-retrieve-synchronously url)
+     (with-current-buffer
+         (condition-case-unless-debug err
+             (url-retrieve-synchronously url)
+           (error
+            ;; just abort when `url-retrieve-synchronously' can not
+            ;; handle url but in `debug-on-error' case since there's
+            ;; may caused by some other influences.
+            (user-error "can not retrieve `%s' (%s)" url err)))
        (set-buffer-multibyte t)
        (goto-char (point-min))
        ;; delete the http request header meta data
