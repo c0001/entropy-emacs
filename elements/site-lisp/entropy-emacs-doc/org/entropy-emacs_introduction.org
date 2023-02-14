@@ -216,7 +216,6 @@ Now, I built serveral packages shown as below table:
 |---------------------------------+---------------------------------------------------------------------------------------------------|
 | entropy-cn-dict                 | point char or region translation for chinese words (also useful for traditional chinese)          |
 | entropy-sdcv                    | the emacs multi-dictionaries framework                                                            |
-| entropy-common-library          | librarys for building other =entropy-emacs= package                                               |
 | entropy-dired-cp-or-mv          | dired copy or move files extension for enhancing based dired refer function                       |
 | entropy-global-read-only-mode   | emacs globally readonly mode for forcing lock buffer while opening                                |
 | entropy-open-with               | open files using external applications                                                            |
