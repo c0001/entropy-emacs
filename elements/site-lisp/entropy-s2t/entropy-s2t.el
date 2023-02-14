@@ -3960,6 +3960,8 @@
 
 ;;;###autoload
 (defun entropy/s2t-string (string)
+  "Convert simplified chinese STRING to tradition chinese one and
+return that."
   (interactive "P")
   (mapconcat
    #'(lambda (x)

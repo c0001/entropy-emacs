@@ -1,4 +1,4 @@
-# -*- org-adapt-indentation:nil -*-
+# -*- org-adapt-indentation:nil; org-cycle-separator-lines: 3; -*-
 #+title: entropy emacs introduction
 #+author: Entropy
 #+option: auto-id:t
