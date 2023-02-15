@@ -423,7 +423,7 @@ configuration files in that file which see as:
   ...
 
   ;; advices
-  (advice-add 'entropy/emas-xxx :after #'(lambda (&rest args) ...))
+  (advice-add 'entropy/emacs-xxx :after #'(lambda (&rest args) ...))
   ...
 
   ;; my functions
