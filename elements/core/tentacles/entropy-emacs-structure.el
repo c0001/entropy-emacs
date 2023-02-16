@@ -1210,7 +1210,7 @@ This function is an around advice for `outshine-mode'."
     (let (_)
       (cond
        ;; `c-mode' outline specification
-       ((eq major-mode 'c-mode)
+       ((memq major-mode '(c-mode c-ts-mode c++-mode c++-ts-mode))
         ;; temporally set the default comment style for c-mode used as
         ;; heading line start.
         (let ((comment-start "//")

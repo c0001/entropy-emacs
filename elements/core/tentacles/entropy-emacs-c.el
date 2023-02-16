@@ -38,6 +38,10 @@
 
 ;; ** require
 
+(defvar entropy/emacs-C-style 'bsd)
+(defvar entropy/emacs-C-tab-width 4)
+(defvar entropy/emacs-C-basic-offset 4)
+
 ;; ** main
 (use-package cc-mode
   :ensure nil
@@ -66,9 +70,9 @@
     (funcall entropy/emacs/c-mode/after-change-func/idle-port))
 
   (defun entropy/emacs-c-cc-mode-common-set ()
-    (c-set-style "bsd")
-    (setq-local tab-width 4)
-    (setq-local c-basic-offset 4)
+    (c-set-style (symbol-name entropy/emacs-C-style))
+    (setq-local tab-width entropy/emacs-C-tab-width)
+    (setq-local c-basic-offset entropy/emacs-C-basic-offset)
     ;; EEMACS_MAINTENANCE: this patch is not under fully tested
     ;; whether influence the other functionality for `c-mode'.
     ;; ====== remove the lag core of `cc-mode' =====
@@ -109,6 +113,17 @@
     (define-key c-mode-base-map "\C-c\C-z" nil))
 
   )
+
+(use-package c-ts-mode
+  :ensure nil
+  :if entropy/emacs-ide-is-treesit-generally-adapted-p
+  :init
+  (defun entropy/emacs-c-ts-mode-basic-set nil
+    (setq-local c-ts-mode-indent-offset entropy/emacs-C-basic-offset)
+    (setq-local tab-width entropy/emacs-C-tab-width)
+    (c-ts-mode-set-style entropy/emacs-C-style))
+  (add-hook 'c-ts-base-mode-hook
+            #'entropy/emacs-c-ts-mode-basic-set))
 
 ;; ** provide
 (provide 'entropy-emacs-c)
