@@ -1787,7 +1787,7 @@ the `mode-line-format' is special when the return is non-nil.
 Each predicate can be a form or a function name.")
 
 ;; ** font refer
-(defvar entropy/emacs-fontsets-used-latin-font "Noto Mono"
+(defvar entropy/emacs-fontsets-used-latin-font "Noto Sans Mono"
   "The latin script font used in eemacs context, set
 automatically followed by `entropy/emacs-font-setting-enable'.")
 
@@ -1827,7 +1827,7 @@ followed by `entropy/emacs-font-setting-enable'.")
 (defvar entropy/emacs-fontsets-fonts-collection-alias
   '((sarasa :latin "Sarasa Mono SC" :sc "Sarasa Mono SC" :tc "Sarasa Mono TC"
             :jp "Sarasa Mono J" :kr "Sarasa Mono K")
-    (google :latin "Noto Mono" :sc "Noto Sans Mono CJK SC" :tc "Noto Sans Mono CJK TC"
+    (google :latin "Noto Sans Mono" :sc "Noto Sans Mono CJK SC" :tc "Noto Sans Mono CJK TC"
             :jp "Noto Sans Mono CJK JP" :kr "Noto Sans Mono CJK KR"
             :symbol "Noto Sans Symbols")
     (fira-code :latin "Fira Code" :sc "Noto Sans Mono CJK SC" :tc "Noto Sans Mono CJK TC"
