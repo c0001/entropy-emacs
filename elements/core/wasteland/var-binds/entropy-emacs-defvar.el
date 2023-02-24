@@ -2359,7 +2359,8 @@ its origin defination.")
     (defalias adv-func-name
       (lambda (orig-func &rest orig-args)
         (let ((curbuff (current-buffer)))
-          (if (or (not (treesit-language-available-p lnm))
+          (if (or (not (entropy/emacs-ide-prefer-use-treesit-p prog-mode-name))
+                  (not (treesit-language-available-p lnm))
                   ;; NOTE: prevent nested invocation from `tsm-nm'
                   ;; function like what `bash-ts-mode' did which has
                   ;; an advice for fallbacking to `sh-mode' for some

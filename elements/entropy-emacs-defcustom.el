@@ -1497,7 +1497,9 @@ in generally meaning range which says that basically can did so.")
                   :lang typescript :treesit-mode-p t   :traditional-mode js-mode)
     (js2-mode     :lang javascript :treesit-mode-p nil :treesit-variant-mode js-ts-mode)
     (sh-mode      :lang bash       :treesit-mode-p nil :treesit-variant-mode bash-ts-mode)
-    (bash-ts-mode :lang bash       :treesit-mode-p t   :traditional-mode sh-mode)))
+    (bash-ts-mode :lang bash       :treesit-mode-p t   :traditional-mode sh-mode)
+    (c++-mode     :lang cpp        :treesit-mode-p nil :treesit-variant-mode c++-ts-mode)
+    ))
 (defun entropy/emacs-ide-get-lang-mode-info (mode)
   (or (alist-get mode entropy/emacs-ide--lang-mode-info-alist)
       (let* ((nm-str (symbol-name mode))
@@ -1523,43 +1525,47 @@ in generally meaning range which says that basically can did so.")
 (with-eval-after-load 'memoize
   (memoize 'entropy/emacs-ide-get-lang-mode-info))
 
-(defvar entropy/emacs-ide-for-them
-  (let ((ts-avl-p entropy/emacs-ide-is-treesit-generally-adapted-p))
-    (delete
-     nil
-     `(c-mode
-       ,(and ts-avl-p 'c-ts-mode)
-       java-mode ,(and ts-avl-p 'java-ts-mode)
-       c++-mode ,(and ts-avl-p 'c++-ts-mode)
-       cmake-mode ,(and ts-avl-p 'cmake-ts-mode)
-       go-mode ,(and ts-avl-p 'go-ts-mode)
-       rust-mode ,(and ts-avl-p 'rust-ts-mode)
-       python-mode ,(and ts-avl-p 'python-ts-mode)
-       php-mode
-       js-mode ,(and ts-avl-p 'js-ts-mode)
-       ,(and ts-avl-p 'typescript-ts-mode)
-       js2-mode
-       json-mode ,(and ts-avl-p 'json-ts-mode)
-       css-mode ,(and ts-avl-p 'css-ts-mode)
-       html-mode web-mode
-       nxml-mode
-       sh-mode ,(and ts-avl-p 'bash-ts-mode)
-       powershell-mode))))
+(defvar entropy/emacs-ide-for-them/treesit-variants
+  (when entropy/emacs-ide-is-treesit-generally-adapted-p
+    (list 'c-ts-mode 'c++-ts-mode 'java-ts-mode
+          'cmake-ts-mode
+          'go-ts-moe 'rust-ts-mdoe
+          'python-ts-mode 'js-ts-mode 'typescript-ts-mode
+          'json-ts-mode 'css-ts-mode
+          'bash-ts-mode
+          )))
 
-(defvar entropy/emacs-use-ide-conditions nil)
+(defvar entropy/emacs-ide-for-them/classic
+  `(c-mode
+    c++-mode java-mode cmake-mode
+    go-mode  rust-mode
+    python-mode php-mode js-mode js2-mode
+    json-mode css-mode html-mode web-mode nxml-mode
+    sh-mode powershell-mode))
+
+(defvar entropy/emacs-ide-for-them
+  `(,@entropy/emacs-ide-for-them/classic
+    ,@entropy/emacs-ide-for-them/treesit-variants))
+
 (defun entropy/emacs-get-ide-condition-symbol (for-major-mode)
   (intern (format "entropy/emacs-use-ide-type-for-%s" for-major-mode)))
 (defun entropy/emacs-get-use-ide-type (for-major-mode)
   (unless entropy/emacs-ide-suppressed
     (symbol-value
      (entropy/emacs-get-ide-condition-symbol for-major-mode))))
+(defun entropy/emacs-get-ide-prefer-use-treesit-symbol (for-major-mode)
+  (intern (format "entropy/emacs-%s-prefer-use-treesit-p" for-major-mode)))
+(defun entropy/emacs-ide-prefer-use-treesit-p (for-major-mode)
+  (unless entropy/emacs-ide-suppressed
+    (eq (symbol-value
+         (entropy/emacs-get-ide-prefer-use-treesit-symbol
+          for-major-mode))
+        'treesit)))
 
 (defun entropy/emacs-ide-gen-customized-variables ()
   (let (forms)
     (dolist (el entropy/emacs-ide-for-them)
       (let ((sym (entropy/emacs-get-ide-condition-symbol el)))
-        (push sym
-              entropy/emacs-use-ide-conditions)
         (push
          `(defcustom ,sym ',entropy/emacs-ide-use-for-all
             ,(format "The IDE chosen type for major-mode '%s'
@@ -1572,8 +1578,30 @@ Valid type are 'traditional' or 'lsp' which default to use lsp.
                     (const :tag "Individual language servers (traditional way)" traditional))
             :group 'entropy/emacs-customize-group-for-IDE-configuration)
          forms)))
-    (dolist (form forms)
-      (eval form))))
+    (dolist (el entropy/emacs-ide-for-them/classic)
+      (let ((sym (entropy/emacs-get-ide-prefer-use-treesit-symbol el)))
+        (push
+         `(defcustom ,sym ,(if entropy/emacs-ide-is-treesit-generally-adapted-p
+                               ''treesit ''traditional)
+            ,(format "The IDE syntax parser chosen type for major-mode `%s'
+
+Valid type are 'traditional' or 'treesit' which default to use
+`treesit' when `entropy/emacs-ide-is-treesit-generally-adapted-p' is
+non-nil.
+
+If set as `treesit', then each call to `%s' is redirect to its
+tree-sitter variant mode if it has one and the corresponding
+tree-sitter parser for that variant `*-ts-mode' can be found by emacs
+either in system library path or `treesit-extra-load-path', otherwise
+no redirection is did as that what `traditional' type performed.
+"
+                     el el)
+            :type '(choice
+                    (const :tag "tree-sitter" treesit)
+                    (const :tag "emacs builtin" traditional))
+            :group 'entropy/emacs-customize-group-for-IDE-configuration)
+         forms)))
+    (eval `(progn ,@forms) lexical-binding)))
 
 (entropy/emacs-ide-gen-customized-variables)
 
