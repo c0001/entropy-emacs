@@ -2354,8 +2354,12 @@ its origin defination.")
                         prog-mode-name)))
        (adv-avar-name
         (intern (format "__adv/around/auto-treesit-enable-for/%s/avar"
+                        prog-mode-name)))
+       (adv-rvar-name
+        (intern (format "__adv/around/auto-treesit-enable-for/%s/rvar"
                         prog-mode-name))))
     (eval `(defvar ,adv-avar-name nil))
+    (eval `(defvar ,adv-rvar-name nil))
     (defalias adv-func-name
       (lambda (orig-func &rest orig-args)
         (let ((curbuff (current-buffer)))
@@ -2405,7 +2409,22 @@ its origin defination.")
                       ;; comprehensive way to solve this problem.
                       (entropy/emacs-eval-with-lexical
                        `(let ((,adv-avar-name t))
-                          (apply ',tsm-nm ',orig-args))))))))))))
+                          (prog1 (apply ',tsm-nm ',orig-args)
+                            ;; FIXME: remove *-ts-mode from
+                            ;; `auto-mode-alist' since we must take
+                            ;; charge the mode association via eemac
+                            ;; spec of
+                            ;; `entropy/emacs-ide-prefer-use-treesit-p'. But
+                            ;; almost all of *-ts-mode are hardcoded
+                            ;; to inject themselves to
+                            ;; `auto-mode-alist' after the first time
+                            ;; enable them which not be documented
+                            ;; anywhere where such pity be and shall
+                            ;; issue a suggestion for upstream?
+                            (unless ,adv-rvar-name
+                              (setq auto-mode-alist
+                                    (rassq-delete-all
+                                     ',tsm-nm auto-mode-alist)))))))))))))))
       (format "Automatically switch to `%s' when available for any invocations to `%s'"
               tsm-nm prog-mode-name))
     (advice-add prog-mode-name :around adv-func-name)))
