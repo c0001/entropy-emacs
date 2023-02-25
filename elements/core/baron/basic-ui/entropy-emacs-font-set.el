@@ -363,7 +363,24 @@ are performed."
         ;; not for `prog-mode' since we've use
         ;; `entropy/emacs-font-set--prog-font-set' for thus.
         (not (derived-mode-p 'prog-mode))
-        (or  int (derived-mode-p 'special-mode)))))))
+        (or  int
+             ;; FIXME: we just allow filter on below modes since any
+             ;; other `special-mode' usually use `window-width' to
+             ;; calculate the char width which rely on the default
+             ;; font width which may smaller than the rmapped font
+             ;; width, that say the remapped buffer will appear line
+             ;; width overflow in this cases.
+             ;;
+             ;; Or in the other hand, shall we need to hacking on
+             ;; `frame-width' (the underline of `window-width') to let
+             ;; those modes calculate correct 'display width' of the
+             ;; remapped one?
+             (memq major-mode '(Info-mode woman-mode))))))))
+
+(defun entropy/emacs-font--smeset-add-default-hook nil
+  (dolist (hook '(Info-mode-hook woman-mode-hook))
+    (add-hook hook
+              #'entropy/emacs-font-set-modern-english-font-set)))
 
 (defun entropy/emacs-font-set--set-special-font-for-all-buffers (&optional reset)
   (dolist (buff (buffer-list))
@@ -383,19 +400,18 @@ are performed."
       (progn
         (entropy/emacs-run-body-only-once
          (add-hook 'prog-mode-hook #'entropy/emacs-font-set--prog-font-set)
-         (dolist (hook '(Info-mode-hook woman-mode-hook))
-           (add-hook hook
-                     #'entropy/emacs-font-set-modern-english-font-set)))
+         (entropy/emacs-font--smeset-add-default-hook))
         (entropy/emacs-font-set--set-special-font-for-all-buffers))
       :when-tui
       (entropy/emacs-font-set--set-special-font-for-all-buffers 'reset))
   (entropy/emacs-lazy-initial-advice-before
-   '(find-file switch-to-buffer)
+   '(find-file switch-to-buffer display-buffer)
    "__enable-eemacs-special-font-set__"
    "__enable-eemacs-special-font-set__"
    :prompt-type 'prompt-echo
    :pdumper-no-end nil
    (add-hook 'prog-mode-hook #'entropy/emacs-font-set--prog-font-set)
+   (entropy/emacs-font--smeset-add-default-hook)
    ;; enable font set to opened buffers
    (entropy/emacs-font-set--set-special-font-for-all-buffers)))
 
