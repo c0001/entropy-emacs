@@ -55,6 +55,43 @@
 (defvar company-candidates-length)
 (defvar company-search-string)
 
+;; ** isearch
+(use-package isearch
+  :ensure nil
+  :config
+
+  ;; ;; Additional text for the message prefix
+  ;; (setq isearch-message-prefix-add nil)
+  ;; ;; Additional text for the message suffix
+  ;; (setq isearch-message-suffix-add nil)
+
+  ;; edit string mode for arbitrary search pattern modifiation
+  (define-key isearch-mode-map "\M-e" 'isearch-edit-string)
+  ;; either rediret common buffer operation to edit string mode to
+  ;; make interaction be consistent with ivy
+  (define-key isearch-mode-map (kbd "<left>")  'isearch-edit-string)
+  (define-key isearch-mode-map (kbd "<right>") 'isearch-edit-string)
+  ;; make up/down be selection jump
+  (define-key isearch-mode-map (kbd "<down>") 'isearch-repeat-forward)
+  (define-key isearch-mode-map (kbd "<up>") 'isearch-repeat-backward)
+  ;; either for more:
+  (define-key isearch-mode-map (kbd "M-DEL") 'isearch-edit-string)
+
+  (define-key isearch-mode-map (kbd "C-c C-o") 'isearch-occur)
+  (define-key isearch-mode-map "\M-c" 'isearch-toggle-case-fold)
+  (define-key isearch-mode-map "\M-r" 'isearch-toggle-regexp)
+
+  (defun eemacs/isearch--query-replace ()
+    "Using `isearch-query-replace' or `isearch-query-replace-regexp'
+based on `isearch-regexp' as filter."
+    (interactive)
+    (call-interactively
+     (if isearch-regexp 'isearch-query-replace-regexp
+       'isearch-query-replace)))
+  (define-key isearch-mode-map (kbd "M-q") 'eemacs/isearch--query-replace)
+
+  )
+
 ;; ** ivy
 (use-package ivy
   :diminish ivy-mode
@@ -409,7 +446,9 @@ bug of (EEMACS_BUG: h-17036bdc-c6e9-4ac2-bac8-1c55bd8ecda4)."
     "Ignore `ivy-thing-at-point' to return emtpy string but with some
 occasions since the internal `thing-at-point' is so laggy with
 large buffer."
-    (cond ((or
+    ;; big buffer always disable checking thing at point to reduce lag and gc
+    (cond ((> (entropy/emacs-buffer-size) (* 5 (expt 1024 2))) "")
+          ((or
             ;; TODO: could we use this: `current-prefix-arg' ?
 
             ;; FIXME: shall we need to use `with-ivy-window' to
@@ -1275,22 +1314,29 @@ origin procedure which will casue some error in eemacs-specification."
     "Call `swiper-isearch' for small buffers and `counsel-grep' for large ones.
 When non-nil, INITIAL-INPUT is the initial search pattern."
     (interactive)
-    (if (or (not buffer-file-name)
-            (buffer-narrowed-p)
-            (and buffer-file-name
-                 (file-remote-p buffer-file-name))
-            (and buffer-file-name
-                 (jka-compr-get-compression-info buffer-file-name))
-            (funcall counsel-grep-use-swiper-p))
-        (swiper-isearch initial-input)
+    (cond
+     ;; big buffer always use `isearch' to reduce lag and gc
+     ((> (entropy/emacs-buffer-size) (* 5 (expt 1024 2)))
+      (isearch-forward t t))
+     ((or (not buffer-file-name)
+          (buffer-narrowed-p)
+          ;; although is a file but without truely local file
+          ;; association in which case the buffer is also a virtual
+          ;; one, so we still use `swiper-isearch' to deal with.
+          (and buffer-file-name (file-remote-p buffer-file-name))
+          (and buffer-file-name
+               (jka-compr-get-compression-info buffer-file-name))
+          (funcall counsel-grep-use-swiper-p))
+      (swiper-isearch initial-input))
+     ((buffer-file-name)
+      ;; save the buffer first
       (when (and (buffer-modified-p)
-                 (and buffer-file-name
-                      (file-writable-p buffer-file-name))
-                 (or
-                  (yes-or-no-p "Save buffer before `counsel-grep'?")
-                  (user-error "Abort!")))
+                 (and buffer-file-name (file-writable-p buffer-file-name))
+                 (or (yes-or-no-p "Save buffer before `counsel-grep'?")
+                     (user-error "Abort!")))
         (save-buffer))
-      (counsel-grep initial-input)))
+      (counsel-grep initial-input))
+     (t (isearch-forward t t))))
   (advice-add 'counsel-grep-or-swiper :override #'__ya/counsel-grep-or-swiper)
 
 ;; **** patches for `counsel-grep' and referred

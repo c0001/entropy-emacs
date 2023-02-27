@@ -115,6 +115,16 @@
 
 ;; **** configs
   :config
+;; ***** Cache
+
+  (setq
+   ;; Disable the 9.6's element cache mechanism since its not robust
+   ;; which may corrupt user buffer contents since its coding system
+   ;; for write/read procedure is not robust and annoyingly via the
+   ;; `kill-buffer-hook' of `org-persist-write-all-buffer'.
+   org-element-use-cache nil
+   org-element-cache-persistent nil)
+
 ;; ***** UI
 ;; ****** startup UI
   ;; Forcely trucate line for `org-mode' buffer

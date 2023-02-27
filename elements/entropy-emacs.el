@@ -164,6 +164,16 @@ version doesn't has such feature.
       (generate-new-buffer buffer-or-name))
   (defalias 'entropy/emacs-generate-new-buffer #'generate-new-buffer))
 
+(defun entropy/emacs-buffer-size
+    (&optional buffer-or-name whole-buffer)
+  "Return `buffer-size' for buffer BUFFER-OR-NAME if WHOLE-BUFFER is
+non-nil, otherwise return the `buffer-size' for visible portion
+of BUFFER-OR-NAME.
+
+BUFFER-OR-NAME if nil or omitted, defaults to `current-buffer'."
+  (with-current-buffer (or buffer-or-name (current-buffer))
+    (if whole-buffer (buffer-size) (- (point-max) (point-min)))))
+
 ;; *** subr*
 
 (cl-defun entropy/emacs--get-def-body (list-var &optional with-safe)
