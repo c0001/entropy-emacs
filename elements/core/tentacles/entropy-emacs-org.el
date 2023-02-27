@@ -117,6 +117,10 @@
   :config
 ;; ***** Cache
 
+  ;; bypass byte-compile warning
+  (defvar org-element-use-cache)
+  (defvar org-element-cache-persistent)
+
   (setq
    ;; Disable the 9.6's element cache mechanism since its not robust
    ;; which may corrupt user buffer contents since its coding system
