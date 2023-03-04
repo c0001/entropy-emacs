@@ -1499,6 +1499,7 @@ in generally meaning range which says that basically can did so.")
     (sh-mode      :lang bash       :treesit-mode-p nil :treesit-variant-mode bash-ts-mode)
     (bash-ts-mode :lang bash       :treesit-mode-p t   :traditional-mode sh-mode)
     (c++-mode     :lang cpp        :treesit-mode-p nil :treesit-variant-mode c++-ts-mode)
+    (web-mode     :lang html)
     ))
 (defun entropy/emacs-ide-get-lang-mode-info (mode)
   (or (alist-get mode entropy/emacs-ide--lang-mode-info-alist)
@@ -1529,7 +1530,7 @@ in generally meaning range which says that basically can did so.")
   (when entropy/emacs-ide-is-treesit-generally-adapted-p
     (list 'c-ts-mode 'c++-ts-mode 'java-ts-mode
           'cmake-ts-mode
-          'go-ts-moe 'rust-ts-mdoe
+          'go-ts-mode 'rust-ts-mode
           'python-ts-mode 'js-ts-mode 'typescript-ts-mode
           'json-ts-mode 'css-ts-mode
           'bash-ts-mode
@@ -3566,6 +3567,7 @@ that."
                   (idlwave-config-directory . "idlwave/")
                   (elfeed-db-directory . "elfeed-db/")
                   (prescient-save-file . "var/prescient-save.el")
+                  (skewer-bower-cache-dir . "skewer-cache/")
                   ))
     (let* ((var-sym (car item))
            (path nil)
