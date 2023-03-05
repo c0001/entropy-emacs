@@ -327,11 +327,10 @@ set of `entropy/emacs-browse-url-function-get-for-web-preview'."
 
 ;; emacs builtin `js-mode'
 (use-package js
-  ;; default use emacs builtin js modes for emacs upper than 28 since
-  ;; it seems take advantages over decades already.
-  :if (>= emacs-major-version 28)
   :ensure nil
-  :mode ("\\.\\(m?js\\|ts\\)$" . js-mode)
+  :init
+  (unless entropy/emacs-prog/javascript/use-major-mode/js2-mode/p
+    (add-to-list 'auto-mode-alist '("\\.\\(ts\\|m?js\\)\\'" . js-mode)))
   :config
   ;; using union xref specs
   (dolist (k (list "M-." "M-,"))
@@ -339,14 +338,12 @@ set of `entropy/emacs-browse-url-function-get-for-web-preview'."
 
 ;; Improved JavaScript editing mode
 (use-package js2-mode
-  ;; default use js2-mode for emacs lower than 28 since the emacs
-  ;; builtin js utils seems weak in older emacs ver.?
-  :if (< emacs-major-version 28)
   :commands (js2-mode)
-  :mode "\\.\\(m?js\\|ts\\)$"
   :interpreter "node"
   :eemacs-mmphc
-  (((:enable t :defer t)
+  (((:enable
+     entropy/emacs-prog/javascript/use-major-mode/js2-mode/p
+     :defer t)
     (nil nil t (1 1 3)))
    ("Basic"
     (("C-c C-w" js2-mode-toggle-warnings-and-errors "Toggle the display of warnings and errors"
@@ -368,11 +365,15 @@ set of `entropy/emacs-browse-url-function-get-for-web-preview'."
     "Eval" nil
     "Web Beautify" nil))
   :init
-  ;; disable the parse error messy hightlighting
+  ;; disable the parse error messy hightlighting to avoid visual
+  ;; disturbance.
   (setq js2-mode-show-parse-errors nil
         js2-mode-show-strict-warnings nil)
+
   (entropy/emacs-lazy-load-simple 'js2-mode
-    (require 'js2-old-indent)
+    ;; for backport compatible of js Indentation context parser and
+    ;; inntenter for emacs 24 and lower
+    (if (< emacs-major-version 25) (require 'js2-old-indent))
     (require 'js2-imenu-extras)
     (entropy/emacs-add-hook-with-lambda
       'js2-initialized-common (&rest _)
@@ -380,6 +381,14 @@ set of `entropy/emacs-browse-url-function-get-for-web-preview'."
       :use-append t
       (setq-local js2-basic-offset 4)
       (js2-imenu-extras-mode 1)))
+
+  (if entropy/emacs-prog/javascript/use-major-mode/js2-mode/p
+      (add-to-list 'auto-mode-alist '("\\.\\(ts\\|m?js\\)\\'" . js2-mode))
+    ;; enable js2 facilities for mordern javascript major-modes which
+    ;; for some utilities which rely on `js2-mode' such as
+    ;; `skewer-mode'.
+    (dolist (hook '(js-mode-hook js-ts-mode-hook))
+      (add-hook hook #'js2-minor-mode)))
 
   :config
   ;; using union xref specs
@@ -400,21 +409,46 @@ set of `entropy/emacs-browse-url-function-get-for-web-preview'."
   :if (executable-find "git")
   :commands (skewer-mode skewer-html-mode skewer-css-mode)
   :diminish (skewer-mode skewer-html-mode skewer-css-mode)
-  :init
-  (entropy/emacs-lazy-load-simple 'skewer-mode
-    (dolist (el '(cache-table
-                  skewer-bower
-                  skewer-css
-                  skewer-html
-                  skewer-repl
-                  skewer-setup))
-      (require el)))
-  (entropy/emacs-lazy-load-simple 'js2-mode
-    (add-hook 'js2-mode-hook #'skewer-mode))
-  (entropy/emacs-lazy-load-simple 'css-mode
-    (add-hook 'css-mode-hook #'skewer-css-mode))
-  (entropy/emacs-lazy-load-simple 'sgml-mode
-    (add-hook 'web-mode-hook #'skewer-html-mode)))
+  :config
+
+  (defvar entropy/emacs-web--skewer-mode-selector-inner-p nil)
+  (defvar-local entropy/emacs-web--skewer-mode-selector-enabled-p nil)
+  (defun entropy/emacs-web--skewer-mode-selector
+      (orig-func &rest orig-args)
+    "Treat all `skewer-mode' variant as the same by filter by
+which `major-mode' current is on."
+    (if (or entropy/emacs-web--skewer-mode-selector-inner-p
+            ;; when disable mode, we treat as origin
+            (let ((arg (car orig-args)))
+              (and entropy/emacs-web--skewer-mode-selector-enabled-p
+                   (eq arg 'toggle))
+              (and (numberp arg) (< arg 0))))
+        (apply orig-func orig-args)
+      (let ((entropy/emacs-web--skewer-mode-selector-inner-p t)
+            (enable-js2
+             (lambda nil (and (not (derived-mode-p 'js2-mode))
+                              (not (bound-and-true-p js2-minor-mode))
+                              (js2-minor-mode)))))
+        (cl-case
+            (plist-get
+             (entropy/emacs-ide-get-lang-mode-info major-mode)
+             :lang)
+          (javascript
+           (funcall enable-js2) (skewer-mode)
+           (setq entropy/emacs-web--skewer-mode-selector-enabled-p t))
+          (html
+           (funcall enable-js2) (skewer-html-mode)
+           (setq entropy/emacs-web--skewer-mode-selector-enabled-p t))
+          (css
+           (funcall enable-js2) (skewer-css-mode)
+           (setq entropy/emacs-web--skewer-mode-selector-enabled-p t))
+          (t (warn
+              "No suitable skewer minor mode can be used for `%s'"
+              major-mode))))))
+  (dolist (f '(skewer-mode skewer-html-mode skewer-css-mode))
+    (advice-add f :around #'entropy/emacs-web--skewer-mode-selector))
+
+  )
 
 (use-package impatient-mode
   :commands (impatient-mode)

@@ -2331,7 +2331,7 @@ its origin defination.")
  #'__eemacs-follow-read-only-suggest/var-guard)
 
 ;; ** prog-modes
-
+;; *** union
 (defun entropy/emacs-enable-prog-mode-prefer-treesit (prog-mode-name)
   (when-let*
       ;; justice conditions
@@ -2432,6 +2432,15 @@ its origin defination.")
 (when entropy/emacs-ide-is-treesit-generally-adapted-p
   (dolist (mm entropy/emacs-ide-for-them)
     (entropy/emacs-enable-prog-mode-prefer-treesit mm)))
+
+;; *** js-mode
+
+(defconst entropy/emacs-prog/javascript/use-major-mode/js2-mode/p
+  ;; default use js2-mode for emacs lower than 28 since the emacs
+  ;; builtin js utils seems weak in older emacs ver.?
+  (< emacs-major-version 28)
+  "Const indicator that eemacs should enable `js2-mode' as default
+`major-mode' for javascript edition.")
 
 ;; * provide
 (provide 'entropy-emacs-defvar)
