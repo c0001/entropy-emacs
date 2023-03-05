@@ -882,15 +882,21 @@ shutdown since it is managed by the customize variable
   ;; #+end_src
   ;;
   ;; + TODO :
-  ;; Instead we use var =lsp-typescript-tsserver-log= to disable the
-  ;; server inner bug verbosity to avoid create the log file in
-  ;; workspace, but its the rude way that we should use the
+  ;; Instead we use var =lsp-clients-typescript-log-verbosity= to
+  ;; disable the server inner bug verbosity to avoid create the log
+  ;; file in workspace, but its the rude way that we should use the
   ;; =logDirectory= initial setting of tsserver to let user customie
   ;; the expection. But package =lsp-javascript= has harded coded its
   ;; initial option to tsserver without any custmizable setting of
   ;; =logDirectory= as what its =logVerbosity= option's defcustom var
   ;; =lsp-clients-typescript-log-verbosity= does.
-  (setq lsp-typescript-tsserver-log "off")
+  (setq
+   lsp-clients-typescript-log-verbosity "off"
+   ;; FIXME: follow `lsp-typescript-tsserver-log' declaration to set
+   ;; it to "off" without any effective unless both set
+   ;; `lsp-clients-typescript-log-verbosity' to "off".
+   lsp-typescript-tsserver-log "off"
+   )
 
 ;; ******* config
   :config
