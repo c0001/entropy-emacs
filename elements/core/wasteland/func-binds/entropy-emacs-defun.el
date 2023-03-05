@@ -12427,15 +12427,21 @@ WHEN-GUI WHEN-GUI-EACH WHEN-TUI WHEN-TUI-EACH WITH-LEXICAL-BINDINGS &rest BODY)"
   "Generate comma separated no proxy patterns string from
 NOPROXY-LIST which usually obtained from `entropy/emacs-union-proxy-noproxy-list'.
 
-Return a list of thus when LIST-RETURN is non-nil."
+Return a list of thus when LIST-RETURN is non-nil.
+
+Return nil when `entropy/emacs-union-proxy-noproxy-list' is nil."
   (catch :exit
+    (unless (bound-and-true-p entropy/emacs-union-proxy-noproxy-list)
+      (throw :exit nil))
     (cond (list-return
            (and entropy/emacs--noproxy-list-cache
                 (throw :exit entropy/emacs--noproxy-list-cache)))
           (t
            (and entropy/emacs--noproxy-string-cache
                 (throw :exit entropy/emacs--noproxy-string-cache))))
-    (let ((noproxy-string "") list-rtn)
+    (entropy/emacs-when-let*-first
+        (((bound-and-true-p entropy/emacs-union-proxy-noproxy-list))
+         (noproxy-string "") list-rtn)
       (dolist (el noproxy-list)
         (cond ((and (listp el) (not (null el)))
                (if list-return
@@ -12466,22 +12472,25 @@ Return a list of thus when LIST-RETURN is non-nil."
 (defvar entropy/emacs--proxy-env-cache nil)
 (defun entropy/emacs-gen-eemacs-union-http-internet-proxy-envs ()
   "Generate list of http proxy env var/value paires sourced from
-`entropy/emacs-union-http-proxy-plist'."
-  (or entropy/emacs--proxy-env-cache
-      (let* ((proxy-plist entropy/emacs-union-http-proxy-plist)
-             (proxy-env
-              `(,(format "http_proxy=http://%s:%s"
-                         (plist-get proxy-plist :host)
-                         (number-to-string (plist-get proxy-plist :port)))
-                ,(format "https_proxy=http://%s:%s"
-                         (plist-get proxy-plist :host)
-                         (number-to-string (plist-get proxy-plist :port)))
-                ,(format "HTTP_PROXY=http://%s:%s"
-                         (plist-get proxy-plist :host)
-                         (number-to-string (plist-get proxy-plist :port)))
-                ,(format "HTTPS_PROXY=http://%s:%s"
-                         (plist-get proxy-plist :host)
-                         (number-to-string (plist-get proxy-plist :port))))))
+`entropy/emacs-union-http-proxy-plist'.
+
+Return nil when `entropy/emacs-union-http-proxy-plist''s
+`:enable' specified for `nil'."
+  (or (and (plist-get entropy/emacs-union-http-proxy-plist :enable)
+           entropy/emacs--proxy-env-cache)
+      (entropy/emacs-when-let*-first
+          (((plist-get entropy/emacs-union-http-proxy-plist :enable))
+           (proxy-plist entropy/emacs-union-http-proxy-plist)
+           (proxy-port-str (number-to-string (plist-get proxy-plist :port)))
+           (proxy-env
+            `(,(format "http_proxy=http://%s:%s"
+                       (plist-get proxy-plist :host) proxy-port-str)
+              ,(format "https_proxy=http://%s:%s"
+                       (plist-get proxy-plist :host) proxy-port-str)
+              ,(format "HTTP_PROXY=http://%s:%s"
+                       (plist-get proxy-plist :host) proxy-port-str)
+              ,(format "HTTPS_PROXY=http://%s:%s"
+                       (plist-get proxy-plist :host) proxy-port-str))))
         ;; inject noproxy ip addresses
         (let ((noproxy-list entropy/emacs-union-proxy-noproxy-list))
           (when noproxy-list
@@ -12498,12 +12507,18 @@ Return a list of thus when LIST-RETURN is non-nil."
 (defvar entropy/emacs--url-proxy-services-cache nil)
 (defun entropy/emacs-gen-eemacs-union-http-internet-proxy-url-proxy-services ()
   "Generate a list formed to used for set `url-proxy-services'
-sourced from `entropy/emacs-union-http-proxy-plist'."
-  (or entropy/emacs--url-proxy-services-cache
-      (let* ((proxy-plist entropy/emacs-union-http-proxy-plist)
-             (target (format "%s:%s"
-                             (plist-get proxy-plist :host)
-                             (number-to-string (plist-get proxy-plist :port)))))
+sourced from `entropy/emacs-union-http-proxy-plist'.
+
+Return nil when `entropy/emacs-union-http-proxy-plist''s
+`:enable' specified for `nil'."
+  (or (and (plist-get entropy/emacs-union-http-proxy-plist :enable)
+           entropy/emacs--url-proxy-services-cache)
+      (entropy/emacs-when-let*-first
+          (((plist-get entropy/emacs-union-http-proxy-plist :enable))
+           (proxy-plist entropy/emacs-union-http-proxy-plist)
+           (target (format "%s:%s"
+                           (plist-get proxy-plist :host)
+                           (number-to-string (plist-get proxy-plist :port)))))
         (setq entropy/emacs--url-proxy-services-cache
               (list (cons "http" target)
                     (cons "https" target)
