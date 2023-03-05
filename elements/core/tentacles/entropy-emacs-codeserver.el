@@ -966,6 +966,22 @@ shutdown since it is managed by the customize variable
                   #'entropy/emacs-codeserver--codeserver-union-startjudge-filter-advice-form
        )))
 
+;; ********** union proxy for spawns
+
+  (defun entropy/emacs-codeserver-lsp--compute-process-environment
+      (orig-func &rest orig-args)
+    "Enable http proxy for `lsp-mode' sub-spawns'
+`process-environment' via
+`entropy/emacs-union-http-proxy-plist' and injecting http
+no-proxy spec via `entropy/emacs-union-proxy-noproxy-list'."
+    (append
+     (apply orig-func orig-args)
+     (when (plist-get entropy/emacs-union-http-proxy-plist :enable)
+       (entropy/emacs-gen-eemacs-union-http-internet-proxy-envs))))
+  (advice-add 'lsp--compute-process-environment
+              :around
+              #'entropy/emacs-codeserver-lsp--compute-process-environment)
+
 ;; ********* lsp idle hook specifications
   (defvar entropy/emacs-codeserver--lsp-on-idle-cases
     '(
