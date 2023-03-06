@@ -2422,9 +2422,8 @@ its origin defination.")
                             ;; anywhere where such pity be and shall
                             ;; issue a suggestion for upstream?
                             (unless ,adv-rvar-name
-                              (setq auto-mode-alist
-                                    (rassq-delete-all
-                                     ',tsm-nm auto-mode-alist)))))))))))))))
+                              (setq auto-mode-alist (rassq-delete-all ',tsm-nm auto-mode-alist)
+                                    ,adv-rvar-name t))))))))))))))
       (format "Automatically switch to `%s' when available for any invocations to `%s'"
               tsm-nm prog-mode-name))
     (advice-add prog-mode-name :around adv-func-name)))
