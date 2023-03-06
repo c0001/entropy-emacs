@@ -238,7 +238,7 @@
     "_archive"
     ;; for all special buffers which start with wildards follow emacs
     ;; internal conventions
-    "^ *\\*.*?\\* *$"
+    "^ *\\*.*$"
     )
   "The list is used by `entropy/grom-toggle-read-only' for excluding
 buffer with BUFFER-NAME REGXP in this list, basiclly this variable
