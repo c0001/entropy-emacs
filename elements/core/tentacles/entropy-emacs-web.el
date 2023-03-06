@@ -409,7 +409,33 @@ set of `entropy/emacs-browse-url-function-get-for-web-preview'."
   :if (executable-find "git")
   :commands (skewer-mode skewer-html-mode skewer-css-mode)
   :diminish (skewer-mode skewer-html-mode skewer-css-mode)
+;; ***** config
   :config
+;; ****** main patch
+
+  (defun entropy/emacs-web--skewer-has-valid-clients-p (&optional reset)
+    (let (vp proc)
+      (dolist (el skewer-clients)
+        (when (skewer-client-p el)
+          (setq proc (skewer-client-proc el))
+          (if (and (processp proc) (process-live-p proc))
+              (push el vp))))
+      (if reset (setq skewer-clients (nreverse vp))
+        (nreverse vp))))
+
+  (defun entropy/emacs-web--run-skewer (orig-func &rest orig-args)
+    (if (entropy/emacs-web--skewer-has-valid-clients-p)
+        (progn
+          (if current-prefix-arg
+              ;; when user prefix detected then we respect original
+              ;; function
+              (apply orig-func orig-args)
+            (when (called-interactively-p 'interactive)
+              (message "No new clients created \
+since existed live skewer client(s) detected.")))
+          nil)
+      (apply orig-func orig-args)))
+  (advice-add 'run-skewer :around #'entropy/emacs-web--run-skewer)
 
   (defvar entropy/emacs-web--skewer-mode-selector-inner-p nil)
   (defvar-local entropy/emacs-web--skewer-mode-selector-enabled-p nil)
@@ -424,23 +450,27 @@ which `major-mode' current is on."
                    (eq arg 'toggle))
               (and (numberp arg) (< arg 0))))
         (apply orig-func orig-args)
-      (let ((entropy/emacs-web--skewer-mode-selector-inner-p t)
-            (enable-js2
-             (lambda nil (and (not (derived-mode-p 'js2-mode))
-                              (not (bound-and-true-p js2-minor-mode))
-                              (js2-minor-mode)))))
+      (let* ((entropy/emacs-web--skewer-mode-selector-inner-p t)
+             (enable-js2
+              (lambda nil (and (not (derived-mode-p 'js2-mode))
+                               (not (bound-and-true-p js2-minor-mode))
+                               (js2-minor-mode))))
+             (enable-func
+              (lambda (main-func)
+                (funcall enable-js2) (funcall main-func)
+                (run-skewer))))
         (cl-case
             (plist-get
              (entropy/emacs-ide-get-lang-mode-info major-mode)
              :lang)
           (javascript
-           (funcall enable-js2) (skewer-mode)
+           (funcall enable-func 'skewer-mode)
            (setq entropy/emacs-web--skewer-mode-selector-enabled-p t))
           (html
-           (funcall enable-js2) (skewer-html-mode)
+           (funcall enable-func 'skewer-html-mode)
            (setq entropy/emacs-web--skewer-mode-selector-enabled-p t))
           (css
-           (funcall enable-js2) (skewer-css-mode)
+           (funcall enable-func 'skewer-css-mode)
            (setq entropy/emacs-web--skewer-mode-selector-enabled-p t))
           (t (warn
               "No suitable skewer minor mode can be used for `%s'"
@@ -448,6 +478,65 @@ which `major-mode' current is on."
   (dolist (f '(skewer-mode skewer-html-mode skewer-css-mode))
     (advice-add f :around #'entropy/emacs-web--skewer-mode-selector))
 
+  (defun entropy/emacs-web--skewer-return-proper-mode (&optional mode)
+    (let ((mode (or mode major-mode)))
+      (cl-case
+          (plist-get
+           (entropy/emacs-ide-get-lang-mode-info mode)
+           :lang)
+        (javascript 'skewer-mode)
+        (html       'skewer-html-mode)
+        (css        'skewer-css-mode)
+        (t (user-error
+            "No suitable skewer minor mode can be used for `%s'"
+            mode)))))
+
+;; ****** keymap bind
+
+  (defun entropy/emacs-skewer--load-buffer ()
+    (interactive)
+    (let ((md (entropy/emacs-web--skewer-return-proper-mode)))
+      (cl-case md
+        (skewer-mode
+         (call-interactively 'skewer-load-buffer))
+        (skewer-html-mode
+         (user-error "No skewer buffer eval spec for `%s'" md))
+        (skewer-css-mode
+         (call-interactively 'skewer-css-eval-buffer)))))
+
+  (defun entropy/emacs-skewer--eval-last-expression ()
+    (interactive)
+    (let ((md (entropy/emacs-web--skewer-return-proper-mode)))
+      (cl-case md
+        (skewer-mode
+         (call-interactively 'skewer-eval-last-expression))
+        (skewer-html-mode
+         (user-error "No skewer last exp eval spec for `%s'" md))
+        (skewer-css-mode
+         (call-interactively 'skewer-css-eval-current-declaration)))))
+
+  (defun entropy/emacs-skewer--eval-defun ()
+    (interactive)
+    (let ((md (entropy/emacs-web--skewer-return-proper-mode)))
+      (cl-case md
+        (skewer-mode
+         (call-interactively 'skewer-eval-defun))
+        (skewer-html-mode
+         (call-interactively 'skewer-html-eval-tag))
+        (skewer-css-mode
+         (call-interactively 'skewer-css-eval-current-rule)))))
+
+  (dolist (mp '((skewer-mode . skewer-mode-map)
+                (skewer-css  . skewer-css-mode-map)
+                (skewer-html . skewer-html-mode-map)))
+    (with-eval-after-load (car mp)
+      (let ((map (symbol-value (cdr mp))))
+        (dolist (kb '(("C-c C-c" . entropy/emacs-skewer--eval-defun)
+                      ("C-c C-b" . entropy/emacs-skewer--load-buffer)
+                      ("C-x C-e" . entropy/emacs-skewer--eval-last-expression)))
+          (define-key map (kbd (car kb)) (cdr kb))))))
+
+;; ***** end
   )
 
 (use-package impatient-mode
