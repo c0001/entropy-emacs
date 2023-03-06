@@ -424,7 +424,7 @@ set of `entropy/emacs-browse-url-function-get-for-web-preview'."
         (nreverse vp))))
 
   (defun entropy/emacs-web--run-skewer (orig-func &rest orig-args)
-    (if (entropy/emacs-web--skewer-has-valid-clients-p)
+    (if (entropy/emacs-web--skewer-has-valid-clients-p 'reset)
         (progn
           (if current-prefix-arg
               ;; when user prefix detected then we respect original
