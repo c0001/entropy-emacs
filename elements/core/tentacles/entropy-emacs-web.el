@@ -405,13 +405,14 @@ set of `entropy/emacs-browse-url-function-get-for-web-preview'."
 
 ;; *** tools
 ;; **** Live browser JavaScript, CSS, and HTML interaction
+;; ***** skewer-mode
 (use-package skewer-mode
   :if (executable-find "git")
   :commands (skewer-mode skewer-html-mode skewer-css-mode)
   :diminish (skewer-mode skewer-html-mode skewer-css-mode)
-;; ***** config
+;; ****** config
   :config
-;; ****** main patch
+;; ******* main patch
 
   (defun entropy/emacs-web--skewer-has-valid-clients-p (&optional reset)
     (let (vp proc)
@@ -491,7 +492,7 @@ which `major-mode' current is on."
             "No suitable skewer minor mode can be used for `%s'"
             mode)))))
 
-;; ****** keymap bind
+;; ******* keymap bind
 
   (defun entropy/emacs-skewer--load-buffer ()
     (interactive)
@@ -536,48 +537,29 @@ which `major-mode' current is on."
                       ("C-x C-e" . entropy/emacs-skewer--eval-last-expression)))
           (define-key map (kbd (car kb)) (cdr kb))))))
 
-;; ***** end
+;; ****** end
   )
 
+;; ***** impatient-mode
 (use-package impatient-mode
   :commands (impatient-mode)
-  :preface
-  (defun entropy/emacs-web-impatient-mode ()
-    "Enable `impatient-mode' and http server by `httpd-start' if
-server not actived and open the impatient url
-\"http://localhost:8080/imp/\" with file-name of current buffer
-if current file was html file."
-    (interactive)
-    (entropy/emacs-require-only-once 'impatient-mode)
-    (let* ((buffer_n (buffer-name (current-buffer))))
-      (cond
-       ((and (boundp 'impatient-mode)
-             impatient-mode)
-        (impatient-mode 0))
-       ((and (boundp 'impatient-mode)
-             (not impatient-mode))
-        (unless (ignore-errors (httpd-running-p))
-          (httpd-start))
-        (impatient-mode 1)
-        (when (string-match-p "\\.html" buffer_n)
-          (imp-visit-buffer))))))
+  :init
+  (setq impatient-mode-delay 0.3)
+;; ****** config
   :config
+;; ******* core patch
+  (defun entropy/emacs-web--impatient-mode (&rest _)
+    "Hook for `impatient-mode' where inovke `imp-visit-buffer' after
+enabled that."
+    (when (bound-and-true-p impatient-mode)
+      (unless (httpd-running-p) (httpd-start))
+      (when (derived-mode-p 'web-mode 'html-mode)
+        (imp-visit-buffer))))
+  (add-hook 'impatient-mode-hook 'entropy/emacs-web--impatient-mode)
 
-  (defun imp-visit-buffer (&optional arg)
-    "Visit the current buffer in a browser.
-If given a prefix argument, visit the buffer listing instead.
+;; ****** end
 
-Notice: this function has been modified to patch with host name
-format."
-    (interactive "P")
-    (unless (process-status "httpd")
-      (httpd-start))
-    (unless impatient-mode
-      (impatient-mode))
-    (let ((url (format "http://localhost:%d/imp/" httpd-port)))
-      (unless arg
-        (setq url (format "%slive/%s/" url (url-hexify-string (buffer-name)))))
-      (browse-url url))))
+  )
 
 ;; **** Format HTML, CSS and JavaScript/JSON by js-beautify
 (use-package web-beautify

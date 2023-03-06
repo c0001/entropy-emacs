@@ -933,5 +933,52 @@ posframe when available."
   (benchmark-init/show-durations-tabulated
    benchmark-init/show-durations-tree))
 
+;; ** simple-httpd
+(use-package simple-httpd
+  :init
+  ;; always use servlets to enlarge its greatest functions
+  (setq httpd-servlets t)
+  :config
+  (defvar entropy/emacs-httpd-stop-anyway nil
+    "Cause `httpd-stop' without warning prompt and interactive
+confirmation for existence.")
+  (defun __ya/httpd-stop/safe (orig-func &rest orig-args)
+    "Advice for `httpd-stop' adapting to eemacs spec where aim to
+safely stop the existed running server.
+
+Var `entropy/emacs-httpd-stop-anyway' when non-nil, origin
+function used anyway."
+    (when (and (not entropy/emacs-httpd-stop-anyway)
+               (not noninteractive) (httpd-running-p))
+      (unless (yes-or-no-p "there's one running httpd existed, really stop it? \
+(which will breaking other outer connection to this server instance.)")
+        (user-error "Abort!")))
+    (apply orig-func orig-args))
+  (advice-add 'httpd-stop :around '__ya/httpd-stop/safe)
+
+  (defvar entropy/emacs-httpd-start-anyway nil
+    "Cause `httpd-start' without warning prompt and interactive
+confirmation for existence.")
+  (defun __ya/httpd-start/safe (orig-func &rest orig-args)
+    "Advice for `httpd-start' adapting to eemacs spec where aim to
+safely stop the existed running server before start the new,
+where the safety warning only occurred in `interactive' case,
+otherwise do nothing when running httpd server existed.
+
+Var `entropy/emacs-httpd-start-anyway' when non-nil, origin
+function used anyway."
+    (let ((rn (httpd-running-p))
+          (ct entropy/emacs-httpd-start-anyway))
+      (when (and (not ct)
+                 (called-interactively-p 'interactive) rn)
+        (unless (setq ct (yes-or-no-p "there's one running httpd existed, \
+really stop it before start a new one? \
+(which will breaking other outer connection to this server instance.)"))
+          (user-error "Abort!")))
+      (if (or ct (not rn)) (apply orig-func orig-args))))
+  (advice-add 'httpd-start :around '__ya/httpd-start/safe)
+
+  )
+
 ;; * provide
 (provide 'entropy-emacs-utils)
