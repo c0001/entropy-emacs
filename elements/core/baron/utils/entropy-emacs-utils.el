@@ -965,6 +965,14 @@ safely stop the existed running server before start the new,
 where the safety warning only occurred in `interactive' case,
 otherwise do nothing when running httpd server existed.
 
+Eemacs advicing for behaving as this, since package
+`simple-httpd' is capable of using all as servelets and its root
+directory can be dynamic binding whenever user want to
+change. Thus there's no need to frequently restart a new server
+in current emacs session, that's meaningless that most directly
+invocation of `http-start' is just need for when
+`httpd-running-p' is return nil.
+
 Var `entropy/emacs-httpd-start-anyway' when non-nil, origin
 function used anyway."
     (let ((rn (httpd-running-p))
@@ -975,7 +983,9 @@ function used anyway."
 really stop it before start a new one? \
 (which will breaking other outer connection to this server instance.)"))
           (user-error "Abort!")))
-      (if (or ct (not rn)) (apply orig-func orig-args))))
+      (when (or ct (not rn))
+        (let ((entropy/emacs-httpd-stop-anyway t))
+          (apply orig-func orig-args)))))
   (advice-add 'httpd-start :around '__ya/httpd-start/safe)
 
   )
