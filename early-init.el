@@ -58,6 +58,20 @@
       help-enable-symbol-autoload nil
       )
 
+;;;; Process performance tweaking
+
+(setq read-process-output-max (* 1024 1024))
+;; Disable `process-adaptive-read-buffering' for *nix platform for
+;; enlarge process output read performance in emacs (especially for
+;; eshell) according to:
+;;
+;; - https://emacs-china.org/t/emacs/21053/13
+;; - https://www.reddit.com/r/emacs/comments/usghki/living_the_eshell_dream_a_reduction_in_latency/
+;; - https://www.reddit.com/r/emacs/comments/usghki/comment/i9sehrv/?utm_source=share&utm_medium=web2x&context=3
+;;
+(when (memq system-type '(gnu gnu/linux darwin))
+  (setq process-adaptive-read-buffering nil))
+
 ;;;; Font lock mode config
 
 ;; ;; Globally downgrade font-lock decoration to improve performance

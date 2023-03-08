@@ -219,8 +219,7 @@ delay seconds SECS."
  :pdumper-no-end t
  (setq garbage-collection-messages entropy/emacs-garbage-collection-message-p)
  (add-hook 'pre-command-hook #'entropy/emacs-gc--adjust-cons-threshold 100)
- (entropy/emacs-gc--init-idle-gc)
- (setq read-process-output-max (* 1024 1024)))
+ (entropy/emacs-gc--init-idle-gc))
 ;; --------------------------------------------------
 ;; init gc set
 (cond ((or entropy/emacs-fall-love-with-pdumper
