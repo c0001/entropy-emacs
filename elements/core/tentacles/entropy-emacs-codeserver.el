@@ -613,7 +613,7 @@ certain eemacs-spec conditions."
 ;; ****** lsp-mode core
 (use-package lsp-mode
   :diminish lsp-mode
-  :defines (lsp-typescript-tsserver-log)
+  :defines (lsp-typescript-tsserver-log lsp-clients-typescript-log-verbosity)
   :commands (lsp lsp-mode lsp-deferred
 
                  lsp-disconnect
