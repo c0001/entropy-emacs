@@ -4687,8 +4687,8 @@ file."
 for kill-ring persistent at %s, do not edit it manually"
                   (format-time-string "[%Y-%m-%d %a %H:%M:%S]")))
          ;; print and coding restriction
-         (coding-system-for-read 'utf-8-auto)
-         (coding-system-for-write 'utf-8-auto)
+         (coding-system-for-read 'utf-8-emacs-unix)
+         (coding-system-for-write 'utf-8-emacs-unix)
          (print-level nil)
          (print-length nil)
          (print-escape-nonascii t)
@@ -4800,8 +4800,8 @@ successfully both of situation of read persisit of create an new."
               (save-buffer)
               (setq rtn t))
           (condition-case error
-              (let ((coding-system-for-read 'utf-8-auto)
-                    (coding-system-for-write 'utf-8-auto))
+              (let ((coding-system-for-read 'utf-8-emacs-unix)
+                    (coding-system-for-write 'utf-8-emacs-unix))
                 (setq kring--read (read (current-buffer)))
                 ;; append the current `kill-ring' to the persist one
                 ;; as we need the new to be insert as.

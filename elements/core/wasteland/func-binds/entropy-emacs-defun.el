@@ -753,10 +753,10 @@ NOTE: the sexp must readable or throw the error."
            (read (with-current-buffer (or buff (current-buffer))
                    (goto-char (point-min))
                    (current-buffer))))
-          'utf-8-auto))
+          'utf-8-emacs-unix))
         ;; Parent expects UTF-8 encoded text.
-        (coding-system-for-read 'utf-8-auto)
-        (coding-system-for-write 'utf-8-auto))
+        (coding-system-for-read 'utf-8-emacs-unix)
+        (coding-system-for-write 'utf-8-emacs-unix))
     (read sexp-str)))
 
 (defun entropy/emacs-generate-base64-encoded-sexp-buffer
@@ -782,7 +782,7 @@ current emacs session."
     (prin1 sexp buff)
     (with-current-buffer buff
       ;; Just in case the string we're sending might contain EOF
-      (encode-coding-region (point-min) (point-max) 'utf-8-auto)
+      (encode-coding-region (point-min) (point-max) 'utf-8-emacs-unix)
       ;; base64 encoding
       (base64-encode-region (point-min) (point-max) t)
       ;; wrapper the result
@@ -10220,7 +10220,7 @@ supplied."
 FORMS within a virginal emacs env (i.e. emacs -Q). Return the
 process object.
 
-If USE-CURRENT-PACKAGE-USER-DIR is non-nill and `eq' wit 't',
+If USE-CURRENT-PACKAGE-USER-DIR is non-nill and `eq' with \\='t',
 then initialize packages with current emacs session's
 `package-user-dir' at the subprocess emacs initialization
 time. Or it is a directory which used as thus, throw a error when
@@ -10242,16 +10242,16 @@ not set, else using that as `invocation-name' for as."
                (base64-form-string)
              "Read base64 encoded sexp object getted from
 BASE64-FORM-STRING which originally encoded by
-`coding-system-for-write' using 'utf-8-auto and return the read
+`coding-system-for-write' using `utf-8-emacs-unix' and return the read
 object which can be used for `eval'."
              (let ((sexp-str
                     (decode-coding-string
                      (base64-decode-string
                       base64-form-string)
-                     'utf-8-auto))
+                     'utf-8-emacs-unix))
                    ;; Parent expects UTF-8 encoded text.
-                   (coding-system-for-read 'utf-8-auto)
-                   (coding-system-for-write 'utf-8-auto))
+                   (coding-system-for-read 'utf-8-emacs-unix)
+                   (coding-system-for-write 'utf-8-emacs-unix))
                (read sexp-str))))
          ;; -------------------- the use spec form --------------------
          (form-encoded
