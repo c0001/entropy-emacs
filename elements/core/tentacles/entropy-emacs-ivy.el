@@ -1159,7 +1159,8 @@ This is for use in `ivy-re-builders-alist'."
          ("C-x j"   . counsel-mark-ring)
          ("C-x C-t" . counsel-find-file-extern)
          ("C-c M-b" . counsel-recentf)
-         ("C-c M-k" . counsel-yank-pop))
+         ("C-c M-k" . counsel-yank-pop)
+         ([remap yank-pop] . counsel-yank-pop))
 
 ;; *** entropy/emacs-top-keymap
 
