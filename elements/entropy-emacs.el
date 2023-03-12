@@ -105,6 +105,34 @@
 (defvar entropy/emacs-run-startup-top-init-timestamp (current-time)
   "Time-stamp eemacs top init prepare")
 
+(defmacro entropy/emacs-defconst (symbol initvalue &optional docstring)
+  "Same as `defconst' but do not allow any set, local bind,
+and any even modification for variable SYMBOL, if not an error is
+raised up."
+  (declare (indent defun) (doc-string 3))
+  (setq docstring
+        (concat (or (and docstring (replace-regexp-in-string "\n+$" "" docstring))
+                    "A const variable.")
+                "\n\n(NOTE: this variable is defined by `entropy/emacs-defconst')"))
+  (macroexp-let2* ignore ((ival nil))
+    `(let ((,ival ,initvalue))
+       (prog1 (defconst ,symbol ,ival ,docstring)
+         (add-variable-watcher
+          ',symbol
+          (lambda (sym &rest _)
+            (and (eq sym ',symbol)
+                 (error "Do not modify const variable `%s'"
+                        ',symbol))))))))
+
+(entropy/emacs-defconst entropy/emacs-false-symbol (make-symbol "false")
+  "A non-`intern'ed symbol which indicated semantic \"false\" for
+eemacs only.
+
+This variable exists since emacs's inner \"false\" presented symbol
+\\='nil' is also a valid value for elisp variables, thus, we can not
+distinguish \\='nil' of a value from when it's a \"false\" indicator.
+")
+
 ;; ** eemacs top APIs
 ;; Top declared functions used for eemacs.
 
@@ -416,17 +444,21 @@ If FRAME is omitted or nil use `selected-frame' as default."
   (and (frame-parameter frame 'client)
        (not (entropy/emacs-child-frame-p frame))))
 
-(defun entropy/emacs-buffer-local-value (variable &optional buffer)
-  "Like `buffer-local-value' but return nil when VARIABLE doesn't
-have a local binding for BUFFER.
+(defun entropy/emacs-buffer-local-value (symbol &optional buffer)
+  "Like `buffer-local-value' but return `entropy/emacs-false-symbol'
+when SYMBOL doesn't have a local binding for BUFFER.
+
+Use
+    \\='(eq (entropy/emacs-buffer-local-value symbol buffer)
+            entropy/emacs-false-symbol)'
+
+to distinguish whether SYMBOL has a valid local value.
 
 BUFFER defaults to `current-buffer' if ignored or omitted."
-  (if buffer
-      (with-current-buffer buffer
-        (when (variable-binding-locus variable)
-          (buffer-local-value variable (current-buffer))))
-    (when (variable-binding-locus variable)
-      (buffer-local-value variable (current-buffer)))))
+  (with-current-buffer (or buffer (current-buffer))
+    (if (variable-binding-locus symbol)
+        (buffer-local-value symbol (current-buffer))
+      entropy/emacs-false-symbol)))
 
 (defmacro entropy/emacs-alist-set
     (key alist &optional val no-add testfn)
