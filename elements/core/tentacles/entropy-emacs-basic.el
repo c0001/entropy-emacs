@@ -1839,7 +1839,7 @@ TODO:
       "Insert subtree at point (vice versa)."
       :enable t :map-inject t :exit t)
      ("<backtab>" entropy/emacs-basic-dired-subtree-cycle
-      "Org-mode like cycle visibilitya"
+      "Org-mode like cycle visibility thru subtree"
       :enable t :map-inject t :exit t))))
 ;; ***** config
   :config
