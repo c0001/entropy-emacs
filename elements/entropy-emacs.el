@@ -759,6 +759,23 @@ via `entropy/emacs-make-alist-with-symbol-prop-set'." ,varsym))
               proc-env)))
        ,@(entropy/emacs--get-def-body body 'with-safe))))
 
+(defun entropy/emacs-trim-process-environment
+    (&optional procenv &rest env-varnames)
+  "Trim all envrionment variables named as one of ENV-VARNAMES from
+PROCENV (using `process-environment' as default when it's not
+specified, otherwise it should has same structure as
+`process-environment'.).
+
+Return the trimed PROCENV or nil when all is trimed out via
+ENV-VARNAMESa."
+  (save-match-data
+    (let (rtn mvnm)
+      (dolist (el (or procenv process-environment))
+        (setq mvnm (car (split-string el "=")))
+        (unless (member mvnm env-varnames)
+          (push el rtn)))
+      (and rtn (nreverse rtn)))))
+
 ;; ** INIT
 
 ;; eemacs conventional top-level binding either NOTE emacs bind to

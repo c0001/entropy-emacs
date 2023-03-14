@@ -12557,8 +12557,16 @@ mistakes."
    '(entropy/emacs-union-http-prroxy-internal-enable-p t)
    `(url-proxy-services
      ',(entropy/emacs-gen-eemacs-union-http-internet-proxy-url-proxy-services))
-   `(process-environment ',(append (entropy/emacs-gen-eemacs-union-http-internet-proxy-envs)
-                                   process-environment))
+   `(process-environment
+     ',(append (entropy/emacs-gen-eemacs-union-http-internet-proxy-envs)
+               ;; NOTE: although `process-environment' has first
+               ;; precedence covering mechnism for duplicated env var
+               ;; defination, but we should take advantage coding
+               ;; context here to notify the developer to keep good
+               ;; env injection habit.
+               (entropy/emacs-trim-process-environment
+                nil "http_proxy" "HTTP_PROXY" "https_proxy" "HTTPS_PROXY"
+                "no_proxy" "NO_PROXY")))
    ;; disable `entropy-proxy-url' patch
    '(entropy/proxy-url-user-proxy-match-func 'ignore)
    '(entropy/proxy-url-inhbit-all-proxy t)
