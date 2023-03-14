@@ -163,6 +163,11 @@ files destroying."
                 :around
                 #'entropy/emacs-vcs--magit-safe-command-advice))
 
+  ;; use eemacs union http_proxy for magit swapns when available
+  (advice-add 'magit-process-environment
+              :around
+              #'entropy/emacs-advice-for-common-do-with-http-proxy)
+
   )
 
 (use-package ssh-agency

@@ -12615,8 +12615,9 @@ by get `entropy/emacs-union-http-prroxy-internal-enable-p' non-nil."
 
 (defun entropy/emacs-advice-for-common-do-with-http-proxy
     (orig-func &rest orig-args)
-  "Around advice for ORIG-FUNC for let binding http_proxy with
-`entropy/emacs-union-http-proxy-plist'."
+  "Around advice for ORIG-FUNC for giving it ability to using
+HTTP proxy generated via `entropy/emacs-union-http-proxy-plist'
+by `entropy/emacs-funcall-with-eemacs-union-http-internet-proxy'."
   (apply
    'entropy/emacs-funcall-with-eemacs-union-http-internet-proxy
    'always
