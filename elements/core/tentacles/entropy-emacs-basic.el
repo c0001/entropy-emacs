@@ -1718,7 +1718,21 @@ TODO:
 (use-package dired-quick-sort
   :if sys/is-posix-compatible
   :commands (dired-quick-sort-setup)
-  :init (add-hook 'dired-mode-hook 'dired-quick-sort-setup))
+  :init (add-hook 'dired-mode-hook 'dired-quick-sort-setup)
+  :config
+  ;; Make dired-quick-sort-* buffer local so that we can using
+  ;; different dired list switches per-buffer specified but use a
+  ;; union default setting for initialization with eemacs spec.
+  (dolist (v '((dired-quick-sort-sort-by-last . "time")
+               (dired-quick-sort-reverse-last . ?n)
+               (dired-quick-sort-group-directories-last . ?n)
+               (dired-quick-sort-time-last . "default")))
+    ;; since all of above var is specified as buffer-loca, they
+    ;; couldn't be tied with `savehist-additional-variables' anymore.
+    (setq savehist-additional-variables
+          (delete (car v) savehist-additional-variables))
+    (make-variable-buffer-local (car v))
+    (set-default (car v) (cdr v))))
 
 ;; **** Use coloful dired ls
 
