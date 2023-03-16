@@ -520,6 +520,7 @@ specification."
     ;; main filter
     (let (close-done stick-buffer stick-window)
       (when (and ;; (called-interactively-p 'interactive)
+                 (not (entropy/emacs-utils-hdyra-displayed-p))
                  (not (region-active-p))
                  (not (minibufferp)))
         (let (

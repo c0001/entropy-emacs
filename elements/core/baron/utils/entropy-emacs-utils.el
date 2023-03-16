@@ -532,7 +532,45 @@ hang thus (i.e. focus missed in)"
         "[][\\[:alnum:] ~.,;:/|?<>={}*+#%@!&^↑↓←→⌫⌦⏎'`()\"$-]+?")
   :config
 ;; **** core patch
-;; ****** `hydra--make-defun'
+;; ***** display/delete indicator
+
+  (defvar entropy/emacs-utils--hydra-dlpi-alist nil)
+  (defun entropy/emacs-utils-hdyra-displayed-p (&optional frame)
+    "Return non-nil when FRAME has a displaed `hydra' dashboard.
+
+FRAME defaults to `selected-frame'."
+    (let (prn)
+      (dolist (el entropy/emacs-utils--hydra-dlpi-alist)
+        (if (frame-live-p (car el)) (push el prn)))
+      (if prn (setq entropy/emacs-utils--hydra-dlpi-alist (nreverse prn))))
+    (alist-get (or frame (selected-frame))
+               entropy/emacs-utils--hydra-dlpi-alist))
+  (defun entropy/emacs-utils--hydra-set-display-indicator (&rest _)
+    (let (_)
+      (entropy/emacs-alist-set (selected-frame)
+          entropy/emacs-utils--hydra-dlpi-alist
+        t)))
+  (advice-add 'hydra-show-hint
+              :before #'entropy/emacs-utils--hydra-set-display-indicator)
+  (defun entropy/emacs-utils--hydra-reset-display-indicator (&rest _)
+    (let ((frame (selected-frame)))
+      ;; arrange the rester into a idle state to prevent occasions
+      ;; from while this not the last processor of a command loop
+      ;; i.e. set after any steps ran out in this thread so that we
+      ;; can gurantee that the
+      ;; `entropy/emacs-utils-hdyra-displayed-p''s judgement is valid
+      ;; in all of that time.
+      (run-with-idle-timer
+       0.01 nil
+       (lambda nil
+         (when (entropy/emacs-utils-hdyra-displayed-p frame)
+           (entropy/emacs-alist-set frame
+               entropy/emacs-utils--hydra-dlpi-alist
+             nil))))))
+  (advice-add 'hydra--clearfun
+              :after #'entropy/emacs-utils--hydra-reset-display-indicator)
+
+;; ***** `hydra--make-defun'
 
   (defun hydra--make-defun (name body doc head
                                  keymap body-pre body-before-exit
@@ -613,6 +651,7 @@ function."
                         ,(entropy/emacs-macroexp-progn body-on-exit-t)
                       ,(entropy/emacs-macroexp-progn body-on-exit-nil))))))))
 
+;; **** __end___
   )
 
 ;; *** pretty-hydra
