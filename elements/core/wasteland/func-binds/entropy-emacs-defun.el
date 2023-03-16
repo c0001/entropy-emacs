@@ -12344,6 +12344,12 @@ judgements.
 
 Return the define function name symbol named via SYMBOL.
 
+In conventionally, each invocation of this macro, create the function
+(named as SYMBOL) called after which previous created when bactch
+calling them in a daemon client initialization procedure. This is
+useful to consider the invocation order dependability for thus
+injection.
+
 WITH-LEXICAL-BINDINGS has same meaning of
 ‘entropy/emacs-cl-lambda-with-lcb’.
 
@@ -12377,6 +12383,8 @@ WHEN-GUI WHEN-GUI-EACH WHEN-TUI WHEN-TUI-EACH WITH-LEXICAL-BINDINGS &rest BODY)"
                  (list :use-hook
                        (list 'quote
                              'entropy/emacs-daemon-server-after-make-frame-hook))
+                 ;; NOTE: we should always append each formula since
+                 ;; they may have order dependency required.
                  (list :use-append t)
                  inc-pl)))
          (when-gui (entropy/emacs-macroexp-progn (list (plist-get exl-pl :when-gui))))
