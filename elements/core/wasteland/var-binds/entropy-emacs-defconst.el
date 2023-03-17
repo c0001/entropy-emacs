@@ -440,6 +440,15 @@ but current stands on '%s'"
      :default-signal (error "package version incompatible"))
     ))
 (defvar entropy/emacs-api-restriction-detection-log nil)
+(defun entropy/emacs--api-restriction-add-log
+    (type-sym op-sym doc err-sym err-data)
+  (add-to-list 'entropy/emacs-api-restriction-detection-log
+               (list
+                type-sym
+                :doc doc
+                :operation-name op-sym
+                :error-sym err-sym
+                :error-data err-data)))
 (cl-defmacro entropy/emacs--api-restriction-uniform
     (op-name
      type
@@ -554,17 +563,27 @@ see `entropy/emacs-api-restriction-detection-log' for details."
                 (t
                  (setq ,err-sym (car err)
                        ,err-data-sym (cdr err))
-                 (add-to-list 'entropy/emacs-api-restriction-detection-log
-                              (list
-                               ,type-sym
-                               :doc ,doc-sym
-                               :operation-name ,op-name-sym
-                               :error-sym ,err-sym
-                               :error-data ,err-data-sym))
+                 (entropy/emacs--api-restriction-add-log
+                  ,type-sym ,op-name-sym ,doc-sym ,err-sym ,err-data-sym)
                  (funcall ,warn-func-sym))))
              (t
               (setq ,do-body-p-sym t)))
        (when ,do-body-p-sym
+         (when (and (eq ,type-sym 'package-version-incompatible)
+                    (eq entropy/emacs-ext-elpkg-get-type 'origin))
+           (let ((fake-err-data
+                  (list
+                   entropy/emacs-package-version-incompatible-error-symbol
+                   "use 'origin' elpkg get type which may be incompatible with the hack")))
+             (entropy/emacs--api-restriction-add-log
+              ,type-sym ,op-name-sym ,doc-sym
+              entropy/emacs-package-version-incompatible-error-symbol
+              fake-err-data)
+             (entropy/emacs-api-restriction-display-warn
+              (format "%s: [type: '%s' op-name: '%s' err-msg: \"%s\"], \
+see `entropy/emacs-api-restriction-detection-log' for details."
+                      entropy/emacs-package-version-incompatible-error-symbol
+                      ,type-sym ,op-name-sym (nth 1 fake-err-data)))))
          ,(entropy/emacs-macroexp-progn body)))))
 
 ;; ** others
