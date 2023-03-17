@@ -552,23 +552,59 @@ FRAME defaults to `selected-frame'."
         t)))
   (advice-add 'hydra-show-hint
               :before #'entropy/emacs-utils--hydra-set-display-indicator)
-  (defun entropy/emacs-utils--hydra-reset-display-indicator (&rest _)
-    (let ((frame (selected-frame)))
-      ;; arrange the rester into a idle state to prevent occasions
-      ;; from while this not the last processor of a command loop
-      ;; i.e. set after any steps ran out in this thread so that we
-      ;; can gurantee that the
-      ;; `entropy/emacs-utils-hdyra-displayed-p''s judgement is valid
-      ;; in all of that time.
-      (run-with-idle-timer
-       0.01 nil
-       (lambda nil
-         (when (entropy/emacs-utils-hdyra-displayed-p frame)
-           (entropy/emacs-alist-set frame
-               entropy/emacs-utils--hydra-dlpi-alist
-             nil))))))
-  (advice-add 'hydra--clearfun
-              :after #'entropy/emacs-utils--hydra-reset-display-indicator)
+
+  (defun entropy/emacs-utils--hydra-reset-display-indicator nil
+    (let ((frame (selected-frame)) func)
+      (entropy/emacs-setf-by-body func
+        (lambda nil
+          (when (entropy/emacs-utils-hdyra-displayed-p frame)
+            (entropy/emacs-alist-set frame
+                entropy/emacs-utils--hydra-dlpi-alist
+              nil))))
+      (if (eq this-command 'keyboard-quit)
+          ;; arrange the rester into a idle state to prevent occasions
+          ;; from while this not the last processor of a command loop
+          ;; i.e. set after any steps ran out in this thread so that we
+          ;; can gurantee that the
+          ;; `entropy/emacs-utils-hdyra-displayed-p''s judgement is valid
+          ;; in all of that time.
+          (run-with-idle-timer 0.01 nil func)
+        (funcall func))))
+  (entropy/emacs--api-restriction-uniform 'hydra--clearfun-hack
+      'package-version-incompatible
+    :when (> emacs-major-version 27)
+    :do-error t
+    :detector
+    (not (version=
+          "3.0.7"
+          (substring
+           entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-version
+           1)))
+    :signal
+    (signal
+     entropy/emacs-package-version-incompatible-error-symbol
+     (list 'entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-version
+           entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-version
+           "require: v3.0.7"))
+    (defun __ya/hydra--clearfun/eemacs-hydra-display-indicator-reset ()
+      "The overriden advice for `hydra--clearfun' but take same codec
+content as origin but inject eemacs hydra display inidcator reset
+procedure."
+      (unless (eq this-command 'hydra-pause-resume)
+        (when (or
+               (memq this-command '(handle-switch-frame
+                                    keyboard-quit))
+               (null overriding-terminal-local-map)
+               (not (or (eq this-command
+                            (lookup-key hydra-curr-map (this-single-command-keys)))
+                        (cl-case hydra-curr-foreign-keys
+                          (warn (setq this-command 'hydra-amaranth-warn))
+                          (run t) (t nil)))))
+          (prog1 (hydra-disable)
+            (entropy/emacs-utils--hydra-reset-display-indicator)))))
+    (advice-add 'hydra--clearfun
+                :override
+                #'__ya/hydra--clearfun/eemacs-hydra-display-indicator-reset))
 
 ;; ***** `hydra--make-defun'
 
