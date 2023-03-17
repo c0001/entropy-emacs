@@ -536,15 +536,16 @@ hang thus (i.e. focus missed in)"
 
   (defvar entropy/emacs-utils--hydra-dlpi-alist nil)
   (defun entropy/emacs-utils-hdyra-displayed-p (&optional frame)
-    "Return non-nil when FRAME has a displaed `hydra' dashboard.
+    "Return non-nil when FRAME has a displayed `hydra' dashboard.
 
 FRAME defaults to `selected-frame'."
     (let (prn)
       (dolist (el entropy/emacs-utils--hydra-dlpi-alist)
         (if (frame-live-p (car el)) (push el prn)))
-      (if prn (setq entropy/emacs-utils--hydra-dlpi-alist (nreverse prn))))
-    (alist-get (or frame (selected-frame))
-               entropy/emacs-utils--hydra-dlpi-alist))
+      (when prn
+        (setq entropy/emacs-utils--hydra-dlpi-alist (nreverse prn))
+        (alist-get (or frame (selected-frame))
+                   entropy/emacs-utils--hydra-dlpi-alist))))
   (defun entropy/emacs-utils--hydra-set-display-indicator (&rest _)
     (let (_)
       (entropy/emacs-alist-set (selected-frame)
@@ -592,8 +593,7 @@ content as origin but inject eemacs hydra display inidcator reset
 procedure."
       (unless (eq this-command 'hydra-pause-resume)
         (when (or
-               (memq this-command '(handle-switch-frame
-                                    keyboard-quit))
+               (memq this-command '(handle-switch-frame keyboard-quit))
                (null overriding-terminal-local-map)
                (not (or (eq this-command
                             (lookup-key hydra-curr-map (this-single-command-keys)))
