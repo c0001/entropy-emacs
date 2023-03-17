@@ -635,6 +635,12 @@ eemacs origin type which reduce performance issue."
 
 ;; ***** config
   :config
+
+  ;; compatible `doom-modeline-wspc'
+  (defun entropy/emacs-modeline--doom-modeline-wspc nil
+    (if (fboundp 'doom-modeline-wspc) (doom-modeline-wspc)
+      doom-modeline-wspc))
+
   (unless entropy/emacs-modeline--doom-modeline-spec-done
     (entropy/emacs-modeline--doom-modeline-specification))
 
@@ -799,8 +805,8 @@ entropy-emacs."
                   (mouse-face 'mode-line-highlight)
                   (local-map mode-line-column-line-number-mode-map))
              (concat
-              doom-modeline-wspc
-              doom-modeline-wspc
+              (entropy/emacs-modeline--doom-modeline-wspc)
+              (entropy/emacs-modeline--doom-modeline-wspc)
 
               (propertize (format-mode-line lc)
                           'face face
@@ -813,20 +819,20 @@ mouse-1: Display Line and Column Mode Menu"
                           (bound-and-true-p nyan-mode)
                           (>= (window-width) nyan-minimum-window-width))
                      (concat
-                      doom-modeline-wspc
-                      doom-modeline-wspc
+                      (entropy/emacs-modeline--doom-modeline-wspc)
+                      (entropy/emacs-modeline--doom-modeline-wspc)
                       (propertize (nyan-create) 'mouse-face mouse-face)))
                     ((and active
                           (bound-and-true-p poke-line-mode)
                           (>= (window-width) poke-line-minimum-window-width))
                      (concat
-                      doom-modeline-wspc
-                      doom-modeline-wspc
+                      (entropy/emacs-modeline--doom-modeline-wspc)
+                      (entropy/emacs-modeline--doom-modeline-wspc)
                       (propertize (poke-line-create) 'mouse-face mouse-face)))
                     (t
                      (when doom-modeline-percent-position
                        (concat
-                        doom-modeline-wspc
+                        (entropy/emacs-modeline--doom-modeline-wspc)
                         (propertize (format-mode-line '("" doom-modeline-percent-position "%%"))
                                     'face face
                                     'help-echo "Buffer percentage\n\
@@ -834,7 +840,7 @@ mouse-1: Display Line and Column Mode Menu"
                                     'mouse-face mouse-face
                                     'local-map local-map)))))
               (when (or line-number-mode column-number-mode doom-modeline-percent-position)
-                doom-modeline-wspc))))
+                (entropy/emacs-modeline--doom-modeline-wspc)))))
           (t
            " ......... ")))
 
@@ -871,7 +877,7 @@ while `entropy/emacs-current-session-is-idle-p' is non-nil."
        (and t ;; entropy/emacs-current-session-is-idle-p
             (doom-modeline--active)))
       (concat
-       doom-modeline-wspc
+       (entropy/emacs-modeline--doom-modeline-wspc)
        (doom-modeline--buffer-mode-icon)
        (doom-modeline--buffer-state-icon)
        (doom-modeline--buffer-name)))
