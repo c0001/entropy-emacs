@@ -1428,25 +1428,7 @@ updating."
   (with-eval-after-load 'lsp-mode
     (entropy/emacs-message-simple-progress-message
      "require lsp-java"
-     (require 'lsp-java-boot)))
-
-  :config
-
-  ;; EEMACS_MAINTENANCE: follow upstream updates
-  ;; JDTLS usually need to download some utils from maven or google
-  ;; server to build project so we need to guarantee the user eemacs
-  ;; http proxy setting for thus.
-  (defun __ya/lsp-java--ls-command/with-proxy (orig-func &rest orig-args)
-    (if (plist-get entropy/emacs-union-http-proxy-plist :enable)
-        (let ((proxy-env (entropy/emacs-gen-eemacs-union-http-internet-proxy-envs)))
-          (append
-           `("env"
-             ,@proxy-env)
-           (apply orig-func orig-args)))
-      (apply orig-func orig-args)))
-  (advice-add 'lsp-java--ls-command
-              :around
-              #'__ya/lsp-java--ls-command/with-proxy))
+     (require 'lsp-java-boot))))
 
 ;; **** Eglot
 
