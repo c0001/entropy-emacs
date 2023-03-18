@@ -5703,13 +5703,16 @@ DO-KILL applied while prefix hinted."
 
 ;; (dolist (suffix
 ;;          '(;; document file
-;;            "\\.org$" "\\.md$"
-;;            ;; source file
-;;            "\\.html" "\\.css$" "\\.php$" "\\.js$" "\\.ts$"
-;;            "\\.c\\(p+\\)?$" "\\.py$" "\\.lisp$" "\\.el$"
-;;            "\\.sh$" "\\.bat$"
+;;            "org" "md" "markdown" "txt"
+;;            ;; code source file
+;;            "html" "css" "php" "js" "ts"
+;;            "c" "cpp" "py" "lisp" "el"
+;;            "sh" "bat"
 ;;            ))
-;;   (modify-coding-system-alist 'file suffix 'prefer-utf-8))
+;;   (modify-coding-system-alist
+;;    'file
+;;    (concat "\\." suffix "\\'")
+;;    'prefer-utf-8))
 
 ;; ========================================================================
 ;; prompt: if you want all file to be one coding system you should do below
