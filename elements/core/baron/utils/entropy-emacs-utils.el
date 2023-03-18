@@ -554,23 +554,32 @@ FRAME defaults to `selected-frame'."
   (advice-add 'hydra-show-hint
               :before #'entropy/emacs-utils--hydra-set-display-indicator)
 
-  (defun entropy/emacs-utils--hydra-reset-display-indicator nil
-    (let ((frame (selected-frame)) func)
-      (entropy/emacs-setf-by-body func
-        (lambda nil
-          (when (entropy/emacs-utils-hdyra-displayed-p frame)
-            (entropy/emacs-alist-set frame
-                entropy/emacs-utils--hydra-dlpi-alist
-              nil))))
-      (if (eq this-command 'keyboard-quit)
-          ;; arrange the rester into a idle state to prevent occasions
-          ;; from while this not the last processor of a command loop
-          ;; i.e. set after any steps ran out in this thread so that we
-          ;; can gurantee that the
-          ;; `entropy/emacs-utils-hdyra-displayed-p''s judgement is valid
-          ;; in all of that time.
-          (run-with-idle-timer 0.01 nil func)
-        (funcall func))))
+  (defvar entropy/emacs-utils--hydra-reset-display-indicator/is-ran-p nil)
+  (defun entropy/emacs-utils--hydra-reset-display-indicator (&rest args)
+    (entropy/emacs-when-let*-first
+        (((not entropy/emacs-utils--hydra-reset-display-indicator/is-ran-p))
+         (frame (selected-frame))
+         ;; prevent nested invocation since messy usage of `advice'
+         (entropy/emacs-utils--hydra-reset-display-indicator/is-ran-p t)
+         func)
+      (prog1 (when args (apply (car args) (cdr args)))
+        (entropy/emacs-setf-by-body func
+          (lambda nil
+            (when (entropy/emacs-utils-hdyra-displayed-p frame)
+              (entropy/emacs-alist-set frame
+                  entropy/emacs-utils--hydra-dlpi-alist
+                nil))))
+        (if (eq this-command 'keyboard-quit)
+            ;; arrange the rester into a idle state to prevent occasions
+            ;; from while this not the last processor of a command loop
+            ;; i.e. set after any steps ran out in this thread so that we
+            ;; can gurantee that the
+            ;; `entropy/emacs-utils-hdyra-displayed-p''s judgement is valid
+            ;; in all of that time.
+            (run-with-idle-timer 0.01 nil func)
+          (funcall func)))))
+  (advice-add 'hydra-keyboard-quit :around
+              #'entropy/emacs-utils--hydra-reset-display-indicator)
   (entropy/emacs--api-restriction-uniform 'hydra--clearfun-hack
       'package-version-incompatible
     :when (> emacs-major-version 27)
