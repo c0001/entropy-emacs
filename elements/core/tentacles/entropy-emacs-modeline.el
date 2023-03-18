@@ -465,6 +465,7 @@ eemacs origin type which reduce performance issue."
   ;; unless user start it since its messy of its dirty hacking
   :commands (doom-modeline-mode
              doom-modeline-refresh-bars)
+  :defines (doom-modeline-wspc)
   :preface
 
   (defvar nyan-minimum-window-width)
