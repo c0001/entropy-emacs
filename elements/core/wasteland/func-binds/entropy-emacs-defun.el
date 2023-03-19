@@ -12636,7 +12636,7 @@ HTTP proxy generated via `entropy/emacs-union-http-proxy-plist'
 by `entropy/emacs-funcall-with-eemacs-union-http-internet-proxy'."
   (apply
    'entropy/emacs-funcall-with-eemacs-union-http-internet-proxy
-   'always
+   (lambda (&rest _) (not entropy/emacs-union-http-prroxy-internal-enable-p))
    orig-func orig-args))
 
 ;; ** Major-modes' eemacs extra APIs

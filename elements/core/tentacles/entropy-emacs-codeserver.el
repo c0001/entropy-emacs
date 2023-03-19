@@ -974,9 +974,12 @@ shutdown since it is managed by the customize variable
 
 ;; ********** union proxy for spawns
 
-  (advice-add 'lsp--compute-process-environment
-              :around
-              #'entropy/emacs-advice-for-common-do-with-http-proxy)
+  (dolist (func '(lsp--compute-process-environment
+                  lsp--install-server-internal
+                  lsp-async-start-process))
+    (advice-add func
+                :around
+                #'entropy/emacs-advice-for-common-do-with-http-proxy))
 
 ;; ********* lsp idle hook specifications
   (defvar entropy/emacs-codeserver--lsp-on-idle-cases
