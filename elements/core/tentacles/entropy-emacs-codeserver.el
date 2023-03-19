@@ -1428,6 +1428,8 @@ updating."
   (unless entropy/emacs-ext-use-eemacs-lsparc
     (setq lsp-java-server-install-dir
           (expand-file-name "jdtls/" entropy/emacs-coworker-archive-host-root)))
+  (entropy/emacs-eval-after-load-only-once 'lsp-mode
+    (require 'lsp-java))
   :config
   (entropy/emacs-message-simple-progress-message
    "require lsp-java"
