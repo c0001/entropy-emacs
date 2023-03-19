@@ -440,7 +440,12 @@ EXIT /b
 
 (defun entropy/emacs-coworker--coworker-install-by-archive-get
     (server-name-string server-archive-name server-host-url server-archive-type
-                        &optional no-success-msg)
+                        &optional no-success-msg ok-if-exist)
+  ;; SERVER-ARCHIVE-TYPE can also be `identity' which treat it as an
+  ;; single file.
+  ;;
+  ;; SERVER-ARCHIVE-NAME can also be a non-prefix relative pathname of
+  ;; `entropy/emacs-coworker-archive-host-root' (e.g. "lsp/sub*/**")
   (let* (download-cbk
          (tmp-download-host
           (expand-file-name
@@ -448,7 +453,9 @@ EXIT /b
            entropy/emacs-coworker-archive-host-root))
          (tmp-download-basename
           (format "eemacs-coworker_random_download_file_for_%s_%s.%s"
-                  server-archive-name (random)
+                  ;; escape the path separator
+                  (replace-regexp-in-string "/" "_" server-archive-name)
+                  (random)
                   server-archive-type))
          (tmp-download-file
           (expand-file-name
@@ -466,6 +473,7 @@ EXIT /b
     ;; begin downloading
     (entropy/emacs-coworker--coworker-message-do-task server-name-string)
     (if (and (file-exists-p server-extdir-or-dest)
+             (not ok-if-exist)
              (if (eq server-archive-type 'identity) t
                ;; unless the old extract dir is empty so as not existed
                ;; since we can reuse it for the new extraction.
@@ -794,15 +802,39 @@ latest/download/rust-analyzer-%s-%s.gz"
 
 ;; **** java
 (defun entropy/emacs-coworker-check-java-lsp (&rest _)
-  (entropy/emacs-coworker--coworker-install-by-archive-get
-   "java lsp"
-   "jdtls"
-   ;; we use 'entropy-emacs-cabinet' project's hosted jdtls which has
-   ;; full project with boot/test/compiler tools integrated instead of
-   ;; `lsp-java' github release stuff url which has significantly
-   ;; download speed restriction.
-   "https://sourceforge.net/projects/entropy-emacs-cabinet/files/LSP/lsp-java/lsp-java-v3.1_jdtls_release/jdt-language-server-1.12.0-202206011637.tar.gz"
-   'tgz))
+  (let (;; we use 'entropy-emacs-cabinet' project's hosted jdtls which has
+        ;; full project with boot/test/compiler tools integrated instead of
+        ;; `lsp-java' github release stuff url which has significantly
+        ;; download speed restriction.
+        (base-url-fmt
+         "https://sourceforge.net/projects/\
+entropy-emacs-cabinet/files/LSP/lsp-java/\
+lsp-java-v3.1_jdtls_release/%s"))
+    (entropy/emacs-coworker--coworker-install-by-archive-get
+     "java lsp (main server)"
+     "jdtls"
+     (format base-url-fmt "jdt-language-server-1.12.0-202206011637.tar.gz")
+     'tgz)
+    (entropy/emacs-coworker--coworker-install-by-archive-get
+     "java lsp (compiler)"
+     "jdtls/java-decompiler"
+     (format base-url-fmt "dgileadi.java-decompiler-0.0.2.vsix")
+     'zip)
+    (entropy/emacs-coworker--coworker-install-by-archive-get
+     "java lsp (tester)"
+     "jdtls/java-test"
+     (format base-url-fmt "vscjava.vscode-java-test-0.28.0.vsix")
+     'zip)
+    (entropy/emacs-coworker--coworker-install-by-archive-get
+     "java lsp (dependencies)"
+     "jdtls/java-dependency"
+     (format base-url-fmt "vscjava.vscode-java-dependency-0.5.1.vsix")
+     'zip)
+    (entropy/emacs-coworker--coworker-install-by-archive-get
+     "java lsp (vscode-extension)"
+     "jdtls/vscode-extension"
+     (format base-url-fmt "Pivotal.vscode-spring-boot-1.6.0.vsix")
+     'zip)))
 
 ;; *** exra tools
 ;; **** wsl-open
