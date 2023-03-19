@@ -909,7 +909,8 @@ shutdown since it is managed by the customize variable
 
 ;; ******** add more language ids
 
-  (entropy/emacs--api-restriction-uniform 'hahaa
+  (entropy/emacs--api-restriction-uniform
+      'hack/lsp-bash-check-sh-shell/enable-for-bash-ts-mode
       'package-version-incompatible
     :when (>= emacs-major-version 29)
     :do-error t
