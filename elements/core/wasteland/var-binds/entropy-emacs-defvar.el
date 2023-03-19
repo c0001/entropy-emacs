@@ -2347,8 +2347,6 @@ its origin defination.")
               nil)))
        ;; prepare
        (pnm-str (symbol-name prog-mode-name))
-       (prefix-str
-        (replace-regexp-in-string "^\\(.+\\)-mode$" "\\1" pnm-str))
        (adv-func-name
         (intern (format "__adv/around/auto-treesit-enable-for/%s"
                         prog-mode-name)))

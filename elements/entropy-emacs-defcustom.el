@@ -1496,8 +1496,8 @@ in generally meaning range which says that basically can did so.")
     (typescript-ts-mode
                   :lang typescript :treesit-mode-p t   :traditional-mode js-mode)
     (js2-mode     :lang javascript :treesit-mode-p nil :treesit-variant-mode js-ts-mode)
-    (sh-mode      :lang bash       :treesit-mode-p nil :treesit-variant-mode bash-ts-mode)
-    (bash-ts-mode :lang bash       :treesit-mode-p t   :traditional-mode sh-mode)
+    (sh-mode      :lang sh         :treesit-mode-p nil :treesit-variant-mode bash-ts-mode)
+    (bash-ts-mode :lang sh         :treesit-mode-p t   :traditional-mode sh-mode)
     (c++-mode     :lang cpp        :treesit-mode-p nil :treesit-variant-mode c++-ts-mode)
     (web-mode     :lang html)
     ))
@@ -1571,7 +1571,10 @@ since `lsp-java' can not boot correctly in that case. \
 Thus we've got fallback to traditional `java-mode'. \
 (warn by detection of `%s' set.)" sym) nil)
        ((and (eq for-major-mode 'sh-mode)
-             (eq (bound-and-true-p sh-shell) 'bash))
+             ;; FIXME: `sh--guess-shell' is not an API
+             (let ((sh-name (sh--guess-shell)))
+               (or (string= "sh" sh-name) (string= "bash" sh-name)
+                   (string-match-p "\\(/\\|\\\\\\)\\(sh\\|bash\\)\\'" sh-name))))
         (set sym 'traditional)
         (warn "eemacs disabled `bash-ts-mode' forcely \
 since it's buggy or not comprehensive implemented as robust \
