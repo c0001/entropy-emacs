@@ -1555,13 +1555,29 @@ in generally meaning range which says that basically can did so.")
     (symbol-value
      (entropy/emacs-get-ide-condition-symbol for-major-mode))))
 (defun entropy/emacs-get-ide-prefer-use-treesit-symbol (for-major-mode)
-  (intern (format "entropy/emacs-%s-prefer-use-treesit-p" for-major-mode)))
+  (and (memq for-major-mode entropy/emacs-ide-for-them/classic)
+       (intern (format "entropy/emacs-%s-prefer-use-treesit-p" for-major-mode))))
 (defun entropy/emacs-ide-prefer-use-treesit-p (for-major-mode)
   (unless entropy/emacs-ide-suppressed
-    (eq (symbol-value
-         (entropy/emacs-get-ide-prefer-use-treesit-symbol
-          for-major-mode))
-        'treesit)))
+    (when-let ((sym (entropy/emacs-get-ide-prefer-use-treesit-symbol
+                     for-major-mode))
+               ((and (boundp sym)
+                     (eq (symbol-value sym) 'treesit))))
+      (cond
+       ((eq for-major-mode 'java-mode)
+        (set sym 'traditional)
+        (warn "eemacs disabled `java-ts-mode' forcely \
+since `lsp-java' can not boot correctly in that case. \
+Thus we've got fallback to traditional `java-mode'. \
+(warn by detection of `%s' set.)" sym) nil)
+       ((and (eq for-major-mode 'sh-mode)
+             (eq (bound-and-true-p sh-shell) 'bash))
+        (set sym 'traditional)
+        (warn "eemacs disabled `bash-ts-mode' forcely \
+since it's buggy or not comprehensive implemented as robust \
+as `sh-mode' does for daily usage
+(warn by detection of `%s' set.)" sym) nil)
+       (t t)))))
 
 (defun entropy/emacs-ide-gen-customized-variables ()
   (let (forms)
@@ -1580,7 +1596,7 @@ Valid type are 'traditional' or 'lsp' which default to use lsp.
             :group 'entropy/emacs-customize-group-for-IDE-configuration)
          forms)))
     (dolist (el entropy/emacs-ide-for-them/classic)
-      (let ((sym (entropy/emacs-get-ide-prefer-use-treesit-symbol el)))
+      (when-let ((sym (entropy/emacs-get-ide-prefer-use-treesit-symbol el)))
         (push
          `(defcustom ,sym ,(if entropy/emacs-ide-is-treesit-generally-adapted-p
                                ''treesit ''traditional)
