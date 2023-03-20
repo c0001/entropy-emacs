@@ -586,7 +586,7 @@ FRAME defaults to `selected-frame'."
     :do-error t
     :detector
     (not (version=
-          "3.0.7"
+          "3.0.8"
           (substring
            entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-version
            1)))
@@ -595,7 +595,7 @@ FRAME defaults to `selected-frame'."
      entropy/emacs-package-version-incompatible-error-symbol
      (list 'entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-version
            entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-version
-           "require: v3.0.7"))
+           "require: v3.0.8"))
     (defun __ya/hydra--clearfun/eemacs-hydra-display-indicator-reset ()
       "The overriden advice for `hydra--clearfun' but take same codec
 content as origin but inject eemacs hydra display inidcator reset

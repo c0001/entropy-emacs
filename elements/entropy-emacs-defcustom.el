@@ -1490,8 +1490,9 @@ in generally meaning range which says that basically can did so.")
   (expand-file-name "emacs/emacs-treesit-libs" entropy/emacs-stuffs-topdir)
   "The eemacs specifie default treesit libs host stored in
 `treesit-extra-load-path'.")
-(add-to-list 'treesit-extra-load-path
-             entropy/emacs-treesit-libs-default-load-path)
+(when (boundp 'treesit-extra-load-path)
+  (add-to-list 'treesit-extra-load-path
+               entropy/emacs-treesit-libs-default-load-path))
 
 (defvar entropy/emacs-ide--lang-mode-info-alist
   '((js-mode      :lang javascript :treesit-mode-p nil :treesit-variant-mode js-ts-mode)
