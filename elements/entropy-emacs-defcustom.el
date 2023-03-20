@@ -3549,6 +3549,9 @@ that."
                   (w3m-external-view-temp-directory . "w3m/temp/")
                   (w3m-form-textarea-directory      . "w3m/textarea/")
 
+                  ;; eww
+                  (eww-bookmarks-directory          . "eww/")
+
                   ;; lsp mode
                   (lsp-session-file              . "lsp-mode/lsp-session-v1")
                   (lsp-intelephense-storage-path . "lsp-mode/cache/intelephense")
@@ -3625,11 +3628,7 @@ that."
       (set-default var-sym path)
       ;; create each subs path chain for preventing unconditionally
       ;; file create fatal from thus.
-      (or (file-directory-p path-root) (make-directory path-root t))))
-
-  ;; directly set root dir using `top' dir
-  (dolist (item '(eww-bookmarks-directory))
-    (set item top)))
+      (or (file-directory-p path-root) (make-directory path-root t)))))
 
 
 ;; mkdir for pre set
