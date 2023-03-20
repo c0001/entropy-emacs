@@ -49,9 +49,27 @@ emacs upstream")
   "The stuffs collection host path, for as `savehist-file',
 `bookmark-file' cache host. This setting mainly for cleanup
 `entropy/emacs-user-emacs-directory'.")
-(when (fboundp 'startup-redirect-eln-cache)
-  (startup-redirect-eln-cache
-   (expand-file-name "emacs/emacs-eln-cache" entropy/emacs-stuffs-topdir)))
+(defconst entropy/emacs-eln-cache-directory
+  (expand-file-name "emacs/emacs-eln-cache" entropy/emacs-stuffs-topdir))
+(unless (fboundp 'startup-redirect-eln-cache)
+  ;; trick from emacs-29
+  (defun startup-redirect-eln-cache (cache-directory)
+    "Redirect the user's eln-cache directory to CACHE-DIRECTORY.
+CACHE-DIRECTORY must be a single directory, a string.
+This function destructively changes `native-comp-eln-load-path'
+so that its first element is CACHE-DIRECTORY.  If CACHE-DIRECTORY
+is not an absolute file name, it is interpreted relative
+to `user-emacs-directory'.
+For best results, call this function in your early-init file,
+so that the rest of initialization and package loading uses
+the updated value."
+    ;; Remove the original eln-cache.
+    (setq native-comp-eln-load-path (cdr native-comp-eln-load-path))
+    ;; Add the new eln-cache.
+    (push (expand-file-name (file-name-as-directory cache-directory)
+                            user-emacs-directory)
+          native-comp-eln-load-path)))
+(startup-redirect-eln-cache entropy/emacs-eln-cache-directory)
 
 ;;;; Basic
 ;; Package initialize occurs automatically, before `user-init-file' is
