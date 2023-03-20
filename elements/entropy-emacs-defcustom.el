@@ -3639,7 +3639,12 @@ that."
         (cond
          ((eq var-sym 'yas--default-user-snippets-dir)
           (eval-after-load 'yasnippet
-            `(eval (setq ,var-sym ,path)))))))))
+            `(progn
+               ;; first re-calculate `yas-snippet-dirs' since it is
+               ;; injected `yas--default-user-snippets-dir' which is
+               ;; reset by its source which is not what we wanted.
+               (setq yas-snippet-dirs (delete ,var-sym yas-snippet-dirs))
+               (setq ,var-sym ,path)))))))))
 
 ;; mkdir for pre set
 (dolist (dir-obj '((entropy/emacs-internal-ime-rime-user-data-host-path
