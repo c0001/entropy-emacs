@@ -35,9 +35,6 @@
 
 ;; * Code:
 ;; ** Require
-(require 'cl-lib)
-(require 'subr-x)
-
 ;; Added by Package.el.  This must come before configurations of
 ;; installed packages.  Don't delete this line.  If you don't want it,
 ;; just comment it out by adding a semicolon to the start of the line.
@@ -67,6 +64,11 @@
         "^.*/?entropy-emacs-[^/]*\\.el$"
         "^.*/?liberime[^/]*\\.el$"
         "^.*/?fakecygpty[^/]*\\.el$"))
+
+;; Take them after basic native-comp configs so that the load
+;; procedure respect what we ordered for.
+(require 'cl-lib)
+(require 'subr-x)
 
 ;; ** Eemacs top declares
 ;; *** Vars
