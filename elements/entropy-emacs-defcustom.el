@@ -1125,11 +1125,10 @@ Throw an error while noting found when trying out all methods."
 
 (defcustom entropy/emacs-internal-ime-rime-user-data-host-path
   (expand-file-name "rime/rime-user-data-dir" entropy/emacs-stuffs-topdir)
-  "The use data dir for 'librime' binding of
+  "The user data dir for 'librime' binding of
 `entropy/emacs-internal-ime-use-rime-as'."
   :type 'directory
   :group 'entropy/emacs-customize-group-for-pyim)
-
 
 ;; **** pyim config
 (defgroup entropy/emacs-customize-group-for-pyim nil
