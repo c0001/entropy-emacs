@@ -3528,6 +3528,8 @@ that."
                   ;; savehist caches
                   (savehist-file . ,(funcall gestffpth "history"))
                   (save-place-file . ,(funcall gestffpth "places"))
+                  ;; yasnippets
+                  (yas--default-user-snippets-dir . "yasnippets/snippets/")
                   ;; emms caches
                   (emms-directory . ,(funcall gestffpth "emms/"))
                   ;; eshell files
