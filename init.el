@@ -82,16 +82,13 @@ It's a version string which can be used for `version<' and
   (error "This requires Emacs %s and above!"
          entropy/emacs-lowest-emacs-version-requirement))
 
-;; top eemacs host
-(defconst entropy/emacs-user-emacs-directory
-  (file-name-directory load-file-name)
-  "Top eemacs host directory replaced of `user-emacs-directory'
-for preventing unregular loading procedure by modification of
-emacs upstream")
-
-;; We should sync `user-emacs-directory' with eemacs specification so
-;; that all emacs internal behaviour is compatible with eemacs
-(setq user-emacs-directory entropy/emacs-user-emacs-directory)
+;; although we defined it in `early-init.el', but if we invoke
+;; `init.el' as `-l' arg for emacs batch, then early-init.el will not
+;; be loaded until we manully load it (see also
+;; `entropy/emacs-early-init-done').
+(unless (bound-and-true-p entropy/emacs-user-emacs-directory)
+  (defvar entropy/emacs-user-emacs-directory
+    (file-name-directory load-file-name)))
 
 ;; early init file
 (defconst entropy/emacs-early-init-file

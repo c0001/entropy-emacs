@@ -357,7 +357,9 @@ In used emacs version is: %s
                            "eemacs-ext-stable-repo-archive.txz_"
                            stuff-dir)))
          download-cbk)
-    (make-directory stuff-dir t)
+    (dolist (d `(,stuff-dir
+                 ,(file-name-directory (directory-file-name host))))
+      (make-directory d t))
     ;; download archive
     (entropy/emacs-message-do-message
      "%s"

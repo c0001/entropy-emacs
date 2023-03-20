@@ -30,6 +30,28 @@
 ;;
 
 ;;; Code:
+;;;; early defvar
+
+;; top eemacs host
+(defconst entropy/emacs-user-emacs-directory
+  (or (bound-and-true-p entropy/emacs-user-emacs-directory)
+      (file-name-directory load-file-name))
+  "Top eemacs host directory replaced of `user-emacs-directory'
+for preventing unregular loading procedure by modification of
+emacs upstream")
+
+;; We should sync `user-emacs-directory' with eemacs specification so
+;; that all emacs internal behaviour is compatible with eemacs
+(setq user-emacs-directory entropy/emacs-user-emacs-directory)
+
+(defconst entropy/emacs-stuffs-topdir
+  (expand-file-name "stuffs" entropy/emacs-user-emacs-directory)
+  "The stuffs collection host path, for as `savehist-file',
+`bookmark-file' cache host. This setting mainly for cleanup
+`entropy/emacs-user-emacs-directory'.")
+(when (fboundp 'startup-redirect-eln-cache)
+  (startup-redirect-eln-cache
+   (expand-file-name "emacs/emacs-eln-cache" entropy/emacs-stuffs-topdir)))
 
 ;;;; Basic
 ;; Package initialize occurs automatically, before `user-init-file' is

@@ -79,14 +79,6 @@ key-stroke experience."
   :type '(cons (key-sequence :tag "GUI bind") (key-sequence :tag "TUI bind"))
   :group 'entropy/emacs-customize-group-for-fundametal-configuration)
 
-(defcustom entropy/emacs-stuffs-topdir
-  (expand-file-name "stuffs" entropy/emacs-user-emacs-directory)
-  "The stuffs collection host path, for as `savehist-file',
-`bookmark-file' cache host. This setting mainly for cleanup
-`entropy/emacs-user-emacs-directory'."
-  :type 'directory
-  :group 'entropy/emacs-customize-group-for-fundametal-configuration)
-
 (defcustom entropy/emacs-temporary-file-directory
   (file-name-as-directory
    (expand-file-name "tmp" entropy/emacs-stuffs-topdir))
@@ -696,9 +688,9 @@ value type according to non-defined internal definition")
 
 (defconst entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-local-path
   (expand-file-name
-   (format ".eemacs-ext-build_%s"
+   (format "eemacs-ext-build/%s"
            entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-version)
-   entropy/emacs-user-emacs-directory)
+   entropy/emacs-stuffs-topdir)
   "")
 
 (defconst entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-local-path-comprehensive-indicator
@@ -1488,6 +1480,13 @@ option."
   (and (fboundp 'treesit-available-p) (treesit-available-p))
   "Non-nil when current emacs-session can use tree-sitter features
 in generally meaning range which says that basically can did so.")
+
+(defvar entropy/emacs-treesit-libs-default-load-path
+  (expand-file-name "emacs/emacs-treesit-libs" entropy/emacs-stuffs-topdir)
+  "The eemacs specifie default treesit libs host stored in
+`treesit-extra-load-path'.")
+(add-to-list 'treesit-extra-load-path
+             entropy/emacs-treesit-libs-default-load-path)
 
 (defvar entropy/emacs-ide--lang-mode-info-alist
   '((js-mode      :lang javascript :treesit-mode-p nil :treesit-variant-mode js-ts-mode)
@@ -3513,7 +3512,7 @@ that."
   (or (file-exists-p top) (make-directory top))
   ;; root dir host in `top'
   ;; NOTE: if item is a directory the notation of its path must tail with slash
-  (dolist (item `((package-user-dir . "elpa/")
+  (dolist (item `((package-user-dir . ,(funcall gestffpth "elpa/"))
                   (bookmark-file .  ,(funcall gestffpth "bookmarks"))
                   (recentf-save-file . ,(funcall gestffpth "recentf"))
                   (tramp-persistency-file-name . ,(funcall gestffpth "tramp"))
