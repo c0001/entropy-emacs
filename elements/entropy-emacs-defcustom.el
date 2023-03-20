@@ -1692,7 +1692,7 @@ will not be watched by codeserver."
 
 ;; **** yasnippet config
 (defcustom entropy/emacs-yas-dir
-  (expand-file-name "snippets" entropy/emacs-stuffs-topdir)
+  (expand-file-name "yasnippets/user-snippets" entropy/emacs-stuffs-topdir)
   "Set the default personal snippet dir"
   :type 'directory
   :group 'entropy/emacs-customize-group-for-IDE-configuration)
@@ -3510,7 +3510,7 @@ that."
      (top entropy/emacs-stuffs-topdir)
      (gestffpth
       (lambda (x) (concat "emacs/" x)))
-     var-sym path path-root path-dirp)
+     var-sym path path-root path-dirp defcv nbdp)
   (or (file-exists-p top) (make-directory top))
   ;; root dir host in `top'
   ;; NOTE: if item is a directory the notation of its path must tail with slash
@@ -3529,7 +3529,7 @@ that."
                   (savehist-file . ,(funcall gestffpth "history"))
                   (save-place-file . ,(funcall gestffpth "places"))
                   ;; yasnippets
-                  (yas--default-user-snippets-dir . "yasnippets/snippets/")
+                  (yas--default-user-snippets-dir . "yasnippets/default-snippets/")
                   ;; emms caches
                   (emms-directory . ,(funcall gestffpth "emms/"))
                   ;; eshell files
@@ -3598,28 +3598,27 @@ that."
                   (prescient-save-file . "prescient/prescient-save.el")
                   (skewer-bower-cache-dir . "skewer-cache/")
                   ))
-    (setq var-sym (car item) path nil path-root nil)
+    (setq var-sym (car item) path nil path-root nil nbdp (not (boundp var-sym)))
     (when
         ;; Avoid when user specified in `custom-file' thru compare the
         ;; current value and the customized default value.
-        (let (defcv (nbdp (not (boundp var-sym))))
-          (if nbdp t                    ;if no boundp then we should spec it
-            (setq defcv (entropy/emacs-get-symbol-defcustom-value
-                         var-sym :with-eemacs-false t))
-            (cond
-             ;; no custom declaration, but bounded by user spec that
-             ;; we should respect
-             ((eq defcv entropy/emacs-false-symbol) nil)
-             ;; same as default suggestion, we should reset it but
-             ;; FIXME: how we consider whether this is also user spec?
-             ((and (stringp defcv)
-                   ;; FIXME: Does emacs provide a `filename=' api?
-                   (string= (expand-file-name defcv)
-                            (expand-file-name (symbol-value var-sym))))
-              t)
-             ;; user spec detected and differ from custom default
-             ;; value where we should respect
-             (t nil))))
+        (if nbdp t                    ;if no boundp then we should spec it
+          (setq defcv (entropy/emacs-get-symbol-defcustom-value
+                       var-sym :with-eemacs-false t))
+          (cond
+           ;; no custom declaration, but bounded by user spec that
+           ;; we should respect
+           ((eq defcv entropy/emacs-false-symbol) nil)
+           ;; same as default suggestion, we should reset it but
+           ;; FIXME: how we consider whether this is also user spec?
+           ((and (stringp defcv)
+                 ;; FIXME: Does emacs provide a `filename=' api?
+                 (string= (expand-file-name defcv)
+                          (expand-file-name (symbol-value var-sym))))
+            t)
+           ;; user spec detected and differ from custom default
+           ;; value where we should respect
+           (t nil)))
       (setq path (expand-file-name (cdr item) top)
             path-dirp (directory-name-p path))
       (setq path-root (or (and path-dirp path) (file-name-directory path)))
@@ -3628,8 +3627,15 @@ that."
       (set-default var-sym path)
       ;; create each subs path chain for preventing unconditionally
       ;; file create fatal from thus.
-      (or (file-directory-p path-root) (make-directory path-root t)))))
+      (or (file-directory-p path-root) (make-directory path-root t))
 
+      ;; for those defination as `defconst' which may cover our
+      ;; setting after their source are loaded
+      (when nbdp
+        (cond
+         ((eq var-sym 'yas--default-user-snippets-dir)
+          (eval-after-load 'yasnippet
+            `(eval (setq ,var-sym ,path)))))))))
 
 ;; mkdir for pre set
 (dolist (dir-obj '((entropy/emacs-internal-ime-rime-user-data-host-path
