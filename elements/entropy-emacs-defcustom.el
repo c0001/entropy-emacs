@@ -3505,28 +3505,31 @@ that."
                  #'entropy/emacs-display-graphic-fake-advice))))
 
 ;; *** clean stuff files
-(when-let (((not (entropy/emacs-env-init-with-pure-eemacs-env-p)))
-           (top entropy/emacs-stuffs-topdir))
-  (unless (file-exists-p top)
-    (make-directory top))
+(entropy/emacs-when-let*-first
+    (((not (entropy/emacs-env-init-with-pure-eemacs-env-p)))
+     (top entropy/emacs-stuffs-topdir)
+     (gestffpth
+      (lambda (x) (concat "emacs/" x)))
+     var-sym path path-root path-dirp)
+  (or (file-exists-p top) (make-directory top))
   ;; root dir host in `top'
   ;; NOTE: if item is a directory the notation of its path must tail with slash
   (dolist (item `((package-user-dir . "elpa/")
-                  (bookmark-file . "bookmarks")
-                  (recentf-save-file . "recentf")
-                  (tramp-persistency-file-name . "tramp")
+                  (bookmark-file .  ,(funcall gestffpth "bookmarks"))
+                  (recentf-save-file . ,(funcall gestffpth "recentf"))
+                  (tramp-persistency-file-name . ,(funcall gestffpth "tramp"))
                   (auto-save-list-file-prefix
                    .
                    ,(cond ((eq system-type 'ms-dos)
                            ;; MS-DOS cannot have initial dot, and allows only 8.3 names
-                           "auto-save.list/_s")
+                           (funcall gestffpth "auto-save.list/_s"))
                           (t
-                           "auto-save-list/.saves-")))
+                           (funcall gestffpth "auto-save-list/.saves-"))))
                   ;; savehist caches
-                  (savehist-file . "history")
-                  (save-place-file . "places")
+                  (savehist-file . ,(funcall gestffpth "history"))
+                  (save-place-file . ,(funcall gestffpth "places"))
                   ;; emms caches
-                  (emms-directory . "emms/")
+                  (emms-directory . ,(funcall gestffpth "emms/"))
                   ;; eshell files
                   (eshell-directory-name . "eshell/")
                   ;; transient files
@@ -3534,84 +3537,93 @@ that."
                   (transient-values-file . "transient/values.el")
                   (transient-history-file . "transient/history.el")
                   ;; url caches
-                  (url-configuration-directory . "url/")
-                  (nsm-settings-file . "network-security.data")
+                  (url-configuration-directory . ,(funcall gestffpth "url/"))
+                  (nsm-settings-file . ,(funcall gestffpth "network-security.data"))
                   (request-storage-directory . "request/")
 
                   ;; w3m
-                  (w3m-default-save-directory . "w3m/save/")
-                  (w3m-profile-directory . "w3m/profile/")
+                  (w3m-default-save-directory       . "w3m/save/")
+                  (w3m-profile-directory            . "w3m/profile/")
                   (w3m-external-view-temp-directory . "w3m/temp/")
-                  (w3m-form-textarea-directory . "w3m/textarea/")
+                  (w3m-form-textarea-directory      . "w3m/textarea/")
 
                   ;; lsp mode
-                  (lsp-session-file . "lsp/lsp-session-v1")
-                  (lsp-intelephense-storage-path . "lsp/cache/intelephense")
-                  (lsp-server-install-dir . "lsp/cache/install/")
+                  (lsp-session-file              . "lsp-mode/lsp-session-v1")
+                  (lsp-intelephense-storage-path . "lsp-mode/cache/intelephense")
+                  (lsp-server-install-dir        . "lsp-mode/cache/install/")
                   ;; - lsp java
-                  (lsp-java-workspace-dir . "lsp/lsp-java-workspace/")
+                  (lsp-java-workspace-dir        . "lsp-mode/workspace/lsp-java/")
 
                   ;; async log file
                   (async-byte-compile-log-file . "async-bytecomp.log")
                   ;; slime
-                  (slime-repl-history-file . "slime-history.eld")
+                  (slime-repl-history-file . "slime/slime-history.eld")
                   ;; irony srever dir
                   (irony-user-dir . "irony/")
                   ;; treemacs
-                  (treemacs-persist-file . "treemacs/treemacs-persist")
+                  (treemacs-persist-file            . "treemacs/treemacs-persist")
                   (treemacs-last-error-persist-file . "treemacs/treemacs-persist-at-last-error")
                   ;; projetile
                   (projectile-known-projects-file . "projectile/projectile-bookmarks.eld")
-                  (projectile-cache-file . "projectile/projectile.cache")
+                  (projectile-cache-file          . "projectile/projectile.cache")
                   ;; image dired
                   (image-dired-dir . "image-dired/")
                   ;; game dir
-                  (gamegrid-user-score-file-directory . "games/")
+                  (gamegrid-user-score-file-directory . ,(funcall gestffpth "games/"))
                   ;; vimish
                   (vimish-fold-dir . "vimish-fold/")
                   ;; anaconda mode
                   (anaconda-mode-installation-directory . "anaconda-mode/")
                   ;; newsticker archive dir
-                  (newsticker-dir . "newsticker/")
+                  (newsticker-dir . ,(funcall gestffpth "newsticker/"))
 
                   ;; pyim/liberime
-                  (liberime-user-data-dir . "rime")
-                  (pyim-dcache-directory . "pyim/dcache/")
+                  (liberime-user-data-dir . "pyim/rime/")
+                  (pyim-dcache-directory  . "pyim/dcache/")
 
                   ;; org
-                  (org-id-locations-file . ".org-id-locations")
-                  (entropy/org-exptt-html-theme-cache-dir . "org-themes/org-html-themes")
+                  (org-id-locations-file . ,(funcall gestffpth "org/.org-id-locations"))
+                  (entropy/org-exptt-html-theme-cache-dir
+                   .
+                   "eemacs-org-themes/html-themes")
 
                   ;; miscellanies
-                  (idlwave-config-directory . "idlwave/")
+                  (idlwave-config-directory . ,(funcall gestffpth "idlwave/"))
                   (elfeed-db-directory . "elfeed-db/")
-                  (prescient-save-file . "var/prescient-save.el")
+                  (prescient-save-file . "prescient/prescient-save.el")
                   (skewer-bower-cache-dir . "skewer-cache/")
                   ))
-    (let* ((var-sym (car item))
-           (path nil)
-           (path-root nil))
-      (unless
-          ;; avoid when user pre sets in `custom-file'
-          (and (default-boundp var-sym)
-               ;; but for some pre loaded customized var that it is
-               ;; handled in its package internally so that we do not
-               ;; need to build that directory for saving check time.
-               (not (eq var-sym 'auto-save-list-file-prefix)))
-        (setq path (directory-file-name (expand-file-name (cdr item) top)))
-        (setq path-root (file-name-directory path))
-        ;; make sure declared as init
-        (eval `(defvar ,var-sym))
-        (set-default var-sym path)
-        ;; create each subs path chain for preventing unconditionally
-        ;; file create fatal from thus.
-        (unless (file-directory-p path-root)
-          (make-directory path-root t))
-        ;; create the dir if item is an directory
-        (if (and (directory-name-p (cdr item))
-                 (null (file-exists-p path)))
-            (make-directory path t)))
-      ))
+    (setq var-sym (car item) path nil path-root nil)
+    (when
+        ;; Avoid when user specified in `custom-file' thru compare the
+        ;; current value and the customized default value.
+        (let (defcv (nbdp (not (boundp var-sym))))
+          (if nbdp t                    ;if no boundp then we should spec it
+            (setq defcv (entropy/emacs-get-symbol-defcustom-value
+                         var-sym :with-eemacs-false t))
+            (cond
+             ;; no custom declaration, but bounded by user spec that
+             ;; we should respect
+             ((eq defcv entropy/emacs-false-symbol) nil)
+             ;; same as default suggestion, we should reset it but
+             ;; FIXME: how we consider whether this is also user spec?
+             ((and (stringp defcv)
+                   ;; FIXME: Does emacs provide a `filename=' api?
+                   (string= (expand-file-name defcv)
+                            (expand-file-name (symbol-value var-sym))))
+              t)
+             ;; user spec detected and differ from custom default
+             ;; value where we should respect
+             (t nil))))
+      (setq path (expand-file-name (cdr item) top)
+            path-dirp (directory-name-p path))
+      (setq path-root (or (and path-dirp path) (file-name-directory path)))
+      ;; make sure declared as init
+      (eval `(defvar ,var-sym))
+      (set-default var-sym path)
+      ;; create each subs path chain for preventing unconditionally
+      ;; file create fatal from thus.
+      (or (file-directory-p path-root) (make-directory path-root t))))
 
   ;; directly set root dir using `top' dir
   (dolist (item '(eww-bookmarks-directory))

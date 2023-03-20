@@ -628,36 +628,6 @@ nil.
 VAR should be a variable name or a place used by `setf'."
   `(when-let* ((res ,var)) (setf ,var nil) res))
 
-(defmacro entropy/emacs-when-let*-first (spec &rest body)
-  "Like `when-let*' but just check the `car' of SPEC whether is
-nil and handled that.
-
-See also `entropy/emacs-when-let*-firstn'."
-  (declare (indent 1) (debug if-let))
-  (when body
-    (if (not spec) (entropy/emacs-macroexp-progn body)
-      (let ((fspec (car spec)) (rspec (cdr spec)))
-        `(when-let* (,fspec)
-           ,@(if rspec `((let* (,@rspec) ,@body)) body))))))
-
-(defmacro entropy/emacs-when-let*-firstn (n spec &rest body)
-  "Like `entropy/emacs-when-let*-first' but check the first N
-patterns of SPEC whether is nil and handled them.
-
-Where N is a explicitly specified `natnump' number."
-  (declare (indent 2) (debug if-let))
-  (when body
-    (if (not spec) (entropy/emacs-macroexp-progn body)
-      (let ((spec-len (length spec)) wspec rspec (i 0))
-        (catch :exit
-          (dotimes (_ n)
-            (unless (< i spec-len) (throw :exit nil))
-            (push (nth i spec) wspec) (cl-incf i)))
-        (setq wspec (and wspec (nreverse wspec)) rspec (nthcdr i spec))
-        (if (not wspec) `(let* (,@spec) ,@body)
-          `(when-let* (,@wspec)
-             ,@(if rspec `((let* (,@rspec) ,@body)) body)))))))
-
 (defmacro entropy/emacs-cancel-timer-var (var)
   "Same as `cancel-timer' for canceling a `timerp' object which is
 the value of VAR but also set VAR to nil after the canceling
@@ -1073,11 +1043,6 @@ when the last form of CONNDITIONS evaluated return non-nil."
          (setf ,place-a ,tmpvar-sym)))))
 
 ;; *** Symbol manupulation
-
-(defun entropy/emacs-get-symbol-defcustom-value (symbol)
-  "Get SYMBOL standard value setted by `defcustom'."
-  (entropy/emacs-eval-with-lexical
-   (car (entropy/emacs-get-symbol-prop symbol 'standard-value))))
 
 ;; *** List manipulation
 ;; **** Basics

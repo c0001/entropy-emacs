@@ -252,6 +252,36 @@ BODY or FORMS requested context by `,@' in `backquote' forms.
 See also `entropy/emacs-macroexp-progn'."
   (or args (list nil)))
 
+(defmacro entropy/emacs-when-let*-first (spec &rest body)
+  "Like `when-let*' but just check the `car' of SPEC whether is
+nil and handled that.
+
+See also `entropy/emacs-when-let*-firstn'."
+  (declare (indent 1) (debug if-let))
+  (when body
+    (if (not spec) (entropy/emacs-macroexp-progn body)
+      (let ((fspec (car spec)) (rspec (cdr spec)))
+        `(when-let* (,fspec)
+           ,@(if rspec `((let* (,@rspec) ,@body)) body))))))
+
+(defmacro entropy/emacs-when-let*-firstn (n spec &rest body)
+  "Like `entropy/emacs-when-let*-first' but check the first N
+patterns of SPEC whether is nil and handled them.
+
+Where N is a explicitly specified `natnump' number."
+  (declare (indent 2) (debug if-let))
+  (when body
+    (if (not spec) (entropy/emacs-macroexp-progn body)
+      (let ((spec-len (length spec)) wspec rspec (i 0))
+        (catch :exit
+          (dotimes (_ n)
+            (unless (< i spec-len) (throw :exit nil))
+            (push (nth i spec) wspec) (cl-incf i)))
+        (setq wspec (and wspec (nreverse wspec)) rspec (nthcdr i spec))
+        (if (not wspec) `(let* (,@spec) ,@body)
+          `(when-let* (,@wspec)
+             ,@(if rspec `((let* (,@rspec) ,@body)) body)))))))
+
 (cl-defmacro entropy/emacs-let-it-as
     (exp &rest body &key with-it-as &allow-other-keys)
   "Bind EXP's value as `let' local var `it' then evaluate BODY and
@@ -369,6 +399,32 @@ This function exists since user usually use `get' for
 its value is a COMMAND."
   (if (symbolp maybe-sym) (get maybe-sym prop)))
 
+(cl-defun entropy/emacs-get-symbol-defcustom-value
+    (symbol &key with-eemacs-false)
+  "Get SYMBOL standard value CUSVAL setted by `defcustom'.
+
+If WITH-EEMACS-FALSE is set as non-nil, then return value of
+`entropy/emacs-false-symbol' when SYMBOL was not defined by
+`defcustom' that it doesn't has an default customized value. Otherwise
+nil is returned for that case.
+
+If CUSVAL existed and it is equalized (`equal') with the current value
+i.e. `symbol-value' SYMVAL of SYMBOL, then SYMVAL is returned,
+otherwise return CUSVAL if CUSVAL existed. This behaviour exists since
+we want to let the return value `eq' to the original `defcustom''s
+init value INITVAL as possible as we can, where the SYMVAL may be
+re-structured by user specifiaction which keeping as `equal' as
+INITVAL."
+  (let ((exp (entropy/emacs-get-symbol-prop symbol 'standard-value))
+        (symbdp (boundp symbol)) symval cusval)
+    (if (null exp) (and with-eemacs-false entropy/emacs-false-symbol)
+      ;; there's no need to evaluated thru judging `lexical-binding'
+      ;; whether enabled since `defcustom' bind the exp as an closure
+      ;; when needed internally.
+      (setq cusval (eval (car exp)))
+      (if (and symbdp (equal cusval (setq symval (symbol-value symbol))))
+          symval cusval))))
+
 (defun entropy/emacs-safety-message (format-string &rest args)
   "Like `message' but prevent user use the FORMAT-STRING as the
 only argument apply to it which may cause error while the
@@ -445,7 +501,7 @@ If FRAME is omitted or nil use `selected-frame' as default."
        (not (entropy/emacs-child-frame-p frame))))
 
 (defun entropy/emacs-buffer-local-value (symbol &optional buffer)
-  "Like `buffer-local-value' but return `entropy/emacs-false-symbol'
+  "Like `buffer-local-value' but return value of `entropy/emacs-false-symbol'
 when SYMBOL doesn't have a local binding for BUFFER.
 
 Use
