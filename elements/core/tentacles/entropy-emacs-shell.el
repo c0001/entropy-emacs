@@ -371,13 +371,13 @@ segmentation fault."
 
   (defun entropy/emacs-shell--vterm-enable-eemacs-top-key nil
     (define-key vterm-mode-map (kbd entropy/emacs-top-key) nil))
-  (if (daemonp)
-      (entropy/emacs-with-daemon-make-frame-done
-        '__enable/eemacs-top-key-for-vterm (&rest _)
-        "Remove collision of `entropy/emacs-top-key' in `vterm-mode-map'."
-        :when-gui (entropy/emacs-shell--vterm-enable-eemacs-top-key)
-        :when-tui (entropy/emacs-shell--vterm-enable-eemacs-top-key))
-    (entropy/emacs-shell--vterm-enable-eemacs-top-key))
+  (when (daemonp)
+    (entropy/emacs-with-daemon-make-frame-done
+      '__enable/eemacs-top-key-for-vterm (&rest _)
+      "Remove collision of `entropy/emacs-top-key' in `vterm-mode-map'."
+      :when-gui (entropy/emacs-shell--vterm-enable-eemacs-top-key)
+      :when-tui (entropy/emacs-shell--vterm-enable-eemacs-top-key)))
+  (entropy/emacs-shell--vterm-enable-eemacs-top-key)
 
   )
 
