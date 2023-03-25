@@ -128,6 +128,7 @@
     doom-modeline
     doom-themes
     edit-indirect
+    editorconfig
     ;; force use new version of `eglot'
     ,(entropy/emacs-pkgreq-make-pkgreqptr
       :under 29

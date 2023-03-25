@@ -1004,6 +1004,20 @@ posframe when available."
    'edit-indirect-commit))
 
 
+;; ** editorconfig
+
+(use-package editorconfig
+  :commands
+  (editorconfig-version
+   editorconfig-mode
+   editorconfig-conf-mode
+   editorconfig-format-buffer
+   editorconfig-apply)
+  :init
+  (entropy/emacs-lazy-with-load-trail 'editorconf-mode-init
+    :start-end t :pdumper-no-end t
+    (editorconfig-mode t)))
+
 ;; ** Benchmark
 
 (use-package benchmark-init
