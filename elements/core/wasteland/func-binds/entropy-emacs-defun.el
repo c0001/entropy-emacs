@@ -9041,6 +9041,119 @@ WITH-LEXICAL-BINDINGS has same meaning of that, also with SYMBOL as.
                      (plist-get pl :use-local)))))
      (cdr args))))
 
+(cl-defmacro entropy/emacs-add-hook-with-lambda-use-timer
+    (&rest args)
+  "Binding a function HFUNC named with using SYMBOL as core, with body of
+BODY which will be ran with arranging by a timer function
+USE-TIMER-FUNC. Injecting HFUNC into hook(s) HOOKS specified by
+USE-HOOK. Return the hook function symbol of HFUNC.
+
+When USE-LOCAL is set, then the function is inject into to HOOKS's
+buffer-local variant(s).
+
+USE-APPEND and USE-LOCAL are compatible with the means of arguments
+DEPTH and LOCAL of `add-hook'.
+
+USE-HOOK can either be a hook symbol or a list of thus in which case
+injecting HFUNC into all of them with specifications as if it is
+single hook.
+
+USE-TIMER-FUNC when set, its arguments list should be arranged as same
+form as:
+
+: \(fn TIME-OR-SECONDS REPEAT FUNCTION &rest ARGS)
+
+Which is compatible with `run-at-time', `run-with-idle-timer',
+`run-with-timer'. And TIME-OR-SECONDS is specified by USE-TIMER-TIME,
+REPEAT is specified by USE-TIMER-REPEAT. And defaults to use
+`run-with-idle-timer'.
+
+USE-TIMER-TIME when doesn't specified, defaults to a number which is
+almost 0 which is compatible with `run-at-time',
+`run-with-idle-timer', and `run-with-timer'.
+
+USE-TIMER-REPEAT when doesn't specified, defaults to nil which is
+compatible with `run-at-time', `run-with-idle-timer', and
+`run-with-timer'.
+
+USE-TIMER-COND when set, it should be evaluated to a value which valid
+as one of belows:
+- `with-current-buffer': the BODY ran with the `current-buffer'
+  (i.e. the `current-buffer' on where HFUNC is triggerred) use
+  `with-current-buffer' just when that buffer is alived at while the
+  timer is triggerd.
+
+USE-TIMER-GUARD when set, it should be function which take only one
+argument i.e. the return of USE-TIMER-FUNC, which is usually a timer
+object when USE-TIMER-FUNC is one of `run-at-time',
+`run-with-idle-timer', or `run-with-timer'. This option exists for
+giving the ability of outer context to take member of the runtime
+evaluation of USE-TIMER-GUARD to do such as `cancel-timer' after the
+invocation.
+
+This macro use `entropy/emacs-with-lambda' as subroutine so that
+WITH-LEXICAL-BINDINGS has same meaning of that, also with SYMBOL as.
+
+\(fn SYMBOL ARGLIST [DOCSTRING] [DECL] [INCT] \
+&key USE-APPEND USE-LOCAL USE-HOOK \
+USE-TIMER-FUNC USE-TIMER-GUARD USE-TIMER-TIME USE-TIMER-REPEAT USE-TIMER-COND \
+WITH-LEXICAL-BINDINGS &rest BODY)"
+  (declare (doc-string 3) (indent defun))
+  (let* ((optvarnm (make-symbol "options"))
+         (buff-sym (make-symbol "buff"))
+         (cond-sym (make-symbol "condition")))
+    (entropy/emacs-with-with-lambda
+     (car args)
+     `(:with-option-varname
+       ,optvarnm
+       :with-aux
+       (let* ((fname (car ,optvarnm))
+              (pl (cdr ,optvarnm))
+              (hooks (plist-get pl :use-hook))
+              (_ (and hooks (atom hooks) (setq hooks (list hooks)))))
+         (dolist (hook hooks)
+           (add-hook hook fname (plist-get pl :use-append)
+                     (plist-get pl :use-local)))))
+     (let* ((oargs      (cdr args))
+            (oargs-obj  (entropy/emacs-parse-lambda-args-plus oargs))
+            (oargs-pl   (plist-get oargs-obj :body-plist))
+            (oargs-body (plist-get oargs-obj :body))
+            (oargs-cond (plist-get oargs-pl :use-timer-cond))
+            new-body-core new-body)
+       (entropy/emacs-setf-by-body new-body-core
+         (if oargs-cond
+             `(let ((,buff-sym (current-buffer))
+                    (,cond-sym ,oargs-cond))
+                (cond
+                 ((eq 'with-current-buffer ,cond-sym)
+                  (lambda (&rest _)
+                    (when (buffer-live-p ,buff-sym)
+                      (with-current-buffer ,buff-sym
+                        ,@oargs-body))))
+                 (t (error "wrong type of use-cond type: %s"
+                           ,cond-sym))))
+           `(lambda (&rest _) ,@oargs-body)))
+       (entropy/emacs-setf-by-body new-body
+         `(apply
+           ,(or (plist-get oargs-pl :use-timer-type)
+                '(function run-with-idle-timer))
+           ,(or (plist-get oargs-pl :use-timer-time) 0.001)
+           ,(plist-get oargs-pl :use-timer-repeat)
+           ,new-body-core nil))
+       (entropy/emacs-setf-by-body new-body
+         `(funcall ,(or (plist-get oargs-obj :use-timer-guard)
+                        '(function identity))
+                   ,new-body))
+       (setq oargs-obj (plist-put oargs-obj :body `(,new-body)))
+       (entropy/emacs-setf-by-body oargs-obj
+         (plist-put
+          oargs-obj :body-plist
+          (car
+           (entropy/emacs-defun--get-body-without-keys
+            oargs-pl 'reverse :use-timer-func :use-timer-guard
+            :use-timer-time :use-timer-repeat :use-timer-cond))))
+       (entropy/emacs-merge-lambda-args oargs-obj)))))
+
 ;; *** Color operations
 
 (defun entropy/emacs-color-string-hex-p
