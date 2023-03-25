@@ -1117,16 +1117,15 @@ saved by
         (rx (or
              " *which-key"
              " *company-box-"
-             "*eemacs-"
-             "*eemacs eval with byte-compile*"
+             (regexp "^ ?\\*[Ee]emacs")
              "*entropy/"
              (regexp "\\*Async Shell Command\\*.+" )
-             (regexp "^*Man.+*$")
-             (regexp "^*WoMan.+*$")
-             (regexp "^*Backtrace.+*$")
+             (regexp "^\\*Man.+*$")
+             (regexp "^\\*WoMan.+*$")
+             (regexp "^\\*Backtrace.+*$")
              (regexp "^\\*vc-")
              (regexp "\\*ivy-occur.+*$" )
-             (regexp "^*godoc.+*$")
+             (regexp "^\\*godoc.+*$")
              (regexp
               "^magit[-]?\\([a-z]+\\)?:"))))
 
