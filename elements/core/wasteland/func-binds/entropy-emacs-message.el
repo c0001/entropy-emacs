@@ -45,7 +45,8 @@
 
 ;; ** const define
 (defconst entropy/emacs-message-message-buffname
-  "*Eemacs Messages*")
+  ;; NOTE: leading with a space to follow emacs tempo buffer convention
+  " *Eemacs Messages*")
 
 (defconst entropy/emacs-message--message-fg
   '((reset      . 0)
