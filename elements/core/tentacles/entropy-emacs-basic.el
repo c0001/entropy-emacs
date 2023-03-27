@@ -4390,6 +4390,8 @@ coding style."
     (interactive)
     (with-current-buffer (current-buffer)
       (if (or entropy/emacs-inhibit-simple-whitespace-clean
+              (entropy/emacs-editor-convention/op/get-property
+               'trim_trailing_whitespace)
               ;; just used in interactive emacs session since we don't
               ;; want to fluence the batch-mode while user use elisp
               ;; as a shell or do non-ui related operations.
