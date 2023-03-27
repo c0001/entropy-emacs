@@ -3883,7 +3883,6 @@ NOTE: this is a advice wrapper for any function."
   'eemacs-smooth-scrolling-mode-init
   (entropy/emacs-basic-smooth-scrolling-global-mode 1))
 
-
 ;; ***** Tab default visualization
 
 ;; Do not use `indent-tabs-mode' by default for compatibility meaning
