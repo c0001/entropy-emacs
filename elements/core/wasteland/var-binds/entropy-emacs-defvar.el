@@ -2332,6 +2332,7 @@ its origin defination.")
 
 ;; ** prog-modes
 ;; *** union
+;; **** treesit prefer
 (defun entropy/emacs-enable-prog-mode-prefer-treesit (prog-mode-name)
   (when-let*
       ;; justice conditions
@@ -2438,6 +2439,103 @@ its origin defination.")
   (< emacs-major-version 28)
   "Const indicator that eemacs should enable `js2-mode' as default
 `major-mode' for javascript edition.")
+
+;; ** editor convention
+
+(defconst entropy/emacs-editor-convention-properties
+  '(indent_style
+    indent_size
+    tab_width
+    insert_final_newline
+    trim_trailing_whitespace
+    max_line_length
+    end_of_line
+    charset
+    )
+  "List of =eemacs-editor-convention= property symbols.")
+
+(defun entropy/emacs-editor-convention-register-property-value
+    (prop op &optional sym)
+  "Add OP to a entry of value of symbol SYM (who is consider as
+an alist) whose key `eq' to PROP if OP is not `memq' in that
+place yet.
+
+SYM defaults to `entropy/emacs-editor-convention/var/get-property-ops'."
+  (unless (memq prop entropy/emacs-editor-convention-properties)
+    (error "wrong type of eemacs editor convention property: %s"
+           prop))
+  (unless sym (setq sym 'entropy/emacs-editor-convention/var/get-property-ops))
+  (let* ((tref (gv-ref (assoc prop (symbol-value sym))))
+         (tass (gv-deref tref))
+         (tval (cdr tass))
+         (mmp  (and tval (memq op tval))))
+    (unless mmp
+      (if tass (setf tass (cons (car tass) (cons op tval)))
+        (add-to-list sym (cons prop (cons op nil)))))))
+
+(defvar entropy/emacs-editor-convention/var/get-property-ops nil
+  "Alist whose key is one of a property of
+`entropy/emacs-editor-convention-properties' and its value is a
+operation takes one argument i.e. a BUFFER, which is used to
+return the value of such property or nil if no specification for
+that property in that BUFFER.
+
+Use `entropy/emacs-editor-convention-register-property-value' to
+register a operation to a property with this variable's symbol.")
+
+(defun entropy/emacs-editor-convention/op/get-property
+    (prop &optional buffer)
+  "Get =eemacs-editor-convention= property PROP's value of buffer
+BUFFER.
+
+If BUFFER is not set, defaults to `current-buffer'.
+
+PROP should be one of `entropy/emacs-editor-convention-properties'."
+  (when-let ((funcs (alist-get
+                     prop
+                     entropy/emacs-editor-convention/var/get-property-ops))
+             (buffer (or buffer (current-buffer)))
+             (val t))
+    (with-current-buffer buffer
+      (catch :exit
+        (dolist (el funcs)
+          (when (setq val (funcall el))
+            (throw :exit val)))))))
+
+(defmacro entropy/emacs-editor-convention/wrapper/do-unless-prop-is-set
+    (prop &optional buffer &rest form)
+  "Does =eemacs-editor-convention= property PROP corresponding setup
+only when PROP's value is not specified by
+=eemacs-editor-convention= detector
+`entropy/emacs-editor-convention/op/get-property'.
+
+PROP should be one of `entropy/emacs-editor-convention-properties'."
+  (declare (indent defun))
+  (let ((prop-sym (make-symbol "prop")) (buff-sym (make-symbol "buffer")))
+    `(let ((,prop-sym ,prop) (,buff-sym (or ,buffer (current-buffer))))
+       (unless (entropy/emacs-editor-convention/op/get-property
+                ,prop-sym ,buff-sym)
+         ,(entropy/emacs-macroexp-progn form)))))
+
+(with-eval-after-load 'entropy-emacs-defun
+  (defalias 'entropy/emacs-editor-convention/op/add-mode-hook
+    'entropy/emacs-add-hook-with-lambda-use-timer
+    (format "\
+=eemacs-editor-convention= variant of `add-hook' for a
+`major-mode' hook MHOOK.
+
+This macro exists since we should always deferred do some task
+after all MHOOK elements ran out since =eemacs-editor-convention=
+is detected automatically in that duration but we can not
+determine whether our tasks is ran after that detection done
+while these tasks rely on that detection finished.
+
+Consider use
+`entropy/emacs-editor-convention/wrapper/do-unless-prop-is-set'
+to set =eemacs-editor-convention= referred specs in BODY.
+
+%s"
+            (documentation 'entropy/emacs-add-hook-with-lambda-use-timer))))
 
 ;; * provide
 (provide 'entropy-emacs-defvar)

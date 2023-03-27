@@ -1013,10 +1013,26 @@ posframe when available."
    editorconfig-conf-mode
    editorconfig-format-buffer
    editorconfig-apply)
+  :eemacs-functions (editorconfig-get-properties)
   :init
   (entropy/emacs-lazy-with-load-trail 'editorconf-mode-init
     :start-end t :pdumper-no-end t
-    (editorconfig-mode t)))
+    (editorconfig-mode t))
+
+  (dolist (prop entropy/emacs-editor-convention-properties)
+    (entropy/emacs-editor-convention-register-property-value
+     prop
+     (entropy/emacs-defalias
+         (intern (format "entropy/emacs-editorconfig-get-prop-value/%s" prop))
+       (lambda (&optional buffer)
+         (when-let* ((buff (or buffer (current-buffer)))
+                     (buff-fname (buffer-file-name buff))
+                     (hash (editorconfig-get-properties buff-fname))
+                     ((not (zerop (hash-table-size hash))))
+                     (val (gethash prop hash))) val))
+       (format "Return `editorconfig-mode' prop `%s' value for \
+buffer BUFFER (defaults to `current-buffer'), or nil if not has
+one of so." prop)))))
 
 ;; ** Benchmark
 

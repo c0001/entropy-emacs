@@ -69,10 +69,19 @@
     (setq entropy/emacs/c-mode/current-buffer (current-buffer))
     (funcall entropy/emacs/c-mode/after-change-func/idle-port))
 
-  (defun entropy/emacs-c-cc-mode-common-set ()
+  :init
+  (entropy/emacs-editor-convention/op/add-mode-hook
+    (cons t 'entropy/emacs-c-cc-mode-common-set) nil
+    :use-hook 'c-mode-common-hook
+    :use-timer-cond 'with-current-buffer
+    :use-append t
     (c-set-style (symbol-name entropy/emacs-C-style))
-    (setq-local tab-width entropy/emacs-C-tab-width)
-    (setq-local c-basic-offset entropy/emacs-C-basic-offset)
+    (entropy/emacs-editor-convention/wrapper/do-unless-prop-is-set
+      'tab_width nil
+      (setq-local tab-width entropy/emacs-C-tab-width))
+    (entropy/emacs-editor-convention/wrapper/do-unless-prop-is-set
+      'indent_size nil
+      (setq-local c-basic-offset entropy/emacs-C-basic-offset))
     ;; EEMACS_MAINTENANCE: this patch is not under fully tested
     ;; whether influence the other functionality for `c-mode'.
     ;; ====== remove the lag core of `cc-mode' =====
@@ -92,9 +101,6 @@
               #'entropy/emacs/c-mode/after-change-func
               nil t))
 
-  :init
-  (add-hook 'c-mode-common-hook
-            #'entropy/emacs-c-cc-mode-common-set)
   :config
 
   ;; Disable default c-bindings
@@ -118,12 +124,18 @@
   :ensure nil
   :if entropy/emacs-ide-is-treesit-generally-adapted-p
   :init
-  (defun entropy/emacs-c-ts-mode-basic-set nil
-    (setq-local c-ts-mode-indent-offset entropy/emacs-C-basic-offset)
-    (setq-local tab-width entropy/emacs-C-tab-width)
-    (c-ts-mode-set-style entropy/emacs-C-style))
-  (add-hook 'c-ts-base-mode-hook
-            #'entropy/emacs-c-ts-mode-basic-set))
+  (entropy/emacs-editor-convention/op/add-mode-hook
+    (cons t 'entropy/emacs-c-ts-mode-basic-set) nil
+    :use-hook 'c-ts-base-mode-hook
+    :use-timer-cond 'with-current-buffer
+    :use-append t
+    (entropy/emacs-editor-convention/wrapper/do-unless-prop-is-set
+      'tab_width nil
+      (setq-local tab-width entropy/emacs-C-tab-width))
+    (entropy/emacs-editor-convention/wrapper/do-unless-prop-is-set
+      'indent_size nil
+      (setq-local c-ts-mode-indent-offset entropy/emacs-C-basic-offset))
+    (c-ts-mode-set-style entropy/emacs-C-style)))
 
 ;; ** provide
 (provide 'entropy-emacs-c)

@@ -72,24 +72,6 @@ set of `entropy/emacs-browse-url-function-get-for-web-preview'."
 (defvar web-mode-css-indent-offset)
 (defvar web-mode-code-indent-offset)
 (defvar tern-mode)
-(defun entropy/emacs-web--web-mode-start-hook ()
-  ;; Set indent and tab-width
-  (setq web-mode-markup-indent-offset 2)
-  (setq web-mode-css-indent-offset 4)
-  (setq web-mode-code-indent-offset 2)
-  (setq indent-tabs-mode nil)
-  (setq tab-width 2)
-  (progn
-    (entropy/emacs-require-only-once 'yasnippet)
-    (unless yas-minor-mode
-      (yas-minor-mode 1))
-    (yas-activate-extra-mode 'php-mode)
-    (yas-activate-extra-mode 'js2-mode)
-    (yas-activate-extra-mode 'css-mode))
-  (web-mode-set-engine "php")
-  ;; fake initial value for tern in `web-mode', used for
-  ;; `company-tern''s subtroutine.
-  (setq-local tern-mode nil))
 
 ;; ** web frontend technologies
 ;; *** html
@@ -252,8 +234,34 @@ set of `entropy/emacs-browse-url-function-get-for-web-preview'."
 
 ;; ***** init
   :init
-  (add-hook 'web-mode-hook
-            'entropy/emacs-web--web-mode-start-hook)
+
+  (entropy/emacs-editor-convention/op/add-mode-hook
+    (cons t 'entropy/emacs-web--web-mode-start-hook) nil
+    :use-hook 'web-mode-hook :use-timer-cond 'with-current-buffer
+    :use-append t
+    ;; Set indent and tab-width
+    (entropy/emacs-editor-convention/wrapper/do-unless-prop-is-set
+      'indent_size nil
+      (setq-local web-mode-markup-indent-offset 2)
+      (setq-local web-mode-css-indent-offset 4)
+      (setq-local web-mode-code-indent-offset 2))
+    (entropy/emacs-editor-convention/wrapper/do-unless-prop-is-set
+      'indent_style nil
+      (setq-local indent-tabs-mode nil))
+    (entropy/emacs-editor-convention/wrapper/do-unless-prop-is-set
+      'tab_width nil
+      (setq-local tab-width 2))
+    (progn
+      (entropy/emacs-require-only-once 'yasnippet)
+      (unless yas-minor-mode
+        (yas-minor-mode 1))
+      (yas-activate-extra-mode 'php-mode)
+      (yas-activate-extra-mode 'js2-mode)
+      (yas-activate-extra-mode 'css-mode))
+    (web-mode-set-engine "php")
+    ;; fake initial value for tern in `web-mode', used for
+    ;; `company-tern''s subtroutine.
+    (setq-local tern-mode nil))
 
 ;; ***** config
   :config
@@ -294,7 +302,14 @@ set of `entropy/emacs-browse-url-function-get-for-web-preview'."
       :enable t :map-inject t :exit t)
      ("C-c C-o" css-lookup-symbol "Display the CSS documentation for SYMBOL, as found on MDN"
       :enable t :map-inject t :exit t))))
-  :init (setq css-indent-offset 2))
+  :init
+  (entropy/emacs-editor-convention/op/add-mode-hook
+    (cons t 'entropy/emacs-web--css-mode-common-setup) nil
+    :use-hook 'css-mode-hook :use-timer-cond 'with-current-buffer
+    :use-append t
+    (entropy/emacs-editor-convention/wrapper/do-unless-prop-is-set
+      'indent_size nil
+      (setq-local css-indent-offset 2))))
 
 ;; *** JSON mode
 (use-package json-mode
@@ -375,11 +390,13 @@ set of `entropy/emacs-browse-url-function-get-for-web-preview'."
     ;; inntenter for emacs 24 and lower
     (if (< emacs-major-version 25) (require 'js2-old-indent))
     (require 'js2-imenu-extras)
-    (entropy/emacs-add-hook-with-lambda
-      'js2-initialized-common (&rest _)
-      :use-hook 'js2-mode-hook
+    (entropy/emacs-editor-convention/op/add-mode-hook
+      (cons t 'entropy/emacs-web--js2-common-setup) nil
+      :use-hook 'js2-mode-hook :use-timer-cond 'with-current-buffer
       :use-append t
-      (setq-local js2-basic-offset 4)
+      (entropy/emacs-editor-convention/wrapper/do-unless-prop-is-set
+        'indent_size nil
+        (setq-local js2-basic-offset 4))
       (js2-imenu-extras-mode 1)))
 
   (if entropy/emacs-prog/javascript/use-major-mode/js2-mode/p

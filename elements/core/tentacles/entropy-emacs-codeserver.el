@@ -824,6 +824,10 @@ shutdown since it is managed by the customize variable
    lsp-keep-workspace-alive
    nil)
 
+  ;; do not use LSP server's region Indentation capability since we
+  ;; should respect =eemacs-editor-convention=.
+  (setq lsp-enable-indentation nil)
+
 ;; ******** lsp diagnostics set
   ;; Use flycheck prefer as diagnostics backend
   (defvar lsp-diagnostics-provider)
