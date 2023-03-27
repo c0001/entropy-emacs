@@ -2465,12 +2465,12 @@ SYM defaults to `entropy/emacs-editor-convention/var/get-property-ops'."
     (error "wrong type of eemacs editor convention property: %s"
            prop))
   (unless sym (setq sym 'entropy/emacs-editor-convention/var/get-property-ops))
-  (let* ((tref (gv-ref (assoc prop (symbol-value sym))))
-         (tass (gv-deref tref))
-         (tval (cdr tass))
+  (let* ((tref (assoc prop (symbol-value sym)))
+         (tval (cdr tref))
          (mmp  (and tval (memq op tval))))
     (unless mmp
-      (if tass (setf tass (cons (car tass) (cons op tval)))
+      (if (car tref)
+          (setf (alist-get prop (symbol-value sym)) (cons op tval))
         (add-to-list sym (cons prop (cons op nil)))))))
 
 (defvar entropy/emacs-editor-convention/var/get-property-ops nil
@@ -2536,6 +2536,241 @@ to set =eemacs-editor-convention= referred specs in BODY.
 
 %s"
             (documentation 'entropy/emacs-add-hook-with-lambda-use-timer))))
+
+;; *** dir-local branch
+
+(defvar entropy/emacs-editor-convention-indentation-alist
+  ;; For contributors: Sort modes in alphabetical order
+  '((apache-mode apache-indent-level)
+    (awk-mode c-basic-offset)
+    (bpftrace-mode c-basic-offset)
+    (c++-mode c-basic-offset)
+    (c++-ts-mode c-basic-offset
+                 c-ts-mode-indent-offset)
+    (c-mode c-basic-offset)
+    (c-ts-mode c-basic-offset
+               c-ts-mode-indent-offset)
+    (cmake-mode cmake-tab-width)
+    (cmake-ts-mode cmake-tab-width
+                   cmake-ts-mode-indent-offset)
+    (coffee-mode coffee-tab-width)
+    (cperl-mode cperl-indent-level)
+    (crystal-mode crystal-indent-level)
+    (csharp-mode c-basic-offset)
+    (csharp-ts-mode c-basic-offset
+                    csharp-ts-mode-indent-offset)
+    (css-mode css-indent-offset)
+    (css-ts-mode css-indent-offset)
+    (d-mode c-basic-offset)
+    (emacs-lisp-mode lisp-indent-offset)
+    (enh-ruby-mode enh-ruby-indent-level)
+    (erlang-mode erlang-indent-level)
+    (ess-mode ess-indent-offset)
+    (f90-mode f90-associate-indent
+              f90-continuation-indent
+              f90-critical-indent
+              f90-do-indent
+              f90-if-indent
+              f90-program-indent
+              f90-type-indent)
+    (feature-mode feature-indent-offset
+                  feature-indent-level)
+    (fsharp-mode fsharp-continuation-offset
+                 fsharp-indent-level
+                 fsharp-indent-offset)
+    (groovy-mode groovy-indent-offset)
+    (go-ts-mode go-ts-mode-indent-offset)
+    (haskell-mode haskell-indent-spaces
+                  haskell-indent-offset
+                  haskell-indentation-layout-offset
+                  haskell-indentation-left-offset
+                  haskell-indentation-starter-offset
+                  haskell-indentation-where-post-offset
+                  haskell-indentation-where-pre-offset
+                  shm-indent-spaces)
+    (haxor-mode haxor-tab-width)
+    (html-ts-mode html-ts-mode-indent-offset)
+    (idl-mode c-basic-offset)
+    (jade-mode jade-tab-width)
+    (java-mode c-basic-offset)
+    (java-ts-mode c-basic-offset
+                  java-ts-mode-indent-offset)
+    (js-mode js-indent-level)
+    (js-jsx-mode js-indent-level sgml-basic-offset)
+    (js2-mode js2-basic-offset)
+    (js2-jsx-mode js2-basic-offset sgml-basic-offset)
+    (js3-mode js3-indent-level)
+    (json-mode js-indent-level)
+    (json-ts-mode json-ts-mode-indent-offset)
+    (julia-mode julia-indent-offset)
+    (kotlin-mode kotlin-tab-width)
+    (latex-mode
+     tex-indent-basic
+     tex-indent-item
+     tex-indent-arg
+     ;; For AUCTeX
+     TeX-brace-indent-level
+     LaTeX-indent-level
+     LaTeX-item-indent)
+    (lisp-mode lisp-indent-offset)
+    (livescript-mode livescript-tab-width)
+    (lua-mode lua-indent-level)
+    (matlab-mode matlab-indent-level)
+    (meson-mode meson-indent-basic)
+    (mips-mode mips-tab-width)
+    (mustache-mode mustache-basic-offset)
+    (nasm-mode nasm-basic-offset)
+    (nginx-mode nginx-indent-level)
+    (nxml-mode nxml-child-indent nxml-attribute-indent)
+    (objc-mode c-basic-offset)
+    (octave-mode octave-block-offset)
+    (perl-mode perl-indent-level)
+    (php-mode c-basic-offset php-mode-coding-style)
+    (pike-mode c-basic-offset)
+    (ps-mode ps-mode-tab)
+    (pug-mode pug-tab-width)
+    (puppet-mode puppet-indent-level)
+    (python-mode python-indent-offset
+                 ;; For https://launchpad.net/python-mode
+                 py-indent-offset)
+    (python-ts-mode python-indent-offset
+                    ;; For https://launchpad.net/python-mode
+                    py-indent-offset)
+    (rjsx-mode js-indent-level sgml-basic-offset)
+    (ruby-mode ruby-indent-level)
+    (ruby-ts-mode ruby-indent-level)
+    (rust-mode rust-indent-offset)
+    (rust-ts-mode rust-indent-offset
+                  rust-ts-mode-indent-offset)
+    (rustic-mode rustic-indent-offset)
+    (scala-mode scala-indent:step)
+    (scss-mode css-indent-offset)
+    (sgml-mode sgml-basic-offset)
+    (sh-mode sh-basic-offset sh-indentation)
+    (slim-mode slim-indent-offset)
+    (sml-mode sml-indent-level)
+    (tcl-mode tcl-indent-level
+              tcl-continued-indent-level)
+    (terra-mode terra-indent-level)
+    (toml-ts-mode toml-ts-mode-indent-offset)
+    (typescript-mode typescript-indent-level)
+    (typescript-ts-base-mode typescript-ts-mode-indent-offset)
+    (verilog-mode verilog-indent-level
+                  verilog-indent-level-behavioral
+                  verilog-indent-level-declaration
+                  verilog-indent-level-module
+                  verilog-cexp-indent
+                  verilog-case-indent)
+    (web-mode web-mode-indent-style
+              web-mode-attr-indent-offset
+              web-mode-attr-value-indent-offset
+              web-mode-code-indent-offset
+              web-mode-css-indent-offset
+              web-mode-markup-indent-offset
+              web-mode-sql-indent-offset
+              web-mode-block-padding
+              web-mode-script-padding
+              web-mode-style-padding)
+    (yaml-mode yaml-indent-offset)
+    (yaml-ts-mode yaml-indent-offset))
+  "Alist mapping with `major-mode' with its indentation spec varaibles' name")
+
+(defun entropy/emacs-editor-convention/dir-local-get/indent_size
+    (&optional buffer)
+  (setq buffer (or buffer (current-buffer)))
+  (with-current-buffer buffer
+    (when-let ((vars (alist-get
+                      major-mode
+                      entropy/emacs-editor-convention-indentation-alist))
+               (dvals file-local-variables-alist))
+      ;; FIXME: how we deal with multi spec of meaningful usage of
+      ;; those variables i.e. TODO make the judgement more accurate
+      ;; thru per-mode `cond' analyzing.
+      (catch :exit
+        (dolist (var vars)
+          (and (assoc var dvals) (throw :exit t)))))))
+(entropy/emacs-editor-convention-register-property-value
+ 'indent_size #'entropy/emacs-editor-convention/dir-local-get/indent_size)
+
+(defun entropy/emacs-editor-convention/dir-local-get/indent-style
+    (&optional buffer)
+  (setq buffer (or buffer (current-buffer)))
+  (with-current-buffer buffer
+    (when-let ((dvals file-local-variables-alist))
+      (assoc 'indent-tabs-mode dvals))))
+(entropy/emacs-editor-convention-register-property-value
+ 'indent_style #'entropy/emacs-editor-convention/dir-local-get/indent-style)
+
+(defun entropy/emacs-editor-convention/dir-local-get/tab_width
+    (&optional buffer)
+  (setq buffer (or buffer (current-buffer)))
+  (with-current-buffer buffer
+    (when-let ((dvals file-local-variables-alist))
+      (assoc 'tab-width dvals))))
+(entropy/emacs-editor-convention-register-property-value
+ 'tab_width #'entropy/emacs-editor-convention/dir-local-get/tab_width)
+
+(defun entropy/emacs-editor-convention/dir-local-get/insert_final_newline
+    (&optional buffer)
+  (setq buffer (or buffer (current-buffer)))
+  (with-current-buffer buffer
+    (when-let ((dvals file-local-variables-alist))
+      (or (assoc 'require-final-newline dvals)
+          (assoc 'mode-require-final-newline dvals)
+          (and (memq major-mode '(c-mode c++-mode objc-mode))
+               (assoc 'c-require-final-newline dvals))
+          ;; (and (bound-and-true-p lsp-mode)
+          ;;      (or (assoc 'lsp-insert-final-newline dvals)
+          ;;          (assoc 'lsp-trim-final-newlines  dvals)))
+          ))))
+(entropy/emacs-editor-convention-register-property-value
+ 'insert_final_newline
+ #'entropy/emacs-editor-convention/dir-local-get/insert_final_newline)
+
+(defun entropy/emacs-editor-convention/dir-local-get/trim_trailing_whitespace
+    (&optional buffer)
+  (setq buffer (or buffer (current-buffer)))
+  (with-current-buffer buffer
+    (when-let ((dvals file-local-variables-alist))
+      (or (assoc 'write-file-functions dvals)
+          (and (bound-and-true-p editorconfig-mode)
+               (alist-get 'editorconfig-trim-whitespaces-mode dvals))))))
+(entropy/emacs-editor-convention-register-property-value
+ 'trim_trailing_whitespace
+ #'entropy/emacs-editor-convention/dir-local-get/trim_trailing_whitespace)
+
+(defun entropy/emacs-editor-convention/dir-local-get/max_line_length
+    (&optional buffer)
+  (setq buffer (or buffer (current-buffer)))
+  (with-current-buffer buffer
+    (when-let ((dvals file-local-variables-alist))
+      (assoc 'fill-column dvals))))
+(entropy/emacs-editor-convention-register-property-value
+ 'max_line_length
+ #'entropy/emacs-editor-convention/dir-local-get/max_line_length)
+
+(defun entropy/emacs-editor-convention/dir-local-get/end_of_line
+    (&optional buffer)
+  (setq buffer (or buffer (current-buffer)))
+  (with-current-buffer buffer
+    (when-let ((dvals file-local-variables-alist))
+      (or (assoc 'coding-system dvals)
+          (assoc 'buffer-file-coding-system dvals)
+          (assoc 'buffer-file-coding-system-explicit dvals)))))
+(entropy/emacs-editor-convention-register-property-value
+ 'end_of_line
+ #'entropy/emacs-editor-convention/dir-local-get/end_of_line)
+
+(defun entropy/emacs-editor-convention/dir-local-get/charset
+    (&optional buffer)
+  (setq buffer (or buffer (current-buffer)))
+  (with-current-buffer buffer
+    (when-let ((dvals file-local-variables-alist))
+      (or (assoc 'coding-system dvals)
+          (assoc 'buffer-file-coding-system dvals)
+          (assoc 'buffer-file-coding-system-explicit dvals)))))
+(entropy/emacs-editor-convention-register-property-value
+ 'charset #'entropy/emacs-editor-convention/dir-local-get/charset)
 
 ;; * provide
 (provide 'entropy-emacs-defvar)
