@@ -1032,7 +1032,13 @@ posframe when available."
                      (val (gethash prop hash))) val))
        (format "Return `editorconfig-mode' prop `%s' value for \
 buffer BUFFER (defaults to `current-buffer'), or nil if not has
-one of so." prop)))))
+one of so." prop))))
+
+  :config
+  ;; add missing indentation guides
+  (unless (alist-get 'js-ts-mode editorconfig-indentation-alist)
+    (add-to-list 'editorconfig-indentation-alist
+                 '(js-ts-mode js-indent-level))))
 
 ;; ** Benchmark
 
