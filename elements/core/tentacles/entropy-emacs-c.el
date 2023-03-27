@@ -122,7 +122,13 @@
 
 (use-package c-ts-mode
   :ensure nil
-  :if entropy/emacs-ide-is-treesit-generally-adapted-p
+  :if (bound-and-true-p entropy/emacs-ide-is-treesit-generally-adapted-p)
+  ;; escape byte-compile warning since
+  ;; `use-package-normalize-keywords' will force load the package to
+  ;; extract all symbols, macros from the package to optimize
+  ;; byte-compile depth, but it's a bug since we've use keyword `:if'
+  ;; to skip, TODO: shall we push an issue for upstream?
+  :no-require (not (bound-and-true-p entropy/emacs-ide-is-treesit-generally-adapted-p))
   :init
   (entropy/emacs-editor-convention/op/add-mode-hook
     (cons t 'entropy/emacs-c-ts-mode-basic-set) nil
