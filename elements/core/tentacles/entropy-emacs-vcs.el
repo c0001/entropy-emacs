@@ -117,6 +117,17 @@
 
   :config
 
+  (entropy/emacs-add-hook-with-lambda
+    (cons t 'eemacs/magit-prefer-traditonal-prog-mode) nil
+    "eemacs magit specifications to avoid treesit modes auto triggerred."
+    :use-hook 'entropy/emacs-prefer-use-traditional-prog-mode-filters
+    (or
+     (memq this-command
+           '(;; since `magit-diff-visit-file' bind some key in the
+             ;; first mode call, and they are lost after idle trigger
+             ;; the *-ts-mode later.
+             magit-diff-visit-file))))
+
   (defun entropy/emacs-vcs-magit--add-mode-transient-default-arguments
       (mode prop &rest args)
     "Modify magit MODE's transient property PROP's default

@@ -2333,6 +2333,14 @@ its origin defination.")
 ;; ** prog-modes
 ;; *** union
 ;; **** treesit prefer
+
+(defvar entropy/emacs-prefer-use-traditional-prog-mode-filters nil
+  "List of functions ran in `current-buffer' when the a
+traditional derived `prog-mode' prepared changed to a
+\"*-ts-mode\" (i.e. in the meanwhile `major-mode' is set to
+that traditional mode) to justify whether we should do thus when
+any of them return non-nil.")
+
 (defun entropy/emacs-enable-prog-mode-prefer-treesit (prog-mode-name)
   (when-let*
       ;; justice conditions
@@ -2368,7 +2376,13 @@ its origin defination.")
                   ;; function like what `bash-ts-mode' did which has
                   ;; an advice for fallbacking to `sh-mode' for some
                   ;; cases.
-                  (entropy/emacs-bound-and-true-p adv-avar-name))
+                  (entropy/emacs-bound-and-true-p adv-avar-name)
+                  ;; fore more justify
+                  (and (bound-and-true-p entropy/emacs-prefer-use-traditional-prog-mode-filters)
+                       (let ((major-mode prog-mode-name))
+                         (catch :exit
+                           (dolist (f entropy/emacs-prefer-use-traditional-prog-mode-filters)
+                             (and (funcall f) (throw :exit t)))))))
               (apply orig-func orig-args)
             ;; disable its mode indicator first
             (when (and (boundp prog-mode-name)
