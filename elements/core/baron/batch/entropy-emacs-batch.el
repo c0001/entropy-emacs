@@ -340,6 +340,23 @@ In used emacs version is: %s
 (defun entropy/emacs-batch--install-eemacs-ext-stable-build-repo-core ()
   (let* ((url entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-get-url)
          (host entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-local-path)
+         (_ (when-let (((file-exists-p host))
+                       (fname (directory-file-name host))
+                       (date  (format-time-string "%Y%m%d%H%M%S"))
+                       (fname-old (format "%s.old_%s" fname date)))
+              (while (file-exists-p fname-old)
+                (setq fname-old
+                      (concat fname-old (format "_%s" (random most-positive-fixnum)))))
+              (unless (yes-or-no-p (format "Backup old Installation (mv `%s' to `%s') ? "
+                                           fname fname-old))
+                (entropy/emacs-message-do-error
+                 "%s" (yellow "Abort!")))
+              (condition-case err
+                  (rename-file fname fname-old)
+                (error
+                 (entropy/emacs-message-do-error
+                  "%s" (red (format "Error: backup old eemacs-ext-build \
+'%s' to '%s' with fatal of (%s)" fname fname-old err)))))))
          (stuff-dir
           (make-temp-name (expand-file-name
                            (format
@@ -383,7 +400,7 @@ In used emacs version is: %s
                  (entropy/emacs-error-without-debugger
                   "Sha256 hash verify for file <%s> \
 faild with hash '%s' which must match '%s'"
-                        file cur-hash stick-hash))
+                  file cur-hash stick-hash))
                t))))
     (unless (eq (symbol-value download-cbk) 'success)
       (entropy/emacs-message-do-error
@@ -417,20 +434,7 @@ faild with hash '%s' which must match '%s'"
      (green "Get eemacs-ext-stable repo done!"))))
 
 (defun entropy/emacs-batch--install-eemacs-ext-stable-build-repo ()
-  (let ((host entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-local-path)
-        (did-p t))
-    (when (file-exists-p host)
-      (setq did-p (yes-or-no-p (format "Remove old install (%s)? " host)))
-      (and did-p
-           (rename-file
-            host
-            (concat host
-                    (format ".bak_%s"
-                            (format-time-string "%Y%m%d%H%M%S"))))))
-    (if did-p (entropy/emacs-batch--install-eemacs-ext-stable-build-repo-core)
-      (entropy/emacs-message-do-message
-       "%s"
-       (yellow "Abort!")))))
+  (entropy/emacs-batch--install-eemacs-ext-stable-build-repo-core))
 
 (advice-add 'entropy/emacs-batch--install-eemacs-ext-stable-build-repo
             :around
