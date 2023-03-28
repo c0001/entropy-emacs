@@ -2435,20 +2435,6 @@ any of them return non-nil.")
                        `(let ((,adv-avar-name t))
                           (prog1 (apply ',tsm-nm ',orig-args)
                             (unless ,adv-rvar-name (setq ,adv-rvar-name t))
-                            ;; FIXME: remove *-ts-mode from
-                            ;; `auto-mode-alist' since we must take
-                            ;; charge the mode association via eemac
-                            ;; spec of
-                            ;; `entropy/emacs-ide-prefer-use-treesit-p'. But
-                            ;; almost all of *-ts-mode are hardcoded
-                            ;; to inject themselves to
-                            ;; `auto-mode-alist' after the first time
-                            ;; enable them (or every time) which not be documented
-                            ;; anywhere where such pity be and shall
-                            ;; issue a suggestion for upstream?
-                            (when (rassq ',tsm-nm auto-mode-alist)
-                              (entropy/emacs-setf-by-body auto-mode-alist
-                                (rassq-delete-all ',tsm-nm auto-mode-alist)))
                             ))))))))))))
       (format "Automatically switch to `%s' when available for any invocations to `%s'"
               tsm-nm prog-mode-name))
@@ -2457,6 +2443,26 @@ any of them return non-nil.")
     adv-func-name))
 
 (when entropy/emacs-ide-is-treesit-generally-adapted-p
+  ;; FIXME: remove *-ts-mode from `auto-mode-alist' since we must take
+  ;; charge the mode association via eemac spec of
+  ;; `entropy/emacs-ide-prefer-use-treesit-p'. But almost all of
+  ;; *-ts-mode are hardcoded to inject themselves to `auto-mode-alist'
+  ;; after the first time enable them (or every time) which not be
+  ;; documented anywhere where such pity be and shall issue a
+  ;; suggestion for upstream?
+  (dolist (mm entropy/emacs-ide-for-them/treesit-variants)
+    (let ((arnm (intern (format "entropy/emacs--%s/cleanup-treesit-automode-injections"
+                                mm))))
+      (defalias arnm
+        (lambda (orig-func &rest orig-args)
+          (prog1 (apply orig-func orig-args)
+            (if (rassq mm auto-mode-alist)
+                (setq auto-mode-alist
+                      (rassq-delete-all mm auto-mode-alist)))
+            ;; that's also for `interpreter-mode-alist'
+            (if (rassq mm interpreter-mode-alist)
+                (setq interpreter-mode-alist
+                      (rassq-delete-all mm interpreter-mode-alist))))))))
   (dolist (mm entropy/emacs-ide-for-them/classic)
     (let ((arnm (intern (format "entropy/emacs--treesit-arranging-prog-mode/%s"
                                 mm)))
