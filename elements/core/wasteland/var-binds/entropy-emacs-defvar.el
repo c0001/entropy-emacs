@@ -2334,6 +2334,8 @@ its origin defination.")
 ;; *** union
 ;; **** treesit prefer
 
+(defvar entropy/emacs--treesit-arranging-p nil)
+
 (defvar entropy/emacs-prefer-use-traditional-prog-mode-filters nil
   "List of functions ran in `current-buffer' when the a
 traditional derived `prog-mode' prepared changed to a
@@ -2366,11 +2368,20 @@ any of them return non-nil.")
         (intern (format "__adv/around/auto-treesit-enable-for/%s/rvar"
                         prog-mode-name))))
     (eval `(defvar ,adv-avar-name nil))
-    (eval `(defvar ,adv-rvar-name nil))
+    (eval `(defvar-local ,adv-rvar-name nil))
     (defalias adv-func-name
       (lambda (orig-func &rest orig-args)
         (let ((curbuff (current-buffer)))
-          (if (or (not (entropy/emacs-ide-prefer-use-treesit-p prog-mode-name))
+          ;; NOTE: enure mode exactly for distinguish from derivation
+          ;; mode such as `php-mode' dirived from `c-mode' which has
+          ;; an treesit variant `c-ts-mode' which we've hacked on but
+          ;; don't want to trigger that if it performs as an based
+          ;; mode of children.
+          (if (or (when (bound-and-true-p entropy/emacs--treesit-arranging-p)
+                    ;; thus of invocation from derived child-modes
+                    (not (eq entropy/emacs--treesit-arranging-p
+                             prog-mode-name)))
+                  (not (entropy/emacs-ide-prefer-use-treesit-p prog-mode-name))
                   (not (treesit-language-available-p lnm))
                   ;; NOTE: prevent nested invocation from `tsm-nm'
                   ;; function like what `bash-ts-mode' did which has
@@ -2423,6 +2434,7 @@ any of them return non-nil.")
                       (entropy/emacs-eval-with-lexical
                        `(let ((,adv-avar-name t))
                           (prog1 (apply ',tsm-nm ',orig-args)
+                            (unless ,adv-rvar-name (setq ,adv-rvar-name t))
                             ;; FIXME: remove *-ts-mode from
                             ;; `auto-mode-alist' since we must take
                             ;; charge the mode association via eemac
@@ -2431,19 +2443,34 @@ any of them return non-nil.")
                             ;; almost all of *-ts-mode are hardcoded
                             ;; to inject themselves to
                             ;; `auto-mode-alist' after the first time
-                            ;; enable them which not be documented
+                            ;; enable them (or every time) which not be documented
                             ;; anywhere where such pity be and shall
                             ;; issue a suggestion for upstream?
-                            (unless ,adv-rvar-name
-                              (setq auto-mode-alist (rassq-delete-all ',tsm-nm auto-mode-alist)
-                                    ,adv-rvar-name t))))))))))))))
+                            (when (rassq ',tsm-nm auto-mode-alist)
+                              (entropy/emacs-setf-by-body auto-mode-alist
+                                (rassq-delete-all ',tsm-nm auto-mode-alist)))
+                            ))))))))))))
       (format "Automatically switch to `%s' when available for any invocations to `%s'"
               tsm-nm prog-mode-name))
-    (advice-add prog-mode-name :around adv-func-name)))
+    (advice-add prog-mode-name :around adv-func-name)
+    ;; ensure return the adv funcname
+    adv-func-name))
 
 (when entropy/emacs-ide-is-treesit-generally-adapted-p
-  (dolist (mm entropy/emacs-ide-for-them)
-    (entropy/emacs-enable-prog-mode-prefer-treesit mm)))
+  (dolist (mm entropy/emacs-ide-for-them/classic)
+    (let ((arnm (intern (format "entropy/emacs--treesit-arranging-prog-mode/%s"
+                                mm)))
+          (avnm (entropy/emacs-enable-prog-mode-prefer-treesit mm)))
+      (defalias arnm
+        (lambda (orig-func &rest orig-args)
+          (let ((entropy/emacs--treesit-arranging-p
+                 (or entropy/emacs--treesit-arranging-p mm)))
+            (apply orig-func orig-args)))
+        (format "Make `%s' understood whether we are invoked by `%s' from top-level
+mode enabling chain i.e. not called from a derived child mode
+like `php-mode' invoke `c-mode' internally since the former
+`derived-mode-p' form the latter." avnm mm))
+      (advice-add mm :around arnm))))
 
 ;; *** js-mode
 
