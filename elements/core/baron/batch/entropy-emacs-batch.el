@@ -380,7 +380,7 @@ In used emacs version is: %s
     ;; download archive
     (entropy/emacs-message-do-message
      "%s"
-     (green "Downloading eemacs-ext-stable repo ... "))
+     (green "Downloading eemacs-ext-stable repo from (%s) ... " url))
     (setq download-cbk
           (entropy/emacs-network-download-file
            url tmp-name

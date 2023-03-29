@@ -12704,6 +12704,13 @@ by get `entropy/emacs-union-http-prroxy-internal-enable-p' non-nil."
            (funcall filter-func))
       (entropy/emacs-eval-with-lexical
        `(let (,@(entropy/emacs-gen-eemacs-union-http-internet-proxy-let-bindings))
+          (when (bound-and-true-p noninteractive)
+            (entropy/emacs-message-do-message
+             "%s"
+             (yellow
+              (format "[WARN] Do with eemacs union http proxy %s:%s ..."
+                      (plist-get entropy/emacs-union-http-proxy-plist :host)
+                      (plist-get entropy/emacs-union-http-proxy-plist :port)))))
           (apply ',orig-func ',orig-args)))
     (apply orig-func orig-args)))
 
