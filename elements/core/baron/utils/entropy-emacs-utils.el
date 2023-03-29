@@ -1036,9 +1036,10 @@ one of so." prop))))
 
   :config
   ;; add missing indentation guides
-  (unless (alist-get 'js-ts-mode editorconfig-indentation-alist)
-    (add-to-list 'editorconfig-indentation-alist
-                 '(js-ts-mode js-indent-level))))
+  ;; (unless (alist-get 'js-ts-mode editorconfig-indentation-alist)
+  ;;   (add-to-list 'editorconfig-indentation-alist
+  ;;                '(js-ts-mode js-indent-level)))
+  )
 
 ;; ** Benchmark
 
