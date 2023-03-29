@@ -218,29 +218,40 @@ To get the real-body in BODY.
                    format args)
             0)))
 
-(defmacro entropy/emacs-message-format-message (message &rest args)
-  "An alternative to `format' that strips out ANSI codes if used in an
-interactive session."
+(defmacro entropy/emacs-message-format-message-1 (message &rest args)
+  "An alternative to `format' but given capable to colorized ARGS via
+ANSI escape color codes thru binding inner color wrapper whose name is
+any key of alist of:
+1) `entropy/emacs-message--message-fg'
+2) `entropy/emacs-message--message-bg'
+3) `entropy/emacs-message--message-fx'"
   `(cl-flet*
        (,@(cl-loop for rule
-                   in (append entropy/emacs-message--message-fg
-                              entropy/emacs-message--message-bg
-                              entropy/emacs-message--message-fx)
-                   collect
-                   `(,(car rule)
-                     (lambda (message &rest args)
-                       (apply #'entropy/emacs-message--ansi-format
-                              ',(car rule) message args))))
+            in (append entropy/emacs-message--message-fg
+                       entropy/emacs-message--message-bg
+                       entropy/emacs-message--message-fx)
+            collect
+            `(,(car rule)
+              (lambda (message &rest args)
+                (apply #'entropy/emacs-message--ansi-format
+                       ',(car rule) message args))))
         (color
-         (lambda (code format &rest args)
-           (apply #'entropy/emacs-message--ansi-format
-                  code format args))))
+          (lambda (code format &rest args)
+            (apply #'entropy/emacs-message--ansi-format
+                   code format args))))
      (funcall 'entropy/emacs-message--safety-format ,message ,@args)))
+
+(defmacro entropy/emacs-message-format-message (message &rest args)
+  "Like `format' but also can apply ANSI color codes for MESSAGE via
+ARGS using
+`entropy/emacs-message-format-message-1'."
+  `(entropy/emacs-message--ansi-color-apply-for-face
+    (entropy/emacs-message-format-message-1 ,message ,@args)))
 
 (defmacro entropy/emacs-message--do-message-ansi-apply (message &rest args)
   `(let* ((echo-string nil)
           (inhibit-read-only t)
-          (rtn-1 (entropy/emacs-message-format-message ,message ,@args))
+          (rtn-1 (entropy/emacs-message-format-message-1 ,message ,@args))
           (rtn
            (entropy/emacs-message--ansi-color-apply-for-face
             rtn-1)))

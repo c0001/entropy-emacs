@@ -3132,6 +3132,75 @@ of the which regexp string matched STR and cdr of the origin return."
                             rtn))))
       nil)))
 
+(defun entropy/emacs-substring (string &optional from to)
+  "Like `substring' but the return SUBSTR's `string-width' is always
+less or equal than the difference DIFF between TO and FROM.
+
+This function exists since the `string-width' of SUBSTR is not
+always equal to DIFF since STRING may have non-ASCII char whose
+width is larger than 1."
+  (if (and (natnump to) (< to 0)) (substring string from to)
+    (let* ((swd (string-width string))
+           (str (substring string from to))
+           (sswd (string-width str))
+           (idfunc (lambda (x y)
+                     (if x (if (< x 0) (- swd x) x)
+                       (if y swd 0))))
+           ftwd (rtn str))
+      (setq from (funcall idfunc from nil)
+            to   (funcall idfunc   to t)
+            ftwd (- to from))
+      (while (> sswd ftwd)
+        (setq rtn (substring rtn nil -1)
+              sswd (string-width rtn)))
+      rtn)))
+
+(defun entropy/emacs-substring-to-window-max-chars-width
+    (string &optional from to ellipsis window face)
+  "Truncate STRING with the width WWIDTH of
+`window-max-chars-per-line' of
+WINDOW, and return the `entropy/emacs-substring' SUBSTR.
+
+FROM and TO are both applied to `entropy/emacs-substring' while
+grabbing the string to be truncating.
+
+WINDOW and FACE is used for `window-max-chars-per-line' directly
+with original defaults when either of them is omitted.
+
+If ELLIPSIS is set, it should be a string to replace the tail of
+SUBSTR if STRING is really wider than WWIDTH, otherwise it's
+ignored.
+
+If ELLIPSIS is wider than or equals to the SUBSTR, it's ignored
+as well.
+
+ELLIPSIS can also be a integer which can be predicated by
+`natnump', which is used to truncate the SUBSTR from the end of
+it. In this case ELLIPSIS will be ignored either caused by its
+length restriction as same as when it's a string.
+
+Always return nil when either the SUBSTR is `string-empty-p' or
+WINDOW is not alived to based on for calculating."
+  (entropy/emacs-when-let*-firstn 5
+      ((win (or window (selected-window)))
+       ((window-live-p win))
+       (wwd (window-max-chars-per-line win face))
+       (str (entropy/emacs-substring string from to))
+       ((not (string-empty-p str)))
+       (swd (string-width str)) (elnp nil)
+       (ewd (when ellipsis
+              (or (and (stringp ellipsis) (string-width ellipsis))
+                  (and (setq elnp (natnump ellipsis)) ellipsis)
+                  (signal 'wrong-type-argument
+                          (list 'string-or-natnump-ellipsis ellipsis))))))
+    (entropy/emacs-setf-by-body str
+      (if (<= swd wwd) str (entropy/emacs-substring str nil wwd)))
+    (if (or (not ewd) (>= ewd swd) (<= swd wwd)) str
+      (entropy/emacs-setf-by-body str
+        (if elnp (entropy/emacs-substring str nil (- 0 ewd))
+          (concat (entropy/emacs-substring str nil (- 0 ewd))
+                  ellipsis))))))
+
 ;; *** Arithmetic manupulation
 ;; **** basic
 

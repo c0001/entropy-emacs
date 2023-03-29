@@ -3004,12 +3004,14 @@ dwim memory and use both height and width fit display type."
   (defun entropy/emacs-basic--image-diared-display-image
       (&rest orig-args)
     "See `__ya/image-dired-display-image'."
-    (let ((imgf (car orig-args)))
+    (let* ((imgf (car orig-args))
+           (msg (entropy/emacs-substring-to-window-max-chars-width
+                 (entropy/emacs-message-format-message
+                  "%s [%s]" (green "Rendering image file")
+                  (yellow imgf))
+                 nil nil 8 (minibuffer-window))))
       (entropy/emacs-message-simple-progress-message
-       "%s [%s]"
-       :with-temp-message t
-       :with-message-color-args
-       `((green "Rendering image file") (yellow ,imgf))
+       msg :with-temp-message t
        (apply '__ya/image-dired-display-image orig-args))))
 
   (advice-add 'image-dired-display-image
