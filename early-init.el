@@ -69,7 +69,8 @@ the updated value."
     (push (expand-file-name (file-name-as-directory cache-directory)
                             user-emacs-directory)
           native-comp-eln-load-path)))
-(startup-redirect-eln-cache entropy/emacs-eln-cache-directory)
+(when (boundp 'native-comp-eln-load-path)
+  (startup-redirect-eln-cache entropy/emacs-eln-cache-directory))
 
 ;;;; Basic
 ;; Package initialize occurs automatically, before `user-init-file' is
