@@ -12619,7 +12619,7 @@ Return nil when `entropy/emacs-union-http-proxy-plist''s
                                       "\\)"
                                       )))))))
 
-(defvar entropy/emacs-union-http-prroxy-internal-enable-p nil
+(defvar entropy/emacs-union-http-proxy-internal-enable-p nil
   "The internal set for
 `entropy/emacs-funcall-with-eemacs-union-http-internet-proxy'
 when the proxy env wrapping enabled")
@@ -12640,7 +12640,7 @@ mistakes."
   (apply
    'entropy/emacs-list-without-orphans
    :with-orphans '(nil)
-   '(entropy/emacs-union-http-prroxy-internal-enable-p t)
+   '(entropy/emacs-union-http-proxy-internal-enable-p t)
    `(url-proxy-services
      ',(entropy/emacs-gen-eemacs-union-http-internet-proxy-url-proxy-services))
    `(process-environment
@@ -12665,7 +12665,7 @@ mistakes."
 `entropy/emacs-funcall-with-eemacs-union-http-internet-proxy' for
 timer since timer is delayed call that can not inherit the
 lexical binding."
-  (if entropy/emacs-union-http-prroxy-internal-enable-p
+  (if entropy/emacs-union-http-proxy-internal-enable-p
       (let ((func-call (nth 1 orig-args))
             func)
         (entropy/emacs-setf-by-body func
@@ -12699,7 +12699,7 @@ descriptor used to wrapping them in let binding for
 function called without any arguments) is non-nil.
 
 Additionally, the ORIG-FUNC can retrieve whether proxy wrapper enabled
-by get `entropy/emacs-union-http-prroxy-internal-enable-p' non-nil."
+by get `entropy/emacs-union-http-proxy-internal-enable-p' non-nil."
   (if (and (plist-get entropy/emacs-union-http-proxy-plist :enable)
            (funcall filter-func))
       (entropy/emacs-eval-with-lexical
@@ -12721,7 +12721,7 @@ HTTP proxy generated via `entropy/emacs-union-http-proxy-plist'
 by `entropy/emacs-funcall-with-eemacs-union-http-internet-proxy'."
   (apply
    'entropy/emacs-funcall-with-eemacs-union-http-internet-proxy
-   (lambda (&rest _) (not entropy/emacs-union-http-prroxy-internal-enable-p))
+   (lambda (&rest _) (not entropy/emacs-union-http-proxy-internal-enable-p))
    orig-func orig-args))
 
 ;; ** Major-modes' eemacs extra APIs
