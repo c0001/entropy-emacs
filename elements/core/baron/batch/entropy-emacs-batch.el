@@ -379,8 +379,10 @@ In used emacs version is: %s
       (make-directory d t))
     ;; download archive
     (entropy/emacs-message-do-message
-     "%s"
-     (green "Downloading eemacs-ext-stable repo from (%s) ... " url))
+     "%s %s %s"
+     (green "Downloading eemacs-ext-stable repo")
+     (yellow (format "%s" url))
+     (green "..."))
     (setq download-cbk
           (entropy/emacs-network-download-file
            url tmp-name
