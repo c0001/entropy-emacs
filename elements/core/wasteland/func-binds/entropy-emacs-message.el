@@ -101,14 +101,6 @@ functional whenever what it is.")
 (defvar entropy/emacs-message--idle-timer-for-hide-popup nil)
 
 ;; ** library
-
-(defun entropy/emacs-message--safety-format (string &rest objects)
-  "Like `format' but wrap when no objects presented so as safety
-thus."
-  (if objects
-      (apply 'format string objects)
-    (format "%s" string)))
-
 (defun entropy/emacs-message--in-daemon-load-p ()
   "Judge whether current env is a daemon silence status e.g both
 satisficed `daemonp' and in dameon load time i.e. before make a client
@@ -214,8 +206,7 @@ To get the real-body in BODY.
             ;; we shouldn't use `format' with only string type since
             ;; any string contain format notaion will cause it
             ;; corrupt.
-            (apply 'entropy/emacs-message--safety-format
-                   format args)
+            (apply 'entropy/emacs-safety-format format args)
             0)))
 
 (defmacro entropy/emacs-message-format-message-1 (message &rest args)
@@ -239,7 +230,7 @@ any key of alist of:
           (lambda (code format &rest args)
             (apply #'entropy/emacs-message--ansi-format
                    code format args))))
-     (funcall 'entropy/emacs-message--safety-format ,message ,@args)))
+     (funcall 'entropy/emacs-safety-format ,message ,@args)))
 
 (defmacro entropy/emacs-message-format-message (message &rest args)
   "Like `format' but also can apply ANSI color codes for MESSAGE via

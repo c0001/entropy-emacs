@@ -133,6 +133,22 @@ This variable exists since emacs's inner \"false\" presented symbol
 distinguish \\='nil' of a value from when it's a \"false\" indicator.
 ")
 
+(defun entropy/emacs-safety-format (string &rest objects)
+  "Like `format' but prevent user use the STRINGas the
+only argument apply to it which may cause error while the STRING
+is actually a format-string but used as a common string and no
+OBJECTS can be formatted."
+  (if objects (apply 'format string objects)
+    (format "%s" string)))
+
+(defun entropy/emacs-safety-message (format-string &rest args)
+  "Like `message' but prevent user use the FORMAT-STRING as the
+only argument apply to it which may cause error while the
+FORMAT-STRING is actually a format-string but used as a common
+string and no ARGS can be formatted."
+  (if args (apply 'message format-string args)
+    (message "%s" format-string)))
+
 ;; ** eemacs top APIs
 ;; Top declared functions used for eemacs.
 
@@ -424,15 +440,6 @@ INITVAL."
       (setq cusval (eval (car exp)))
       (if (and symbdp (equal cusval (setq symval (symbol-value symbol))))
           symval cusval))))
-
-(defun entropy/emacs-safety-message (format-string &rest args)
-  "Like `message' but prevent user use the FORMAT-STRING as the
-only argument apply to it which may cause error while the
-FORMAT-STRING is actually a format-string but used as a common
-string and no ARGS can be formatted."
-  (if args
-      (apply 'message format-string args)
-    (message "%s" format-string)))
 
 (defun entropy/emacs-time-subtract (before &optional now use-float)
   "`time-subtract' from BEFORE to NOW (defautls to `current-time').
