@@ -508,7 +508,7 @@ will combined with =entropy-emacs= internal specification."
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-editor-tab-width)
 
-(defcustom entropy/emacs-custom-tab-width 4
+(defcustom entropy/emacs-custom-tab-width 8
   "Set the customized tab width"
   :type 'integer
   :group 'entropy/emacs-customize-group-for-editor-tab-width)
