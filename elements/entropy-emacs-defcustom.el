@@ -1495,16 +1495,54 @@ in generally meaning range which says that basically can did so.")
                entropy/emacs-treesit-libs-default-load-path))
 
 (defvar entropy/emacs-ide--lang-mode-info-alist
-  '((js-mode      :lang javascript :treesit-mode-p nil :treesit-variant-mode js-ts-mode)
-    (js-ts-mode   :lang javascript :treesit-mode-p t   :traditional-mode js-mode)
-    (typescript-ts-mode
-                  :lang typescript :treesit-mode-p t   :traditional-mode js-mode)
-    (js2-mode     :lang javascript :treesit-mode-p nil :treesit-variant-mode js-ts-mode)
-    (sh-mode      :lang sh         :treesit-mode-p nil :treesit-variant-mode bash-ts-mode)
-    (bash-ts-mode :lang sh         :treesit-mode-p t   :traditional-mode sh-mode)
-    (c++-mode     :lang cpp        :treesit-mode-p nil :treesit-variant-mode c++-ts-mode)
-    (web-mode     :lang html)
+  `((js-mode            :lang javascript
+                        :treesit-mode-p nil
+                        :treesit-variant-mode js-ts-mode)
+    (js-ts-mode         :lang javascript
+                        :treesit-mode-p t
+                        :traditional-mode (list js-mode js2-mode))
+    (typescript-ts-mode :lang typescript
+                        :treesit-mode-p t
+                        :traditional-mode js2-mode)
+    (js2-mode           :lang javascript
+                        :treesit-mode-p nil
+                        :treesit-variant-mode
+                        (function
+                         .
+                         ,(lambda (&optional buffer)
+                            (setq buffer (or buffer (current-buffer)))
+                            (with-current-buffer buffer
+                              (let ((bfn (buffer-file-name)))
+                                (if (and bfn
+                                         (string-match-p bfn "\\(ts\\|TS\\)\\'"))
+                                    'typescript-ts-mode
+                                  'js-ts-mode))))))
+    (sh-mode            :lang
+                        (function
+                         .
+                         ,(lambda (&optional buffer)
+                            (setq buffer (or buffer (current-buffer)))
+                            (with-current-buffer buffer
+                              (intern (entropy/emacs-shell-script-get-shell-type)))))
+                        :treesit-mode-p nil
+                        :treesit-variant-mode
+                        (function
+                         .
+                         ,(lambda (&optional buffer)
+                            (setq buffer (or buffer (current-buffer)))
+                            (with-current-buffer buffer
+                              (when (member (entropy/emacs-shell-script-get-shell-type)
+                                            '("sh" "bash"))
+                                'bash-ts-mode)))))
+    (bash-ts-mode       :lang bash
+                        :treesit-mode-p t
+                        :traditional-mode sh-mode)
+    (c++-mode           :lang cpp
+                        :treesit-mode-p nil
+                        :treesit-variant-mode c++-ts-mode)
+    (web-mode           :lang html)
     ))
+
 (defun entropy/emacs-ide-get-lang-mode-info (mode)
   (or (alist-get mode entropy/emacs-ide--lang-mode-info-alist)
       (let* ((nm-str (symbol-name mode))
@@ -1521,14 +1559,35 @@ in generally meaning range which says that basically can did so.")
               :treesit-variant-mode
               (unless tsp
                 (setq ts-fnm (intern (format "%s-ts-mode" lnm-str)))
-                (and (fboundp ts-fnm) ts-fnm))
+                (and (fboundp ts-fnm) (cons 'list ts-fnm)))
               :traditional-mode
               (when tsp
                 (setq tr-fnm (intern (format "%s-mode" lnm-str)))
-                (and (fboundp tr-fnm) tr-fnm))))))
+                (and (fboundp tr-fnm) (cons 'list tr-fnm)))))))
 ;; memoize to speedup query since this is a frequently invoked function
 (with-eval-after-load 'memoize
   (memoize 'entropy/emacs-ide-get-lang-mode-info))
+
+(entropy/emacs-!cl-defun entropy/emacs-ide-get-lang-mode-info-plist-attr
+    (attr &optional mode buffer)
+  (let ((body-func
+         (lambda nil
+           (entropy/emacs-when-let*-firstn 2
+               ((x (entropy/emacs-ide-get-lang-mode-info
+                    (or mode major-mode)))
+                (y (plist-get x attr)) (cyp (consp y))
+                (z (or (and cyp (car y)) y)))
+             (if (not cyp) y
+               (cond
+                ((eq z 'function)
+                 (funcall (cdr y) buffer))
+                ((eq z 'list)
+                 (cdr y))
+                (t (entropy/emacs-!error
+                    "wrong element type: %s" z))))))))
+    (with-current-buffer (or buffer (current-buffer))
+      (setq mode (or mode major-mode))
+      (funcall body-func))))
 
 (defvar entropy/emacs-ide-for-them/treesit-variants
   (when entropy/emacs-ide-is-treesit-generally-adapted-p
@@ -1569,23 +1628,21 @@ in generally meaning range which says that basically can did so.")
                      (eq (symbol-value sym) 'treesit))))
       (cond
        ((eq for-major-mode 'java-mode)
-        (eval `(setq-local ,sym 'traditional))
-        (warn "eemacs disabled `java-ts-mode' forcely \
+        (set sym 'traditional)
+        (entropy/emacs-run-body-only-once
+         (warn "eemacs disabled `java-ts-mode' forcely \
 since `lsp-java' can not boot correctly in that case. \
 Thus we've got fallback to traditional `java-mode'. \
-(warn by detection of `%s' set.)" sym) nil)
-       ((and (eq for-major-mode 'sh-mode)
-             ;; FIXME: `sh--guess-shell' is not an API
-             (let ((sh-name
-                    (and (or (fboundp 'sh--guess-shell) (require 'sh-script) t)
-                         (sh--guess-shell))))
-               (or (string= "sh" sh-name) (string= "bash" sh-name)
-                   (string-match-p "\\(/\\|\\\\\\)\\(sh\\|bash\\)\\'" sh-name))))
-        (eval `(setq-local ,sym 'traditional))
-        (warn "eemacs disabled `bash-ts-mode' forcely \
+(warn by detection of `%s' set.)" sym)) nil)
+       ((eq for-major-mode 'sh-mode)
+        (if (not (member (entropy/emacs-shell-script-get-shell-type)
+                         '("sh" "bash"))) nil
+          (eval `(setq-local ,sym 'traditional))
+          (entropy/emacs-run-body-only-once
+           (warn "eemacs disabled `bash-ts-mode' forcely \
 since it's buggy or not comprehensive implemented as robust \
 as `sh-mode' does for daily usage
-(warn by detection of `%s' set.)" sym) nil)
+(warn by detection of `%s' set.)" sym))) nil)
        (t t)))))
 
 (defun entropy/emacs-ide-gen-customized-variables ()
@@ -2881,60 +2938,6 @@ mechanism, so be carefully.
       (apply orig-func orig-args))))
 (advice-add 'require
             :around #'entropy/emacs-top-improvements-for-require)
-
-(defun entropy/emacs-require-only-needed (&rest args)
-  "Batch `require' features which specified via ARGS only for those
-are not loaded yet.
-
-Each element of args should be a single feature symbol or a full
-argument list applied to `require'.
-
-See also `entropy/emacs-require-only-once'."
-  (let (fp falp)
-    (dolist (fa args)
-      (if (setq falp (listp fa)) (setq fp (car fa))
-        (setq fp fa))
-      (unless (memq fp features)
-        (if falp (apply 'require fa)
-          (require fa))))))
-
-(defmacro entropy/emacs-require-only-once (&rest args)
-  "Require features of ARGS using
-`entropy/emacs-require-only-needed' only once in context.
-
-NOTE&EEMACS_MAINTENANCE:
-
-This macro just can be used in an `lambda' or `defun' and the
-`byte-compile' context, since this macro must be expanded before
-execution. Thus any context not matched any of those occasions will
-invoke the `entropy/emacs-require-only-needed' every time for that
-context evaluated. It's always highly recommend to `byte-compile' the
-file invoked this macro."
-  (let* ((stvar (gensym "__eemacs-require-status/")))
-    ;; bypass byte-compile warning
-    (eval `(defvar ,stvar nil))
-    `(unless (bound-and-true-p ,stvar)
-       (entropy/emacs-require-only-needed ,@args)
-       (set ',stvar t))))
-
-(defmacro entropy/emacs-run-body-only-once (&rest body)
-  "Run BODY just once i.e. the first time invoke it, and return its
-value as that once and nil as for any other time.
-
-NOTE&EEMACS_MAINTENANCE:
-
-This macro just can be used in an `lambda' or `defun' and the
-`byte-compile' context, since this macro must be expanded before
-execution. Thus any context not matched any of those occasions
-will invoke the BODY every time for that context evaluated. It's
-always highly recommend to `byte-compile' the file used this
-macro."
-  (when body
-    (let ((var-sym (gensym "___eemacs-run-body-just-once/")))
-      ;; bypass byte-compile warning
-      (eval `(defvar ,var-sym nil))
-      `(unless (bound-and-true-p ,var-sym)
-         (prog1 (progn ,@body) (set ',var-sym t))))))
 
 ;; *** run-hooks with prompt
 (defvar entropy/emacs--run-hooks-cache nil)

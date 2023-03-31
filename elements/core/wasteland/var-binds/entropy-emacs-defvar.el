@@ -2347,15 +2347,7 @@ any of them return non-nil.")
   (when-let*
       ;; justice conditions
       ((entropy/emacs-ide-is-treesit-generally-adapted-p)
-       (linfo (entropy/emacs-ide-get-lang-mode-info prog-mode-name))
-       (lnm (plist-get linfo :lang))
-       ((not (plist-get linfo :treesit-mode-p)))
-       (tsm-nm
-        (or (plist-get linfo :treesit-variant-mode)
-            (when entropy/emacs-startup-with-Debug-p
-              (warn "treesit variant for major-mode `%s' of lang `%s' is not find"
-                    prog-mode-name lnm)
-              nil)))
+       ((boundp 'major-mode-remap-alist))
        ;; prepare
        (pnm-str (symbol-name prog-mode-name))
        (adv-func-name
@@ -2371,8 +2363,21 @@ any of them return non-nil.")
     (eval `(defvar-local ,adv-rvar-name nil))
     (defalias adv-func-name
       (lambda (&rest args)
-        (let ((curbuff (current-buffer)))
+        (let* ((curbuff (current-buffer))
+               (lnm (entropy/emacs-ide-get-lang-mode-info-plist-attr
+                     :lang prog-mode-name))
+               (tsm-nm
+                (or
+                 ;; TODO: add support for various treesit modes support
+                 (entropy/emacs-maybe-car
+                  (entropy/emacs-ide-get-lang-mode-info-plist-attr
+                   :treesit-variant-mode prog-mode-name))
+                 (when entropy/emacs-startup-with-Debug-p
+                   (warn "treesit variant for major-mode `%s' of lang `%s' is not find"
+                         prog-mode-name lnm)
+                   nil))))
           (if (or
+               (not tsm-nm)
                (not (entropy/emacs-ide-prefer-use-treesit-p prog-mode-name))
                (not (treesit-language-available-p lnm))
                ;; NOTE: prevent nested invocation from `tsm-nm'
@@ -2401,7 +2406,7 @@ any of them return non-nil.")
                             (setq bffnm bfunm)))
                        (bfffnm (buffer-file-name))
                        (_ (and (fboundp 'typescript-ts-mode)
-                               (string-match-p "\\.ts$" (or bfffnm bffnm ""))
+                               (string-match-p "\\(ts\\|TS\\)\\'" (or bfffnm bffnm ""))
                                (setq tsm-nm 'typescript-ts-mode))))
                   (entropy/emacs-message-simple-progress-message
                    "%s `%s' %s `%s' %s %s"
@@ -2420,8 +2425,7 @@ any of them return non-nil.")
                        (prog1 (apply ',tsm-nm ',args)
                          (unless ,adv-rvar-name (setq ,adv-rvar-name t))
                          ))))))))))
-      (format "Automatically switch to `%s' when available for any invocations to `%s'"
-              tsm-nm prog-mode-name))
+      (format "The eemacs treesit variant for mode `%s'." prog-mode-name))
     (add-to-list 'entropy/emacs--treesit-mode-map-alist
                  (cons prog-mode-name adv-func-name))
     ;; ensure return the adv funcname

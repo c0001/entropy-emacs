@@ -1198,8 +1198,8 @@ style which defined in `entropy/emacs-modeline-style'."
           ;; show in major-mode segment because it can not show icon.
           (((display-graphic-p)))
         (entropy/emacs-setf-by-body modeline--miscinfo/treesit-mode-indicator
-          (if (plist-get (entropy/emacs-ide-get-lang-mode-info major-mode)
-                         :treesit-mode-p)
+          (if (entropy/emacs-ide-get-lang-mode-info-plist-attr
+               :treesit-mode-p)
               (if (entropy/emacs-icons-displayable-p)
                   (all-the-icons-faicon
                    "tree" :height 0.8 :v-adjust 0.05 :face 'all-the-icons-green)

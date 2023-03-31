@@ -523,7 +523,7 @@ notation.
   (entropy/emacs-start--require-with-duration-log 'entropy-emacs-calendar)
 
   ;; For programing language
-  (entropy/emacs-start--require-with-duration-log 'entropy-emacs-bash)
+  (entropy/emacs-start--require-with-duration-log 'entropy-emacs-shell-script)
   (entropy/emacs-start--require-with-duration-log 'entropy-emacs-web)
   (entropy/emacs-start--require-with-duration-log 'entropy-emacs-python)
   (entropy/emacs-start--require-with-duration-log 'entropy-emacs-c)

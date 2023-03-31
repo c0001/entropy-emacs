@@ -352,6 +352,54 @@ Return the list or OBJECT when not thus."
   (and object
        (if (consp object) object (list object))))
 
+(defun entropy/emacs-maybe-car (x &optional pred ignore-string)
+  "Return X if it's not a `sequencep' SEQ, or return the first
+element of it.
+
+PRED if set, should be a function which take one argument X and
+use it return the result instead buitin's mechanism when X is
+SEQ.
+
+Unless PRED is set, a `stringp' X is also directly returned when
+IGNORE-STRING is non-nil."
+  (when x
+    (if (or (not (sequencep x)) (and ignore-string (stringp x))) x
+      (if pred (funcall pred x)
+        (if (consp x) (car x) (aref x 0))))))
+
+(defmacro entropy/emacs-run-body-only-once (&rest body)
+  "Run BODY just once i.e. the first time invoke it, and return its
+value as that once and nil as for any other time."
+  (when body
+    (let ((sym (make-symbol "anchor")))
+      (eval `(defvar ,sym))
+      ;; (eval-when-compile (eval `(defvar ,sym)))
+      `(unless (bound-and-true-p ,sym) ,@body (setq ,sym t)))))
+
+(defun entropy/emacs-require-only-needed (&rest args)
+  "Batch `require' features which specified via ARGS only for those
+are not loaded yet.
+
+Each element of args should be a single feature symbol or a full
+argument list applied to `require'.
+
+See also `entropy/emacs-require-only-once'."
+  (let (fp falp)
+    (dolist (fa args)
+      (if (setq falp (listp fa)) (setq fp (car fa))
+        (setq fp fa))
+      (unless (memq fp features)
+        (if falp (apply 'require fa)
+          (require fa))))))
+
+(defmacro entropy/emacs-require-only-once (&rest args)
+  "Require features of ARGS using
+`entropy/emacs-require-only-needed' only once in context."
+  (macroexpand-1
+   `(entropy/emacs-run-body-only-once
+     (entropy/emacs-require-only-needed
+      ,@args))))
+
 (defmacro entropy/emacs-defalias (&rest args)
   "Same as `defalias' but indeed return the SYMBOL.
 

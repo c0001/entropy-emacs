@@ -478,9 +478,7 @@ which `major-mode' current is on."
                 (funcall enable-js2) (funcall main-func)
                 (run-skewer))))
         (cl-case
-            (plist-get
-             (entropy/emacs-ide-get-lang-mode-info major-mode)
-             :lang)
+            (entropy/emacs-ide-get-lang-mode-info-plist-attr :lang)
           (javascript
            (funcall enable-func 'skewer-mode)
            (setq entropy/emacs-web--skewer-mode-selector-enabled-p t))
@@ -499,9 +497,7 @@ which `major-mode' current is on."
   (defun entropy/emacs-web--skewer-return-proper-mode (&optional mode)
     (let ((mode (or mode major-mode)))
       (cl-case
-          (plist-get
-           (entropy/emacs-ide-get-lang-mode-info mode)
-           :lang)
+          (entropy/emacs-ide-get-lang-mode-info-plist-attr :lang)
         (javascript 'skewer-mode)
         (html       'skewer-html-mode)
         (css        'skewer-css-mode)

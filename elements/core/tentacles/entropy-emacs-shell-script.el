@@ -35,10 +35,21 @@
 ;; ** main
 (use-package sh-script
   :commands (sh-mode)
+  :eemacs-functions (entropy/emacs-shell-script-get-shell-type)
   :mode (("\\.sh$" . sh-mode)
          ("\\.bash$" . sh-mode)
          ("\\.dash$" . sh-mode))
   :config
+
+  (defun entropy/emacs-shell-script-get-shell-type nil
+    (let ((sh-name
+           ;; FIXME: `sh--guess-shell' is not an APIa
+           (sh--guess-shell)))
+      (if (string-match-p ".+\\(/\\|\\\\\\)\\([^ ]+\\)\\'" sh-name)
+          (replace-regexp-in-string
+           ".+\\(/\\|\\\\\\)\\([^ ]+\\)\\'" "\\2" sh-name)
+        sh-name)))
+
   ;; cancel binding to 'C-c C-l' since be conflicts with
   ;; `entropy/emacs-tools-vertical-to-top' global binding
   (define-key sh-mode-map (kbd "C-c C-l") nil)
@@ -76,4 +87,4 @@
 
 
 ;; * provide
-(provide 'entropy-emacs-bash)
+(provide 'entropy-emacs-shell-script)

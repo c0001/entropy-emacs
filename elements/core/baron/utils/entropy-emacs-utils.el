@@ -272,8 +272,9 @@
   (let (tr-fnm oc)
     (dolist (m entropy/emacs-ide-for-them)
       (when (entropy/emacs-setf-by-body tr-fnm
-              (plist-get (entropy/emacs-ide-get-lang-mode-info m)
-                         :traditional-mode))
+              (entropy/emacs-maybe-car
+               (entropy/emacs-ide-get-lang-mode-info-plist-attr
+                :traditional-mode)))
         (when (setq oc (alist-get tr-fnm all-the-icons-mode-icon-alist))
           (push (cons m oc) all-the-icons-mode-icon-alist)))))
 
