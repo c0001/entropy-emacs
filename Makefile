@@ -33,6 +33,7 @@ endif
 # ** variable
 EMACS := emacs
 EMACS_MAJOR_VERSION := 28
+EMACS_RUN = $(EMACS) -Q -l init.el
 EMACS_MAKE = $(EMACS) -Q --batch -l init.el
 TERMINATE_WARN = $(EMACS) --batch -q --eval '(or (yes-or-no-p "Remember terminate by kill -9 this make process instead of Ctrl-c since curl do not capture SIGINT") (error "force abort!"))'
 
@@ -119,4 +120,4 @@ all: install install-coworkers liberime compile-clean compile
 debug: export EEMACS_DEBUG=1
 debug:
 	@$(EchoEmpty)
-	@$(EMACS) --debug-init
+	@$(EMACS_RUN) --debug-init
