@@ -1569,17 +1569,19 @@ in generally meaning range which says that basically can did so.")
                      (eq (symbol-value sym) 'treesit))))
       (cond
        ((eq for-major-mode 'java-mode)
-        (set sym 'traditional)
+        (eval `(setq-local ,sym 'traditional))
         (warn "eemacs disabled `java-ts-mode' forcely \
 since `lsp-java' can not boot correctly in that case. \
 Thus we've got fallback to traditional `java-mode'. \
 (warn by detection of `%s' set.)" sym) nil)
        ((and (eq for-major-mode 'sh-mode)
              ;; FIXME: `sh--guess-shell' is not an API
-             (let ((sh-name (sh--guess-shell)))
+             (let ((sh-name
+                    (and (or (fboundp 'sh--guess-shell) (require 'sh-script) t)
+                         (sh--guess-shell))))
                (or (string= "sh" sh-name) (string= "bash" sh-name)
                    (string-match-p "\\(/\\|\\\\\\)\\(sh\\|bash\\)\\'" sh-name))))
-        (set sym 'traditional)
+        (eval `(setq-local ,sym 'traditional))
         (warn "eemacs disabled `bash-ts-mode' forcely \
 since it's buggy or not comprehensive implemented as robust \
 as `sh-mode' does for daily usage

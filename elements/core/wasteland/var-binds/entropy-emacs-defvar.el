@@ -2333,9 +2333,9 @@ its origin defination.")
 ;; ** prog-modes
 ;; *** union
 ;; **** treesit prefer
-
-(defvar entropy/emacs--treesit-arranging-p nil)
-
+(eval-when-compile
+  (unless (boundp 'major-mode-remap-alist) (defvar major-mode-remap-alist)))
+(defvar entropy/emacs--treesit-mode-map-alist nil)
 (defvar entropy/emacs-prefer-use-traditional-prog-mode-filters nil
   "List of functions ran in `current-buffer' when the a
 traditional derived `prog-mode' prepared changed to a
@@ -2359,90 +2359,92 @@ any of them return non-nil.")
        ;; prepare
        (pnm-str (symbol-name prog-mode-name))
        (adv-func-name
-        (intern (format "__adv/around/auto-treesit-enable-for/%s"
+        (intern (format "__eemacs/auto-treesit-enable-for/%s"
                         prog-mode-name)))
        (adv-avar-name
-        (intern (format "__adv/around/auto-treesit-enable-for/%s/avar"
+        (intern (format "__eemacs/auto-treesit-enable-for/%s/avar"
                         prog-mode-name)))
        (adv-rvar-name
-        (intern (format "__adv/around/auto-treesit-enable-for/%s/rvar"
+        (intern (format "__eemacs/auto-treesit-enable-for/%s/rvar"
                         prog-mode-name))))
     (eval `(defvar ,adv-avar-name nil))
     (eval `(defvar-local ,adv-rvar-name nil))
     (defalias adv-func-name
-      (lambda (orig-func &rest orig-args)
+      (lambda (&rest args)
         (let ((curbuff (current-buffer)))
-          ;; NOTE: enure mode exactly for distinguish from derivation
-          ;; mode such as `php-mode' dirived from `c-mode' which has
-          ;; an treesit variant `c-ts-mode' which we've hacked on but
-          ;; don't want to trigger that if it performs as an based
-          ;; mode of children.
-          (if (or (when (bound-and-true-p entropy/emacs--treesit-arranging-p)
-                    ;; thus of invocation from derived child-modes
-                    (not (eq entropy/emacs--treesit-arranging-p
-                             prog-mode-name)))
-                  (not (entropy/emacs-ide-prefer-use-treesit-p prog-mode-name))
-                  (not (treesit-language-available-p lnm))
-                  ;; NOTE: prevent nested invocation from `tsm-nm'
-                  ;; function like what `bash-ts-mode' did which has
-                  ;; an advice for fallbacking to `sh-mode' for some
-                  ;; cases.
-                  (entropy/emacs-bound-and-true-p adv-avar-name)
-                  ;; fore more justify
-                  (and (bound-and-true-p entropy/emacs-prefer-use-traditional-prog-mode-filters)
-                       (let ((major-mode prog-mode-name))
-                         (catch :exit
-                           (dolist (f entropy/emacs-prefer-use-traditional-prog-mode-filters)
-                             (and (funcall f) (throw :exit t)))))))
-              (apply orig-func orig-args)
+          (if (or
+               (not (entropy/emacs-ide-prefer-use-treesit-p prog-mode-name))
+               (not (treesit-language-available-p lnm))
+               ;; NOTE: prevent nested invocation from `tsm-nm'
+               ;; function like what `bash-ts-mode' did which has
+               ;; an advice for fallbacking to `sh-mode' for some
+               ;; cases.
+               (entropy/emacs-bound-and-true-p adv-avar-name)
+               ;; fore more justify
+               (and (bound-and-true-p entropy/emacs-prefer-use-traditional-prog-mode-filters)
+                    (let ((major-mode prog-mode-name))
+                      (catch :exit
+                        (dolist (f entropy/emacs-prefer-use-traditional-prog-mode-filters)
+                          (and (funcall f) (throw :exit t)))))))
+              (funcall prog-mode-name)
+
             ;; disable its mode indicator first
             (when (and (boundp prog-mode-name)
                        (symbol-value prog-mode-name))
               (eval `(setq ,prog-mode-name nil)))
-            ;; NOTE: use an idle timer to ensure that we've start a
-            ;; fresh new `major-mode', where left the original
-            ;; major-mode's rest ran out although it's faked out by
-            ;; this hack but we don't know how many advices and inner
-            ;; procedures are defined for it.
-            (run-with-idle-timer
-             0.12 nil
-             (lambda nil
-               (when-let (((buffer-live-p curbuff))
-                          ((not (entropy/emacs-bound-and-true-p adv-avar-name)))
-                          (inhibit-quit t))
-                 (with-current-buffer curbuff
-                   (let* ((bffnm (buffer-name))
-                          (_ (when-let (((fboundp 'uniquify-buffer-base-name))
-                                        (bfunm (uniquify-buffer-base-name)))
-                               (setq bffnm bfunm)))
-                          (bfffnm (buffer-file-name))
-                          (_ (and (fboundp 'typescript-ts-mode)
-                                  (string-match-p "\\.ts$" (or bfffnm bffnm ""))
-                                  (setq tsm-nm 'typescript-ts-mode))))
-                     (entropy/emacs-message-simple-progress-message
-                      "%s `%s' %s `%s' %s %s"
-                      :with-message-color-args
-                      `((green  "Enable tree-sitter variant mode")
-                        (yellow ',tsm-nm)
-                        (green "for")
-                        (yellow ,pnm-str)
-                        (green  "in buffer")
-                        (white  ,(buffer-name curbuff)))
-                      ;; TODO&&FIXME: the traditon mode args may not proper
-                      ;; for its ts-mode function, so we should find a
-                      ;; comprehensive way to solve this problem.
-                      (entropy/emacs-eval-with-lexical
-                       `(let ((,adv-avar-name t))
-                          (prog1 (apply ',tsm-nm ',orig-args)
-                            (unless ,adv-rvar-name (setq ,adv-rvar-name t))
-                            ))))))))))))
+
+            (let ((inhibit-quit t))
+              (with-current-buffer curbuff
+                (let* ((bffnm (buffer-name))
+                       (_ (when-let (((fboundp 'uniquify-buffer-base-name))
+                                     (bfunm (uniquify-buffer-base-name)))
+                            (setq bffnm bfunm)))
+                       (bfffnm (buffer-file-name))
+                       (_ (and (fboundp 'typescript-ts-mode)
+                               (string-match-p "\\.ts$" (or bfffnm bffnm ""))
+                               (setq tsm-nm 'typescript-ts-mode))))
+                  (entropy/emacs-message-simple-progress-message
+                   "%s `%s' %s `%s' %s %s"
+                   :with-message-color-args
+                   `((green  "Enable tree-sitter variant mode")
+                     (yellow ',tsm-nm)
+                     (green "for")
+                     (yellow ,pnm-str)
+                     (green  "in buffer")
+                     (white  ,(buffer-name curbuff)))
+                   ;; TODO&&FIXME: the traditon mode args may not proper
+                   ;; for its ts-mode function, so we should find a
+                   ;; comprehensive way to solve this problem.
+                   (entropy/emacs-eval-with-lexical
+                    `(let ((,adv-avar-name t))
+                       (prog1 (apply ',tsm-nm ',args)
+                         (unless ,adv-rvar-name (setq ,adv-rvar-name t))
+                         ))))))))))
       (format "Automatically switch to `%s' when available for any invocations to `%s'"
               tsm-nm prog-mode-name))
-    (advice-add prog-mode-name :around adv-func-name)
+    (add-to-list 'entropy/emacs--treesit-mode-map-alist
+                 (cons prog-mode-name adv-func-name))
     ;; ensure return the adv funcname
     adv-func-name))
 
 (when entropy/emacs-ide-is-treesit-generally-adapted-p
+  (defun entropy/emacs--treesit-with-eemacs-remap-alist (orig-func &rest orig-args)
+    "Around advice for invoking ORIG-FUNC with
+`major-mode-remap-alist' appened with
+`entropy/emacs--treesit-mode-map-alist'."
+    (let ((espec entropy/emacs--treesit-mode-map-alist) mode)
+      ;; NOTE: respect user specified mode remaps
+      (dolist (el major-mode-remap-alist)
+        (when (alist-get (setq mode (car el)) espec)
+          (setq espec (assoc-delete-all mode espec 'eq))))
+      (let ((major-mode-remap-alist
+             (append espec major-mode-remap-alist)))
+        (apply orig-func orig-args))))
+  (advice-add 'set-auto-mode :around #'entropy/emacs--treesit-with-eemacs-remap-alist)
+
+  (dolist (mm entropy/emacs-ide-for-them/classic)
+    (entropy/emacs-enable-prog-mode-prefer-treesit mm))
+
   ;; FIXME: remove *-ts-mode from `auto-mode-alist' since we must take
   ;; charge the mode association via eemac spec of
   ;; `entropy/emacs-ide-prefer-use-treesit-p'. But almost all of
@@ -2462,20 +2464,7 @@ any of them return non-nil.")
             ;; that's also for `interpreter-mode-alist'
             (if (rassq mm interpreter-mode-alist)
                 (setq interpreter-mode-alist
-                      (rassq-delete-all mm interpreter-mode-alist))))))))
-  (dolist (mm entropy/emacs-ide-for-them/classic)
-    (let ((arnm (intern (format "entropy/emacs--treesit-arranging-prog-mode/%s"
-                                mm)))
-          (avnm (entropy/emacs-enable-prog-mode-prefer-treesit mm)))
-      (defalias arnm
-        (lambda (orig-func &rest orig-args)
-          (let ((entropy/emacs--treesit-arranging-p
-                 (or entropy/emacs--treesit-arranging-p mm)))
-            (apply orig-func orig-args)))
-        (format "Make `%s' understood whether we are invoked by `%s' from top-level
-mode enabling chain i.e. not called from a derived child mode
-like `php-mode' invoke `c-mode' internally since the former
-`derived-mode-p' form the latter." avnm mm))
+                      (rassq-delete-all mm interpreter-mode-alist))))))
       (advice-add mm :around arnm))))
 
 ;; *** js-mode
