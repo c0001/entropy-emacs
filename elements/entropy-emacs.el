@@ -371,10 +371,10 @@ IGNORE-STRING is non-nil."
   "Run BODY just once i.e. the first time invoke it, and return its
 value as that once and nil as for any other time."
   (when body
-    (let ((sym (make-symbol "anchor")))
-      (eval `(defvar ,sym))
-      ;; (eval-when-compile (eval `(defvar ,sym)))
-      `(unless (bound-and-true-p ,sym) ,@body (setq ,sym t)))))
+    (let ((sym (make-symbol "__eemacs-temp-anchor")))
+      `(unless (bound-and-true-p ,sym)
+         (defvar ,sym nil)
+         ,@body (setq ,sym t)))))
 
 (defun entropy/emacs-require-only-needed (&rest args)
   "Batch `require' features which specified via ARGS only for those
