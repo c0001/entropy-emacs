@@ -374,7 +374,7 @@ value as that once and nil as for any other time."
     (let ((sym (make-symbol "__eemacs-temp-anchor")))
       `(unless (bound-and-true-p ,sym)
          (defvar ,sym nil)
-         ,@body (setq ,sym t)))))
+         (prog1 (progn ,@body) (setq ,sym t))))))
 
 (defun entropy/emacs-require-only-needed (&rest args)
   "Batch `require' features which specified via ARGS only for those
