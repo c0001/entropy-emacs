@@ -422,6 +422,7 @@ This slot should obey the rules of:
                  (functionp entropy/emacs-eyebrowse-new-workspace-init-function))
             entropy/emacs-eyebrowse-new-workspace-init-function
           t))
+
   ;; Prevent mistakenly hintings
   (define-key entropy/emacs-top-keymap (kbd "C-<home>")
               #'eyebrowse-switch-to-window-config)
