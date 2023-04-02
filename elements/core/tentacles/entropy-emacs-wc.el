@@ -267,19 +267,17 @@ This slot should obey the rules of:
       (:pretty-hydra-cabinet
        (:data
         "Eyebrowse Keymap"
-        (("C-c C-w"
+        (("<prior>"
           (:eval
            (entropy/emacs-hydra-hollow-category-common-individual-get-caller
             'eyebrowse-mode))
-          "Eyerbowse key Map bind of <\C-c \C-w>"
+          "eyebrowse hydra hollow"
           :enable t
           :exit t
           :eemacs-top-bind t)
-         ("C-c w"
-          (:eval
-           (entropy/emacs-hydra-hollow-category-common-individual-get-caller
-            'eyebrowse-mode))
-          "Eyerbowse key Map bind of <\C-cw>"
+         ("<home>"
+          eyebrowse-switch-to-window-config
+          "eyebrowse workspace name query switch"
           :enable t
           :exit t
           :eemacs-top-bind t))))
@@ -346,57 +344,56 @@ This slot should obey the rules of:
       "Switch to Work Space 0"
       :enable t
       :exit t
-      :map-inject t)
+      :eemacs-top-bind t)
      ("1" eyebrowse-switch-to-window-config-1
       "Switch to Work Space 1"
       :enable t
       :exit t
-      :map-inject t)
+      :eemacs-top-bind t)
      ("2" eyebrowse-switch-to-window-config-2
       "Switch to Work Space 2"
       :enable t
       :exit t
-      :map-inject t)
+      :eemacs-top-bind t)
      ("3" eyebrowse-switch-to-window-config-3
       "Switch to Work Space 3"
       :enable t
       :exit t
-      :map-inject t)
+      :eemacs-top-bind t)
      ("4" eyebrowse-switch-to-window-config-4
       "Switch to Work Space 4"
       :enable t
       :exit t
-      :map-inject t)
+      :eemacs-top-bind t)
      ("5" eyebrowse-switch-to-window-config-5
       "Switch to Work Space 5"
       :enable t
       :exit t
-      :map-inject t)
+      :eemacs-top-bind t)
      ("6" eyebrowse-switch-to-window-config-6
       "Switch to Work Space 6"
       :enable t
       :exit t
-      :map-inject t)
+      :eemacs-top-bind t)
      ("7" eyebrowse-switch-to-window-config-7
       "Switch to Work Space 7"
       :enable t
       :exit t
-      :map-inject t)
+      :eemacs-top-bind t)
      ("8" eyebrowse-switch-to-window-config-8
       "Switch to Work Space 8"
       :enable t
       :exit t
-      :map-inject t)
+      :eemacs-top-bind t)
      ("9" eyebrowse-switch-to-window-config-9
       "Switch to Work Space 9"
       :enable t
       :exit t
-      :map-inject t))))
+      :eemacs-top-bind t
+      ))))
 
 ;; **** init
   :init
-
-  (setq eyebrowse-keymap-prefix (kbd "s-w"))
 
   (entropy/emacs-lazy-with-load-trail
     'eyebrowse-enable
@@ -408,12 +405,29 @@ This slot should obey the rules of:
 
 ;; **** config
   :config
+
+  ;; fake out origin map since we use hydra instead
+  (setq eyebrowse-mode-map (make-sparse-keymap))
+
+  (defadvice eyebrowse-init
+      (around eemacs/eyebrowse-init--base-advice first activate)
+    "Make `eyebrowse-init' just for those frame which we cared about."
+    (when (or (frame-parameter nil 'eemacs-current-frame-is-daemon-created)
+              (eq (selected-frame) entropy/emacs-main-frame))
+      ad-do-it))
+
   (setq eyebrowse-mode-line-style nil
         eyebrowse-new-workspace
         (if (and entropy/emacs-enable-eyebrowse-new-workspace-init-function
                  (functionp entropy/emacs-eyebrowse-new-workspace-init-function))
             entropy/emacs-eyebrowse-new-workspace-init-function
           t))
+  ;; Prevent mistakenly hintings
+  (define-key entropy/emacs-top-keymap (kbd "C-<home>")
+              #'eyebrowse-switch-to-window-config)
+  (define-key entropy/emacs-top-keymap (kbd "C-<prior>")
+              (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+               'eyebrowse-mode))
 
 ;; ***** window parameter memory
   (defun entropy/emacs-wc--eyebrowse-regist-wpamemory ()
@@ -517,7 +531,7 @@ the sake of obeying its rules.
     (eyebrowse-init))
 
 ;; ***** Batch create eyerbrowse window configs
-  (defun entropy/emacs-basic-eyebrowse-create-workspaces (&optional ws-list $confirm)
+  (defun entropy/emacs-basic-eyebrowse-create-workspaces (&optional ws-list confirm)
     "Batch create eyebrowse workspace with name input prompt
 powered by `entropy/emacs-read-string-repeatedly'.
 
@@ -526,17 +540,19 @@ programming code. WS-LIST was list with string elements like:
 
 '(\"basic\" \"main\" \"temp\" \"eww\")'
 
-The second optional arg $confirm will trigger the process
-confirmation when sets it to 't'."
-    (interactive)
-    (when $confirm
+The second optional arg CONFIRM will trigger the process
+confirmation when set as non-nil which is the default while
+ `interactive'."
+    (interactive (list nil t))
+    (when confirm
       (unless (yes-or-no-p "Do you want to clean all workspace and buiding new workspaces? ")
         (user-error "Canceld rebuild workspaces.")))
     (entropy/emacs-basic-eyebrowse-kill-all-group)
     (let ((current-slot (eyebrowse--get 'current-slot ))
           (ws (if ws-list
                   ws-list
-                (entropy/emacs-read-string-repeatedly "work-space name"))))
+                (entropy/emacs-maybe-list
+                 (entropy/emacs-read-string-repeatedly "work-space name")))))
       (dolist (el ws)
         (if (equal 1 current-slot)
             (progn

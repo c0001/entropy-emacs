@@ -400,21 +400,20 @@ segmentation fault."
         func)))
 
   (defun entropy/emacs-shell--shellpop-bindkey-for-shell (func)
-    (entropy/emacs-hydra-hollow-add-for-top-dispatch
-     `("Shellpop"
-       (("9" ,func "Shellpop For emacs shell-mode"
-         :enable t
-         :exit t
-         :eemacs-top-bind t))))
-    (unless (display-graphic-p)
-      (define-key entropy-shellpop-mode-map
-        (kbd (concat entropy/emacs-top-key " " "9"))
-        func)))
+    (let ((key "s s"))
+      (entropy/emacs-hydra-hollow-add-for-top-dispatch
+       `("Shellpop"
+         ((,key ,func "Shellpop For emacs shell-mode"
+                :enable t
+                :exit t
+                :eemacs-top-bind t))))
+      (unless (display-graphic-p)
+        (define-key entropy-shellpop-mode-map
+                    (kbd (concat entropy/emacs-top-key " " key))
+                    func))))
 
   (defun entropy/emacs-shell--shellpop-bindkey-for-ansiterm (func)
-    (let ((key (if (member "MODULES" (split-string system-configuration-features nil t))
-                   "M-0"
-                 "=")))
+    (let ((key "s a"))
       (entropy/emacs-hydra-hollow-add-for-top-dispatch
        `("Shellpop"
          ((,key ,func "Shellpop For Ansi-Term"

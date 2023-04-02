@@ -374,7 +374,7 @@ restriction as below:
 Disable popup feature forcly when in minibuffer window and any
 `noninteractive' session or daemon init procedure.
 
-Suppress any heavy message using simple prompts before
+Suppress MESSAGE using simple prompts before
 `entropy/emacs-startup-done' (i.e. the emacs init duration) is
 set unless `entropy/emacs-startup-with-Debug-p' was non-nil in
 interactive session or
@@ -384,6 +384,10 @@ interactive session or
      `entropy/emacs-custom-enable-lazy-load' is disabled in which
      case we should see the heavy load procedure with explicitly
      information.
+
+But MESSAGE is always showed when
+`entropy/emacs-env-init-with-pure-eemacs-env-p' is return non-nil that
+ignore above restriction.
 
 Optional key:
 
@@ -398,6 +402,8 @@ without respect `entropy/emacs-message-non-popup'.
     `(cond (
             ;; ========== Simplifying the startup hints
             (and
+             ;; not in eemacs pure env session
+             (not (entropy/emacs-env-init-with-pure-eemacs-env-p))
              ;; only used in eemacs startup time
              (not (bound-and-true-p entropy/emacs-startup-done))
              ;; -- not when key :force-message-while-eemacs-init is set while eemacs init
