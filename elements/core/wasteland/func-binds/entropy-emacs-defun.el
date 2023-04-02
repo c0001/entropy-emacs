@@ -12773,7 +12773,8 @@ by get `entropy/emacs-union-http-proxy-internal-enable-p' non-nil."
            (funcall filter-func))
       (entropy/emacs-eval-with-lexical
        `(let (,@(entropy/emacs-gen-eemacs-union-http-internet-proxy-let-bindings))
-          (when (bound-and-true-p noninteractive)
+          (when (and (bound-and-true-p noninteractive)
+                     (not (entropy/emacs-env-init-with-pure-eemacs-env-p)))
             (entropy/emacs-message-do-message
              "%s"
              (yellow
