@@ -887,6 +887,40 @@ ENV-VARNAMESa."
           (push el rtn)))
       (and rtn (nreverse rtn)))))
 
+;; *** file
+
+(defun entropy/emacs-file-truename (file)
+  "Return the true name of FILE, which has same made procedure as
+`buffer-file-truename'."
+  (abbreviate-file-name (file-truename file)))
+
+(entropy/emacs-!cl-defun entropy/emacs-touch-file
+    (file &optional ok-if-file-is-directory-file-name)
+  "Make a new file FILE which as *nix command `touch' does. Return
+the FILE's `entropy/emacs-file-truename' FTNAME.
+
+If FILE exists already, return FTNAME Immediately.
+
+If FILE exists as an `file-directory-p' directory, an error will
+be throwed out.
+
+If FILE named as an `directory-name-p' filename, an error will be
+throwed out unless OK-IF-FILE-IS-DIRECTORY-FILE-NAME is non-nil
+in which case we will reuse the `directory-file-name' version of
+that name as FILE later."
+  (if (file-exists-p file)
+      (if (file-directory-p file)
+          (entropy/emacs-!error "file %s is a exist directory" file)
+        (entropy/emacs-file-truename file))
+    (if (and (directory-name-p file)
+             (not ok-if-file-is-directory-file-name))
+        (entropy/emacs-!error "file %s is name of a directory" file)
+      (let* ((f (directory-file-name file))
+             (d (file-name-directory f)))
+        (unless (file-directory-p d) (mkdir d t))
+        (with-temp-file file
+          (entropy/emacs-file-truename file))))))
+
 ;; ** INIT
 
 ;; eemacs conventional top-level binding either NOTE emacs bind to

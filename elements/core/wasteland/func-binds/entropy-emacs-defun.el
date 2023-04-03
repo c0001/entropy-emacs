@@ -9072,6 +9072,118 @@ Commonly a position in a overlay is that:
            ))
   (autoload func "entropy-emacs-syntax"))
 
+;; **** file buffer manipulation
+
+(defun entropy/emacs-buffer-modified-p
+    (&optional buffer autosaved-as-modified)
+  "Same as `buffer-modified-p' but return non-nil even if buffer is
+autosaved when AUTOSAVED-AS-MODIFIED is non-nil.
+
+NOTE: the AUTOSAVED-AS-MODIFIED is ignored when emacs version
+under 29 since it's implemented in emacs 29 and above."
+  (let ((bmp (buffer-modified-p buffer)))
+    (if (not (eq bmp 'autosaved)) bmp
+      (and autosaved-as-modified 'autosaved))))
+
+(cl-defmacro entropy/emacs-with-file-buffer
+    (file &rest body
+          &key
+          with-kill-visitings-pred
+          without-save-visitings-pred
+          with-save-visitings-pred
+          with-kill-buffer-when-done
+          with-visiting-find-pred
+          with-find-file-noselect-args
+          &allow-other-keys)
+  "Do BODY with file buffer BUFFER of FILE and return its value.
+
+This macro get the buffer of FILE follow order of:
+
+1. Using `get-file-buffer' to get the unique existence.
+2. If step 1 is faild, then find a existence via VCD (see blow
+   section) mechanism or if there's no buffer attaching to FILE use
+   `find-file-noselect' to create a fresh new one with its optional
+   args applied with WITH-FIND-FILE-NOSELECT-ARGS.
+
+Visitings collision dealing (VCD):
+
+1) If any visiting buffer has attached with FILE, then for each of
+   them, killing it when predicate function WITH-KILL-VISITINGS-PRED
+   if specified (default is omitted) and return non-nil, or 1) step is
+   just skipped.
+
+   While WITH-KILL-VISITINGS-PRED is specified and return non-nil for
+   one of them, then `with-current-buffer' of it do:
+
+   It will be saved before killing when predicate function
+   WITH-SAVE-VISITINGS-PRED if specified (default is omitted) and
+   return non-nil, or without saving when predicate function
+   WITHOUT-SAVE-VISITINGS-PRED if specified (default is omitted) and
+   return non-nil and this is take precedence of
+   WITH-SAVE-VISITINGS-PRED.
+
+   If neither WITH-SAVE-VISITINGS-PRED nor WITHOUT-SAVE-VISITINGS-PRED
+   are specified for it, then query with prompt of thus for each of
+   those buffers.
+
+   All of WITH-KILL-VISITINGS-PRED, WITH-SAVE-VISITINGS-PRED and
+   WITHOUT-SAVE-VISITINGS-PRED should take one argument i.e. the
+   buffer is proceduring with.
+
+2) if conditon 1) is remained thoughts i.e. not all of those buffers
+   are killed or whatever any visiting buffers exist, then choose a
+   visiting buffer among them picked by `find-buffer-visiting' with
+   its predication which specified by WITH-VISITING-FIND-PRED (nil as
+   default).
+
+If WITH-KILL-BUFFER-WHEN-DONE is set and return non-nil then kill
+BUFFER after run BODY out.
+
+If FILE is not already exist yet, then create it firstly via
+`entropy/emacs-touch-file' internally."
+  (declare (indent 1))
+  (let ((fsym (make-symbol "file"))
+        (kill-all-sym   (make-symbol "kill-all"))
+        (nosave-all-sym (make-symbol "nosave"))
+        (save-all-sym   (make-symbol "save"))
+        (buffer-sym     (make-symbol "buffer"))
+        (bufflist-sym   (make-symbol "bufflist"))
+        (body (entropy/emacs-defun--get-real-body body t)))
+    `(let ((,fsym ,file))
+       (with-current-buffer
+           (or (get-file-buffer (entropy/emacs-touch-file ,fsym))
+               (catch :exit
+                 (entropy/emacs-when-let*-first
+                     ((,kill-all-sym   ,with-kill-visitings-pred)
+                      (,nosave-all-sym ,without-save-visitings-pred)
+                      (,save-all-sym   ,with-save-visitings-pred)
+                      (truename (entropy/emacs-file-truename,fsym))
+                      (,bufflist-sym (buffer-list)) ,buffer-sym)
+                   (while ,bufflist-sym
+                     (with-current-buffer (setq ,buffer-sym (car ,bufflist-sym))
+                       (when (and
+                              buffer-file-name
+                              (string= buffer-file-name truename)
+                              (funcall ,kill-all-sym ,buffer-sym))
+                         (when (and (entropy/emacs-buffer-modified-p)
+                                    (or (not ,nosave-all-sym)
+                                        (not (funcall ,nosave-all-sym ,buffer-sym))))
+                           (and (or
+                                 (and ,save-all-sym
+                                      (funcall ,save-all-sym ,buffer-sym))
+                                 (and (not ,save-all-sym)
+                                      (yes-or-no-p
+                                       (format "Save ,buffer-sym %s before killing?"
+                                               ,buffer-sym))))
+                                (save-buffer)))
+                         (or (kill-buffer ,buffer-sym)
+                             (throw :exit nil))))
+                     (setq ,bufflist-sym (cdr ,bufflist-sym))))
+                 (apply #'find-file-noselect ,fsym ,with-find-file-noselect-args))
+               (find-buffer-visiting ,fsym ,with-visiting-find-pred))
+         (prog1 (progn ,@body)
+           (when ,with-kill-buffer-when-done (kill-buffer)))))))
+
 ;; *** Hook manipulation
 
 (cl-defmacro entropy/emacs-add-hook-with-lambda

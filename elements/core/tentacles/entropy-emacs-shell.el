@@ -236,43 +236,76 @@ was found."
   :commands (vterm vterm-mode)
   :preface
   ;; EEMACS_MAINTENANCE: add support to for-zsh and for-fishrc etc too.
-  (defun entropy/emacs-shell--vterm-pwd-hack-for-bashrc ()
-    "Hack for bashrc to support vterm pwd callback. details to see vterm's README."
-    (let* ((system-valid-p
-            (not (eq system-type 'windows-nt)))
-           (quried-flag (expand-file-name
-                         "vterm-hack-bashrc-confirmed"
-                         entropy/emacs-stuffs-topdir))
-           (hack_inject?
-            (and system-valid-p
-                 (not (file-exists-p quried-flag))
-                 (yes-or-no-p "Hack bashrc for support vterm pwd?\
-(note: this just quried once, do not do it if you have did thus.)")))
-           (content-injection
-            (and
-             hack_inject?
-             (with-temp-buffer
-               (insert-file-contents
-                (expand-file-name "vterm-bashrc" entropy/emacs-templates-dir))
-               (buffer-substring-no-properties
-                (point-min) (point-max))))))
-      (when hack_inject?
-        (let ((inhibit-read-only t)
-              (bashrc-buffer
-               (find-file-noselect "~/.bashrc" nil t))
-              (write-contents-functions nil)
-              (write-file-functions nil)
-              (before-save-hook nil)
-              (after-save-hook nil))
-          (with-current-buffer bashrc-buffer
-            (goto-char (point-max))
-            (insert (concat "\n\n" content-injection "\n"))
-            (save-buffer)
-            (kill-buffer))
-          (with-current-buffer (find-file-noselect quried-flag nil t)
-            (insert "Has quried yet")
-            (save-buffer)
-            (kill-buffer))))))
+  (defun entropy/emacs-shell--vterm-pwd-hack-for-current-shell ()
+    "Hack for current SHELL to support vterm PWD callback. details to
+see vterm's README."
+    (when-let*
+        ((system-valid-p
+          (not (eq system-type 'windows-nt)))
+         (falist  '(("bash" . "emacs-vterm-bash.sh")
+                    ("zsh"  . "emacs-vterm-zsh.sh")
+                    ("fish" . "emacs-vterm.fish")))
+         (sfalist '(("bash" "~"              . ".bashrc")
+                    ("zsh"  "~"              . ".zshrc")
+                    ("fish" "~/.config/fish" . "config.fish")))
+         (quried-flag (expand-file-name
+                       "vterm-hack-bashrc-confirmed"
+                       entropy/emacs-stuffs-topdir))
+         (curshell (entropy/emacs-shell-script-get-shell-type))
+         (hkf      (alist-get curshell falist nil nil 'string=))
+         ((if (not (file-exists-p quried-flag)) t
+            (with-current-buffer (find-file-noselect quried-flag)
+              (prog1 (not (re-search-forward (regexp-quote curshell) nil t))
+                (kill-buffer)))))
+         (vterm-etc-host
+          (expand-file-name
+           "etc"
+           (file-name-directory (locate-library "vterm"))))
+         ((file-exists-p vterm-etc-host))
+         (hkfpath        (expand-file-name hkf vterm-etc-host))
+         ((file-exists-p hkfpath))
+         (hack_inject?
+          (unwind-protect
+              (yes-or-no-p
+               (format "Hack %s for support vterm pwd?\
+(note: this just quried once, do not do it if you have did thus.)"
+                       curshell)) nil))
+         (inhibit-read-only t))
+      (entropy/emacs-with-file-buffer
+          (let* ((i (alist-get curshell sfalist nil nil 'string=))
+                 (d (car i)) (f (cdr i)))
+            (unless (file-directory-p d) (mkdir d t))
+            (expand-file-name f d))
+        :with-kill-visitings-pred
+        (if noninteractive 'always)
+        :with-save-visitings-pred
+        (if noninteractive 'always)
+        :with-kill-buffer-when-done t
+        (goto-char (point-max))
+        (insert "\n\n")
+        ;; insert conditions
+        (cond
+         ((member curshell '("bash" "zsh"))
+          (insert "if [[ \"$INSIDE_EMACS\" = 'vterm' ]]; then : ; \
+else return 0; fi\n"))
+         ((string= curshell "fish")
+          (insert "if [ \"$INSIDE_EMACS\" = 'vterm' ]\n\
+ : \nelse\n return 0\n end")))
+        (insert "\n\n")
+        ;; insert body
+        (insert-file-contents hkfpath)
+        (save-buffer))
+      (entropy/emacs-with-file-buffer quried-flag
+        :with-kill-visitings-pred 'always
+        :without-save-visitings-pred 'always
+        :with-kill-buffer-when-done t
+        (goto-char (point-max))
+        (if (or (save-excursion (looking-back ":" (line-beginning-position)))
+                ;; buffer empty
+                (= (point) 1))
+            (insert (format "%s" curshell))
+          (insert (format ":%s" curshell)))
+        (save-buffer)) t))
 
   :init
   (setq
@@ -286,8 +319,6 @@ was found."
   (add-to-list 'entropy/emacs-xterm-paste-yank-replacement-register
                (cons (lambda () (eq major-mode 'vterm-mode))
                      #'vterm-yank))
-
-  (entropy/emacs-shell--vterm-pwd-hack-for-bashrc)
 
   :config
 
@@ -379,7 +410,8 @@ segmentation fault."
       :when-tui (entropy/emacs-shell--vterm-enable-eemacs-top-key)))
   (entropy/emacs-shell--vterm-enable-eemacs-top-key)
 
-  )
+  ;; finally we should auto hack vterm PWD integration
+  (entropy/emacs-shell--vterm-pwd-hack-for-current-shell))
 
 ;; ** Shell Pop
 (use-package entropy-shellpop
