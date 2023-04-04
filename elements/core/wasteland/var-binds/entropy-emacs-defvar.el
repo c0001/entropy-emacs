@@ -2367,12 +2367,12 @@ is follow their original order in this hook.")
   :do-error t
   :detector
   (or
-   (entropy/emacs-version-compare
-    '< emacs-version
+   (version<
+    emacs-version
     entropy/emacs-lowest-emacs-version-requirement)
-   (entropy/emacs-version-compare
-    '> emacs-version
-    entropy/emacs-highest-emacs-version-requirement))
+   (version<
+    entropy/emacs-highest-emacs-version-requirement
+    emacs-version))
   :signal
   (signal
    entropy/emacs-emacs-version-incompatible-error-symbol

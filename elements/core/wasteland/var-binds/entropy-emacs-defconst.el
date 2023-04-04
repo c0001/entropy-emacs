@@ -518,7 +518,7 @@ NOTE: all the key can be evaluated at run-time
 
 "
   (declare (indent 2))
-  (let ((body (entropy/emacs-get-plist-body body))
+  (let ((body (entropy/emacs--get-def-body body))
         (op-name-sym   (make-symbol "op-name"))
         (type-sym      (make-symbol "type"))
         (doc-sym       (make-symbol "docstring"))
