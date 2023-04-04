@@ -9085,6 +9085,14 @@ under 29 since it's implemented in emacs 29 and above."
     (if (not (eq bmp 'autosaved)) bmp
       (and autosaved-as-modified 'autosaved))))
 
+(defun entropy/emacs-find-file-noselect
+    (filename &optional nowarn rawfile wildcards nomodes)
+  "Same as `find-file-noselect' but add an extra option NOMODES
+which is passed to `entropy/emacs-find-file-without-modes'."
+  (let ((entropy/emacs-find-file-without-modes
+         nomodes))
+    (find-file-noselect filename nowarn rawfile wildcards)))
+
 (cl-defmacro entropy/emacs-with-file-buffer
     (file &rest body
           &key
@@ -9102,8 +9110,8 @@ This macro get the buffer of FILE follow order of:
 1. Using `get-file-buffer' to get the unique existence.
 2. If step 1 is faild, then find a existence via VCD (see blow
    section) mechanism or if there's no buffer attaching to FILE use
-   `find-file-noselect' to create a fresh new one with its optional
-   args applied with WITH-FIND-FILE-NOSELECT-ARGS.
+   `entropy/emacs-find-file-noselect' to create a fresh new one with
+   its optional args applied with WITH-FIND-FILE-NOSELECT-ARGS.
 
 Visitings collision dealing (VCD):
 
@@ -9148,6 +9156,7 @@ If FILE is not already exist yet, then create it firstly via
         (save-all-sym   (make-symbol "save"))
         (buffer-sym     (make-symbol "buffer"))
         (bufflist-sym   (make-symbol "bufflist"))
+        (truename-sym       (make-symbol "truename"))
         (body (entropy/emacs-defun--get-real-body body t)))
     `(let ((,fsym ,file))
        (with-current-buffer
@@ -9157,13 +9166,13 @@ If FILE is not already exist yet, then create it firstly via
                      ((,kill-all-sym   ,with-kill-visitings-pred)
                       (,nosave-all-sym ,without-save-visitings-pred)
                       (,save-all-sym   ,with-save-visitings-pred)
-                      (truename (entropy/emacs-file-truename,fsym))
+                      (,truename-sym (entropy/emacs-file-truename,fsym))
                       (,bufflist-sym (buffer-list)) ,buffer-sym)
                    (while ,bufflist-sym
                      (with-current-buffer (setq ,buffer-sym (car ,bufflist-sym))
                        (when (and
                               buffer-file-name
-                              (string= buffer-file-name truename)
+                              (string= buffer-file-name ,truename-sym)
                               (funcall ,kill-all-sym ,buffer-sym))
                          (when (and (entropy/emacs-buffer-modified-p)
                                     (or (not ,nosave-all-sym)
@@ -9179,7 +9188,8 @@ If FILE is not already exist yet, then create it firstly via
                          (or (kill-buffer ,buffer-sym)
                              (throw :exit nil))))
                      (setq ,bufflist-sym (cdr ,bufflist-sym))))
-                 (apply #'find-file-noselect ,fsym ,with-find-file-noselect-args))
+                 (apply #'entropy/emacs-find-file-noselect
+                        ,fsym ,with-find-file-noselect-args))
                (find-buffer-visiting ,fsym ,with-visiting-find-pred))
          (prog1 (progn ,@body)
            (when ,with-kill-buffer-when-done (kill-buffer)))))))

@@ -887,6 +887,51 @@ ENV-VARNAMESa."
           (push el rtn)))
       (and rtn (nreverse rtn)))))
 
+;; *** hook
+
+(entropy/emacs-!cl-defun entropy/emacs-member-hook
+    (hook &optional as-hook-value reverse &rest elements)
+  "Return a list of items of ELEMENTS that memberred in HOOK, or of
+those not memberred in if REVERSE is non-nil. The return's order
+is not changed. Return nil when not of thus found.
+
+HOOK should be a hook symbol which acceptable by `run-hooks'
+except when HOOK is a symbol and AS-HOOK-VALUE is non-nil, then
+HOOK is consider as the value of a hook symbol
+internally. Otherwise, any other value type of HOOK is invalid
+and an error will be throwed out.
+
+If HOOK is a hook symbol, then both its local value (obtained by
+`entropy/emacs-buffer-local-value') and its global
+value (`default-value') will be mapping thru out."
+  (entropy/emacs-when-let*-first
+      ((hval
+        (cond (as-hook-value
+               (list hook))
+              ((symbolp hook)
+               (list (entropy/emacs-buffer-local-value hook)
+                     (default-value hook)))
+              (t (entropy/emacs-!error "wrong type of argument: hook %s"
+                                       hook))))
+       mm rtn)
+    (dolist (el hval)
+      (unless (or (null el) (eq el entropy/emacs-false-symbol))
+        (cond ((symbolp el)
+               (when (setq mm (cl-position el elements :test 'eq))
+                 (push mm rtn)))
+              ((consp el)
+               (dolist (i el)
+                 (when (setq mm (cl-position i elements :test 'eq))
+                   (push mm rtn)))))))
+    (when rtn
+      (let* (k (fn (lambda (x y)
+                     (when (if reverse (not (memql x y))
+                             (memql x y))
+                       (push (nth x elements) k)))))
+        (dotimes (i (length elements))
+          (funcall fn i rtn))
+        (nreverse k)))))
+
 ;; *** file
 
 (defun entropy/emacs-file-truename (file)

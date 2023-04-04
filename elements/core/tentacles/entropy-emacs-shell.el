@@ -281,6 +281,7 @@ see vterm's README."
         :with-save-visitings-pred
         (if noninteractive 'always)
         :with-kill-buffer-when-done t
+        :with-find-file-noselect-args (list nil nil nil t)
         (goto-char (point-max))
         (insert "\n\n")
         ;; insert conditions
@@ -299,6 +300,7 @@ else return 0; fi\n"))
         :with-kill-visitings-pred 'always
         :without-save-visitings-pred 'always
         :with-kill-buffer-when-done t
+        :with-find-file-noselect-args (list nil nil nil t)
         (goto-char (point-max))
         (if (or (save-excursion (looking-back ":" (line-beginning-position)))
                 ;; buffer empty

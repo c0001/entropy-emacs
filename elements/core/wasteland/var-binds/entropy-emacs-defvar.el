@@ -2330,6 +2330,88 @@ its origin defination.")
  'entropy/emacs-follow-read-only-suggestion-commands
  #'__eemacs-follow-read-only-suggest/var-guard)
 
+;; ** file buffer refer
+(defvar entropy/emacs-find-file-without-modes nil
+  "Non-nil when all of `find-file*' prefixed emacs API find buffer of
+file without `normal-mode' invoked by forcely enable the NODMODS
+argument of `after-find-file' which we called this behaviour is UMODE.
+
+With below non-nil values of symbol type USYM, the eemacs
+`after-find-file' behaviour will differ with original mechanism:
+
+1. `run-find-file-hooks' : with UMODE but also run `find-file-hooks'
+   which disabled in original mechanism of `after-find-file' when its
+   NOMODES is non-nil.
+
+It can also be a cons UCONS of car of symbol `function' and cdr of a
+function which is used to justify whether enable UMODE, it should
+return non-nil for true, and it can also return a USYM to enable extra
+features described as above, and even can return a UCONS which used to
+recursively do what thus of.
+
+This variable should always be a `let' binding since if not it will
+affect all files `find-file' behavior.")
+
+(defvar entropy/emacs-after-find-file-hook nil
+  "Same as `find-file-hook' but ran in whatever occasions after
+`find-file-hook' is ran out if `entropy/emacs-find-file-without-modes'
+doesn't ignore it (termed as RH in this docstring, and URH for
+otherwise) or at the end of main procedure of `after-find-file'.
+
+Any item in this hook will just be ran when it is not `memq' in
+`find-file-hook' either of its global or local variants while in
+RH. Otherwise (i.e. in URH) each of them is ran. Any way, the ran
+is follow their original order in this hook.")
+(entropy/emacs--api-restriction-uniform 'eemacs-spec-after-find-file
+    'emacs-version-incompatible
+  :do-error t
+  :detector
+  (or
+   (entropy/emacs-version-compare
+    '< emacs-version
+    entropy/emacs-lowest-emacs-version-requirement)
+   (entropy/emacs-version-compare
+    '> emacs-version
+    entropy/emacs-highest-emacs-version-requirement))
+  :signal
+  (signal
+   entropy/emacs-emacs-version-incompatible-error-symbol
+   (list 'emacs-version emacs-version
+         (format "require: %s to %s"
+                 entropy/emacs-lowest-emacs-version-requirement
+                 entropy/emacs-highest-emacs-version-requirement)))
+  (defun entropy/emacs--after-find-file (orig-func &rest orig-args)
+    "Patch `after-find-file' with eemacs specifications."
+    (let ((err (nth 0 orig-args))
+          (war (nth 1 orig-args))
+          (nat (nth 2 orig-args))
+          (arb (nth 3 orig-args))
+          (ume entropy/emacs-find-file-without-modes)
+          umet umrhkt omet)
+      (while ume
+        (cond
+         ((eq ume 'run-find-file-hooks)
+          (setq umrhkt t) (setq ume nil umet t))
+         ((and (consp ume) (eq (car ume) 'function))
+          (setq ume (funcall (cdr ume))))
+         (t (setq ume nil umet t))))
+      (prog1 (funcall orig-func err war nat arb
+                      (if umet t (setq omet (nth 4 orig-args))))
+        (if umrhkt (run-hooks 'find-file-hook))
+        (when entropy/emacs-after-find-file-hook
+          (if
+              ;; in which case the `find-file-hook' is not ran
+              (or omet (and umet (not umrhkt)))
+              (run-hooks 'entropy/emacs-after-find-file-hook)
+            (if
+                ;; in which case the `find-file-hook' is ran
+                (or umrhkt (and (not omet) (not umet)))
+                (dolist (el (apply 'entropy/emacs-member-hook
+                                   'find-file-hook nil t
+                                   entropy/emacs-after-find-file-hook))
+                  (funcall el))))))))
+  (advice-add 'after-find-file :around #'entropy/emacs--after-find-file))
+
 ;; ** prog-modes
 ;; *** union
 ;; **** treesit prefer

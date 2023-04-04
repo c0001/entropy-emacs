@@ -74,8 +74,14 @@
 ;; *** Vars
 ;; set entropy-emacs lowest emacs version requirement
 (defconst entropy/emacs-lowest-emacs-version-requirement
-  "27"
+  "27.1"
   "The lowsest emacs version requirement for entropy-emacs.
+
+It's a version string which can be used for `version<' and
+`version<='.")
+(defconst entropy/emacs-highest-emacs-version-requirement
+  "29.1"
+  "The highest emacs version requirement for entropy-emacs.
 
 It's a version string which can be used for `version<' and
 `version<='.")

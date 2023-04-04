@@ -779,7 +779,9 @@ This func was advice for func
       (dolist (mode-hook entropy/grom-mode-hooks-list)
         (entropy/grom--add-hook mode-hook #'entropy/grom--enable-read-only)))
      ((string= entropy/grom-readonly-type "all")
-      (entropy/grom--add-hook 'find-file-hook 'entropy/grom--enable-read-only)))
+      (entropy/grom--add-hook 'find-file-hook 'entropy/grom--enable-read-only)
+      (entropy/grom--add-hook 'entropy/emacs-after-find-file-hook
+                              'entropy/grom--enable-read-only)))
     (entropy/grom--enable-patcher)
     (message "Global read only mode enable!")))
 
