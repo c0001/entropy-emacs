@@ -2331,8 +2331,15 @@ its origin defination.")
  #'__eemacs-follow-read-only-suggest/var-guard)
 
 ;; ** file buffer refer
+(defvar entropy/emacs-buffer-create-without-hooks nil
+  "Non-nil for all operation rely on `get-buffer-create' force its
+second argument INHIBIT-BUFFER-HOOKS non-nil.
+
+This variable should always be a `let' binding since if not it will
+affect all buffer creation behavior.")
+
 (defvar entropy/emacs-find-file-without-modes nil
-  "Non-nil when all of `find-file*' prefixed emacs API find buffer of
+  "Non-nil for all of `find-file*' prefixed emacs API find buffer of
 file without `normal-mode' invoked by forcely enable the NODMODS
 argument of `after-find-file' which we called this behaviour is UMODE.
 
@@ -2410,7 +2417,16 @@ is follow their original order in this hook.")
                                    'find-file-hook nil t
                                    entropy/emacs-after-find-file-hook))
                   (funcall el))))))))
-  (advice-add 'after-find-file :around #'entropy/emacs--after-find-file))
+  (advice-add 'after-find-file :around #'entropy/emacs--after-find-file)
+
+  (defun entropy/emacs--get-buffer-create (orig-func &rest orig-args)
+    "Entropy-emacs specified `get-buffer-create' workaround as advice."
+    (let ((bn  (car orig-args))
+          (ibh (or entropy/emacs-buffer-create-without-hooks
+                   (cadr orig-args))))
+      (funcall orig-func bn ibh)))
+  (advice-add 'get-buffer-create
+              :around #'entropy/emacs--get-buffer-create))
 
 ;; ** prog-modes
 ;; *** union

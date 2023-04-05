@@ -254,7 +254,12 @@ see vterm's README."
          (curshell (entropy/emacs-shell-script-get-shell-type))
          (hkf      (alist-get curshell falist nil nil 'string=))
          ((if (not (file-exists-p quried-flag)) t
-            (with-current-buffer (find-file-noselect quried-flag)
+            (entropy/emacs-with-file-buffer quried-flag
+              :with-kill-visitings-pred 'always
+              :without-save-visitings-pred 'always
+              :with-kill-buffer-when-done t
+              :with-find-file-function 'pure
+              (goto-char (point-min))
               (prog1 (not (re-search-forward (regexp-quote curshell) nil t))
                 (kill-buffer)))))
          (vterm-etc-host
@@ -281,7 +286,7 @@ see vterm's README."
         :with-save-visitings-pred
         (if noninteractive 'always)
         :with-kill-buffer-when-done t
-        :with-find-file-noselect-args (list nil nil nil t)
+        :with-find-file-function 'pure
         (goto-char (point-max))
         (insert "\n\n")
         ;; insert conditions
@@ -300,7 +305,7 @@ else return 0; fi\n"))
         :with-kill-visitings-pred 'always
         :without-save-visitings-pred 'always
         :with-kill-buffer-when-done t
-        :with-find-file-noselect-args (list nil nil nil t)
+        :with-find-file-function 'pure
         (goto-char (point-max))
         (if (or (save-excursion (looking-back ":" (line-beginning-position)))
                 ;; buffer empty

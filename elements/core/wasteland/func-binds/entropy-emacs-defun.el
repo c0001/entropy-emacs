@@ -9101,7 +9101,7 @@ which is passed to `entropy/emacs-find-file-without-modes'."
           with-save-visitings-pred
           with-kill-buffer-when-done
           with-visiting-find-pred
-          with-find-file-noselect-args
+          with-find-file-function
           &allow-other-keys)
   "Do BODY with file buffer BUFFER of FILE and return its value.
 
@@ -9109,9 +9109,18 @@ This macro get the buffer of FILE follow order of:
 
 1. Using `get-file-buffer' to get the unique existence.
 2. If step 1 is faild, then find a existence via VCD (see blow
-   section) mechanism or if there's no buffer attaching to FILE use
-   `entropy/emacs-find-file-noselect' to create a fresh new one with
-   its optional args applied with WITH-FIND-FILE-NOSELECT-ARGS.
+   section) mechanism or if there's no buffer attaching to FILE then
+   use `entropy/emacs-find-file-noselect' to create a fresh new
+   nomodes applied buffer or use the buffer return by function
+   specified by WITH-FIND-FILE-FUNCTION which should take only one no
+   optional argument i.e. the FILE.
+
+Additionally WITH-FIND-FILE-FUNCTION may also be one of below symbols:
+
+- `pure': like default set, but also let `get-buffer-create''s
+  INHIBIT-BUFFER-HOOKS non-nil internally powered by wrapping
+  with `entropy/emacs-buffer-create-without-hooks'.
+
 
 Visitings collision dealing (VCD):
 
@@ -9156,7 +9165,8 @@ If FILE is not already exist yet, then create it firstly via
         (save-all-sym   (make-symbol "save"))
         (buffer-sym     (make-symbol "buffer"))
         (bufflist-sym   (make-symbol "bufflist"))
-        (truename-sym       (make-symbol "truename"))
+        (truename-sym   (make-symbol "truename"))
+        (find-func-sym  (make-symbol "find-func"))
         (body (entropy/emacs-defun--get-real-body body t)))
     `(let ((,fsym ,file))
        (with-current-buffer
@@ -9188,8 +9198,17 @@ If FILE is not already exist yet, then create it firstly via
                          (or (kill-buffer ,buffer-sym)
                              (throw :exit nil))))
                      (setq ,bufflist-sym (cdr ,bufflist-sym))))
-                 (apply #'entropy/emacs-find-file-noselect
-                        ,fsym ,with-find-file-noselect-args))
+                 (let ((,find-func-sym ,with-find-file-function))
+                   (if (and ,find-func-sym (not (memq ,find-func-sym '(pure))))
+                       (funcall ,find-func-sym ,fsym)
+                     (if (not ,find-func-sym)
+                         (entropy/emacs-find-file-noselect
+                          ,fsym nil nil nil 'nomodes)
+                       (cl-case ,find-func-sym
+                         (pure (let ((entropy/emacs-buffer-create-without-hooks t))
+                                 (entropy/emacs-find-file-noselect
+                                  ,fsym nil nil nil 'nomodes)))
+                         (t (error "wrong type of find-func: %s" ,find-func-sym)))))))
                (find-buffer-visiting ,fsym ,with-visiting-find-pred))
          (prog1 (progn ,@body)
            (when ,with-kill-buffer-when-done (kill-buffer)))))))
