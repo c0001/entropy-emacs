@@ -409,12 +409,23 @@ This slot should obey the rules of:
   ;; fake out origin map since we use hydra instead
   (setq eyebrowse-mode-map (make-sparse-keymap))
 
+  (defvar entropy/emacs-wc--eyebrowse-force-init nil)
   (defadvice eyebrowse-init
       (around eemacs/eyebrowse-init--base-advice first activate)
     "Make `eyebrowse-init' just for those frame which we cared about."
     (when (or (frame-parameter nil 'eemacs-current-frame-is-daemon-created)
-              (eq (selected-frame) entropy/emacs-main-frame))
-      ad-do-it))
+              (eq (selected-frame) entropy/emacs-main-frame)
+              entropy/emacs-wc--eyebrowse-force-init)
+      ;; the protection is needed for dups call
+      (unless (eyebrowse--get 'window-configs) ad-do-it)))
+  (entropy/emacs-with-daemon-make-frame-done
+    'eyebrowse-init-for-daemon-frame (&rest _)
+    "Forcely run `eyebrowse-init' after daemon frame created since
+we've hacked it but it's `after-make-frame-functions' which is
+ran before `entropy/emacs-daemon-server-after-make-frame-hook'
+while we've not set the eemacs daemon frame flag."
+    (let ((entropy/emacs-wc--eyebrowse-force-init t))
+      (eyebrowse-init)))
 
   (setq eyebrowse-mode-line-style nil
         eyebrowse-new-workspace

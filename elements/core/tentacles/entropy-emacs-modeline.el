@@ -170,8 +170,7 @@ name show function."
             'face mdlface)
            " "))
         (setq entropy/emacs-modeline--mdl-common-eyebrowse-segment rtn))
-    (or entropy/emacs-modeline--mdl-common-eyebrowse-segment
-        "")))
+    entropy/emacs-modeline--mdl-common-eyebrowse-segment))
 
 ;; *** modeline type defined
 ;; **** powerline group
