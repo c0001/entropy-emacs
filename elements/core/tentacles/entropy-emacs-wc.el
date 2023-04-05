@@ -986,32 +986,33 @@ enable the `eyebrowse-mode' before the restoration procedure."
                 nil))
         t)))
 
-  (defmacro entropy/emacs-wc-eyebrowse-savecfg--with-error
-      (type &optional cfg &rest args)
-    (macroexp-let2* ignore
-        ((typenm nil) (log nil) (dp nil) (use-cfg nil) (cfgnm nil) (ccfg nil))
-      `(let* ((,typenm nil)
-              (,use-cfg ,cfg)
-              (,log (if (and (eq ,type 'save) (setq ,typenm "Save"))
-                        (entropy/emacs-wc-eyebrowse-savecfg--save-current-config
-                         ,@args)
-                      (setq ,typenm "Restore")
-                      (entropy/emacs-wc-eyebrowes-savecfg--restore-previous-config
-                       ,@args)))
-              (,ccfg entropy/emacs-wc-eyebrowse-savecfg-current-config)
-              (,dp (if ,use-cfg (plist-get (caddr ,use-cfg) :gui-p)
-                     (plist-get (caddr ,ccfg) :gui-p)))
-              (,cfgnm (concat
-                       (format-time-string
-                        "%Y-%m-%d %a %H:%M:%S"
-                        (if ,use-cfg (cadr ,use-cfg) (cadr ,ccfg)))
-                       ": " (if ,use-cfg (car ,use-cfg) (car ,ccfg)))))
-         (if (eq ,log t)
-             (message "%s from `%s' config: [%s] done"
-                      ,typenm (if ,dp "gui" "tui") ,cfgnm)
-           (entropy/emacs-error-without-debugger
-            "%s from `%s' config: [%s] with falal of (%s)"
-            ,typenm (if ,dp "gui" "tui") ,cfgnm ,log)))))
+  (eval-and-compile
+    (defmacro entropy/emacs-wc-eyebrowse-savecfg--with-error
+        (type &optional cfg &rest args)
+      (macroexp-let2* ignore
+          ((typenm nil) (log nil) (dp nil) (use-cfg nil) (cfgnm nil) (ccfg nil))
+        `(let* ((,typenm nil)
+                (,use-cfg ,cfg)
+                (,log (if (and (eq ,type 'save) (setq ,typenm "Save"))
+                          (entropy/emacs-wc-eyebrowse-savecfg--save-current-config
+                           ,@args)
+                        (setq ,typenm "Restore")
+                        (entropy/emacs-wc-eyebrowes-savecfg--restore-previous-config
+                         ,@args)))
+                (,ccfg entropy/emacs-wc-eyebrowse-savecfg-current-config)
+                (,dp (if ,use-cfg (plist-get (caddr ,use-cfg) :gui-p)
+                       (plist-get (caddr ,ccfg) :gui-p)))
+                (,cfgnm (concat
+                         (format-time-string
+                          "%Y-%m-%d %a %H:%M:%S"
+                          (if ,use-cfg (cadr ,use-cfg) (cadr ,ccfg)))
+                         ": " (if ,use-cfg (car ,use-cfg) (car ,ccfg)))))
+           (if (eq ,log t)
+               (message "%s from `%s' config: [%s] done"
+                        ,typenm (if ,dp "gui" "tui") ,cfgnm)
+             (entropy/emacs-error-without-debugger
+              "%s from `%s' config: [%s] with falal of (%s)"
+              ,typenm (if ,dp "gui" "tui") ,cfgnm ,log))))))
 
   (defun entropy/emacs-wc-eyebrowse-save-current-config
       (&optional frame disable-eyebrowse-after-save name)
