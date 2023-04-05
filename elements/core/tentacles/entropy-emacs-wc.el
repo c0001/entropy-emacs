@@ -890,7 +890,7 @@ eyebrowse config cover the saved one."
          (format "%s" error)))))
 
   (defun entropy/emacs-wc-eyebrowse-savecfg--save-current-config
-      (&optional frame disable-eyebrowse-after-save)
+      (&optional frame disable-eyebrowse-after-save name)
     "Save current eyebrowse config for frame FRAME (default to selected frame).
 
 Return t for succeed, or an error message string while any failed
@@ -911,9 +911,14 @@ disable the `eyebrowse-mode' after saved succeed."
                    (format "switch to fake slot with fatal (%s)"
                            fake-switch-log)))
           (setq entropy/emacs-wc-eyebrowse-savecfg-current-config
-                (list :gui-p gui-p
-                      :cur-slot cur-slot
-                      :full-config (eyebrowse--get 'window-configs)))
+                (list (or name "auto saved")
+                      (current-time)
+                      (list :gui-p gui-p
+                            :cur-slot cur-slot
+                            :full-config (eyebrowse--get 'window-configs))))
+          (add-to-list
+           'entropy/emacs-wc-eyebrowse-savecfg-last-config
+           entropy/emacs-wc-eyebrowse-savecfg-current-config)
           (if disable-eyebrowse-after-save
               (condition-case nil
                   (eyebrowse-mode 0)
@@ -930,7 +935,7 @@ disable the `eyebrowse-mode' after saved succeed."
         t)))
 
   (defun entropy/emacs-wc-eyebrowes-savecfg--restore-previous-config
-      (&optional frame enable-eyebrowse-before-restore)
+      (&optional frame enable-eyebrowse-before-restore use-cfg)
     "Restore previous savemd eyebrowse config for frame FRAME (default to selected frame).
 
 Return t for succeed, or an error message string while any failed
@@ -938,9 +943,10 @@ status detected.
 
 Optional argument ENABLE-EYEBROWSE-BEFORE-RESTORE when non-nil,
 enable the `eyebrowse-mode' before the restoration procedure."
+    (setq use-cfg (or use-cfg entropy/emacs-wc-eyebrowse-savecfg-current-config))
     (with-selected-frame (or frame (selected-frame))
       (catch :exit
-        (unless entropy/emacs-wc-eyebrowse-savecfg-current-config
+        (unless use-cfg
           (throw :exit "No saved eyebrowse config found"))
         (if enable-eyebrowse-before-restore
             (unless (bound-and-true-p eyebrowse-mode)
@@ -950,7 +956,7 @@ enable the `eyebrowse-mode' before the restoration procedure."
                  (throw :exit "enable eyebrowse mode with fatal"))))
           (unless (bound-and-true-p eyebrowse-mode)
             (throw :exit "eyebrowse not enabeld")))
-        (let* ((cfg-attr entropy/emacs-wc-eyebrowse-savecfg-current-config)
+        (let* ((cfg-attr (caddr use-cfg))
                (cfg-full (plist-get cfg-attr :full-config))
                (cfg-gui-p (plist-get cfg-attr :gui-p))
                (cfg-cur-slot (plist-get cfg-attr :cur-slot))
@@ -970,11 +976,77 @@ enable the `eyebrowse-mode' before the restoration procedure."
             (error
              (throw :exit (format "switch to previous stick slot %s with fatal %s")
                     cfg-cur-slot error)))
-          (setq entropy/emacs-wc-eyebrowse-savecfg-last-config
-                entropy/emacs-wc-eyebrowse-savecfg-current-config
-                entropy/emacs-wc-eyebrowse-savecfg-current-config
+          (setq entropy/emacs-wc-eyebrowse-savecfg-current-config
                 nil))
         t)))
+
+  (defmacro entropy/emacs-wc-eyebrowse-savecfg--with-error
+      (type &optional cfg &rest args)
+    (macroexp-let2* ignore
+        ((typenm nil) (log nil) (dp nil) (use-cfg nil) (cfgnm nil) (ccfg nil))
+      `(let* ((,typenm nil)
+              (,use-cfg ,cfg)
+              (,log (if (and (eq ,type 'save) (setq ,typenm "Save"))
+                        (entropy/emacs-wc-eyebrowse-savecfg--save-current-config
+                         ,@args)
+                      (setq ,typenm "Restore")
+                      (entropy/emacs-wc-eyebrowes-savecfg--restore-previous-config
+                       ,@args)))
+              (,ccfg entropy/emacs-wc-eyebrowse-savecfg-current-config)
+              (,dp (if ,use-cfg (plist-get (caddr ,use-cfg) :gui-p)
+                     (plist-get (caddr ,ccfg) :gui-p)))
+              (,cfgnm (concat
+                       (format-time-string
+                        "%Y-%m-%d %a %H:%M:%S"
+                        (if ,use-cfg (cadr ,use-cfg) (cadr ,ccfg)))
+                       ": " (if ,use-cfg (car ,use-cfg) (car ,ccfg)))))
+         (if (eq ,log t)
+             (message "%s from `%s' config: [%s] done"
+                      ,typenm (if ,dp "gui" "tui") ,cfgnm)
+           (entropy/emacs-error-without-debugger
+            "%s from `%s' config: [%s] with falal of (%s)"
+            ,typenm (if ,dp "gui" "tui") ,cfgnm ,log)))))
+
+  (defun entropy/emacs-wc-eyebrowse-save-current-config
+      (&optional frame disable-eyebrowse-after-save name)
+    "Save current eyebrowse config via
+`entropy/emacs-wc-eyebrowse-savecfg--save-current-config'
+interactively."
+    (declare (interactive-only t))
+    (interactive
+     (list nil nil
+           (entropy/emacs-read-string-until-matched-type
+            'non-empty-str (lambda (x) (not (string-empty-p x)))
+            nil "Input a name for current eyebrowse configuration")))
+    (entropy/emacs-wc-eyebrowse-savecfg--with-error
+     'save nil frame disable-eyebrowse-after-save name))
+
+  (defun entropy/emacs-wc-eyebrowes-restore-history-config ()
+    "Restore corresponding eyebrowse config from
+`entropy/emacs-wc-eyebrowse-savecfg-last-config' interactively."
+    (declare (interactive-only t))
+    (interactive)
+    (let ((cfgs entropy/emacs-wc-eyebrowse-savecfg-last-config)
+          (dp (display-graphic-p))
+          tm cf tp rl set)
+      (if (not cfgs) (error "No history eyebrowse config found")
+        (dolist (el cfgs)
+          (setq tm (cadr el) cf (caddr el) tp (plist-get cf :gui-p))
+          (when (entropy/emacs-nxor dp tp)
+            (push (cons (concat (format-time-string "%Y-%m-%d %a %H:%M:%S" tm)
+                                ": " (car el))
+                        el) rl)))
+        (when rl
+          (setq rl (nreverse rl))
+          (entropy/emacs-setf-by-body set
+            (completing-read
+             (format "Choose `%s' eyebrowse config: "
+                     (if dp "gui" "tui")) rl nil t))
+          (setq rl (alist-get set rl nil nil 'string=))
+          (when (yes-or-no-p "Save current eyebrowse configuration?")
+            (call-interactively 'entropy/emacs-wc-eyebrowse-save-current-config))
+          (entropy/emacs-wc-eyebrowse-savecfg--with-error
+           'restore rl nil t rl)))))
 
 ;; ******* daemon config restore
 
