@@ -843,20 +843,26 @@ without derived slot."
   (defvar entropy/emacs-wc-eyebrowse-savecfg-last-config nil)
   (defvar entropy/emacs-wc-eyebrowse-savecfg-current-config nil)
 
-  (defun entropy/emacs-wc-eyebrowse-savecfg--switch-to-window-config-without-hook
-      (&rest args)
-    "Do `eyebrowse-switch-to-window-config' but without any eyebrowse
+  (let ((name 'entropy/emacs-wc-eyebrowse-savecfg--switch-to-window-config-without-hook))
+    (eval
+     `(defun ,name (&rest args)
+        "Do `eyebrowse-switch-to-window-config' but without any eyebrowse
 window config switch hooks.
 
 This function exists because we should inhibit any eyebrowse
 window config switch hook during any fake switch operations
 during eyebrowse window config save/restore."
-    (let ((eyebrowse-pre-window-switch-hook nil)
-          (eyebrowse-pre-window-delete-hook nil)
-          (eyebrowse-post-window-switch-hook nil)
-          (eyebrowse-post-window-delete-hook nil))
-      (apply 'eyebrowse-switch-to-window-config
-             args)))
+        (let ((eyebrowse-pre-window-switch-hook nil)
+              (eyebrowse-pre-window-delete-hook nil)
+              (eyebrowse-post-window-switch-hook nil)
+              (eyebrowse-post-window-delete-hook nil))
+          (apply 'eyebrowse-switch-to-window-config
+                 args)))
+     ;; NOTE: disable lexical binding since we want to inherit the dynamic
+     ;; value of hook via let
+     nil)
+    (unless (compiled-function-p (indirect-function name))
+      (byte-compile name)))
 
   (defun entropy/emacs-wc-eyebrowse-savecfg--switch-to-fake-slot
       (&optional frame)
