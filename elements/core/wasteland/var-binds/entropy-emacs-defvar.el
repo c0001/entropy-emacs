@@ -2185,9 +2185,31 @@ entropy-emacs.
       (push (cons frame (symbol-value var-sym))
             entropy/emacs-daemon--client-initialize-main-register))))
 
+(defun entropy/emacs-daemon-get-initial-buffer (&optional frame)
+  "Return a buffer DIBUFF which is the initial buffer of current
+daemon session FRAME (defaults to use `selected-frame'), or nil
+when non of thus or the one is not `buffer-live-p' anymore.
+
+DIBUFF is the file buffer invoked by `server-execute' which is
+placed as the `current-buffer' before
+`entropy/emacs-daemon-server-after-make-frame-hook' is ran."
+  (when-let
+      ((val (frame-parameter
+             (or frame (selected-frame))
+             'entropy/emacs-daemon-frame-initial-buffer)))
+    (and (bufferp val) (buffer-live-p val) val)))
+
 (when (daemonp)
   (add-hook 'server-after-make-frame-hook
-            #'entropy/emacs-daemon--client-initialize-main))
+            #'entropy/emacs-daemon--client-initialize-main)
+  (add-hook 'server-switch-hook
+            (entropy/emacs-defalias
+                'entropy/emacs-daemon--grab-frame-initial-buffer
+              (lambda nil
+                (set-frame-parameter
+                 (selected-frame)
+                 'entropy/emacs-daemon-frame-initial-buffer
+                 (current-buffer))))))
 
 ;; ** ime refer
 

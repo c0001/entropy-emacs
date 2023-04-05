@@ -1024,7 +1024,11 @@ saved by
               (if (eq log t)
                   (message "Restore eyebrowse config from previous daemon client done")
                 (message "Not restore eyebrowse config for current daemon client (%s)"
-                         log))))))))
+                         log))
+              ;; handling daemon edit buffer request
+              (when-let ((buff (entropy/emacs-daemon-get-initial-buffer)))
+                (unless (eq (current-buffer) buff) (switch-to-buffer buff)))
+              ))))))
 
   (when (daemonp)
     ;; inject the delete frame function
