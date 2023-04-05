@@ -303,10 +303,16 @@ return nil"
        face 'mode-line-inactive)))
 
 (defun entropy/emacs-modeline--origin-mdl-use-icon-or-plain
-    (icon plain)
+    (icon plain &optional for-mode)
   "Use icon or plain text for modeline spec."
-  (if (entropy/emacs-icons-displayable-p)
-      (if (stringp icon) icon (format "%s" icon)) plain))
+  (let ((ostr
+         (if (entropy/emacs-icons-displayable-p)
+             (if (stringp icon) icon (format "%s" icon)) plain)))
+    (if for-mode
+        (cond ((memq major-mode '(emacs-lisp-mode lisp-interaction-mode))
+               (format "%s/%s" ostr (if lexical-binding "l" "d")))
+              (t ostr))
+      ostr)))
 
 (defun entropy/emacs-modeline--origin-mdl-get-major-mode-str ()
   (entropy/emacs-modeline--origin-mdl-use-icon-or-plain
@@ -340,7 +346,8 @@ return nil"
      (format "%s" major-mode))
     (if (memq entropy/emacs-theme-sticker '(doom-1337))
         'entropy/emacs-defface-simple-color-face-yellow-bold
-      'success))))
+      'success))
+   'for-mode))
 
 (defvar-local entropy/emacs-modeline--origin-mdl-seg/pos-info/cache nil)
 (defun entropy/emacs-modeline--origin-mdl-seg/pos-info ()
