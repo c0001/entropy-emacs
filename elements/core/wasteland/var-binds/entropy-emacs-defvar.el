@@ -986,17 +986,29 @@ initialize the default non-lazy configs.
   ;; ========== startup done hints
   (let* ((entropy/emacs-message-non-popup t)
          (this-time (current-time))
+         (base-str "Inited")
          ;; -----------------------
          (_run-after-hook
           ;; ========== ran `entropy/emacs-after-startup-hook'
-          (progn
+          (let ((inhibit-message
+                 (or entropy/emacs-package-init-with-quick-start-p
+                     (not entropy/emacs-startup-with-Debug-p))))
             (run-hooks 'entropy/emacs-after-startup-hook)
             (if (or entropy/emacs-fall-love-with-pdumper (daemonp))
                 (run-hooks 'entropy/emacs-after-startup-idle-hook)
               (run-with-idle-timer
                0.1 nil
                (lambda nil
-                 (run-hooks 'entropy/emacs-after-startup-idle-hook))))
+                 (let ((inhibit-message
+                        (or entropy/emacs-package-init-with-quick-start-p
+                            (not entropy/emacs-startup-with-Debug-p))))
+                   (run-hooks 'entropy/emacs-after-startup-idle-hook))
+                 (entropy/emacs-message-do-message
+                  "%s --- %s %s"
+                  (bold base-str)
+                  (magenta "Happy hacking")
+                  "('C-h v entropy/emacs-run-startup-duration' see startup time)"
+                  ))))
             (message
              "%s"
              "==================== eemacs after end hooks ran out ====================")
@@ -1074,7 +1086,6 @@ initialize the default non-lazy configs.
           (string-to-number
            (format "%.2f"
                    (float-time (time-subtract this-time-1 this-time)))))
-         (base-str "Inited")
          (msgstr
           (entropy/emacs-message--do-message-ansi-apply
            "%s (using %s seconds \
@@ -1134,13 +1145,7 @@ initialize the default non-lazy configs.
         (with-current-buffer (window-buffer)
           (setq-local
            mode-line-format
-           msgstr))))
-    (entropy/emacs-message-do-message
-     "%s --- %s %s"
-     (bold base-str)
-     (magenta "Happy hacking")
-     "('C-h v entropy/emacs-run-startup-duration' see startup time)"
-     ))
+           msgstr)))))
   ;; ========== Debug facilities
   (when entropy/emacs-startup-benchmark-init
     (benchmark-init/show-durations-tree)

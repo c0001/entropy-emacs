@@ -11616,7 +11616,7 @@ invoked after."
                           (fmakunbound ,func-sym)
                           (defalias ,func-sym #'ignore)))))
                 (if (not entropy/emacs-startup-with-Debug-p)
-                    (message "[%s] ran done , running rest ..."
+                    (message "Load done for '%s' , (Maybe running rest tasks ...)"
                              ,initial-func-suffix-name-sym)
                   (setq end-time (time-to-seconds))
                   (entropy/emacs-message-do-message
@@ -11626,7 +11626,6 @@ invoked after."
                    (green "within")
                    (cyan (format "%f" (- end-time head-time)))
                    (green "seconds. (Maybe running rest tasks ...)")))
-                (entropy/emacs-idle-cleanup-echo-area)
                 func-body-rtn))))
 
          (defalias ,func-sym ,func-lambda-sym
