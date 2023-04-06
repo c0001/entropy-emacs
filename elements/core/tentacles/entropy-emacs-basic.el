@@ -4241,10 +4241,18 @@ collection."
 its a exists file's buffer."
   (interactive)
   (let ((buff (current-buffer))
-        (fname (buffer-file-name)))
+        (fname (buffer-file-name))
+        ;; we must ensure we did in the same frame or there's
+        ;; meaningless (for example in daemon server the there's
+        ;; `server-kill-buffer' in local `kill-buffer-hook' of an
+        ;; client request editing buffer which will killed the client
+        ;; frame)
+        (frame (selected-frame)))
     (kill-buffer buff)
-    (when (file-exists-p fname)
-      (dired (file-name-directory fname)))))
+    (when (and (eq frame (selected-frame)) (file-exists-p fname))
+      (entropy/emacs-message-simple-progress-message
+       "Revert to the dired of current buffer's `default-directory'"
+       (dired (file-name-directory fname))))))
 
 (defun entropy/emacs-basic-kill-buffer-and-its-window-when-grids ()
   "Kill buffer and close it's host window if windows conuts
@@ -4279,7 +4287,8 @@ retrieve from `window-list' larger than 1."
           (kill-buffer))
          ;; === default grid case
          (t
-          (kill-buffer-and-window)))
+          (kill-buffer-and-window)
+          (message "Kill current buffer with its window done.")))
       ;; -------------------- default case
       (kill-buffer))))
 
@@ -4312,12 +4321,10 @@ as thus."
                         (directory-file-name current-defdir)
                         default-directory)))
                      nil t)) t)))
-    (call-interactively #'entropy/emacs-basic-kill-buffer-and-show-its-dired)
-    (message "Revert to the dired of current buffer's `default-directory' done."))
+    (call-interactively #'entropy/emacs-basic-kill-buffer-and-show-its-dired))
    (t
     (call-interactively
-     #'entropy/emacs-basic-kill-buffer-and-its-window-when-grids)
-    (message "Kill current buffer and its window done."))))
+     #'entropy/emacs-basic-kill-buffer-and-its-window-when-grids))))
 
 (global-set-key (kbd "C-x k") #'entropy/emacs-basic-kill-buffer)
 (global-set-key (kbd "C-x M-k") #'kill-buffer)
