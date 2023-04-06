@@ -516,13 +516,13 @@ the sake of obeying its rules.
   (defun __ya/eyebrowse-switch-to-config (orig-func &rest orig-args)
     (let* ((dslot (car orig-args))
            (dstag
-            (or (nth 2 (assoc dslot (eyebrowse--get 'window-configs)))
-                "")))
+            (nth 2 (assoc dslot (eyebrowse--get 'window-configs)))))
       (entropy/emacs-message-simple-progress-message
        "%s %s"
        :with-message-color-args
        `((green "Switching to eyebrowse slot")
-         (yellow ,(format "%s: %s" dslot dstag)))
+         (yellow ,(if dstag (format "%s: %s" dslot dstag)
+                    (format "%s" dslot))))
        (apply orig-func orig-args))))
   (advice-add 'eyebrowse-switch-to-window-config
               :around
