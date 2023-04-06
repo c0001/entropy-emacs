@@ -475,7 +475,7 @@ while we've not set the eemacs daemon frame flag."
             #'entropy/emacs-wc--eyebrowse-resotre-wpamemory
             100)
 
-;; ***** Debugs for improving eyebrowse's user experience
+;; ***** advices
   (defun __ya/eyebrowse--read-slot ()
     "Like `eyebrowse--read-slot' but redefined for be compat with
   entropy-emacs for reasons as below:
@@ -512,6 +512,21 @@ the sake of obeying its rules.
   (advice-add 'eyebrowse--read-slot
               :override
               #'__ya/eyebrowse--read-slot)
+
+  (defun __ya/eyebrowse-switch-to-config (orig-func &rest orig-args)
+    (let* ((dslot (car orig-args))
+           (dstag
+            (or (nth 2 (assoc dslot (eyebrowse--get 'window-configs)))
+                "")))
+      (entropy/emacs-message-simple-progress-message
+       "%s %s"
+       :with-message-color-args
+       `((green "Switching to eyebrowse slot")
+         (yellow ,(format "%s: %s" dslot dstag)))
+       (apply orig-func orig-args))))
+  (advice-add 'eyebrowse-switch-to-window-config
+              :around
+              #'__ya/eyebrowse-switch-to-config)
 
 ;; ***** Create window config
   (defun entropy/emacs-basic-eyebrowse-create-window-config ()
