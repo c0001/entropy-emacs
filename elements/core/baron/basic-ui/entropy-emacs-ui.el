@@ -533,7 +533,7 @@ widget used func `entropy/emacs-ui--init-welcom-create-widget'."
                  ?\ ))
         (insert (propertize title 'face 'entropy/emacs-defface-face-for-welcome-buffer-title-face))
         (insert "\n")
-        (insert (make-string (floor (/ (- entropy/emacs-ui--init-welcom-width (length version)) 2)) ?\ ))
+        (insert (make-string (max 0 (floor (/ (- entropy/emacs-ui--init-welcom-width (length version)) 2))) ?\ ))
         (insert entropy/emacs-ecv)
         (insert "\n\n\n\n\n\n")
         (entropy/emacs-ui--init-welcom-create-widget)
