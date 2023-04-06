@@ -562,8 +562,7 @@ segmentation fault."
   (defun entropy/emacs-shell--eemacs-shellpop--eyebrowse-curreg-prune (var)
     (setq entropy/emacs-shell-eemacs-shellpop--eyebrowse-curreg
           (cl-remove-if
-           `(lambda (x)
-              (equal (car x) ',var))
+           (lambda (x) (equal (car x) var))
            entropy/emacs-shell-eemacs-shellpop--eyebrowse-curreg)))
 
   (defun entropy/emacs-shell--eemacs-shellpop-eyebrowse-save-reg (&rest _)
