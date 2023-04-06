@@ -11772,7 +11772,16 @@ hosted in `entropy/emacs-ext-emacs-pkgel-get-pkgs-root'."
   (setq package-user-dir
         (expand-file-name
          (concat "elpa-" version)
-         (expand-file-name entropy/emacs-ext-emacs-pkgel-get-pkgs-root))))
+         (expand-file-name entropy/emacs-ext-emacs-pkgel-get-pkgs-root)))
+  (let ((d (expand-file-name
+            (format "emacs/package-quick-file/%s" version)
+            entropy/emacs-stuffs-topdir)))
+    ;; do not check dir in byte-comp load session since for thoughts
+    ;; of I/O speed
+    (unless (bound-and-true-p entropy/emacs-package-src-load-bytecode-p)
+      (mkdir d t))
+    (setq package-quickstart-file
+          (expand-file-name (format "package-quickstart-%s.el"version) d))))
 
 (defun entropy/emacs-set-package-user-dir ()
   "Set `package-user-dir' obey eemacs specified rule located in

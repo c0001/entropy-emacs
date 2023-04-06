@@ -111,8 +111,6 @@ argument."
 ;; *** Initialize packages
 (defvar __package-first-initialized nil)
 (defun entropy/emacs-package--package-initialize (&optional force)
-  (unless (version< emacs-version "27")
-    (setq package-quickstart nil))
   (when force
     (setq package--initialized nil)
     (setq load-path (copy-tree entropy/emacs-origin-load-path))
@@ -349,7 +347,13 @@ building procedure while invoking INSTALL-COMMANDS."
 ;; *** error prompt for failing items
 
 (defun entropy/emacs-package-prompt-install-fails ()
-  (when entropy/emacs-package-install-failed-list
+  (if (not entropy/emacs-package-install-failed-list)
+      (entropy/emacs-message-simple-progress-message
+       "%s"
+       :with-message-color-args
+       '((blue (format "Refresh `package-quickstart-file' %s"
+                       package-quickstart-file)))
+       (package-quickstart-refresh))
     ;; Add stdout newline after install message when in batch-mode
     (when noninteractive
       (princ "\n")
