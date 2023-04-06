@@ -44,6 +44,11 @@
 ;; Debug emacs while hang on by send the SIGUSR2 process event
 (setq debug-on-event 'sigusr2)
 
+;; Disable emacs29's new recursively debug feature since it will still
+;; warn of those problem is hot fixed yet.
+(and (boundp 'debug-allow-recursive-debug)
+     (setq debug-allow-recursive-debug t))
+
 ;; Native compile specs
 ;;
 ;; Disable all auto native compilation bootstraps since we use union
