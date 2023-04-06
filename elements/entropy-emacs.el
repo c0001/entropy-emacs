@@ -716,11 +716,9 @@ emacs specified environment variable references APIs, this is the
 only one for thus."
   (if __entropy/emacs-is-make-session-check-done
       __entropy/emacs-is-make-session-value-cache
-    (let ((env-p (getenv "EEMACS_MAKE")))
+    (let ((env-p (entropy/emacs-getenv "EEMACS_MAKE")))
       (setq __entropy/emacs-is-make-session-value-cache
-            (cond
-             ((or (null env-p) (string-empty-p env-p)) nil)
-             (t env-p))
+            env-p
             __entropy/emacs-is-make-session-check-done
             t)
       __entropy/emacs-is-make-session-value-cache)))
@@ -729,21 +727,28 @@ only one for thus."
   "Obtained the 'EEMACS_MAKE_ALL' env variable value if valid
 otherwise return nil.
 
-This function commonly used to judge whether start emacs in a
-`noninteractive' status but in daemon load procedure, where
-specially indicate to other subroutines to get the 'batch
-run' (e.g. use entropy emacs as a shell) type according to the
-value of entropy emacs specified environment variable
-\"EEMACS_MAKE_ALL\".
+This function commonly used to judge whether eemacs is under a
+make session which means for making all eemacs make sections.
 
 NOTE: you should always use this function to get thus variable
 value where there's no published for any of the internal entropy
 emacs specified environment variable references APIs, this is the
 only one for thus."
-  (let ((env-p (getenv "EEMACS_MAKE_ALL")))
-    (cond
-     ((or (null env-p) (string-empty-p env-p)) nil)
-     (t env-p))))
+  (entropy/emacs-getenv "EEMACS_MAKE_ALL"))
+
+(defun entropy/emacs-is-make-with-all-yes-session ()
+  "Obtained the 'EEMACS_MAKE_WITH_ALL_YES' env variable value if
+valid otherwise return nil.
+
+This function commonly used to judge whether eemacs is under a
+make session without any `yes-or-no-p' validation as default to
+*yes*.
+
+NOTE: you should always use this function to get thus variable
+value where there's no published for any of the internal entropy
+emacs specified environment variable references APIs, this is the
+only one for thus."
+  (entropy/emacs-getenv "EEMACS_MAKE_WITH_ALL_YES"))
 
 ;; *** eemacs-require-func
 

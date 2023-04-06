@@ -194,7 +194,9 @@ In used emacs version is: %s
       (blue    "==================================================")
       (yellow "           Section for emacs dump ...")
       (blue    "=================================================="))
-     (when (or (entropy/emacs-is-make-all-session) (yes-or-no-p "Dump eemacs? "))
+     (when (or (entropy/emacs-is-make-all-session)
+               (entropy/emacs-is-make-with-all-yes-session)
+               (yes-or-no-p "Dump eemacs? "))
        ,@body)))
 
 (defmacro entropy/emacs-batch--prompts-for-ext-update-section
@@ -205,7 +207,9 @@ In used emacs version is: %s
       (blue    "==================================================")
       (yellow "       Section for extensions updating ...")
       (blue    "=================================================="))
-     (when (or (entropy/emacs-is-make-all-session) (yes-or-no-p "Do package update? "))
+     (when (or (entropy/emacs-is-make-all-session)
+               (entropy/emacs-is-make-with-all-yes-session)
+               (yes-or-no-p "Do package update? "))
        ,@body)))
 
 (defmacro entropy/emacs-batch--prompts-for-coworkers-installing-section
@@ -216,7 +220,9 @@ In used emacs version is: %s
       (blue    "==================================================")
       (yellow "       Section for coworkers installing ...")
       (blue    "=================================================="))
-     (when (or (entropy/emacs-is-make-all-session) (yes-or-no-p "Install them? "))
+     (when (or (entropy/emacs-is-make-all-session)
+               (entropy/emacs-is-make-with-all-yes-session)
+               (yes-or-no-p "Install them? "))
        ,@body)))
 
 (defmacro entropy/emacs-batch--prompts-for-native-compile
@@ -227,7 +233,9 @@ In used emacs version is: %s
       (blue    "==================================================")
       (yellow "       Section for native compiling `package-user-dir' ...")
       (blue    "=================================================="))
-     (when (or (entropy/emacs-is-make-all-session) (yes-or-no-p "Native compile `package-user-dir'? "))
+     (when (or (entropy/emacs-is-make-all-session)
+               (entropy/emacs-is-make-with-all-yes-session)
+               (yes-or-no-p "Native compile `package-user-dir'? "))
        ,@body)))
 
 (defmacro entropy/emacs-batch--prompts-for-eemacs-ext-build-repo-install
@@ -238,7 +246,9 @@ In used emacs version is: %s
       (blue    "==================================================")
       (yellow "       Section for install entropy-emacs-extensions stable build ...")
       (blue    "=================================================="))
-     (when (or (entropy/emacs-is-make-all-session) (yes-or-no-p "install eemacs-ext stable build? "))
+     (when (or (entropy/emacs-is-make-all-session)
+               (entropy/emacs-is-make-with-all-yes-session)
+               (yes-or-no-p "install eemacs-ext stable build? "))
        ,@body)))
 
 (defmacro entropy/emacs-batch--prompts-for-eemacs-fonts-install
@@ -249,7 +259,9 @@ In used emacs version is: %s
       (blue    "==================================================")
       (yellow "       Section for install eemacs-fonts ...")
       (blue    "=================================================="))
-     (when (or (entropy/emacs-is-make-all-session) (yes-or-no-p "install eemacs-fonts? "))
+     (when (or (entropy/emacs-is-make-all-session)
+               (entropy/emacs-is-make-with-all-yes-session)
+               (yes-or-no-p "install eemacs-fonts? "))
        ,@body)))
 
 (defmacro entropy/emacs-batch--prompts-for-byte-compile-eemacs-internal
@@ -260,7 +272,9 @@ In used emacs version is: %s
       (blue    "==================================================")
       (yellow "       Section for byte-compile eemacs internal ...")
       (blue    "=================================================="))
-     (when (or (entropy/emacs-is-make-all-session) (yes-or-no-p "Compile? "))
+     (when (or (entropy/emacs-is-make-all-session)
+               (entropy/emacs-is-make-with-all-yes-session)
+               (yes-or-no-p "Compile? "))
        ,@body)))
 
 ;; *** make sections

@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+
+srcnm="${BASH_SOURCE[0]}"
+while [ -h "$srcnm" ]; do # resolve $srcnm until the file is no longer a symlink
+    srcdir="$( cd -P "$( dirname "$srcnm" )" >/dev/null && pwd )"
+    srcnm="$(readlink "$srcnm")"
+
+    # if $srcnm was a relative symlink, we need to resolve it relative
+    # to the path where the symlink file was located
+    [[ $srcnm != /* ]] && srcnm="$srcdir/$srcnm"
+done
+srcdir="$( cd -P "$( dirname "$srcnm" )" >/dev/null && pwd )"
+
+cd ../../
+eemacs_dir="$(pwd)"
+
+emacs_exec="${EMACS:-emacs}"
+emacs_session="${1:-main}"
+
+# ** libs
+function _date ()
+{
+    date -u +"%Y%m%d%H%M%S"
+}
+
+function _warn ()
+{
+    echo -e "\e[33m[warn: $(_date)] $1\e[0m"
+}
+
+function _err ()
+{
+    echo -e "\e[31m[error: $(_date)] $1\e[0m"
+    exit 1
+}
+
+function _nerr ()
+{
+    if [ $? -ne 0 ]; then
+        echo -e "\e[31m[error: $(_date)] ${1:-some fatal occurs}\e[0m"
+        exit 1
+    fi
+}
+
+function _job_msg ()
+{
+    echo -e "\e[32m[Job: $(_date)] $1 ...\e[0m"
+}
+
+function _job_msg_sub ()
+{
+    echo -e "--> \e[32m[SubJob: $(_date)] $1 ...\e[0m"
+}
+
+function _ok_msg ()
+{
+    echo -e "\e[32m[OK: $(_date)] $1\e[0m"
+}
+
+# ** main
+cd "$eemacs_dir"
+_nerr "CD to $eemacs_dir with fatal"

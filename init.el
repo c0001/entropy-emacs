@@ -135,14 +135,19 @@ It's a version string which can be used for `version<' and
 
 ;; **** Eemacs init env filter
 
+(defun entropy/emacs-getenv (variable &optional frame)
+  "Same as `getenv' but also return nil when VARIABLE's value is an
+empty string predicated by `string-empty-p'."
+  (let ((env-p (getenv variable frame)))
+    (if (or (null env-p) (string-empty-p env-p))
+        nil env-p)))
+
 (defun entropy/emacs-env-init-with-pure-eemacs-env-p (&rest _)
-  (let ((env (getenv "EEMACS_INIT_WITH_PURE")))
-    (and env (not (string-empty-p env)))))
+  (entropy/emacs-getenv "EEMACS_INIT_WITH_PURE"))
 
 (defun entropy/emacs-env-init-with-pure-eemacs-env/load-custom-file-p nil
   (and (entropy/emacs-env-init-with-pure-eemacs-env-p)
-       (let ((env (getenv "EEMACS_INIT_WITH_PURE_LCSTF")))
-         (and (stringp env) (not (string-empty-p env))))))
+       (entropy/emacs-getenv "EEMACS_INIT_WITH_PURE_LCSTF")))
 
 ;; ** Load custom
 

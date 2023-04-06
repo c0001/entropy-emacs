@@ -750,7 +750,9 @@ the :eemacs-adrequrie has been loaded and the related form is banned."
   (if
       ;; Do not check extensions when boot from bytecode to speedup
       ;; startup process.
-      entropy/emacs-package-src-load-bytecode-p
+      (or entropy/emacs-package-src-load-bytecode-p
+          ;; Or start with eemacs daemon systemd service
+          (entropy/emacs-getenv "EEMACS_SYSTEMD_DAEMON_SERVICE"))
       (entropy/emacs-package-prepare-foras)
     (cond
      ((entropy/emacs-is-make-all-session)
