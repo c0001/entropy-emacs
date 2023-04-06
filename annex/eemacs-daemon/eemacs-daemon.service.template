@@ -3,7 +3,7 @@ Description=Enropy-Emacs <<<<SESSION>>>> daemon service https://github.com/c0001
 After=network.target
 
 [Service]
-ExecStartPre=env EEMACS_MAKE_WITH_ALL_YES=1 make -C '<<<<EEMACS_DIR>>>>' compile
+ExecStartPre=env make EEMACS_MAKE_WITH_ALL_YES=1 EMACS='<<<<EMACS>>>>' -C '<<<<EEMACS_DIR>>>>' compile
 ExecStart=env GTL_IM_MODULE= GTK_IM_MODULE= QT_IM_MODULE= XMODIFIERS= EEMACS_SYSTEMD_DAEMON_SERVICE=1 '<<<<EMACS>>>>' -Q -l '<<<<INIT>>>>' --fg-daemon='<<<<SESSION>>>>'
 # Restart=on-abort
 
