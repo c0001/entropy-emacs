@@ -5306,10 +5306,10 @@ backtrace:
   :signal (entropy/emacs-do-error-for-emacs-version-incompatible
            '<= "29.1")
   (when (or (not (display-graphic-p)) (daemonp))
-    (entropy/emacs-lazy-initial-for-hook
+    (entropy/emacs-lazy-initial-advice-before
      ;; we must inject before any command really ran since the patch
      ;; must take effective before the that describe procedure run.
-     '(pre-command-hook)
+     '(help--read-key-sequence)
      "advice-patch-help--analyze-key" "advice-patch-help--analyze-key"
      :pdumper-no-end t :prompt-type 'prompt-echo
      (advice-patch 'help--analyze-key
