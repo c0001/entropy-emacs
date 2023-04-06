@@ -576,7 +576,12 @@ the return.
 
 If optional argument FORCE is non-nil, we also judged in linux
 non-X env, this useful for daemon session with X expectation."
-  (when (or sys/linux-x-p (and force sys/is-linux-and-graphic-support-p))
+  (when (and (or sys/linux-x-p (and force sys/is-linux-and-graphic-support-p))
+             ;; Disable warn when in non-XIM options enabled emacs
+             ;; build, since it disabled any X IME features natively.
+             (not (and system-configuration-options
+                       (stringp system-configuration-options)
+                       (string-match-p "--without-xim" system-configuration-options))))
     (let ((envars '("GTL_IM_MODULE"
                     "GTK_IM_MODULE"
                     "QT_IM_MODULE"
