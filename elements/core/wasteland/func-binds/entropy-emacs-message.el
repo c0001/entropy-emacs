@@ -109,7 +109,8 @@ frame done.
 This function used to give out a notation that in thus time we can not
 use popup message style where the emacs session do not have window
 feature started up."
-  (and (daemonp) (null window-system)))
+  (and (daemonp) (not (entropy/emacs-daemon-frame-is-legal-daemon-client-p
+                       (selected-frame)))))
 
 (defun entropy/emacs-message--get-plist-body (args)
   "Get BODY inside of 'pre-plist' ARGS, commonly is the last non
