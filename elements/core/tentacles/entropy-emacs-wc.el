@@ -504,6 +504,9 @@ the sake of obeying its rules.
                                     (cons (eyebrowse-format-slot it)
                                           (car it)))
                                (eyebrowse--get 'window-configs)))
+           (_ (unless candidates
+                (entropy/emacs-error-without-debugger
+                 "No other slots found, you need to create one or more later.")))
            (candidate (completing-read "Enter slot: " candidates))
            (choice (cdr (assoc candidate candidates))))
       (or choice (eyebrowse--string-to-number candidate)
