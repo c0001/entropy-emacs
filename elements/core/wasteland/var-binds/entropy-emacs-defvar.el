@@ -35,6 +35,10 @@
 
 ;; ** individuals
 
+(defvar entropy/emacs-package-init-with-quick-start-p nil
+  "Non-nil indicate current eemacs session's `package-initialize'
+from `package-quickstart-file'.")
+
 (defvar entropy/emacs-package-common-start-after-hook nil
   "Hooks run after the entropy-emacs elisp packages initialized
 done while calling `entropy/emacs-package-common-start'.")

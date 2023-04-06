@@ -116,6 +116,16 @@ argument."
     (setq load-path (copy-tree entropy/emacs-origin-load-path))
     (setq package-alist nil)
     (setq package-activated-list nil))
+  (if entropy/emacs-package-src-load-bytecode-p
+      ;; enabel package qucikstart to speedup package initializing via
+      ;; invoke `package-initialize' after the early-init
+      (setq package-quickstart t
+            entropy/emacs-package-init-with-quick-start-p t)
+    ;; but not for non-bytecode startup occasion, since we should use
+    ;; traditional packages founding mechanism to track the full
+    ;; metadatas before `package-quickstart-refresh'.
+    (setq package-quickstart nil
+          entropy/emacs-package-init-with-quick-start-p nil))
   (entropy/emacs-message-do-message
    "Custom packages initializing ......"
    :force-message-while-eemacs-init t)
@@ -348,12 +358,14 @@ building procedure while invoking INSTALL-COMMANDS."
 
 (defun entropy/emacs-package-prompt-install-fails ()
   (if (not entropy/emacs-package-install-failed-list)
-      (entropy/emacs-message-simple-progress-message
-       "%s"
-       :with-message-color-args
-       '((blue (format "Refresh `package-quickstart-file' %s"
-                       package-quickstart-file)))
-       (package-quickstart-refresh))
+      (when-let (((not entropy/emacs-package-init-with-quick-start-p))
+                 (package-quickstart t))
+        (entropy/emacs-message-simple-progress-message
+         "%s"
+         :with-message-color-args
+         '((blue (format "Refresh `package-quickstart-file' %s"
+                         package-quickstart-file)))
+         (package-quickstart-refresh)))
     ;; Add stdout newline after install message when in batch-mode
     (when noninteractive
       (princ "\n")
