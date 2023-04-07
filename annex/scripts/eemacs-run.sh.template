@@ -14,70 +14,107 @@ while [ -h "$srcfile" ]; do # resolve $srcfile until the file is no longer a sym
 done
 srcdir="$( cd -P "$( dirname "$srcfile" )" >/dev/null && pwd )"
 cd "$srcdir"
-set +e
+
 
 # ** declare
-emacs_exec="${EMACS:-emacs}"
-emacs_session="${1:-main}"
+Eemacs_Var_EmacsExec="${EMACS:-emacs}"
+Eemacs_Var_EmacsSessionName="${1:-main}"
+
+# Strip ANSI escape codes/sequences [$1: input string, $2: target variable]
+#
+# See: https://stackoverflow.com/a/49424643/9827531
+function __strip_escape_codes() {
+    local _input="$(echo -e "$1")" _i _char _escape=0
+    local -n _output="$2"; _output=""
+    for (( _i=0; _i < ${#_input}; _i++ )); do
+        _char="${_input:_i:1}"
+        if (( ${_escape} == 1 )); then
+            if [[ "${_char}" == [a-zA-Z] ]]; then
+                _escape=0
+            fi
+            continue
+        fi
+        if [[ "${_char}" == $'\e' ]]; then
+            _escape=1
+            continue
+        fi
+        _output+="${_char}"
+    done
+}
 
 # ** libs
 
-function EemacsEcho ()
+function Eemacs_Func_Echo ()
 {
     local msg="$1"
+    local nmsg
+    __strip_escape_codes "$msg" nmsg
     if command -v notify-send 1>/dev/null 2>&1
     then
-        notify-send -t 3000 -a "$emacs_session" "$msg"
+        notify-send -t 3000 -a "$Eemacs_Var_EmacsSessionName" "$nmsg"
     fi
     echo -e "$1"
 }
 
-function EemacsTime ()
+function Eemacs_Func_Time ()
 {
-    date -u +"%Y%m%d%H%M%S"
+    # date -u +"%Y%m%d%H%M%S"
+    printf "%(%Y%m%d%H%M%S)T"
 }
 
-function EemacsWarn ()
+function Eemacs_Func_Warn ()
 {
-    EemacsEcho "\e[33m[warn: $(EemacsTime)] $1\e[0m"
+    Eemacs_Func_Echo "\e[33m[warn: $(Eemacs_Func_Time)] $1\e[0m"
 }
 
-function EemacsErro ()
+function Eemacs_Func_Erro ()
 {
-    EemacsEcho "\e[31m[error: $(EemacsTime)] $1\e[0m"
+    Eemacs_Func_Echo "\e[31m[error: $(Eemacs_Func_Time)] $1\e[0m"
     exit 1
 }
 
-function EemacsNerror ()
+function Eemacs_Func_Nerror ()
 {
     if [ $? -ne 0 ]; then
-        EemacsEcho "\e[31m[error: $(EemacsTime)] ${1:-some fatal occurs}\e[0m"
+        Eemacs_Func_Echo "\e[31m[error: $(Eemacs_Func_Time)] ${1:-some fatal occurs}\e[0m"
         exit 1
     fi
 }
 
-function EemacsJobMsg ()
+function Eemacs_Func_JobMsg ()
 {
-    EemacsEcho "\e[32m[Job: $(EemacsTime)] $1 ...\e[0m"
+    Eemacs_Func_Echo "\e[32m[Job: $(Eemacs_Func_Time)] $1 ...\e[0m"
 }
 
-function EemacsJobMsgSub ()
+function Eemacs_Func_JobMsgSub ()
 {
-    EemacsEcho "--> \e[32m[SubJob: $(EemacsTime)] $1 ...\e[0m"
+    Eemacs_Func_Echo "--> \e[32m[SubJob: $(Eemacs_Func_Time)] $1 ...\e[0m"
 }
 
-function EemacsOkMsg ()
+function Eemacs_Func_OkMsg ()
 {
-    EemacsEcho "\e[32m[OK: $(EemacsTime)] $1\e[0m"
+    Eemacs_Func_Echo "\e[32m[OK: $(Eemacs_Func_Time)] $1\e[0m"
+}
+
+function Eemacs_Func_CheckCmds ()
+{
+    local -a cmds=("$@")
+    local i
+    for i in "${cmds[@]}"; do
+        if ! command -v "$i" 1>/dev/null 2>&1; then
+            Eemacs_Func_Erro "\e[31mCommand <$i> not found in your PATH\e[0m"
+        fi
+    done
 }
 
 # ** login
 cd ../../
-EemacsNerror "CD to eemacs dir with fatal"
-EEMACS_DIR="$(pwd)"
-EemacsNerror "GET eemacs dir path with fatal"
-cd "$EEMACS_DIR"
-EemacsNerror "CD to $EEMACS_DIR with fatal"
+Eemacs_Func_Nerror "CD to eemacs dir with fatal"
+Eemacs_Var_EemacsDir="$(pwd)"
+Eemacs_Func_Nerror "GET eemacs dir path with fatal"
+cd "$Eemacs_Var_EemacsDir"
+Eemacs_Func_Nerror "CD to $Eemacs_Var_EemacsDir with fatal"
+set +e
 
 # ** main
 
