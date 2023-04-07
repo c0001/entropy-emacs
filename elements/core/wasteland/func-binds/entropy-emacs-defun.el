@@ -9213,6 +9213,42 @@ If FILE is not already exist yet, then create it firstly via
          (prog1 (progn ,@body)
            (when ,with-kill-buffer-when-done (kill-buffer)))))))
 
+(cl-defmacro entropy/emacs-with-temp-file-buffer
+    (text &rest body &key (with-system-tmpfs t)
+          with-it-as
+          without-delete
+          &allow-other-keys)
+  "Bind symbol `it' (or explicitly set by WITH-IT-AS) to a
+temporally file made by `entropy/emacs-make-temp-file', run BODY
+with `it's buffer as `current-buffer' and return BODY's last
+form's value.
+
+TEXT shoud return a text string used to initialized `it' or nil to
+leave `it' as empty.
+
+If WITHOUT-DELETE is set, it should return non-nil to prevent
+auto-deletion for `it' which is the default behaviour."
+  (declare (indent 1))
+  (let ((body (entropy/emacs--get-def-body body t))
+        (sym (or with-it-as 'it))
+        (lmf (make-symbol "lmf")) (lfo (make-symbol "lfo")))
+    `(let* ((,sym (let ((inhibit-message t))
+                    (entropy/emacs-make-temp-file
+                     "eemacs-with-temp-file." nil nil ,text
+                     :with-system-tmpfs ,with-system-tmpfs)))
+            (,lfo nil)
+            (,lmf (lambda nil
+                    (when (file-exists-p ,sym)
+                      (let ((inhibit-quit t))
+                        (delete-file ,sym) (setq ,lfo t))))))
+       (entropy/emacs-with-file-buffer ,sym
+         :with-kill-buffer-when-done t
+         :with-find-file-function 'pure
+         (unwind-protect (progn ,@body)
+           (unwind-protect
+               (if ,without-delete (setq ,lfo t) (funcall ,lmf))
+             (unless ,lfo (funcall ,lmf))))))))
+
 ;; *** Hook manipulation
 
 (cl-defmacro entropy/emacs-add-hook-with-lambda

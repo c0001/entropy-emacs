@@ -85,19 +85,69 @@ key-stroke experience."
   "The eemacs session specified temporarily host path as the system
 '/tmp' dir.
 
-This variable exists because in some operation system there's no
-temporarily directory hosted for using while emacs needed. Thus eemacs
-internally unified the result to its framework's subjet temporarily
-directory to avoid that.
+This variable exists because eemacs want to internally specified a
+`temporary-file-directory' which just relate with eemacs only, to
+prevent messy up with other system facilities.
 
 If set must be a directory name i.e. wrapped result using
 `file-name-as-directory'. Since it should follow `default-directory''s
-convention."
+convention. Or null it i.e. set it to nil in which case
+`temporary-file-directory' default value is not changed, otherwise in
+eemacs the `temporary-file-directory' is always equivalent with the
+value specified to this variable.
+
+See also `entropy/emacs-system-temporary-file-directory' and
+`entropy/emacs-make-temp-file'."
   :type 'directory
   :group 'entropy/emacs-customize-group-for-fundametal-configuration)
 
-(make-directory entropy/emacs-temporary-file-directory t)
-(setq temporary-file-directory entropy/emacs-temporary-file-directory)
+(when entropy/emacs-temporary-file-directory
+  (unless (directory-name-p entropy/emacs-temporary-file-directory)
+    (entropy/emacs-error-without-debugger
+     "`entropy/emacs-temporary-file-directory' %s is not a directory name"
+     entropy/emacs-temporary-file-directory))
+  (make-directory entropy/emacs-temporary-file-directory t))
+
+(defconst entropy/emacs-system-temporary-file-directory
+  (entropy/emacs-get-symbol-defcustom-value 'temporary-file-directory)
+  "System temporarily dirctory path which emacs builtin founding and
+used where it usually be used as faster than
+`entropy/emacs-temporary-file-directory' since it's commonly a
+tmpfs which host in system ram.
+
+See also `entropy/emacs-temporary-file-directory' and
+`entropy/emacs-make-temp-file'.")
+(unless (and entropy/emacs-system-temporary-file-directory
+             (file-directory-p
+              entropy/emacs-system-temporary-file-directory))
+  (entropy/emacs-error-without-debugger
+   "No system tmpfs found on your platform"))
+
+(when entropy/emacs-temporary-file-directory
+  (setq temporary-file-directory entropy/emacs-temporary-file-directory)
+  (add-variable-watcher
+   'entropy/emacs-temporary-file-directory
+   (entropy/emacs-defalias '__var-guard/for/entropy/emacs-temporary-file-directory
+     (lambda (sym nval op wh)
+       (when (eq sym 'entropy/emacs-temporary-file-directory)
+         (entropy/emacs-error-without-debugger
+          "Do not do any modification to \
+`entropy/emacs-temporary-file-directory' even with local/dynamic \
+binding."))))))
+
+(cl-defun entropy/emacs-make-temp-file
+    (prefix &optional dir-flag suffix text
+            &key (with-system-tmpfs t))
+  "Same as `make-temp-file' but provide an optional key
+WITH-SYSTEM-TMPFS which non-nil (default is `t') to use
+`entropy/emacs-system-temporary-file-directory' as the context
+value of `temporary-file-directory'.
+
+See also `entropy/emacs-temporary-file-directory'."
+  (let ((temporary-file-directory
+         (if with-system-tmpfs entropy/emacs-system-temporary-file-directory
+           entropy/emacs-temporary-file-directory)))
+    (make-temp-file prefix dir-flag suffix text)))
 
 (defcustom entropy/emacs-minimal-start nil
   "Whether start eemacs with minmal feature loaded.

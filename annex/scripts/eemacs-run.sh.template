@@ -1,62 +1,84 @@
 #!/usr/bin/env bash
+# * Code
+# pipe first command fail then fail
+set -o pipefail
+set -e
+srcfile="${BASH_SOURCE[0]}"
+while [ -h "$srcfile" ]; do # resolve $srcfile until the file is no longer a symlink
+    srcdir="$( cd -P "$( dirname "$srcfile" )" >/dev/null && pwd )"
+    srcfile="$(readlink "$srcfile")"
 
-srcnm="${BASH_SOURCE[0]}"
-while [ -h "$srcnm" ]; do # resolve $srcnm until the file is no longer a symlink
-    srcdir="$( cd -P "$( dirname "$srcnm" )" >/dev/null && pwd )"
-    srcnm="$(readlink "$srcnm")"
-
-    # if $srcnm was a relative symlink, we need to resolve it relative
+    # if $srcfile was a relative symlink, we need to resolve it relative
     # to the path where the symlink file was located
-    [[ $srcnm != /* ]] && srcnm="$srcdir/$srcnm"
+    [[ $srcfile != /* ]] && srcfile="$srcdir/$srcfile"
 done
-srcdir="$( cd -P "$( dirname "$srcnm" )" >/dev/null && pwd )"
+srcdir="$( cd -P "$( dirname "$srcfile" )" >/dev/null && pwd )"
+cd "$srcdir"
+set +e
 
-cd ../../
-eemacs_dir="$(pwd)"
-
+# ** declare
 emacs_exec="${EMACS:-emacs}"
 emacs_session="${1:-main}"
 
 # ** libs
-function _date ()
+
+function EemacsEcho ()
+{
+    local msg="$1"
+    if command -v notify-send 1>/dev/null 2>&1
+    then
+        notify-send -t 3000 -a "$emacs_session" "$msg"
+    fi
+    echo -e "$1"
+}
+
+function EemacsTime ()
 {
     date -u +"%Y%m%d%H%M%S"
 }
 
-function _warn ()
+function EemacsWarn ()
 {
-    echo -e "\e[33m[warn: $(_date)] $1\e[0m"
+    EemacsEcho "\e[33m[warn: $(EemacsTime)] $1\e[0m"
 }
 
-function _err ()
+function EemacsErro ()
 {
-    echo -e "\e[31m[error: $(_date)] $1\e[0m"
+    EemacsEcho "\e[31m[error: $(EemacsTime)] $1\e[0m"
     exit 1
 }
 
-function _nerr ()
+function EemacsNerror ()
 {
     if [ $? -ne 0 ]; then
-        echo -e "\e[31m[error: $(_date)] ${1:-some fatal occurs}\e[0m"
+        EemacsEcho "\e[31m[error: $(EemacsTime)] ${1:-some fatal occurs}\e[0m"
         exit 1
     fi
 }
 
-function _job_msg ()
+function EemacsJobMsg ()
 {
-    echo -e "\e[32m[Job: $(_date)] $1 ...\e[0m"
+    EemacsEcho "\e[32m[Job: $(EemacsTime)] $1 ...\e[0m"
 }
 
-function _job_msg_sub ()
+function EemacsJobMsgSub ()
 {
-    echo -e "--> \e[32m[SubJob: $(_date)] $1 ...\e[0m"
+    EemacsEcho "--> \e[32m[SubJob: $(EemacsTime)] $1 ...\e[0m"
 }
 
-function _ok_msg ()
+function EemacsOkMsg ()
 {
-    echo -e "\e[32m[OK: $(_date)] $1\e[0m"
+    EemacsEcho "\e[32m[OK: $(EemacsTime)] $1\e[0m"
 }
+
+# ** login
+cd ../../
+EemacsNerror "CD to eemacs dir with fatal"
+EEMACS_DIR="$(pwd)"
+EemacsNerror "GET eemacs dir path with fatal"
+cd "$EEMACS_DIR"
+EemacsNerror "CD to $EEMACS_DIR with fatal"
 
 # ** main
-cd "$eemacs_dir"
-_nerr "CD to $eemacs_dir with fatal"
+
+# TODO as your wish
