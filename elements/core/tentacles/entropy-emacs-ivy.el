@@ -2116,8 +2116,9 @@ currnt fontset."
 (use-package rg
   :if (string= entropy/emacs-search-program "rg")
   :commands
-  (rg
-   rg-project)
+  (rg rg-project)
+  :init
+  (setq rg-command-line-flags (list "--pcre2"))
   :config
   (dolist (func '(rg rg-project))
     (advice-add func
