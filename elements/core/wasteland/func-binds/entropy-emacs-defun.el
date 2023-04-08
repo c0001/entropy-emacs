@@ -7026,11 +7026,7 @@ ran within the code context."
           ;; prepare form defaults to t even when it's ommited since its optional
           ($this-prepare-form (or prepare '(progn t))))
       (macroexp-let2* ignore
-          ((name name) (buffer buffer) (command command) (coding coding) (noquery noquery)
-           (stop stop) (connection-type connection-type) (filter filter) (sentinel sentinel)
-           (stderr stderr) (file-handler file-handler)
-           (infile infile) (display display) (destination destination)
-           (synchronously synchronously)
+          (($synchronously synchronously)
            ($default-directory with-default-directory)
 
            ;; make-proc args
@@ -7043,6 +7039,8 @@ ran within the code context."
            ($make_proc_connection-type       connection-type)
            ($make_proc_filter                filter)
            ($make_proc_sentinel              sentinel)
+           ($make_proc_stderr                stderr)
+           ($make_proc_file-handler          file-handler)
 
            ;; call-process arg
            ($call_proc_destination           nil)
@@ -7087,7 +7085,7 @@ ran within the code context."
 
            ;; firstly judge the synchronization type
            (setq ,$thiscur_sync_sym
-                 (when (and ,synchronously
+                 (when (and ,$synchronously
                             ;; NOTE & FIXME: sleep waiting for async in
                             ;; interaction session may freeze emacs why? and thus
                             ;; we just used this in noninteraction session.
@@ -7098,7 +7096,7 @@ ran within the code context."
 
            (when ,$this-prepare-form
              (cond
-              ((or (null ,synchronously) ,$thiscur_sync_sym)
+              ((or (null ,$synchronously) ,$thiscur_sync_sym)
                (entropy/emacs-setf-by-body ,$thiscur_proc
                  (make-process
                   :name            ,$make_proc_name
@@ -7109,6 +7107,8 @@ ran within the code context."
                   :stop            ,$make_proc_stop
                   :connection-type ,$make_proc_connection-type
                   :filter          ,$make_proc_filter
+                  :stderr          ,$make_proc_stderr
+                  :file-handler    ,$make_proc_file-handler
                   :sentinel
                   (lambda (,$sentinel/proc         ,$sentinel/event)
                     ;; skip bytecomp warnings
@@ -7121,27 +7121,27 @@ ran within the code context."
                           (unwind-protect
                               ;; run user spec sentinel when pure async run
                               (when (and (functionp ,$make_proc_sentinel)
-                                         (not ,synchronously))
+                                         (not ,$synchronously))
                                 (funcall ,$make_proc_sentinel ,$sentinel/proc ,$sentinel/event))
                             ;; run after/error when pure async run
                             (cond ((entropy/emacs-process-exit-successfully-p
                                     ,$sentinel/proc ,$sentinel/event)
                                    (setq ,$ran-out-p t)
-                                   (unless ,synchronously ,$this-after-form))
+                                   (unless ,$synchronously ,$this-after-form))
                                   ((entropy/emacs-process-exit-with-fatal-p
                                     ,$sentinel/proc ,$sentinel/event)
                                    (setq ,$ran-out-p
                                          (list :exit-status (process-exit-status ,$sentinel/proc)))
-                                   (unless ,synchronously ,$this-error-form))))
+                                   (unless ,$synchronously ,$this-error-form))))
                         ;; do ran out procedures
                         (when ,$ran-out-p
-                          (if ,synchronously
+                          (if ,$synchronously
                               (set ,$thiscur_sync_sym ,$ran-out-p)
                             ,$this-cleanup-form)))))))
 
                (setq ,$thiscur_proc_buffer (process-buffer ,$thiscur_proc))
 
-               (when ,synchronously
+               (when ,$synchronously
                  (while (null (symbol-value ,$thiscur_sync_sym))
                    ;; NOTE: do not set to 0 since its same as ran without waiting.
                    (sleep-for 0.001))
