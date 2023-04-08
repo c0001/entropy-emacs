@@ -128,7 +128,7 @@ See also `entropy/emacs-temporary-file-directory' and
   (add-variable-watcher
    'entropy/emacs-temporary-file-directory
    (entropy/emacs-defalias '__var-guard/for/entropy/emacs-temporary-file-directory
-     (lambda (sym nval op wh)
+     (lambda (sym _nval _op _wh)
        (when (eq sym 'entropy/emacs-temporary-file-directory)
          (entropy/emacs-error-without-debugger
           "Do not do any modification to \
