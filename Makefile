@@ -122,11 +122,11 @@ all: export EEMACS_MAKE_ALL=1
 all: install install-coworkers liberime compile-clean compile
 
 install-systemd-service:
-	awk "{sub(\"<<<<INIT>>>>\",  \"$(EEMACS_TOP_DIR)/init.el\")}1"   \
-		annex/eemacs-daemon/eemacs-daemon.service.template     | \
-	 awk "{sub(\"<<<<EMACS>>>>\",  \"$(EMACS)\")}1"                | \
-	 awk "{sub(\"<<<<EEMACS_DIR>>>>\",  \"$(EEMACS_TOP_DIR)\")}1"  | \
-	 awk "{sub(\"<<<<SESSION>>>>\",  \"$(EEMACS_SESSION)\")}1"       \
+	awk "{gsub(\"<<<<INIT>>>>\",  \"$(EEMACS_TOP_DIR)/init.el\")}1"   \
+		annex/eemacs-daemon/eemacs-daemon.service.template      | \
+	 awk "{gsub(\"<<<<EMACS>>>>\",  \"$(EMACS)\")}1"                | \
+	 awk "{gsub(\"<<<<EEMACS_DIR>>>>\",  \"$(EEMACS_TOP_DIR)\")}1"  | \
+	 awk "{gsub(\"<<<<SESSION>>>>\",  \"$(EEMACS_SESSION)\")}1"       \
 		> annex/eemacs-daemon/eemacs-daemon.service
 	install -d "$(EEMACS_SERVICE_HOST)"
 	install annex/eemacs-daemon/eemacs-daemon.service "$(EEMACS_SERVICE_FILE)"
