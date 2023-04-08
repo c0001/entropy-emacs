@@ -6999,6 +6999,177 @@ newline."
                (set-marker (process-mark proc) (point)))
              (when moving (goto-char (process-mark proc)))))))))
 
+(cl-defmacro entropy/emacs-with-make-process
+    (&key name buffer command coding noquery
+          stop connection-type filter sentinel
+          stderr file-handler
+          infile display destination
+          synchronously
+          prepare after error cleanup
+          ((:default-directory with-default-directory))
+          with-sentinel-proc-sym
+          with-sentinel-event-sym
+          with-sentinel-destination-sym
+          with-sentinel-proc-exit-status-sym
+          &allow-other-keys)
+  (entropy/emacs-with-lexical-binding-check t
+    (let (($sentinel/proc             (or with-sentinel-proc-sym '$sentinel/proc))
+          ($sentinel/event            (or with-sentinel-event-sym '$sentinel/event))
+          ($sentinel/destination      (or with-sentinel-destination-sym '$sentinel/destination))
+          ($sentinel/proc-exit-status (or with-sentinel-proc-exit-status-sym
+                                          '$sentinel/proc-exit-status))
+          ($this-after-form   (or after   '(progn nil)))
+          ($this-error-form   (or error   '(progn nil)))
+          ($this-cleanup-form (or cleanup '(progn nil)))
+          ;; prepare form defaults to t even when it's ommited since its optional
+          ($this-prepare-form (or prepare '(progn t))))
+      (macroexp-let2* ignore
+          ((name name) (buffer buffer) (command command) (coding coding) (noquery noquery)
+           (stop stop) (connection-type connection-type) (filter filter) (sentinel sentinel)
+           (stderr stderr) (file-handler file-handler)
+           (infile infile) (display display) (destination destination)
+           (synchronously synchronously)
+           ($default-directory with-default-directory)
+
+           ;; make-proc args
+           ($make_proc_name                  name)
+           ($make_proc_buffer                buffer)
+           ($make_proc_command               command)
+           ($make_proc_coding                coding)
+           ($make_proc_noquery               noquery)
+           ($make_proc_stop                  stop)
+           ($make_proc_connection-type       connection-type)
+           ($make_proc_filter                filter)
+           ($make_proc_sentinel              sentinel)
+
+           ;; call-process arg
+           ($call_proc_destination           nil)
+           ($call_proc_infile                infile)
+           ($call_proc_display               display)
+           ($call_proc_command               nil)
+           ($call_proc_args                  nil)
+           ($use_call_proc_p                 `(or ,$call_proc_infile
+                                                  ,$call_proc_display))
+           ;; internal vars
+           ($thiscur_sync_sym                nil)
+           ($thiscur_proc                    nil)
+           ($thiscur_proc_buffer             nil)
+           ($exit-code                       nil)
+           ($ran-out-p                       nil)
+
+           ;; internal libs
+           ($call-proc-exit-status-zerop
+            '(lambda (x)
+               (and (numberp x) (= x 0)))))
+        `(let* ((default-directory
+                 (entropy/emacs-return-as-default-directory
+                  (or                              ,$default-directory
+                                                   default-directory)))
+                ;; exposed binding
+                (,$sentinel/proc                   nil)
+                (,$sentinel/event                  nil)
+                (,$sentinel/destination            nil)
+                (,$sentinel/proc-exit-status       nil)
+                )
+           ;; skip bytecomp warnings
+           (ignore ,$sentinel/proc ,$sentinel/event
+                   ,$sentinel/destination ,$sentinel/proc-exit-status)
+
+           ;; Bind omitted `call-process' arguments
+           (unless ,$call_proc_command
+             (setq ,$call_proc_command (car ,$make_proc_command)))
+           (unless ,$call_proc_args
+             (setq ,$call_proc_args    (cdr ,$make_proc_command)))
+           (if ,$call_proc_destination (setq ,$use_call_proc_p t)
+             (setq ,$call_proc_destination ,$make_proc_buffer))
+
+           ;; firstly judge the synchronization type
+           (setq ,$thiscur_sync_sym
+                 (when (and ,synchronously
+                            ;; NOTE & FIXME: sleep waiting for async in
+                            ;; interaction session may freeze emacs why? and thus
+                            ;; we just used this in noninteraction session.
+                            noninteractive
+                            (not ,$use_call_proc_p))
+                   (make-symbol "sync-status")))
+           (and ,$thiscur_sync_sym (set ,$thiscur_sync_sym nil))
+
+           (when ,$this-prepare-form
+             (cond
+              ((or (null ,synchronously) ,$thiscur_sync_sym)
+               (entropy/emacs-setf-by-body ,$thiscur_proc
+                 (make-process
+                  :name            ,$make_proc_name
+                  :buffer          ,$make_proc_buffer
+                  :command         ,$make_proc_command
+                  :coding          ,$make_proc_coding
+                  :noquery         ,$make_proc_noquery
+                  :stop            ,$make_proc_stop
+                  :connection-type ,$make_proc_connection-type
+                  :filter          ,$make_proc_filter
+                  :sentinel
+                  (lambda (,$sentinel/proc         ,$sentinel/event)
+                    ;; skip bytecomp warnings
+                    (ignore ,$sentinel/proc ,$sentinel/event)
+                    (let* ((,$sentinel/destination (process-buffer ,$sentinel/proc))
+                           (,$ran-out-p nil))
+                      ;; skip bytecomp warnings
+                      (ignore ,$sentinel/destination)
+                      (unwind-protect
+                          (unwind-protect
+                              ;; run user spec sentinel when pure async run
+                              (when (and (functionp ,$make_proc_sentinel)
+                                         (not ,synchronously))
+                                (funcall ,$make_proc_sentinel ,$sentinel/proc ,$sentinel/event))
+                            ;; run after/error when pure async run
+                            (cond ((entropy/emacs-process-exit-successfully-p
+                                    ,$sentinel/proc ,$sentinel/event)
+                                   (setq ,$ran-out-p t)
+                                   (unless ,synchronously ,$this-after-form))
+                                  ((entropy/emacs-process-exit-with-fatal-p
+                                    ,$sentinel/proc ,$sentinel/event)
+                                   (setq ,$ran-out-p
+                                         (list :exit-status (process-exit-status ,$sentinel/proc)))
+                                   (unless ,synchronously ,$this-error-form))))
+                        ;; do ran out procedures
+                        (when ,$ran-out-p
+                          (if ,synchronously
+                              (set ,$thiscur_sync_sym ,$ran-out-p)
+                            ,$this-cleanup-form)))))))
+
+               (setq ,$thiscur_proc_buffer (process-buffer ,$thiscur_proc))
+
+               (when ,synchronously
+                 (while (null (symbol-value ,$thiscur_sync_sym))
+                   ;; NOTE: do not set to 0 since its same as ran without waiting.
+                   (sleep-for 0.001))
+                 (let ((,$sentinel/destination  ,$thiscur_proc_buffer)
+                       (,$sentinel/proc-exit-status
+                        (let ((st (symbol-value ,$thiscur_sync_sym)))
+                          (if (eq st t) 0 (plist-get st :exit-status))))
+                       (inhibit-quit t))
+                   (unwind-protect
+                       (if (eq (symbol-value ,$thiscur_sync_sym) t)
+                           ;; just ran after form when this process ran out successfully
+                           ,$this-after-form ,$this-error-form)
+                     ;; run clean form
+                     ,$this-cleanup-form)))
+               ;; return the processor
+               ,$thiscur_proc)
+              (t
+               (let ((,$sentinel/destination ,$call_proc_destination)
+                     (inhibit-quit t) ,$exit-code)
+                 (setq ,$exit-code
+                       (apply 'call-process ,$call_proc_command ,$call_proc_infile
+                              ,$call_proc_destination ,$call_proc_display
+                              ,$call_proc_args))
+                 (let ((,$sentinel/proc-exit-status ,$exit-code))
+                   (unwind-protect
+                       (if (funcall ,$call-proc-exit-status-zerop ,$exit-code)
+                           ;; just ran after form when this process ran out successfully
+                           ,$this-after-form ,$this-error-form)
+                     ,$this-cleanup-form)))))))))))
+
 (defun entropy/emacs-chained-eemacs-make-proc-args
     (eemacs-make-proc-args-list)
   "Chained sets of `eemacs-make-proc-args-list' one by one ordered
