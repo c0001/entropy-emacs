@@ -7043,7 +7043,7 @@ ran within the code context."
            ($make_proc_file-handler          file-handler)
 
            ;; call-process arg
-           ($call_proc_destination           nil)
+           ($call_proc_destination           destination)
            ($call_proc_infile                infile)
            ($call_proc_display               display)
            ($call_proc_command               nil)
