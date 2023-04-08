@@ -143,6 +143,8 @@
              'entropy/emacs-defface-face-for-modeline-eyebrowse-face-main_inactive)))))
 
 (defvar entropy/emacs-modeline--mdl-common-eyebrowse-segment nil)
+(defvar entropy/emacs-modeline--mdl-common-eyebrowse-sysdaemon-indicator
+  (entropy/emacs-getenv "EEMACS_SYSTEMD_DAEMON_SERVICE"))
 (defun entropy/emacs-modeline--mdl-common-eyebrowse-segment ()
   "Entropy-emacs specific modeline style.
 
@@ -160,8 +162,14 @@ name show function."
            rtn)
         (entropy/emacs-setf-by-body rtn
           (concat
-           (propertize (concat (make-string 1 ?\x03BB) " "
-                               (number-to-string cs) " ")
+           (propertize (concat
+                        (make-string 1 ?\x03BB)
+                        (let
+                            ((str
+                              entropy/emacs-modeline--mdl-common-eyebrowse-sysdaemon-indicator))
+                          (if str (format "(%s) " str)
+                            " "))
+                        (number-to-string cs) " ")
                        'face mdlface)
            (propertize
             (concat (entropy/emacs-modeline--subr-func->escape-mdl-str-pcfmt

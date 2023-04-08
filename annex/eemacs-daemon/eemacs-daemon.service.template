@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 ExecStartPre=env make EEMACS_MAKE_WITH_ALL_YES=1 EMACS='<<<<EMACS>>>>' -C '<<<<EEMACS_DIR>>>>' compile
-ExecStart=env GTL_IM_MODULE= GTK_IM_MODULE= QT_IM_MODULE= XMODIFIERS= EEMACS_SYSTEMD_DAEMON_SERVICE=1 '<<<<EMACS>>>>' -Q -l '<<<<INIT>>>>' --fg-daemon='<<<<SESSION>>>>'
+ExecStart=env GTL_IM_MODULE= GTK_IM_MODULE= QT_IM_MODULE= XMODIFIERS= EEMACS_SYSTEMD_DAEMON_SERVICE='<<<<SESSION>>>>' '<<<<EMACS>>>>' -Q -l '<<<<INIT>>>>' --fg-daemon='<<<<SESSION>>>>'
 # Restart=on-abort
 
 # Emacs will exit with status 15 after having received SIGTERM, which
