@@ -7032,20 +7032,18 @@ of a list of thus of EEMACS-MAKE-PROC-ARGS-LIST."
 
 (defun entropy/emacs-make-process
     (eemacs-make-proc-args)
-  "Make a asynchronous process or a synchronous one using the
-args in EEMACS-MAKE-PROC-ARGS.
+  "Make a asynchronous process or a synchronous one using the args in
+EEMACS-MAKE-PROC-ARGS.
 
-Return the process object when make an asynchronous process.
+Return the process object when make an asynchronous process or nil
+when the preparation is rejected (see key `:prepare'), otherwise the
+return is undefined.
 
 Introduction of EEMACS-MAKE-PROC-ARGS:
 
 It's an arglist whose partition as the `make-process' arglist, but
 combined with `call-process' key-pair factored arglist and further
 more flexible process chained key slots.
-
-*Used all `make-process' key-slots, and all of those slots' value
-specified should be a expression which will be evaluated while
-create that process.=*
 
 Factored `call-process' args as:
 - INFILE to `:infile'
@@ -7057,41 +7055,58 @@ Factored `call-process' args as:
 - ARGS to used as the `:command' slot's cdr of what `make-process'
   requests
 
-And the slots value injecting form for `call-process' factored key
-slots dealing as what mentioned in value form injection for
-make-process part.
+We called any key of `:display' `infile' `destination' is termed under
+CKEY.
+
+All keys value can be one of below type:
+1) a value (term as KVAL): a value of a key which will be directly
+   used as the final value identically.
+2) a form (term as KFORM): a sequence of lisp expressions after a key
+   will be evaluated by wrapped with `progn' with `lexical-binding' of
+   `t'.
+3) a context embedded form (term as KLFORM): like KFORM but not be
+   evaluated to get its value, instead, use it as an embedded into
+   with this functions inner context.
+
+But for key `:after', `:error', `:prepare' and `:cleanup' always be
+recognized as a KLFORM, and we called those key as FKEY. (See below
+for those keys' means)
+
+If a key `:without-eval' presented in EEMACS-MAKE-PROC-ARGS, its value
+is always considerred as an KFORM which evaluated to non-nil to
+indicate any key's value should be a KVAL except those keys are FKEY.
+Otherwise, defaultly all non FKEYs' value are consider as KFORMs.
 
 For run procedure after the process, there has a `:after' key does for
-that, thus you can inject any lisp _forms_ into that place when the
-head process has ran finished successfully, even for injecting a new
-process, otherwise calling the error procedure by the forms of the key
-`:error'. Before run any procedure, a `:prepare' key can be set as
-forms which return non-nil to indicate whether create and running the
-process.
+that, thus you can inject a KLFORM into that place when the head
+process has ran finished successfully, even for injecting a new
+process within the KLFORM, otherwise calling the error procedure by
+the KLFORM of the key `:error'. Before run any procedure, a `:prepare'
+key can be set as a KLFORM which return non-nil to indicate whether
+create and running the process.
 
 If you want to specify the process working directory, set the value of
-key slot of `:default-directory', the place hold a
-expression. Defaults to `default-directory'.
+key slot of `:default-directory' or defaults to use current `default-directory'.
 
 Further more key `:synchronously' indicate whether call with
-synchronously, the place hold a symbol or a single form to be
-evaluated and use its result to indicate turn/off as that a non-nil
-result to turn on. If its result is 't' and current emacs-session is
-`noninteractive', then the synchronously method using `make-process'
-with spawn watchdog mechanism to emulate synchronization , otherwise
-using `call-process' to did the synchronization, this be presented
-since the `call-process' have the bug of termination without kill its
-spawns problem in emacs `noninteractive' session like '--batch' mode
-(see its doc for details refer the SIGINT and SIGKILL).
+synchronously, the place's value is used as result to indicate
+turn/off handler as that a non-nil result to turn on. If it's non-nil
+and current emacs-session is `noninteractive' without any CKEY
+specified, then the synchronously method using `make-process' with
+spawn watchdog mechanism to emulate synchronization , otherwise using
+`call-process' to did the synchronization, this be presented since the
+`call-process' have the bug of termination without kill its spawns
+problem in emacs `noninteractive' session like '--batch' mode (see its
+doc for details refer the SIGINT and SIGKILL).
 
 If you wish to do sth both for finished or errored status with
-`unwind-protect', inject forms to `:cleanup' slot.
+`unwind-protect', inject the KLFORM to `:cleanup' slot.
 
 *Interally variable:*
 
 For some occasions, you want to write some procedure with the proc
-bindings, thus for this function provide some internally variables
-can be used into your form:
+bindings, thus for this function provide some internally variables can
+be used into your form:
 
 1) =$sentinel/proc=
    * description: the process current running
@@ -7117,99 +7132,79 @@ can be used into your form:
      can visit arbitrary process status via =$sentinel/proc=.
    * Slot support: `:after', `:error', `cleanup'
 "
-  (let ((prepare-form
-         (or (entropy/emacs-get-plist-form
-              eemacs-make-proc-args :prepare nil t)
-             '(progn t)))
-        (after-form
-         (or (entropy/emacs-get-plist-form
-              eemacs-make-proc-args :after nil t)
-             '(progn t)))
-        (error-form
-         (or (entropy/emacs-get-plist-form
-              eemacs-make-proc-args :error nil t)
-             '(progn t)))
-        (clean-form
-         (or (entropy/emacs-get-plist-form
-              eemacs-make-proc-args :cleanup nil t)
-             '(progn t)))
-        (synchronously
-         (entropy/emacs-eval-with-lexical
-          (entropy/emacs-get-plist-form
-           eemacs-make-proc-args :synchronously t t)))
-        (default-directory
-         (entropy/emacs-return-as-default-directory
-          (or
-           (entropy/emacs-eval-with-lexical
-            (entropy/emacs-get-plist-form
-             eemacs-make-proc-args :default-directory t t))
-           default-directory)))
-        ;; make-proc args
-        ($make_proc_name
-         (entropy/emacs-eval-with-lexical
-          (entropy/emacs-get-plist-form eemacs-make-proc-args :name t t)))
-        ($make_proc_buffer
-         (entropy/emacs-eval-with-lexical
-          (entropy/emacs-get-plist-form eemacs-make-proc-args :buffer t t)))
-        ($make_proc_command nil)
-        ($make_proc_coding
-         (entropy/emacs-eval-with-lexical
-          (entropy/emacs-get-plist-form eemacs-make-proc-args :coding t t)))
-        ($make_proc_noquery
-         (entropy/emacs-eval-with-lexical
-          (entropy/emacs-get-plist-form eemacs-make-proc-args :noquery t t)))
-        ($make_proc_stop
-         (entropy/emacs-eval-with-lexical
-          (entropy/emacs-get-plist-form eemacs-make-proc-args :stop t t)))
-        ($make_proc_connection-type
-         (entropy/emacs-eval-with-lexical
-          (entropy/emacs-get-plist-form eemacs-make-proc-args :connection-type t t)))
-        ($make_proc_filter
-         (entropy/emacs-eval-with-lexical
-          (entropy/emacs-get-plist-form eemacs-make-proc-args :filter t t)))
-        ($make_proc_sentinel
-         (entropy/emacs-eval-with-lexical
-          (entropy/emacs-get-plist-form eemacs-make-proc-args :sentinel t t)))
+  (let* ((noeval
+          (entropy/emacs-eval-with-lexical
+           (entropy/emacs-get-plist-form
+            eemacs-make-proc-args :without-eval 'progn t)))
+         (evfunc
+          (lambda (x)
+            (if noeval (entropy/emacs-get-plist-form eemacs-make-proc-args x 'car t)
+              (entropy/emacs-eval-with-lexical
+               (entropy/emacs-get-plist-form
+                eemacs-make-proc-args x 'progn t)))))
+         (geform (lambda (x)
+                   (or (entropy/emacs-get-plist-form
+                        eemacs-make-proc-args x 'progn t)
+                       '(progn t))))
+         (prepare-form                     (funcall geform :prepare))
+         (after-form                       (funcall geform :after))
+         (error-form                       (funcall geform :error))
+         (clean-form                       (funcall geform :cleanup))
+         (synchronously                    (funcall evfunc :synchronously))
+         (default-directory
+          (entropy/emacs-return-as-default-directory
+           (or                             (funcall evfunc :default-directory)
+                                           default-directory)))
+         ;; make-proc args
+         ($make_proc_name                  (funcall evfunc :name))
+         ($make_proc_buffer                (funcall evfunc :buffer))
+         ($make_proc_command               nil)
+         ($make_proc_coding                (funcall evfunc :coding))
+         ($make_proc_noquery               (funcall evfunc :noquery))
+         ($make_proc_stop                  (funcall evfunc :stop))
+         ($make_proc_connection-type       (funcall evfunc :connection-type))
+         ($make_proc_filter                (funcall evfunc :filter))
+         ($make_proc_sentinel              (funcall evfunc :sentinel))
 
-        ;; call-process arg
-        ($call_proc_destination nil)
-        ($call_proc_infile
-         (entropy/emacs-eval-with-lexical
-          (entropy/emacs-get-plist-form eemacs-make-proc-args :infile t t)))
-        ($call_proc_display
-         (entropy/emacs-eval-with-lexical
-          (entropy/emacs-get-plist-form eemacs-make-proc-args :display t t)))
-        ($call_proc_command nil)
-        ($call_proc_args nil)
+         ;; call-process arg
+         use_call_proc_p
+         ($call_proc_destination           nil)
+         ($call_proc_infile                (funcall evfunc :infile))
+         ($call_proc_display               (funcall evfunc :display))
+         ($call_proc_command               nil)
+         ($call_proc_args                  nil)
 
-        (call-proc-exit-status-zerop
-         (lambda (x)
-           (and (numberp x) (= x 0))))
+         (call-proc-exit-status-zerop
+          (lambda (x)
+            (and (numberp x) (= x 0))))
 
-        ;; internal vars
-        thiscur_sync_sym
-        thiscur_proc
-        thiscur_proc_buffer)
-
-    ;; firstly judge the synchronization type
-    (setq thiscur_sync_sym
-          (when (and (eq synchronously t)
-                     ;; NOTE & FIXME: sleep waiting for async in
-                     ;; interaction session may freeze emacs why? and thus
-                     ;; we just used this in noninteraction session.
-                     noninteractive)
-            (entropy/emacs-make-new-symbol nil)))
+         ;; internal vars
+         thiscur_sync_sym
+         thiscur_proc
+         thiscur_proc_buffer)
 
     ;; set var-binding here to prevent duplicate eval
-    (let ((cprss-args (entropy/emacs-eval-with-lexical
-                       (entropy/emacs-get-plist-form eemacs-make-proc-args :command t t))))
+    (let ((cprss-args (funcall evfunc :command)))
       (setq $make_proc_command cprss-args
             $call_proc_command (car cprss-args)
             $call_proc_args    (cdr cprss-args)))
     (setq $call_proc_destination
-          (or (entropy/emacs-eval-with-lexical
-               (entropy/emacs-get-plist-form eemacs-make-proc-args :destination t t))
+          (or (when-let ((val (funcall evfunc :destination)))
+                (prog1 val (setq use_call_proc_p t)))
               $make_proc_buffer))
+
+    ;; firstly judge the synchronization type
+    (setq thiscur_sync_sym
+          (when (and synchronously
+                     ;; NOTE & FIXME: sleep waiting for async in
+                     ;; interaction session may freeze emacs why? and thus
+                     ;; we just used this in noninteraction session.
+                     noninteractive
+                     (not use_call_proc_p)
+                     (if $call_proc_infile  (progn (setq use_call_proc_p t) nil) t)
+                     (if $call_proc_display (progn (setq use_call_proc_p t) nil) t))
+            (make-symbol "sync-status")))
+    (and thiscur_sync_sym (set thiscur_sync_sym nil))
 
     (when (entropy/emacs-eval-with-lexical prepare-form)
       (cond
@@ -7253,17 +7248,17 @@ can be used into your form:
                      ;; do ran out procedures
                      (when ran-out-p
                        (cond
-                        ((eq synchronously t)
+                        (synchronously
                          (set thiscur_sync_sym ran-out-p))
                         ((not synchronously)
                          (entropy/emacs-eval-with-lexical clean-form lcb-env)))))))))
 
         (setq thiscur_proc_buffer (process-buffer thiscur_proc))
 
-        (when (eq synchronously t)
+        (when synchronously
           (while (null (symbol-value thiscur_sync_sym))
             ;; NOTE: do not set to 0 since its same as ran without waiting.
-            (sleep-for 0.00000000000000000001))
+            (sleep-for 0.001))
           (entropy/emacs-funcall-with-lambda nil
             (let ((lcb-env `(($sentinel/destination . ,thiscur_proc_buffer)
                              ($sentinel/proc-exit-status
