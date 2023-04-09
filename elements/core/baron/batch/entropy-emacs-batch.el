@@ -816,6 +816,7 @@ since we solved deps broken")))))
       ;; we must check all depedencies firstly while compile
       (entropy/emacs-batch--check-packages)
       (entropy/emacs-batch--prompts-for-byte-compile-eemacs-internal
+       (entropy/emacs-batch--do-bytecompile-eemacs-core t)
        (entropy/emacs-batch--do-bytecompile-eemacs-core)))
      ((equal type "Compile-Clean")
       (entropy/emacs-batch--prompts-for-byte-compile-eemacs-internal
