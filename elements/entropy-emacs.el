@@ -670,7 +670,7 @@ available.
   (unless args (setq args (list nil)))
   `(entropy/emacs-!with-cdefn
      :with-it-as cur-defn
-     (if (not cur-defn) (apply 'message ,format-string ,@args)
+     (if (not cur-defn) (message ,format-string ,@args)
        (message (concat "[%s] " ,format-string)
                 cur-defn ,@args))))
 
@@ -682,7 +682,7 @@ available.
   (unless args (setq args (list nil)))
   `(entropy/emacs-!with-cdefn
      :with-it-as cur-defn
-     (if (not cur-defn) (apply 'error ,string ,@args)
+     (if (not cur-defn) (error ,string ,@args)
        (error (concat "[%s] " ,string)
               cur-defn ,@args))))
 
@@ -694,7 +694,7 @@ when available.
   (unless args (setq args (list nil)))
   `(entropy/emacs-!with-cdefn
      :with-it-as cur-defn
-     (if (not cur-defn) (apply 'user-error ,string ,@args)
+     (if (not cur-defn) (user-error ,string ,@args)
        (user-error (concat "[%s] " ,string)
                    cur-defn ,@args))))
 
