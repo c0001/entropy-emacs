@@ -336,7 +336,8 @@ ARGS using
                (run-with-idle-timer 0.05 t #'entropy/emacs-message-hide-popup))))))
 
 (defmacro entropy/emacs-message-do-message-1 (message &rest args)
-  "An alternative to `message' that strips out ANSI codes."
+  "Same as`message' but also strips out ANSI codes with face
+applied."
   `(let (_)
      ;; (redisplay t)
 
@@ -351,7 +352,8 @@ ARGS using
        )))
 
 (defmacro entropy/emacs-message-do-warn-1 (message &rest args)
-  "An alternative to `message' that strips out ANSI codes."
+  "Same as`warn' but also strips out ANSI codes with face
+applied."
   `(warn
     (entropy/emacs-message--do-message-ansi-apply
      ,message ,@args)))
