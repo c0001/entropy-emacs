@@ -762,9 +762,18 @@ faild with hash '%s' which must match '%s'"
     (&optional clean)
   (let ((module-pkg-incs
          (and (not clean)
-              (delete nil
-                      `(,(when (entropy/emacs-vterm-support-p)
-                           '(vterm (("cmake" ".") ("make"))))))))
+              (delete
+               nil
+               `(,(when (entropy/emacs-vterm-support-p)
+                    `(vterm
+                      (("mkdir" "-p" "build")
+                       (:default-directory
+                        "build"
+                        :command
+                        ("sh" "-c" "cmake -G 'Unix Makefiles' ..;"))
+                       (:default-directory
+                        "build"
+                        :command ("make")))))))))
         pkg cmds penv defdir)
     ;; Compile dynamic modules firstly since the byte-compile process
     ;; will load the module as well.

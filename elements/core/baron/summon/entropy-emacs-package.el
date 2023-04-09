@@ -308,11 +308,23 @@ building procedure while invoking INSTALL-COMMANDS."
     (let* ((default-directory (entropy/emacs-return-as-default-directory pkg-dir))
            (process-environment (or proc-env process-environment))
            (process-format-func
-            (lambda (command uid)
+            (lambda (command uid &optional defdir)
+              (if (entropy/emacs-common-plistp command)
+                  (setq
+                   defdir
+                   (or defdir
+                       (when-let ((d (plist-get command :default-directory)))
+                         (if (consp d)
+                             (if (eq (car d) 'absolute) (cdr d)
+                               (expand-file-name (cdr d) default-directory))
+                           (expand-file-name d default-directory)))
+                       default-directory)
+                   command (plist-get command :command))
+                (setq defdir (or defdir default-directory)))
               `(:name
                 ,(format "eemacs-package-dynamic-module-make-for-pkg-%s/%s"
                          pkg uid)
-                :default-directory ,default-directory
+                :default-directory ,defdir
                 :command ',command
                 :synchronously t
                 :buffer (get-buffer-create
@@ -322,8 +334,8 @@ building procedure while invoking INSTALL-COMMANDS."
                 :prepare
                 (entropy/emacs-message-do-message
                  "%s"
-                 (magenta "Make dynamic module for package [%s] in working dir <%s> of command '%s' ..."
-                          ',pkg ,default-directory ',command))
+                 (magenta "Make dynamic module for package [%s] in working dir <%s> of command '%S' ..."
+                          ',pkg default-directory ',command))
                 :error
                 (with-current-buffer $sentinel/destination
                   (entropy/emacs-message-do-message
@@ -332,7 +344,7 @@ building procedure while invoking INSTALL-COMMANDS."
                     (buffer-substring-no-properties
                      (point-min)
                      (point-max))))
-                  (error ""))
+                  (entropy/emacs-error-without-debugger ""))
                 ;; :cleanup
                 ;; (when (and
                 ;;        (buffer-live-p $sentinel/destination))
