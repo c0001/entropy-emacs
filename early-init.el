@@ -51,26 +51,33 @@ emacs upstream")
 `entropy/emacs-user-emacs-directory'.")
 (defconst entropy/emacs-eln-cache-directory
   (expand-file-name "emacs/emacs-eln-cache" entropy/emacs-stuffs-topdir))
-(unless (fboundp 'startup-redirect-eln-cache)
-  ;; trick from emacs-29
-  (defun startup-redirect-eln-cache (cache-directory)
-    "Redirect the user's eln-cache directory to CACHE-DIRECTORY.
-CACHE-DIRECTORY must be a single directory, a string.
-This function destructively changes `native-comp-eln-load-path'
-so that its first element is CACHE-DIRECTORY.  If CACHE-DIRECTORY
-is not an absolute file name, it is interpreted relative
-to `user-emacs-directory'.
-For best results, call this function in your early-init file,
-so that the rest of initialization and package loading uses
-the updated value."
-    ;; Remove the original eln-cache.
-    (setq native-comp-eln-load-path (cdr native-comp-eln-load-path))
-    ;; Add the new eln-cache.
-    (push (expand-file-name (file-name-as-directory cache-directory)
-                            user-emacs-directory)
-          native-comp-eln-load-path)))
-(when (boundp 'native-comp-eln-load-path)
-  (startup-redirect-eln-cache entropy/emacs-eln-cache-directory))
+
+(defun entropy/emacs-native-comp-eln-load-path-set (&optional reset)
+  ;; redirect `native-comp-eln-load-path' to store elns to alternative path
+  (when (boundp 'native-comp-eln-load-path)
+    ;; emacs-29 and above support redirect internally so we do not
+    ;; need to hack
+    (if (fboundp 'startup-redirect-eln-cache)
+        (unless (equal (car native-comp-eln-load-path)
+                       entropy/emacs-eln-cache-directory)
+          (startup-redirect-eln-cache entropy/emacs-eln-cache-directory))
+      (let (tmp)
+        (if reset
+            (if (not (member entropy/emacs-eln-cache-directory native-comp-eln-load-path))
+                (push entropy/emacs-eln-cache-directory native-comp-eln-load-path)
+              (dolist (el native-comp-eln-load-path)
+                (if (not (equal el entropy/emacs-eln-cache-directory))
+                    (push el tmp)))
+              (setq native-comp-eln-load-path (nreverse tmp))
+              (push entropy/emacs-eln-cache-directory native-comp-eln-load-path))
+          ;; emacs-28's eln-cache directory is hardcoded in source file and
+          ;; must be the first eln load path for smallest primitive
+          ;; initialization
+          (setq native-comp-eln-load-path
+                (cons (car native-comp-eln-load-path)
+                      (cons entropy/emacs-eln-cache-directory
+                            (cdr native-comp-eln-load-path)))))))))
+(entropy/emacs-native-comp-eln-load-path-set)
 
 ;;;; Basic
 ;; Package initialize occurs automatically, before `user-init-file' is

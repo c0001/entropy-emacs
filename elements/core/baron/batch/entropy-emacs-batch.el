@@ -836,6 +836,8 @@ since we solved deps broken")))))
       ;; we must prepare for `package-user-dir' before native-comp
       (entropy/emacs-batch--check-packages)
       (entropy/emacs-batch--prompts-for-native-compile
+       ;; we should take eemacs eln path as top to store the generations
+       (entropy/emacs-native-comp-eln-load-path-set 'reset)
        (entropy/emacs-batch--native-compile-package-dir)))
      (t
       (entropy/emacs-message-do-error
