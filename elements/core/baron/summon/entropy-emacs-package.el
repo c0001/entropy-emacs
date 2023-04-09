@@ -124,6 +124,15 @@ argument."
     ;; but not for non-bytecode startup occasion, since we should use
     ;; traditional packages founding mechanism to track the full
     ;; metadatas before `package-quickstart-refresh'.
+    (when (and
+           ;; in make session remove the old one
+           (entropy/emacs-is-make-session)
+           ;; ignore errors since invalid val of `package-quickstart-file'
+           (ignore-errors (file-exists-p package-quickstart-file)))
+      (delete-file package-quickstart-file 'trash)
+      (when-let* ((elc (concat package-quickstart-file "c"))
+                  (elcp (ignore-errors (file-exists-p elc))))
+        (delete-file elc 'trash)))
     (setq package-quickstart nil
           entropy/emacs-package-init-with-quick-start-p nil))
   (entropy/emacs-message-do-message
@@ -133,7 +142,13 @@ argument."
     (setq entropy/emacs-package-initialize-init-timestamp
           (current-time)))
   (when (or force (not (bound-and-true-p __package-first-initialized)))
-    (package-initialize))
+    (let ((package-quickstart-file
+           (if package-quickstart package-quickstart-file
+             ;; FIXME: bug of `package-active-all' which try to load a
+             ;; readable `package-quickstart-file' even if it's
+             ;; obsolete and we've disabled `package-quickstart'.
+             (make-temp-name "__eemacs_fake_package-quickstart-file."))))
+      (package-initialize)))
   (unless __package-first-initialized
     (setq entropy/emacs-package-initialize-done-timestamp
           (current-time)))
@@ -371,7 +386,15 @@ building procedure while invoking INSTALL-COMMANDS."
 (defun entropy/emacs-package-prompt-install-fails ()
   (if (not entropy/emacs-package-install-failed-list)
       (when-let (((not entropy/emacs-package-init-with-quick-start-p))
-                 (package-quickstart t))
+                 ;; Only make session should refresh the quick file
+                 ;; since:
+                 ;;
+                 ;; 1. in byte-code start session, there's indeed no
+                 ;;    need to do so and shouldn't at least.
+                 ;; 2. in source start session, we also need not to do
+                 ;;    thus since we respect the soure session for
+                 ;;    `entropy/emacs-env-with-pure-eemacs-env'.
+                 (package-quickstart (entropy/emacs-is-make-session)))
         (entropy/emacs-message-simple-progress-message
          "%s"
          :with-message-color-args
