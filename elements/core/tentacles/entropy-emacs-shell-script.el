@@ -44,7 +44,26 @@
   (defun entropy/emacs-shell-script-get-shell-type nil
     (let ((sh-name
            ;; FIXME: `sh--guess-shell' is not an APIa
-           (sh--guess-shell)))
+           (if (fboundp 'sh--guess-shell) (sh--guess-shell)
+             ;; Guess the shell used in the current buffer.  Return
+             ;; the name of the shell suitable for
+             ;; `sh-set-shell'. (backport of emacs 29's
+             ;; `sh--guess-shell')
+             (cond ((save-excursion
+                      (goto-char (point-min))
+                      (looking-at auto-mode-interpreter-regexp))
+                    (match-string 2))
+                   ((not buffer-file-name) sh-shell-file)
+                   ;; Checks that use `buffer-file-name' follow.
+                   ((string-match "\\.m?spec\\'" buffer-file-name) "rpm")
+                   ((string-match "[.]sh\\>"     buffer-file-name) "sh")
+                   ((string-match "[.]bash\\(rc\\)?\\>"   buffer-file-name) "bash")
+                   ((string-match "[.]ksh\\>"    buffer-file-name) "ksh")
+                   ((string-match "[.]mkshrc\\>" buffer-file-name) "mksh")
+                   ((string-match "[.]t?csh\\(rc\\)?\\>" buffer-file-name) "csh")
+                   ((string-match "[.]zsh\\(rc\\|env\\)?\\>" buffer-file-name) "zsh")
+                   ((equal (file-name-nondirectory buffer-file-name) ".profile") "sh")
+                   (t sh-shell-file)))))
       (if (string-match-p ".+\\(/\\|\\\\\\)\\([^ ]+\\)\\'" sh-name)
           (replace-regexp-in-string
            ".+\\(/\\|\\\\\\)\\([^ ]+\\)\\'" "\\2" sh-name)
