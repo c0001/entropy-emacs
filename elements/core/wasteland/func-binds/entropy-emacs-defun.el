@@ -457,35 +457,39 @@ VAR should be a variable name or a `setf' compatible place.
   `(setf ,var ,(macroexpand-1 `(entropy/emacs-intern ,@body))))
 
 (defvar entropy/emacs-make-new-interned-symbol--counter 0)
-(defun entropy/emacs-make-new-interned-symbol (&optional prefix identity for-obarray)
+(defun entropy/emacs-make-new-interned-symbol
+    (&optional prefix for-obarray nointern)
   "Return a new allocated symbol where its value is void, and its
-function definition and property list are also nil. And it's
-`intern'ed to FOR-OBARRAY (defaults to `obarray').
+function definition and property list are also unbound against obarray
+FOR-OBARRY (defaults to `obarray'). And `intern'ing it to FOR-OBARRAY,
+unless NOINTERN is non-nil in which case just return the new symbol's
+name string, and no interning is occurred any more.
 
 If PREFIX is set, it should be a string as a prefix for the return. Or
 PREFIX also can be a symbol, then its `symbol-name' is used for that
-procedure. If IDENTITY is non-nil at mean while, return a interned
-symbol consisted by PREFIX or its `symbol-name' immediately."
-  (if (and prefix identity) (entropy/emacs-intern :with-obarray for-obarray prefix)
-    (let (sym
-          (prefix
-           (and
-            prefix
-            (if (symbolp prefix) (symbol-name prefix)
-              (if (stringp prefix) prefix
-                (signal 'wrong-type-argument
-                        (list 'stringp prefix)))))))
-      (while
-          (intern-soft
-           (entropy/emacs-setf-by-body sym
+procedure. PREFIX can also be a function which take only one
+non-optional argument i.e. an id for as new-allocated name's
+component, and it should return a name string."
+  (let (sym
+        (prefix
+         (and
+          prefix
+          (if (symbolp prefix) (symbol-name prefix)
+            (if (or (stringp prefix) (functionp prefix)) prefix
+              (signal 'wrong-type-argument (list 'stringp prefix)))))))
+    (while
+        (intern-soft
+         (entropy/emacs-setf-by-body sym
+           (if (functionp prefix)
+               (funcall prefix entropy/emacs-make-new-interned-symbol--counter)
              (format "%s%d" (or prefix "entropy/emacs-make-new-interned-symbol/")
-                     entropy/emacs-make-new-interned-symbol--counter))
-           for-obarray)
-        (cl-incf entropy/emacs-make-new-interned-symbol--counter))
-      (setq sym (intern sym for-obarray))
-      (cl-incf entropy/emacs-make-new-interned-symbol--counter)
-      ;; return
-      sym)))
+                     entropy/emacs-make-new-interned-symbol--counter)))
+         for-obarray)
+      (cl-incf entropy/emacs-make-new-interned-symbol--counter))
+    (unless nointern (setq sym (intern sym for-obarray))
+            (cl-incf entropy/emacs-make-new-interned-symbol--counter))
+    ;; return
+    sym))
 
 (defun entropy/emacs-make-new-symbol (value &optional prefix)
   "Like `gensym' as for PREFIX but also `set' that new symbol with

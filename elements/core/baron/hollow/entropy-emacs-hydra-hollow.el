@@ -2798,19 +2798,21 @@ both ommited, that as:
 
 ;; ***** defer parse
 
-(defvar entropy/emacs-hydra-hollow/use-package/defer-parse-random-func-ids-pool -1)
 (defun  entropy/emacs-hydra-hollow/use-package/defer-parse/gen-random-ad-funcname-prefix
     (use-name adtype)
-  (let* ((id (cl-incf entropy/emacs-hydra-hollow/use-package/defer-parse-random-func-ids-pool)))
-    (format "eemacs-use-package/hydra-hollow-defer-parse/for-%s/adtype-of-%s/func-id_%s"
-            use-name adtype id)))
+  (entropy/emacs-make-new-interned-symbol
+   (lambda (id)
+     (format "eemacs-use-package/hydra-hollow-defer-parse/for-%s/adtype-of-%s/func-id_%s"
+             use-name adtype id))
+   nil t))
 
-(defvar entropy/emacs-hydra-hollow/use-package/defer-parse-random-judger-ids-pool -1)
 (defun  entropy/emacs-hydra-hollow/use-package/defer-parse/gen-random-ad-judger-prefix
     (use-name)
-  (let* ((id (cl-incf entropy/emacs-hydra-hollow/use-package/defer-parse-random-judger-ids-pool)))
-    (format "eemacs-use-package/hydra-hollow-defer-parse/for-%s/judger-id_%s"
-            use-name id)))
+  (entropy/emacs-make-new-interned-symbol
+   (lambda (id)
+     (format "eemacs-use-package/hydra-hollow-defer-parse/for-%s/judger-id_%s"
+             use-name id))
+   nil t))
 
 (defun entropy/emacs-hydra-hollow/use-package/defer-parse/rebuild-pattern
     (use-name orig-pattern)
@@ -3428,7 +3430,7 @@ evaluated result as its value.
            (string-match-p
             "^\\(entropy/emacs-individual-hydra\
 \\|eemacs-hydra-for-mode\
-\\|eemacs-hydra-hollow-random-func\\)"
+\\|eemacs-hydra-hollow--?random-func\\)"
             (symbol-name command)))
       nil
     t))

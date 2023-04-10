@@ -644,25 +644,17 @@ recognized as a normal macro."
    :eemacs-adrequire
    :if))
 
-(defvar use-package-eemacs-adrequire/ad-random-func-ids nil)
 (defun use-package-eemacs-adrequire/gen-random-ad-func-prefix (use-name adtype)
-  (let* ((id-pool use-package-eemacs-adrequire/ad-random-func-ids)
-         (id (if id-pool
-                 (+ (car id-pool) 1)
-               0)))
-    (push id use-package-eemacs-adrequire/ad-random-func-ids)
-    (format "eemacs-use-package/:eemacs-adrequire/for-%s/adtype-of-%s/func-id_%s"
-            use-name adtype id)))
+  (entropy/emacs-make-new-interned-symbol
+   (lambda (id)
+     (format "eemacs-use-package/:eemacs-adrequire/for-%s/adtype-of-%s/func-id_%s"
+             use-name adtype id)) nil t))
 
-(defvar use-package-eemacs-adrequire/ad-random-judger-ids nil)
 (defun use-package-eemacs-adrequire/gen-random-ad-judger-prefix (use-name)
-  (let* ((id-pool use-package-eemacs-adrequire/ad-random-judger-ids)
-         (id (if id-pool
-                 (+ (car id-pool) 1)
-               0)))
-    (push id use-package-eemacs-adrequire/ad-random-judger-ids)
-    (format "eemacs-use-package/:eemacs-adrequire/for-%s/judger-id_%s"
-            use-name id)))
+  (entropy/emacs-make-new-interned-symbol
+   (lambda (id)
+     (format "eemacs-use-package/:eemacs-adrequire/for-%s/judger-id_%s"
+             use-name id)) nil t))
 
 (defun use-package-normalize/:eemacs-adrequire
     (use-name _key key-value)
