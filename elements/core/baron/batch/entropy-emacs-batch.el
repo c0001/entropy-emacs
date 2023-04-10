@@ -147,6 +147,9 @@ Make targets:
   compile] sections together and export env varaible EEMACS_MAKE_ALL
   with 1 before any operation did.
 
+- 'install-systemd-service' option install a user space sysemd service
+  for current user only, which can use a service session name via env
+  variable EEMACS_SYSTEMD_DAEMON_SERVICE (defaults to \"main\").
 
 MAINTAINS:
 
