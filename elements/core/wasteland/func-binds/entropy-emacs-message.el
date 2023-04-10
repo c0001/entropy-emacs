@@ -556,6 +556,7 @@ If WITH-EITHER-POPUP is set and return non-nil, then MESSAGE is also
 displayed via `entropy/emacs-message--do-message-popup'. (NOTE: for
 eemacs developer use `force' value to forced popup the display since
 eemacs may not use popup display obeyed the eemacs api modification)"
+  (declare (indent 1) (debug t))
   (let ((body (entropy/emacs-message--get-plist-body body))
         (with-tmpmsg-sym (make-symbol "with-temp-message-p"))
         (message-sym (make-symbol "message"))

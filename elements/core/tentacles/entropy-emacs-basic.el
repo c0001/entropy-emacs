@@ -4704,7 +4704,8 @@ file."
                       (let ((large-file-warning-threshold
                              ;; disable the large file restriction
                              ;; since we do not modify it manually.
-                             most-positive-fixnum))
+                             most-positive-fixnum)
+                            (entropy/emacs-find-file-without-modes t))
                         (find-file-noselect file))))
          (inhibit-read-only t)
          ;; the `kill-ring' cache file header
@@ -4743,8 +4744,13 @@ error type to output symbol OUTPUT-SYM."
       (message "kill ring persist file can not be opened!")
       (setq can-do-it nil))
     (if can-do-it
-        (let (_)
+        (entropy/emacs-message-simple-progress-message
+            "Kill ring persistence runing"
+          :with-temp-message t
           (with-current-buffer to-buffer
+            (setq-local auto-save-default nil)
+            (setq-local make-backup-files nil)
+            (setq-local before-save-hook  nil)
             (erase-buffer)
             (insert top-message)
             (insert "\n\n")
@@ -4765,16 +4771,22 @@ error type to output symbol OUTPUT-SYM."
                    (format " can not be saved because of [%s] !"
                            entropy/emacs-basic-kill-ring-persist-error-log)))))
             (insert ")")
+            ;; Warn for huge size of kill-ring save which will make
+            ;; SSD harmful and laggy experience.
+            (when (> (buffer-size) (expt 1024 2))
+              (entropy/emacs-message-do-warn
+               "Kill ring is too larage for persist (size: %s)"
+               (buffer-size)))
             (with-temp-message ""
               (let ((inhibit-message t)
                     ;; tidy up buffer write context
                     (write-contents-functions nil)
-                    (write-file-functions nil)
-                    (before-save-hook nil))
+                    (write-file-functions nil))
                 (save-buffer))))
           (when remove-lock
             (when (file-exists-p entropy/emacs-basic-kill-ring-persist-lock-file)
-              (f-delete entropy/emacs-basic-kill-ring-persist-lock-file))))
+              (delete-file entropy/emacs-basic-kill-ring-persist-lock-file
+                           'trash))))
       (entropy/emacs-message-do-message
        "%s"
        (red "WARN: can not open the persist kill ring file!")))))
@@ -4808,7 +4820,8 @@ successfully both of situation of read persisit of create an new."
         (entropy/emacs-basic-read-kill-ring-from-persist))
     (let* ((file entropy/emacs-kill-ring-persist-file)
            (find-file-suppress-same-file-warnings t) ;suppress the noisy same file warning
-           (buffer (let ((large-file-warning-threshold most-positive-fixnum))
+           (buffer (let ((large-file-warning-threshold most-positive-fixnum)
+                         (entropy/emacs-find-file-without-modes t))
                      (find-file-noselect file)))
            (inhibit-read-only t)
            kring--read
@@ -4823,6 +4836,9 @@ successfully both of situation of read persisit of create an new."
                  (save-excursion
                    (re-search-forward "^[^;]" nil t))))
             (progn
+              (setq-local auto-save-default nil)
+              (setq-local make-backup-files nil)
+              (setq-local before-save-hook  nil)
               (message "Empty persist file")
               (save-buffer)
               (setq rtn t))
@@ -4842,7 +4858,8 @@ successfully both of situation of read persisit of create an new."
                (entropy/emacs-basic-kill-ring-persist-backup))))))
       ;; just generate the lock file while kill-ring init successfully
       (when rtn
-        (f-touch entropy/emacs-basic-kill-ring-persist-lock-file))
+        (entropy/emacs-touch-file
+         entropy/emacs-basic-kill-ring-persist-lock-file))
       rtn)))
 
 ;; run it when init emacs
