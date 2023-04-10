@@ -93,6 +93,12 @@ Bounds is an cons of (beg . end) point of `current-buffer'"
 ;; ** xref jumping
 (use-package xref
   :ensure nil
+  :preface
+  (defun entropy/emacs-codeserver--xref-ver-get nil
+    (package-desc-version
+     (entropy/emacs-elpkg-get-pkg-desc-via-name
+      'xref 'current '(xref-pop-marker-stack defun))))
+  (defvar entropy/emacs-codeserver--xref-goback-cmd nil)
   :defines
   (xref--marker-ring xref--history)
   :commands
@@ -118,10 +124,12 @@ Bounds is an cons of (beg . end) point of `current-buffer'"
    ("Identifier find"
     (("M-." xref-find-definitions "Find the definition of the identifier at point"
       :enable t :exit t :global-bind t)
-     ("M-," (:eval (cond ((= emacs-major-version 29) 'xref-go-back)
-                         ((< emacs-major-version 29) 'xref-pop-marker-stack)
-                         (t (error "xref-pop-marker-stack patch failed: unknow emacs version %s"
-                                   emacs-version))))
+     ("M-,"
+      (and (or entropy/emacs-codeserver--xref-goback-cmd
+               (entropy/emacs-error-without-debugger
+                "No xref go back command defined in \
+`entropy/emacs-codeserver--xref-goback-cmd'"))
+           (call-interactively entropy/emacs-codeserver--xref-goback-cmd))
       "Pop back to where M-. was last invoked"
       :enable t :exit t :global-bind t))))
   :eemacs-tpha
@@ -214,7 +222,9 @@ Bounds is an cons of (beg . end) point of `current-buffer'"
   ;; EEMACS_MAINTENANCE: follow upstream's internal defination.
   (let ((fname '__ya/xref-pop-marker-stack))
     (cond
-     ((= emacs-major-version 29)
+     ((version-list-<=
+       '(1 6 1)
+       (entropy/emacs-codeserver--xref-ver-get))
       (defalias fname
         (lambda (&rest _)
           "Like `xref-go-back' but use `xref--goto-char' when the
@@ -230,8 +240,10 @@ accessible portion is outside of that position."
               (xref--goto-char (marker-position marker))
               (set-marker marker nil nil)
               (run-hooks 'xref-after-return-hook)))))
-      (advice-add 'xref-go-back :override fname))
-     ((<= emacs-major-version 28)
+      (advice-add 'xref-go-back :override fname)
+      (setq entropy/emacs-codeserver--xref-goback-cmd
+            'xref-go-back))
+     (t
       (defalias fname
         (lambda (&rest _)
           "Like `xref-pop-marker-stack' but use `xref--goto-char' when the
@@ -249,9 +261,9 @@ accessible portion is outside of that position."
               (xref--goto-char (marker-position marker))
               (set-marker marker nil nil)
               (run-hooks 'xref-after-return-hook)))))
-      (advice-add 'xref-pop-marker-stack :override fname))
-     (t (error "xref-pop-marker-stack patch failed: unknow emacs version %s"
-               emacs-version))))
+      (advice-add 'xref-pop-marker-stack :override fname)
+      (setq entropy/emacs-codeserver--xref-goback-cmd
+            'xref-pop-marker-stack))))
 
 ;; *** __end__
   )
