@@ -11907,7 +11907,7 @@ UFUNC which should take care of the result by itself."
        ((eq selector 'min) (funcall getvers)
         (car (sort vers 'version-list-<)))
        ((eq selector 'max) (funcall getvers)
-        (last (sort vers 'version-list-<)))
+        (car (last (sort vers 'version-list-<))))
        ((eq selector 'current) (funcall getvers)
         (unless sym-obj
           (entropy/emacs-!error
