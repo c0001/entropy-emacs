@@ -785,7 +785,20 @@ faild with hash '%s' which must match '%s'"
          pkg cmds penv defdir)))
     (dolist (item entropy/emacs-batch--bytecompile-item-register)
       (apply 'entropy/emacs-batch--bytecompile-eemacs-core-utils-frameworks
-             (if clean (append item '(t)) item)))))
+             (if clean (append item '(t)) item)))
+    (unless clean
+      (entropy/emacs-with-file-buffer entropy/emacs-inner-preload-vars-file
+        :with-kill-visitings-pred 'always
+        :without-save-visitings-pred 'always
+        :with-kill-buffer-when-done t
+        :with-find-file-function 'pure
+        (setq-local auto-save-default nil)
+        (setq-local make-backup-files nil)
+        (setq-local before-save-hook nil)
+        (erase-buffer)
+        (dolist (el entropy/emacs-inner-preload-vars)
+          (insert (format "(setq %S %S)\n" el (symbol-value el))))
+        (save-buffer)))))
 
 ;; ** interactive
 

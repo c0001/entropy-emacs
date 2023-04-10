@@ -457,6 +457,12 @@ VAR should be a variable name or a `setf' compatible place.
   `(setf ,var ,(macroexpand-1 `(entropy/emacs-intern ,@body))))
 
 (defvar entropy/emacs-make-new-interned-symbol--counter 0)
+;; we should preserve this var after byte-compiling eemacs for next
+;; startup session, since the var will be init as zero in that session
+;; startup, but in bytecoded file which have ones that used existence
+;; higher values already which may cause redefination disaster.
+(add-to-list 'entropy/emacs-inner-preload-vars
+             'entropy/emacs-make-new-interned-symbol--counter)
 (defun entropy/emacs-make-new-interned-symbol
     (&optional prefix for-obarray nointern)
   "Return a new allocated symbol where its value is void, and its

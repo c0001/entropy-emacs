@@ -973,6 +973,32 @@ that name as FILE later."
 
 ;; ** INIT
 
+(entropy/emacs-defconst
+  entropy/emacs-inner-preload-vars-file
+  (expand-file-name ".eemacs-preload.el" entropy/emacs-stuffs-topdir)
+  "eemacs preload file for init some inner bootstrap/preserved variables.
+
+See `entropy/emacs-inner-preload-vars'.
+
+EEMACS_MAINTENANCE:
+
+This file just be loaded for a byte-compiled session i.e. prediated
+via `entropy/emacs-suggest-startup-with-elisp-source-load-p' since we
+create this file intended to preserve some inner metadata that
+byte-compile generated but source loading undeeded.")
+(unless (entropy/emacs-suggest-startup-with-elisp-source-load-p)
+  (load entropy/emacs-inner-preload-vars-file))
+
+(defvar entropy/emacs-inner-preload-vars nil
+  "A list variable symbol to be saved on
+`entropy/emacs-inner-preload-vars-file'.
+
+EEMACS_MAINTENANCE:
+
+Each var of this list should be interned to default `obarray' since we
+can not write to file with different obarray distinguished symbols
+unless use byte-compile with macroexpand hack.")
+
 ;; eemacs conventional top-level binding either NOTE emacs bind to
 ;; "M-ESC"
 (global-set-key (kbd "ESC ESC") 'top-level)
