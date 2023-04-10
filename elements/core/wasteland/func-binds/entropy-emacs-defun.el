@@ -11890,8 +11890,9 @@ one of below value:
    PKG-DESCL, which should return one valid `PKG-DESC', we termd this
    function UFUNC in this docstring.
 
-Return the selected PKG-DESC or throw an error unless SELETOR is a
-UFUNC which should take care of the result by itself."
+Return the selected PKG-DESC or nil when no founding got, unless
+SELETOR is a UFUNC which should take care of the result by
+itself."
   (entropy/emacs-when-let*-first
       ((pkgl (alist-get package-name package-alist))
        vers vers-got
@@ -11902,35 +11903,28 @@ UFUNC which should take care of the result by itself."
                         (push (package-desc-version el)
                               vers)))
                     (setq vers-got t)))))
-    (if (or (not selector) (= 1 (length pkgl))) (car pkgl)
-      (cond
-       ((eq selector 'min) (funcall getvers)
-        (car (sort vers 'version-list-<)))
-       ((eq selector 'max) (funcall getvers)
-        (car (last (sort vers 'version-list-<))))
-       ((eq selector 'current) (funcall getvers)
-        (unless sym-obj
-          (entropy/emacs-!error
-           "Looking for curren package `%s' \
-must have sym-obj but it's not specified"
-           package-name))
-        (let ((f (apply 'symbol-file sym-obj)) d)
-          (unless f
-            (entropy/emacs-!error
-             "No file defined sym-obj: %S" sym-obj))
-          (setq d (file-name-directory f))
-          (or
-           (catch :exit
-             (dolist (el pkgl)
-               (when (entropy/emacs-existed-filesystem-nodes-equal-p
-                      (package-desc-dir el) d t)
-                 (throw :exit el))))
-           (entropy/emacs-!error
-            "No package-desc found for sym-obj: %S"
-            sym-obj))))
-       ((functionp selector) (funcall selector pkgl))
-       (t (entropy/emacs-!error "wrong type of selector: %S"
-                                selector))))))
+    (catch :rtn
+      (if (or (not selector) (= 1 (length pkgl))) (car pkgl)
+        (cond
+         ((eq selector 'min) (funcall getvers)
+          (car (sort vers 'version-list-<)))
+         ((eq selector 'max) (funcall getvers)
+          (car (last (sort vers 'version-list-<))))
+         ((eq selector 'current) (funcall getvers)
+          (unless sym-obj (throw :rtn nil))
+          (let ((f (apply 'symbol-file sym-obj)) d)
+            (unless f (throw :rtn nil))
+            (setq d (file-name-directory f))
+            (or
+             (catch :exit
+               (dolist (el pkgl)
+                 (when (entropy/emacs-existed-filesystem-nodes-equal-p
+                        (package-desc-dir el) d t)
+                   (throw :exit el))))
+             (throw :rtn nil))))
+         ((functionp selector) (funcall selector pkgl))
+         (t (entropy/emacs-!error "wrong type of selector: %S"
+                                  selector)))))))
 
 ;; **** eemacs `package-user-dir' specification
 

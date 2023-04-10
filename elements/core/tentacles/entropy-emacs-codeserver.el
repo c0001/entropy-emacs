@@ -94,10 +94,10 @@ Bounds is an cons of (beg . end) point of `current-buffer'"
 (use-package xref
   :ensure nil
   :preface
-  (defun entropy/emacs-codeserver--xref-ver-get nil
-    (package-desc-version
-     (entropy/emacs-elpkg-get-pkg-desc-via-name
-      'xref 'current '(xref-pop-marker-stack defun))))
+  (defun entropy/emacs-codeserver--xref-ver-161-p nil
+    (if-let ((dc (entropy/emacs-elpkg-get-pkg-desc-via-name
+                  'xref 'current '(xref-pop-marker-stack defun))))
+        (version-list-<= '(1 6 1) (package-desc-version dc)) t))
   (defvar entropy/emacs-codeserver--xref-goback-cmd nil)
   :defines
   (xref--marker-ring xref--history)
@@ -222,9 +222,7 @@ Bounds is an cons of (beg . end) point of `current-buffer'"
   ;; EEMACS_MAINTENANCE: follow upstream's internal defination.
   (let ((fname '__ya/xref-pop-marker-stack))
     (cond
-     ((version-list-<=
-       '(1 6 1)
-       (entropy/emacs-codeserver--xref-ver-get))
+     ((entropy/emacs-codeserver--xref-ver-161-p)
       (defalias fname
         (lambda (&rest _)
           "Like `xref-go-back' but use `xref--goto-char' when the
