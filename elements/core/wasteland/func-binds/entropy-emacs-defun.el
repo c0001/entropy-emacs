@@ -11870,7 +11870,69 @@ while pdumper procedure.
 ;; (defmacro entropy/emacs-idle-execution-advice
 ;;     (func_name iterate_times))
 
-;; *** Package user dir specification
+;; *** Package Management
+;; **** elpkg package desc operations
+
+(entropy/emacs-!cl-defun entropy/emacs-elpkg-get-pkg-desc-via-name
+    (package-name &optional selector sym-obj)
+  "Get a `package-desc-p' object PKG-DESC from `package-alist'
+using a package name (a symbol) PACKAGE-NAME.
+
+SELECTOR is an filter to obtained the target from list of PKG-DESCs
+(termed as PKG-DESCL) in one same entry of `package-alist', it can be
+one of below value:
+
+1) symbol `min': get the minimum version thru of PKG-DESCL
+2) symbol `max': get the maximal version thru of PKG-DESCL
+3) symbol `current': get which one currently defined used object
+   SYM-OBJ which is the argument list applied to `symbol-file'.
+4) a function accepts only one no-optional argument i.e. the
+   PKG-DESCL, which should return one valid `PKG-DESC', we termd this
+   function UFUNC in this docstring.
+
+Return the selected PKG-DESC or throw an error unless SELETOR is a
+UFUNC which should take care of the result by itself."
+  (entropy/emacs-when-let*-first
+      ((pkgl (alist-get package-name package-alist))
+       vers vers-got
+       (getvers (lambda nil
+                  (unless vers-got
+                    (dolist (el pkgl)
+                      (when (package-desc-p el)
+                        (push (package-desc-version el)
+                              vers)))
+                    (setq vers-got t)))))
+    (if (or (not selector) (= 1 (length pkgl))) (car pkgl)
+      (cond
+       ((eq selector 'min) (funcall getvers)
+        (car (sort vers 'version-list-<)))
+       ((eq selector 'max) (funcall getvers)
+        (last (sort vers 'version-list-<)))
+       ((eq selector 'current) (funcall getvers)
+        (unless sym-obj
+          (entropy/emacs-!error
+           "Looking for curren package `%s' \
+must have sym-obj but it's not specified"
+           package-name))
+        (let ((f (apply 'symbol-file sym-obj)) d)
+          (unless f
+            (entropy/emacs-!error
+             "No file defined sym-obj: %S" sym-obj))
+          (setq d (file-name-directory f))
+          (or
+           (catch :exit
+             (dolist (el pkgl)
+               (when (entropy/emacs-existed-filesystem-nodes-equal-p
+                      (package-desc-dir el) d t)
+                 (throw :exit el))))
+           (entropy/emacs-!error
+            "No package-desc found for sym-obj: %S"
+            sym-obj))))
+       ((functionp selector) (funcall selector pkgl))
+       (t (entropy/emacs-!error "wrong type of selector: %S"
+                                selector))))))
+
+;; **** eemacs `package-user-dir' specification
 
 (defvar entropy/emacs--package-user-dir-setted nil)
 
