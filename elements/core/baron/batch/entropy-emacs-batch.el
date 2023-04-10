@@ -149,7 +149,7 @@ Make targets:
 
 - 'install-systemd-service' option install a user space sysemd service
   for current user only, which can use a service session name via env
-  variable EEMACS_SYSTEMD_DAEMON_SERVICE (defaults to \"main\").
+  variable EEMACS_SESSION (defaults to \"main\").
 
 MAINTAINS:
 
