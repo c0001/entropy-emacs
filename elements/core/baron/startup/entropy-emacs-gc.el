@@ -95,6 +95,12 @@ origin, since each set to the `gc-threshold' or
               (message "[%s] `%s' change from %s to %s"
                        this-command ',symbol oval newval))))))))
 
+(defun entropy/emacs-gc-set-gc-vars (tr per)
+  ;; we should always set percentage first to avoid gc since enlarge
+  ;; of tr.
+  (__ya/gc-threshold_setq gc-cons-percentage per)
+  (__ya/gc-threshold_setq gc-cons-threshold tr))
+
 (defvar entropy/emacs-gc--adjust-cons-threshold-did-res-p nil)
 (defun entropy/emacs-gc--adjust-cons-threshold ()
   (let (rt prop thr per)
@@ -143,19 +149,14 @@ origin, since each set to the `gc-threshold' or
                 t)))
            ;; restrict the gc threshold when matching above condidtions
            (unless entropy/emacs-gc--adjust-cons-threshold-did-res-p
-             (__ya/gc-threshold_setq
-              gc-cons-threshold
-              (or thr entropy/emacs-gc-threshold-basic))
-             (__ya/gc-threshold_setq
-              gc-cons-percentage
+             (entropy/emacs-gc-set-gc-vars
+              (or thr entropy/emacs-gc-threshold-basic)
               (or per entropy/emacs-gc-percentage-basic))
              (setq entropy/emacs-gc--adjust-cons-threshold-did-res-p t)))
           ;; -------------------- high performance mode --------------------
           (t
-           (__ya/gc-threshold_setq
-            gc-cons-threshold entropy/emacs-gc-thread-max)
-           (__ya/gc-threshold_setq
-            gc-cons-percentage entropy/emacs-gc-percentage-max)
+           (entropy/emacs-gc-set-gc-vars
+            entropy/emacs-gc-thread-max entropy/emacs-gc-percentage-max)
            (setq entropy/emacs-gc--adjust-cons-threshold-did-res-p nil)))))
 
 (defun entropy/emacs-gc--init-idle-gc (&optional sec)
