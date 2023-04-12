@@ -12669,7 +12669,15 @@ clipboard with native operation system."
                                               ;; executable
                                               (executable-find "powershell.exe")
                                             (symbol-name judger)))
-                      (xclip-mode 1)
+                      (entropy/emacs-run-body-only-once
+                       (entropy/emacs-with-daemon-make-frame-done
+                         'eemacs-set-xclip-mode (&rest _)
+                         :when-tui (xclip-mode 1)
+                         :when-gui (xclip-mode 0)
+                         (when (and (not noninteractive)
+                                    (not (daemonp))
+                                    (not (display-graphic-p)))
+                           (xclip-mode 1))))
                       t))))
       judger)))
 
