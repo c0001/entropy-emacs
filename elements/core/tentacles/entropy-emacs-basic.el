@@ -6654,6 +6654,44 @@ otherwise returns nil."
 
 ;; **** prevention
 
+(entropy/emacs--api-restriction-uniform
+    'xterm--pasted-text-progress-prompts 'emacs-version-incompatible
+  :detector (> emacs-major-version 29)
+  :signal
+  (signal
+   entropy/emacs-emacs-version-incompatible-error-symbol
+   (list
+    (format
+     "highest emacs version restrict by '%s' but current stands on '%s'"
+     "29.1" emacs-version)))
+  :do-error t
+  (defun __ya/xterm--pasted-text ()
+    "eemacs spec for `xterm--pasted-text'."
+    (let* ((end-marker-length (length xterm-paste-ending-sequence))
+           event (msg (make-progress-reporter "xterm event parsing"))
+           (cnt 0) (dr 40960) (wr (* 10 dr)) (step dr))
+      (with-temp-buffer
+        (set-buffer-multibyte nil)
+        (while (not (search-backward xterm-paste-ending-sequence
+                                     (- (point) end-marker-length) t))
+          (setq event (read-event nil nil
+                                  ;; Use finite timeout to avoid glomming the
+                                  ;; event onto this-command-keys.
+                                  most-positive-fixnum))
+          (when (eql event ?\r) (setf event ?\n)) (insert event)
+          (when (= (cl-incf cnt) step)
+            (progress-reporter-force-update
+             msg nil
+             (when (> step wr)
+               "emacs may hang for large event recieving, \
+consider close emacs by shut down the host terminal..."))
+            (setq step (+ step dr))))
+        (progress-reporter-done msg)
+        (let ((last-coding-system-used))
+          (decode-coding-region (point-min) (point) (keyboard-coding-system)
+                                t)))))
+  (advice-add 'xterm--pasted-text :override #'__ya/xterm--pasted-text))
+
 (defun entropy/emacs-basic-safe-terminal-bracketed-paste
     (&optional rate limit)
   "A system daemon to prevent large bracketed-paste via `xterm-paste'
