@@ -144,6 +144,15 @@ Should always set as dynamically since it used as a indicator for
 `post-command-hook' where we will auto reset it without influence
 next command.")
 
+;; ** env
+
+(setenv "EEMACS_SPAWN_BASH_SCRIPT_TEMPLATE"
+        (expand-file-name
+         "eemacs-run.sh.template"
+         (expand-file-name
+          "annex/scripts"
+          entropy/emacs-user-emacs-directory)))
+
 ;; ** byte compile refer
 
 (defvar entropy/emacs-session-in-byte-compile-emacs-core-p nil

@@ -6652,6 +6652,35 @@ otherwise returns nil."
 ;; ****** end
   )
 
+;; **** prevention
+
+(defun entropy/emacs-basic-safe-terminal-bracketed-paste nil
+  "A system daemon to prevent large bracketed-paste via
+`xterm-paste' event from TUI to hang current emacs terminal since
+the pool TUI text sequence dealing speed of emacs."
+  (interactive)
+  (when-let* ((proc-name "eemacs-safe-terminal-bracketed-paste")
+              ((not (display-graphic-p)))
+              ((not (get-process proc-name))))
+    (entropy/emacs-with-make-process
+     :name "eemacs-safe-terminal-bracketed-paste"
+     :buffer " *eemacs-safe-terminal-bracketed-paste*"
+     :with-sentinel-destination-sym it-dest
+     :command (list "bash"
+                    (expand-file-name
+                     "eemacs-termsafe.sh"
+                     (expand-file-name
+                      "annex/scripts"
+                      entropy/emacs-user-emacs-directory)))
+     :cleanup
+     (when (buffer-live-p it-dest) (kill-buffer it-dest))
+     :error
+     (when (buffer-live-p it-dest)
+       (with-current-buffer it-dest
+         (entropy/emacs-error-without-debugger
+          "eemacs-safe-terminal-bracketed-paste: fatal of %s"
+          (buffer-substring-no-properties (point-min) (point-max))))))))
+
 ;; ** Eemacs basic hydra-hollow instances
 
 (entropy/emacs-lazy-initial-for-hook
