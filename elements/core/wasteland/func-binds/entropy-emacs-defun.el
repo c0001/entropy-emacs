@@ -10736,8 +10736,9 @@ object which can be used for `eval'."
                         ,proc-name)))))))
     proc))
 
-(defun entropy/emacs-run-batch-with-eemacs-pure-env
-    (start-form finish-form &optional with-default-directory-as)
+(cl-defun entropy/emacs-run-batch-with-eemacs-pure-env
+    (start-form finish-form &optional with-default-directory-as
+                &key load-custom-file-p)
   "Invoke eemacs in batch-mode (i.e. `noninteractive' was non-nil)
 with `entropy/emacs-env-init-with-pure-eemacs-env-p' asynchronously.
 
@@ -10750,12 +10751,18 @@ START-FORM via the internal binding variable =$ASYNC-RESULT=.
 
 The process running `default-directory' is bind to
 WITH-DEFAULT-DIRECTORY-AS if set or will fallback to
-`temporary-file-directory'."
+`temporary-file-directory'.
+
+If LOAD-CUSTOM-FILE-P is non-nil, then also load eemacs's
+`entropy/emacs-custom-common-file' before initialized the eemacs pure
+environment. Where all commonly eemacs customizations is specified by
+user end in this case."
   (entropy/emacs-env-with-pure-eemacs-env
    (or (and with-default-directory-as
             (entropy/emacs-return-as-default-directory
              with-default-directory-as))
        temporary-file-directory)
+   :load-custom-file-p load-custom-file-p
    (async-start
     `(lambda (&rest _)
        (let ((start-file
