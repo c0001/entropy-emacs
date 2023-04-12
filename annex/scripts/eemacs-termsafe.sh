@@ -3,7 +3,9 @@ set -e
 . "$EEMACS_SPAWN_BASH_SCRIPT_TEMPLATE"
 set +e
 
-declare _txt _size=524288
+! command -v sleep &>/dev/null && exit 1
+
+declare _txt _size=524288 _rate="${1:-1}"
 
 function _main ()
 {
@@ -36,6 +38,8 @@ function _main ()
     fi
 }
 
-while sleep 0.1 ; do
-    _main
-done
+{
+    while sleep "$_rate" ; do
+        _main
+    done
+}
