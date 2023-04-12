@@ -6654,14 +6654,36 @@ otherwise returns nil."
 
 ;; **** prevention
 
-(defun entropy/emacs-basic-safe-terminal-bracketed-paste nil
-  "A system daemon to prevent large bracketed-paste via
-`xterm-paste' event from TUI to hang current emacs terminal since
-the pool TUI text sequence dealing speed of emacs."
-  (interactive)
+(defun entropy/emacs-basic-safe-terminal-bracketed-paste
+    (&optional rate limit)
+  "A system daemon to prevent large bracketed-paste via `xterm-paste'
+event from TUI to hang current emacs terminal since the pool TUI text
+sequence dealing speed of emacs.
+
+This need BASH installed in system PATH.
+
+Optional argument RATE(unit of seconds defaults to 1s) and LIMIT(unit
+of kilobytes defaults to 512k) is used to customize the daemon
+checking frequency and clipboard size restriction. (When calling this
+function via `interactive' with prefix argument, prompts for inputs is
+featured. Or specified in elisp.)"
+  (interactive
+   (if (not current-prefix-arg) (list nil nil)
+     (list (entropy/emacs-read-number-string-until-matched
+            nil nil nil "use a rate(secs)")
+           (*
+            (entropy/emacs-read-number-string-until-matched
+             nil
+             (lambda (x)
+               (and (integerp x) (> x 0)))
+             nil "use a size limit(kbytes)")
+            1024))))
   (when-let* ((proc-name "eemacs-safe-terminal-bracketed-paste")
               ((not (display-graphic-p)))
-              ((not (get-process proc-name))))
+              ((or (not (get-process proc-name))
+                   (when (yes-or-no-p "delete the old one?")
+                     (delete-process (get-process proc-name))
+                     t))))
     (entropy/emacs-with-make-process
      :name "eemacs-safe-terminal-bracketed-paste"
      :buffer " *eemacs-safe-terminal-bracketed-paste*"
@@ -6671,7 +6693,9 @@ the pool TUI text sequence dealing speed of emacs."
                      "eemacs-termsafe.sh"
                      (expand-file-name
                       "annex/scripts"
-                      entropy/emacs-user-emacs-directory)))
+                      entropy/emacs-user-emacs-directory))
+                    (number-to-string rate)
+                    (number-to-string limit))
      :cleanup
      (when (buffer-live-p it-dest) (kill-buffer it-dest))
      :error

@@ -5,7 +5,7 @@ set +e
 
 ! command -v sleep &>/dev/null && exit 1
 
-declare _txt _size=524288 _rate="${1:-1}"
+declare _txt _rate="${1:-1}" _size="${2:-524288}"
 
 function _main ()
 {
