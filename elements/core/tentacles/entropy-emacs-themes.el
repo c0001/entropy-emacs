@@ -413,10 +413,17 @@ progress."
             ;; Reload theme since a theme is present differently from
             ;; gui to tui and vice versa generally.
             (if
-                (not
-                 ;; prevent reload theme for same status as previous client created is
-                 (eq (display-graphic-p)
-                     entropy/emacs-themes--daemon-theme-reload-type))
+                (or
+                 (not
+                  ;; prevent reload theme for same status as previous client created is
+                  (eq (display-graphic-p)
+                      entropy/emacs-themes--daemon-theme-reload-type))
+                 ;; NOTE: We should always restart themes when a fresh
+                 ;; new eemacs main daemon client init since there's
+                 ;; lots of specs rely on the theme loading procedure
+                 ;; which is not kept after the main theme frame
+                 ;; killed.
+                 (entropy/emacs-daemon-current-is-main-client))
                 (when (= 1 (length entropy/emacs-daemon--legal-clients))
                   (message "Daemon reload theme ...")
                   (entropy/emacs-themes-strictly-load-theme
