@@ -6694,8 +6694,8 @@ featured. Or specified in elisp.)"
                      (expand-file-name
                       "annex/scripts"
                       entropy/emacs-user-emacs-directory))
-                    (number-to-string rate)
-                    (number-to-string limit))
+                    (number-to-string (or rate 1))
+                    (number-to-string (or limit (* 512 1024))))
      :cleanup
      (when (buffer-live-p it-dest) (kill-buffer it-dest))
      :error
