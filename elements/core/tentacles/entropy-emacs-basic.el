@@ -6692,6 +6692,7 @@ consider close emacs by shut down the host terminal..."))
                                 t)))))
   (advice-add 'xterm--pasted-text :override #'__ya/xterm--pasted-text))
 
+(defvar entropy/emacs-basic-safe-terminal-bracketed-paste-norestart nil)
 (defun entropy/emacs-basic-safe-terminal-bracketed-paste
     (&optional rate limit)
   "A system daemon to prevent large bracketed-paste via `xterm-paste'
@@ -6720,6 +6721,11 @@ featured. Or specified in elisp.)"
               ((not (display-graphic-p)))
               ((or (not (get-process proc-name))
                    (when (yes-or-no-p "delete the old one?")
+                     (setq entropy/emacs-basic-safe-terminal-bracketed-paste-norestart
+                           t)
+                     ;; NOTE: this must beind the flag set since we
+                     ;; can not guarantee that the old proc's sentinel
+                     ;; whether preempts the thread execution.
                      (delete-process (get-process proc-name))
                      t))))
     (entropy/emacs-with-make-process
@@ -6739,9 +6745,18 @@ featured. Or specified in elisp.)"
      :error
      (when (buffer-live-p it-dest)
        (with-current-buffer it-dest
-         (entropy/emacs-error-without-debugger
-          "eemacs-safe-terminal-bracketed-paste: fatal of %s"
-          (buffer-substring-no-properties (point-min) (point-max))))))))
+         (if (unless entropy/emacs-basic-safe-terminal-bracketed-paste-norestart
+               (yes-or-no-p "(alert) `entropy/emacs-basic-safe-terminal-bracketed-paste' \
+daemon has interrupted, restart it?"))
+             (let ((current-prefix-arg '(16)))
+               (call-interactively 'entropy/emacs-basic-safe-terminal-bracketed-paste))
+           (setq entropy/emacs-basic-safe-terminal-bracketed-paste-norestart nil)
+           (entropy/emacs-message-do-message
+            "eemacs-safe-terminal-bracketed-paste: exit of reason (%s)"
+            (buffer-substring-no-properties (point-min) (point-max)))))))))
+;; default enabled for basic daemon session
+(when (equal "main" (entropy/emacs-getenv "EEMACS_SYSTEMD_DAEMON_SERVICE"))
+  (entropy/emacs-basic-safe-terminal-bracketed-paste))
 
 ;; ** Eemacs basic hydra-hollow instances
 
