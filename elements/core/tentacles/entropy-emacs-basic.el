@@ -6772,15 +6772,18 @@ daemon has interrupted, restart it?"))
     (("f f"
       (:pretty-hydra-cabinet
        (:data
-        "Window split/delete"
+        "Window and Lossage"
         (("C-x 1" delete-other-windows
-          "delete-other-window"
+          "Delete-other-window"
           :enable t :exit t :global-bind t)
          ("C-x 2" entropy/emacs-no-same-buffer-split-window-vertically
-          "delete-other-window"
+          "Vertical split window"
           :enable t :exit t :global-bind t)
          ("C-x 3" entropy/emacs-no-same-buffer-split-window-horizontally
-          "delete-other-window"
+          "Horizontal split window"
+          :enable t :exit t :global-bind t)
+         ("C-x `" view-lossage
+          "Display last few input keystrokes"
           :enable t :exit t :global-bind t))
         "Frequently used Misc. commands"
         (("<f2>" entropy/emacs-basic-dhl-toggle "hl line"
