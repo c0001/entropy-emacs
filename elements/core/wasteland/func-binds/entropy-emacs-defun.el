@@ -12680,11 +12680,12 @@ clipboard with native operation system."
                        (entropy/emacs-with-daemon-make-frame-done
                          'eemacs-set-xclip-mode (&rest _)
                          :when-tui (xclip-mode 1)
-                         :when-gui (xclip-mode 0)
-                         (when (and (not noninteractive)
-                                    (not (daemonp))
-                                    (not (display-graphic-p)))
-                           (xclip-mode 1))))
+                         :when-gui (xclip-mode 0)))
+                      (when (and (not noninteractive)
+                                 (not (daemonp))
+                                 (not (display-graphic-p))
+                                 (not (bound-and-true-p xclip-mode)))
+                        (xclip-mode 1))
                       t))))
       judger)))
 
