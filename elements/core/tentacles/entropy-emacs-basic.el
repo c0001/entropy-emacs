@@ -6652,7 +6652,13 @@ otherwise returns nil."
 ;; ****** end
   )
 
-;; **** prevention
+;; **** xterm
+
+(entropy/emacs-with-daemon-make-frame-done
+  'eemacs-enable-xterm-mouse-mode (&rest _)
+  :when-tui (xterm-mouse-mode  1)
+  :when-gui (xterm-mouse-mode -1))
+(unless (display-graphic-p) (xterm-mouse-mode 1))
 
 (entropy/emacs--api-restriction-uniform
     'xterm--pasted-text-progress-prompts 'emacs-version-incompatible
