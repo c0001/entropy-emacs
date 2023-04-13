@@ -354,10 +354,13 @@ by `entropy/emacs-startup-done'.")
 (defun entropy/emacs-themes-strictly-load-theme
     (theme &optional no-confirm no-enable)
   "Load theme as `load-theme' but strictly using special theme
-for tui emacs session."
+for tui emacs session when THEME is not a member of
+`entropy/emacs-tui-compatible-theme-names'."
   (let (_)
     ;; fall back to tui friendly eemacs default theme
-    (unless (display-graphic-p) (setq theme 'ujelly))
+    (unless (display-graphic-p)
+      (unless (memq theme entropy/emacs-tui-compatible-theme-names)
+        (setq theme 'ujelly)))
     (load-theme theme no-confirm no-enable)))
 
 (defun entropy/emacs-themes-init-setup-user-theme ()

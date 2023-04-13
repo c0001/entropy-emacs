@@ -1745,6 +1745,23 @@ when one of the filters return non-nil.")
       (when (funcall func buffer)
         (throw :exit t)))))
 
+(defvar entropy/emacs-tui-compatible-theme-names
+  '(spacemacs-dark
+    spacemacs-light
+    sanityinc-tomorrow-blue
+    sanityinc-tomorrow-bright
+    sanityinc-tomorrow-eighties
+    sanityinc-tomorrow-night
+    doom-1337
+    doom-one
+    doom-Iosvkem
+    doom-gruvbox
+    doom-molokai
+    modus-vivendi
+    wombat)
+  "A list of theme names which either has correctly visual render
+for a TUI session.")
+
 ;; ** modeline refer
 
 (defvar entropy/emacs-mode-line-sticker ""
