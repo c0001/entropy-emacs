@@ -12987,6 +12987,10 @@ Return nil when `entropy/emacs-union-http-proxy-plist''s
               ,(format "HTTPS_PROXY=http://%s:%s"
                        (plist-get proxy-plist :host) proxy-port-str)
               ,(format "RSYNC_PROXY=%s:%s"
+                       (plist-get proxy-plist :host) proxy-port-str)
+              ,(format "all_proxy=%s:%s"
+                       (plist-get proxy-plist :host) proxy-port-str)
+              ,(format "ftp_proxy=%s:%s"
                        (plist-get proxy-plist :host) proxy-port-str))))
         ;; inject noproxy ip addresses
         (let ((noproxy-list entropy/emacs-union-proxy-noproxy-list))
