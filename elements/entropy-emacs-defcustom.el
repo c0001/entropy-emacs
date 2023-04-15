@@ -3484,12 +3484,12 @@ Do you want to open it with messy?"
 (defun entropy/emacs--supress-fontlock-mode (orig-func &rest orig-args)
   "Disable font-lock render if current-buffer is large"
   (let ((buff (current-buffer))
-        (offunc (lambda nil (apply orig-func orig-args))))
+        (ofunc (lambda nil (apply orig-func orig-args))))
     (cond
      ((functionp entropy/emacs-unreadable-buffer-judge-function)
       (unless (funcall entropy/emacs-unreadable-buffer-judge-function buff)
-        (funcall offunc)))
-     (t (funcall offunc)))))
+        (funcall ofunc)))
+     (t (funcall ofunc)))))
 
 (add-hook 'entropy/emacs-after-startup-hook
           #'(lambda ()
