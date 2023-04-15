@@ -13039,40 +13039,34 @@ Return nil when `entropy/emacs-union-http-proxy-plist''s
 `entropy/emacs-funcall-with-eemacs-union-http-internet-proxy'
 when the proxy env wrapping enabled")
 
-(defvar entropy/emacs-union-http-internet-proxy-extra-let-bindings nil
-  "Extra `let' bindings to
-`entropy/emacs-gen-eemacs-union-http-internet-proxy-let-bindings'")
-(defun entropy/emacs-gen-eemacs-union-http-internet-proxy-let-bindings ()
-  "Generate `let' bindings to
-`entropy/emacs-funcall-with-eemacs-union-http-internet-proxy',
-inject
-`entropy/emacs-union-http-internet-proxy-extra-let-bindings' at
-the tail of the bindings.
-
-NOTE: this bindings just used for `let', in which case do not use
-inheritance bindings as in `let*' or will make any undefined
-mistakes."
-  (apply
-   'entropy/emacs-list-without-orphans
-   :with-orphans '(nil)
-   '(entropy/emacs-union-http-proxy-internal-enable-p t)
-   `(url-proxy-services
-     ',(entropy/emacs-gen-eemacs-union-http-internet-proxy-url-proxy-services))
-   `(process-environment
-     ',(append (entropy/emacs-gen-eemacs-union-http-internet-proxy-envs)
-               ;; NOTE: although `process-environment' has first
-               ;; precedence covering mechnism for duplicated env var
-               ;; defination, but we should take advantage coding
-               ;; context here to notify the developer to keep good
-               ;; env injection habit.
-               (entropy/emacs-trim-process-environment
-                nil "http_proxy" "HTTP_PROXY" "https_proxy" "HTTPS_PROXY"
-                "no_proxy" "NO_PROXY")))
-   ;; disable `entropy-proxy-url' patch
-   '(entropy/proxy-url-user-proxy-match-func 'ignore)
-   '(entropy/proxy-url-inhbit-all-proxy t)
-   ;; user specs
-   entropy/emacs-union-http-internet-proxy-extra-let-bindings))
+(defmacro entropy/emacs-with-eemacs-union-http-internet-proxy (&rest body)
+  "Run BODY with `let' bindings of eemacs union http proxy via
+`entropy/emacs-union-http-proxy-plist' when its `:enable' set
+non-nil."
+  (let ((body (entropy/emacs-macroexp-progn body))
+        (indcsym (make-symbol "proxyp"))
+        (rtnsym  (make-symbol "rtn")))
+    `(let (,indcsym ,rtnsym)
+       (entropy/emacs-when-let*-first
+           ((entropy/emacs-union-http-proxy-internal-enable-p
+             (plist-get entropy/emacs-union-http-proxy-plist :enable))
+            (url-proxy-services
+             (entropy/emacs-gen-eemacs-union-http-internet-proxy-url-proxy-services))
+            (process-environment
+             (append (entropy/emacs-gen-eemacs-union-http-internet-proxy-envs)
+                     ;; NOTE: although `process-environment' has first
+                     ;; precedence covering mechnism for duplicated env var
+                     ;; defination, but we should take advantage coding
+                     ;; context here to notify the developer to keep good
+                     ;; env injection habit.
+                     (entropy/emacs-trim-process-environment
+                      nil "http_proxy" "HTTP_PROXY" "https_proxy" "HTTPS_PROXY"
+                      "no_proxy" "NO_PROXY" "RSYNC_PROXY" "ftp_proxy" "all_proxy")))
+            ;; disable `entropy-proxy-url' patch
+            (entropy/proxy-url-user-proxy-match-func 'ignore)
+            (entropy/proxy-url-inhbit-all-proxy t))
+         (setq ,indcsym t ,rtnsym ,body))
+       (unless ,indcsym (setq ,rtnsym ,body)) ,rtnsym)))
 
 (defvar __ya/timer-set-function/with-url-poroxy/register nil)
 (defun __ya/timer-set-function/with-url-proxy (orig-func &rest orig-args)
@@ -13081,12 +13075,11 @@ mistakes."
 timer since timer is delayed call that can not inherit the
 lexical binding."
   (if entropy/emacs-union-http-proxy-internal-enable-p
-      (let ((func-call (nth 1 orig-args))
-            func)
+      (let ((func-call (nth 1 orig-args)) func)
         (entropy/emacs-setf-by-body func
-          `(lambda (&rest args)
-             (let (,@(entropy/emacs-gen-eemacs-union-http-internet-proxy-let-bindings))
-               (apply ',func-call args))))
+          (lambda (&rest args)
+            (entropy/emacs-with-eemacs-union-http-internet-proxy
+             (apply func-call args))))
         (push (cons func-call func) __ya/timer-set-function/with-url-poroxy/register)
         (apply orig-func (car orig-args) func (cddr orig-args)))
     (apply orig-func orig-args)))
@@ -13100,8 +13093,7 @@ lexical binding."
       (if (eq (car el) func)
           (apply orig-func (list (cdr el)))
         (push el remain)))
-    (when remain
-      (setq __ya/timer-set-function/with-url-poroxy/register remain))
+    (setq __ya/timer-set-function/with-url-poroxy/register remain)
     (apply orig-func orig-args)))
 (advice-add 'cancel-function-timers :around #'__ya/cancel-function-timers/with-url-proxy)
 
@@ -13117,18 +13109,16 @@ Additionally, the ORIG-FUNC can retrieve whether proxy wrapper enabled
 by get `entropy/emacs-union-http-proxy-internal-enable-p' non-nil."
   (if (and (plist-get entropy/emacs-union-http-proxy-plist :enable)
            (funcall filter-func))
-      (entropy/emacs-eval-with-lexical
-       `(let (,@(entropy/emacs-gen-eemacs-union-http-internet-proxy-let-bindings))
-          (when (and (bound-and-true-p noninteractive)
-                     (not (entropy/emacs-env-init-with-pure-eemacs-env-p)))
-            (entropy/emacs-message-do-message
-             "%s"
-             (yellow
-              (format "[WARN] Do with eemacs union http proxy %s:%s ..."
-                      (plist-get entropy/emacs-union-http-proxy-plist :host)
-                      (plist-get entropy/emacs-union-http-proxy-plist :port)))))
-          (apply ',orig-func ',orig-args)))
-    (apply orig-func orig-args)))
+      (entropy/emacs-with-eemacs-union-http-internet-proxy
+       (when (and noninteractive
+                  (not (entropy/emacs-env-init-with-pure-eemacs-env-p)))
+         (entropy/emacs-message-do-message
+          "%s"
+          (yellow
+           (format "[WARN] Do with eemacs union http proxy %s:%s ..."
+                   (plist-get entropy/emacs-union-http-proxy-plist :host)
+                   (plist-get entropy/emacs-union-http-proxy-plist :port)))))
+       (apply orig-func orig-args)) (apply orig-func orig-args)))
 
 (defun entropy/emacs-advice-for-common-do-with-http-proxy
     (orig-func &rest orig-args)
