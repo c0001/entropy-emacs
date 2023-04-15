@@ -3483,22 +3483,28 @@ Do you want to open it with messy?"
 
 (defun entropy/emacs--supress-fontlock-mode (orig-func &rest orig-args)
   "Disable font-lock render if current-buffer is large"
-  (let ((buff (current-buffer)))
+  (let ((buff (current-buffer))
+        (offunc (lambda nil (apply orig-func orig-args))))
     (cond
      ((functionp entropy/emacs-unreadable-buffer-judge-function)
       (unless (funcall entropy/emacs-unreadable-buffer-judge-function buff)
-        (apply orig-func orig-args)))
-     (t
-      (apply orig-func orig-args)))))
+        (funcall offunc)))
+     (t (funcall offunc)))))
 
 (add-hook 'entropy/emacs-after-startup-hook
           #'(lambda ()
-              (when (display-graphic-p)
-                (unless (bound-and-true-p global-font-lock-mode)
-                  (global-font-lock-mode +1))
-                (with-eval-after-load 'font-core
-                  (advice-add 'turn-on-font-lock
-                              :around #'entropy/emacs--supress-fontlock-mode)))))
+              (with-eval-after-load 'font-core
+                (advice-add 'turn-on-font-lock
+                            :around #'entropy/emacs--supress-fontlock-mode))
+              (if (and noninteractive (not (daemonp)))
+                  (unless (bound-and-true-p global-font-lock-mode) (global-font-lock-mode +1))
+                (when (daemonp)
+                  (add-hook 'entropy/emacs-daemon-server-after-make-frame-hook
+                            (entropy/emacs-defalias
+                                '__eemacs-enable-global-font-lock-for-daemon
+                              (lambda (&rest _)
+                                (unless (bound-and-true-p global-font-lock-mode)
+                                  (global-font-lock-mode +1)))))))))
 
 ;; *** add eemacs texinfo to info-path
 

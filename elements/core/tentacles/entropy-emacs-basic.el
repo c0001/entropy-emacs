@@ -5599,6 +5599,30 @@ described variable."
 (add-hook 'minibuffer-setup-hook
           #'entropy/emacs-basic--reset-ime-in-minibuffer)
 
+;; **** font-lock
+(defun __eemacs/jit-lock-function-auto-disable
+    (orig-func &rest orig-args)
+  "Disable `font-lock-mode' on the fly when freezing caused by it.
+
+This advice exist since some major-mode's fontification
+subroutine is heavy and laggy which may cause emacs
+freezing. (such as the `markdown-match-italic' for
+`markdown-mode')."
+  (let ((ctm (current-time)) td
+        (offunc
+         (lambda nil
+           (entropy/emacs-message-simple-progress-message
+               (format "Oh no... fontify this buffer %s is too slow, aborting"
+                       (current-buffer))
+             (font-lock-mode -1)))))
+    (unwind-protect (apply orig-func orig-args)
+      (entropy/emacs-unwind-protect-unless-success
+          (progn (setq td (float-time (time-subtract nil ctm)))
+                 (unless (<= td 0.25) (funcall offunc)))
+        (funcall offunc)))))
+(advice-add 'jit-lock-function
+            :around #'__eemacs/jit-lock-function-auto-disable)
+
 ;; **** Misc.
 ;; ***** Forbidden view-hello-file for W32 platform
 
