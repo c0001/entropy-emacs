@@ -602,6 +602,24 @@ such NO-ADD is happened)."
              (setcdr ,memqp-sym ,val-sym)))
          (gv-deref ,alist-place-sym)))))
 
+(defun entropy/emacs-profiler-is-running-p ()
+  "Return non-nil when emacs is running profiler."
+  (or
+   (and (fboundp 'profiler-cpu-running-p)
+        (profiler-cpu-running-p))
+   (profiler-memory-running-p)))
+
+(defun entropy/emacs-debugger-is-running-p ()
+  "Return non-nil when emacs is runing debugger related tasks."
+  (or
+   debug-on-error
+   debug-on-message
+   debug-on-next-call
+   debug-on-quit
+   debug-on-signal
+   (entropy/emacs-profiler-is-running-p)
+   ))
+
 ;; *** eemacs def*
 
 (defvar entropy/emacs-inner-sym-for/current-defname

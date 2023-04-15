@@ -5612,14 +5612,16 @@ freezing. (such as the `markdown-match-italic' for
         (offunc
          (lambda nil
            (entropy/emacs-message-simple-progress-message
-               (format "Oh no... fontify this buffer %s is too slow, aborting"
+               (format "Oh no... fontify this buffer %s is too slow, \
+please do a profiler on it, aborting"
                        (current-buffer))
              (font-lock-mode -1)))))
     (unwind-protect (apply orig-func orig-args)
-      (entropy/emacs-unwind-protect-unless-success
-          (progn (setq td (float-time (time-subtract nil ctm)))
-                 (unless (<= td 0.25) (funcall offunc)))
-        (funcall offunc)))))
+      (unless (entropy/emacs-debugger-is-running-p)
+        (entropy/emacs-unwind-protect-unless-success
+            (progn (setq td (float-time (time-subtract nil ctm)))
+                   (unless (<= td 0.25) (funcall offunc)))
+          (funcall offunc))))))
 (advice-add 'jit-lock-function
             :around #'__eemacs/jit-lock-function-auto-disable)
 
