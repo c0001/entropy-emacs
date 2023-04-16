@@ -526,6 +526,7 @@ NOTE: Just use it in `noninteractive' session."
 (cl-defmacro entropy/emacs-message-simple-progress-message
     (message &rest body
              &key with-temp-message ignore-current-messages
+             with-fit-window-width
              with-either-popup
              with-message-color-args
              &allow-other-keys)
@@ -537,6 +538,10 @@ BODY.
 
 If WITH-TEMP-MESSAGE is set and return non-nil, then all the progress
 messages are not logged into `messages-buffer'.
+
+If WITH-FIT-WINDOW-WIDTH is set and return non-nil, then MESSAGE
+in echo area will be truncated to fit the `minibuffer-window's
+display with.
 
 The `current-message' is restored in echo area after BODY ran out if
 it is non-nil only when WITH-TEMP-MESSAGE is set and return non-nil
@@ -588,7 +593,14 @@ eemacs may not use popup display obeyed the eemacs api modification)"
             (,progmsg-sym nil)
             (,progress-reporter-sym
              (when ,message-sym
-               (prog1 (make-progress-reporter (format "%s ... " ,message-sym))
+               (prog1 (make-progress-reporter
+                       (if (or noninteractive (not ,with-fit-window-width))
+                           (format "%s ... " ,message-sym)
+                         (concat
+                          (entropy/emacs-substring-to-window-max-chars-width
+                           ,message-sym
+                           nil nil 10 (minibuffer-window))
+                          " ... ")))
                  (setq ,progmsg-sym (current-message))))))
        (when (and ,message-sym ,use-popup-p-sym
                   (or (eq ,use-popup-p-sym 'force)
