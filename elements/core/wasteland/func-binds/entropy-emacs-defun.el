@@ -3165,51 +3165,114 @@ width is larger than 1."
               sswd (string-width rtn)))
       rtn)))
 
-(defun entropy/emacs-substring-to-window-max-chars-width
-    (string &optional from to ellipsis window face)
+(cl-defun entropy/emacs-substring-to-window-max-chars-width
+    (string &key from to ellipsis window
+            without-pixel with-rest-string-return
+            with-empty-str-return)
   "Truncate STRING with the width WWIDTH of
-`window-max-chars-per-line' of
-WINDOW, and return the `entropy/emacs-substring' SUBSTR.
+WINDOW (defaults to `selected-window'), and return the truncated
+sub-string SUBSTR.
 
-FROM and TO are both applied to `entropy/emacs-substring' while
-grabbing the string to be truncating.
+SUBSTR may equal to STRING is STRING's width is less or equal to
+WWIDTH and no other string manipulation did (see below).
 
-WINDOW and FACE is used for `window-max-chars-per-line' directly
-with original defaults when either of them is omitted.
+SUBSTR can be NULL while it's calculated as `string-empty-p' or
+any other out of range truncating, and we termed this occasion as
+NP. Where NULL can be an empty string (predicated by
+`string-empty-p') if WITH-EMPTY-STR-RETURN is non-nil or nil.
+
+If WITH-REST-STRING-RETURN is non-nil then the return is cons of
+SUBSTR and the remaining string REST-SUB which be
+truncated. Where REST-SUB either can be a NULL as when NP
+occasion SUBSTR met with.
+
+FROM and TO are both applied to `substring' while grabbing the
+new STRING to be truncating.
+
+If `display-graphic-p' is return non-nil, WWIDTH is accurately
+re-calculated by `window-body-width's pixel width of WINDOW, and
+all of the width/length comparing is based on pixel as well. And
+we termed this comparing is PIXELCMP, termed of COMCMP for the
+otherwise i.e. based on width/length which is measured by how
+many columns it occupies on the screen. If WITHOUT-PIXEL is
+non-nil, all of PIXELCMP is disabled, i.e. forcely using COMCMP.
 
 If ELLIPSIS is set, it should be a string to replace the tail of
-SUBSTR if STRING is really wider than WWIDTH, otherwise it's
-ignored.
+SUBSTR if it is really wider than WWIDTH, otherwise it's ignored.
 
-If ELLIPSIS is wider than or equals to the SUBSTR, it's ignored
-as well.
+If ELLIPSIS is wider than or equals to the SUBSTR, SUBSTR is set
+as NULL.
 
 ELLIPSIS can also be a integer which can be predicated by
 `natnump', which is used to truncate the SUBSTR from the end of
-it. In this case ELLIPSIS will be ignored either caused by its
-length restriction as same as when it's a string.
-
-Always return nil when either the SUBSTR is `string-empty-p' or
-WINDOW is not alived to based on for calculating."
-  (entropy/emacs-when-let*-firstn 5
+it using `substring'. In this case ELLIPSIS will never be
+ignored, and set SUBSTR as NULL when it's wider than or equals
+with it, (In PIXELCMP with this case, ELLIPSIS's width is equal
+to the pixel width of times of ELLIPSIS of SPACE chars)."
+  (let*
       ((win (or window (selected-window)))
-       ((window-live-p win))
-       (wwd (window-max-chars-per-line win face))
-       (str (entropy/emacs-substring string from to))
-       ((not (string-empty-p str)))
-       (swd (string-width str)) (elnp nil)
-       (ewd (when ellipsis
-              (or (and (stringp ellipsis) (string-width ellipsis))
-                  (and (setq elnp (natnump ellipsis)) ellipsis)
-                  (signal 'wrong-type-argument
-                          (list 'string-or-natnump-ellipsis ellipsis))))))
-    (entropy/emacs-setf-by-body str
-      (if (<= swd wwd) str (entropy/emacs-substring str nil wwd)))
-    (if (or (not ewd) (>= ewd swd) (<= swd wwd)) str
-      (entropy/emacs-setf-by-body str
-        (if elnp (entropy/emacs-substring str nil (- 0 ewd))
-          (concat (entropy/emacs-substring str nil (- 0 ewd))
-                  ellipsis))))))
+       (_ (unless (window-live-p win) (error "window %s is not alive" win)))
+       (wwd (window-body-width win))
+       (str (substring string from to)))
+    (if (string-empty-p str) (if with-rest-string-return (cons nil str) nil)
+      (let*
+          ((use-pixel-p (and (not without-pixel) (display-graphic-p)))
+           (swd (string-width str)) (elnp nil) (swlp nil)
+           (ewd (when ellipsis
+                  (or (and (stringp ellipsis) (string-width ellipsis))
+                      (and (setq elnp (natnump ellipsis)) ellipsis)
+                      (signal 'wrong-type-argument
+                              (list 'string-or-natnump-ellipsis ellipsis)))))
+           (strwf (lambda (x) (if use-pixel-p (string-pixel-width x)
+                                (string-width x))))
+           swpd ewpd wwpd str-rest
+           (strmf (lambda nil
+                    (progn
+                      (setq str-rest (concat (substring str -1 nil) str-rest))
+                      (setq str (substring str nil -1)))))
+           (nilf (lambda nil
+                   (if with-rest-string-return (cons (if with-empty-str-return "" nil) str)
+                     nil))))
+        (catch :exit
+          (entropy/emacs-setf-by-body str
+            (if (setq swlp (<= swd wwd)) str
+              ;; substring may fail when string's `length' is not enough
+              ;; although its wider than window col width. But we should
+              ;; always try this first, since its the fastest way to get a
+              ;; middle result.
+              (prog1 (condition-case _err
+                         (prog1 (substring str nil wwd)
+                           (setq str-rest (substring str wwd nil)))
+                       (error str))
+                (setq swd (string-width str)))))
+          (if use-pixel-p
+              (setq swpd (string-pixel-width str)
+                    ewpd (and ewd
+                              (if elnp
+                                  (string-pixel-width (make-string ewd ?\ ))
+                                (string-pixel-width ellipsis)))
+                    wwpd (window-body-width window t))
+            (setq swpd swd ewpd ewd wwpd wwd))
+          ;; althouth its col width is lesser than thus, we should reset
+          ;; the consideration since its pixel width is not.
+          (and (> swpd wwpd) (setq swlp nil))
+          (unless swlp
+            (while (> swpd wwpd)
+              (if (string-empty-p (funcall strmf))
+                  (throw :exit (funcall nilf))
+                (setq swpd (funcall strwf str)))))
+          (when (and ewpd (or (and swlp elnp ) (not swlp)))
+            (if (>= ewpd swpd) (throw :exit (funcall nilf))
+              (while (> ewpd (- wwpd swpd))
+                (if (string-empty-p (funcall strmf))
+                    (throw :exit (funcall nilf))
+                  (setq swpd (funcall strwf str)))
+                (setq swpd (funcall strwf str)))))
+          (let ((rtn (if (or swlp elnp (not ewpd)) str (concat str ellipsis))))
+            (if (not with-rest-string-return) str
+              (cons rtn (if (and with-empty-str-return
+                                 (or (null str-rest) (string-empty-p str-rest)))
+                            "" str-rest)))))))))
 
 ;; *** Arithmetic manupulation
 ;; **** basic

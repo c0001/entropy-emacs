@@ -599,7 +599,8 @@ eemacs may not use popup display obeyed the eemacs api modification)"
                          (concat
                           (entropy/emacs-substring-to-window-max-chars-width
                            ,message-sym
-                           nil nil 10 (minibuffer-window))
+                           :window (minibuffer-window)
+                           :ellipsis 9)
                           " ... ")))
                  (setq ,progmsg-sym (current-message))))))
        (when (and ,message-sym ,use-popup-p-sym
