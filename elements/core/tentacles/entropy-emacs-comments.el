@@ -54,6 +54,64 @@
         'separedit)
     (apply 'separedit args))))
 
+;; ** edit indirect
+
+(entropy/emacs-defvar-local-with-pml
+  entropy/emacs-edit-indirect--oldest-orig-buffer-obj nil
+  "The first (oldest) meta info for a edit-indirect buffer.")
+(use-package edit-indirect
+  :eemacs-functions
+  (entropy/emacs/edit-indirect-get-current-meta)
+  :config
+  (defun entropy/emacs/edit-indirect-get-current-meta
+      (&optional use-oldest)
+    "Return a plist (meta object) for a edit-indirect buffer including
+keys for:
+
+1. `:origin-buffer' : the buffer where edit-indirect invoked from
+2. `:origin-buffer-major-mode': 1's `major-mode'.
+3. `:indirect-buffer-init-timestamp': the `current-time' at which this
+   edit-indirect buffer created. (initial)
+4. `:indirect-buffer-init-major-mode': the initial `major-mode' of
+   this Edit-indirect buffer enabled. (initial)
+
+When USE-OLDEST non-nil then return the initial meta object for this
+edit indirect buffer instead of the one generated based on current
+status. But any way, the key with *initial* flag is always the oldest
+ones's value.
+
+NOTE: the oldest object is not always reliable if this function is not
+the first member of `edit-indirect-after-creation-hook' either for the
+local or global value or that's be `let' lexical re-binded.
+"
+    (entropy/emacs-when-let*-firstn 1
+        ((pbuff (and (overlayp edit-indirect--overlay)
+                     (overlay-buffer edit-indirect--overlay)))
+         (mm (with-current-buffer pbuff major-mode))
+         (oobj entropy/emacs-edit-indirect--oldest-orig-buffer-obj)
+         ibuff imm rtn)
+      (setq ibuff (current-buffer)
+            imm (with-current-buffer ibuff major-mode))
+      (with-current-buffer ibuff
+        (entropy/emacs-setf-by-body rtn
+          (list :origin-buffer pbuff
+                :origin-buffer-major-mode mm
+                :indirect-buffer-init-timestamp
+                (if oobj
+                    (plist-get oobj :indirect-buffer-init-timestamp)
+                  (current-time))
+                :indirect-buffer-init-major-mode
+                (if oobj
+                    (plist-get oobj :indirect-buffer-init-major-mode)
+                  imm)))
+        (unless entropy/emacs-edit-indirect--oldest-orig-buffer-obj
+          (setq entropy/emacs-edit-indirect--oldest-orig-buffer-obj rtn)))
+      (if use-oldest
+          entropy/emacs-edit-indirect--oldest-orig-buffer-obj
+        rtn)))
+  (add-hook 'edit-indirect-after-creation-hook
+            #'entropy/emacs/edit-indirect-get-current-meta))
+
 ;; ** poporg :obsolete:
 (use-package poporg
   :bind(:map poporg-mode-map
@@ -221,6 +279,104 @@ region with error throw out in region selected occasion."
                 '(memq (entropy/emacs-ambiguous-face-attribtue f :inherit)
                        comment-faces)
                 '(memq (face-attribute f :inherit) comment-faces))
+
+;; **** indiret buffer tidy functions
+
+  (defvar-local entropy/emacs--separedit-buffer-tidy-dispatched-done nil)
+
+  (defvar entropy/emacs--separedit-before-abort-tidy-alist nil
+    "A alist mapping a `major-mode' to a `separedit-before-abort-hook'
+which should run in a edit-indirect buffer created by separedit
+whose parent buffer is using that `major-mode'.
+
+If such mapping is not matched, then call the default all mode's
+compatible method where is a `(t . hook)' in this alist if
+existed.")
+  (defun entropy/emacs--separedit-before-abort-hook ()
+    (when-let* ((mo (entropy/emacs/edit-indirect-get-current-meta))
+                (mm (plist-get mo :origin-buffer-major-mode))
+                (tidy-func
+                 (or
+                  (alist-get
+                   mm
+                   entropy/emacs--separedit-before-abort-tidy-alist)
+                  (alist-get
+                   t
+                   entropy/emacs--separedit-before-abort-tidy-alist)))
+                (inhibit-read-only t))
+      (entropy/emacs-message-simple-progress-message
+          (format "Formatting separedit indirect buffer for `%s' specs"
+                  mm)
+        (funcall tidy-func mo))))
+
+  (defvar entropy/emacs--separedit-buffer-creation-tidy-alist nil
+    "A alist mapping a `major-mode' to a
+ `separedit-buffer-creation-hook'
+which should run in a edit-indirect buffer created by separedit
+whose parent buffer is using that `major-mode'.
+
+If such mapping is not matched, then call the default all mode's
+compatible method where is a `(t . hook)' in this alist if
+existed.")
+  (defun entropy/emacs--separedit-buffer-creation-hook ()
+    (let ((ibuff (current-buffer)))
+      (with-current-buffer ibuff
+        (unless entropy/emacs--separedit-buffer-tidy-dispatched-done
+          (setq entropy/emacs--separedit-buffer-tidy-dispatched-done t)
+          ;; always inject reformatting procedure as the head since
+          ;; that procedure must stands by for the equality edit
+          ;; buffer content.
+          (add-hook 'edit-indirect-before-commit-hook
+                    'entropy/emacs--separedit-before-abort-hook
+                    -100 t)
+          (when-let* ((mo (entropy/emacs/edit-indirect-get-current-meta))
+                      (mm (plist-get mo :origin-buffer-major-mode))
+                      (tidy-func
+                       (or
+                        (alist-get
+                         mm
+                         entropy/emacs--separedit-buffer-creation-tidy-alist)
+                        (alist-get
+                         t
+                         entropy/emacs--separedit-buffer-creation-tidy-alist)))
+                      (inhibit-read-only t))
+            (entropy/emacs-message-simple-progress-message
+                (format "Tidy up separedit indirect buffer for `%s' specs"
+                        mm)
+              (funcall tidy-func mo)))))))
+
+  (add-hook 'separedit-buffer-creation-hook
+            'entropy/emacs--separedit-buffer-creation-hook)
+
+;; ***** sh-mode
+
+  ;; NOTE:
+  ;; For old LSP bash-language-server which can not handle comment
+  ;; string before a function with empty line commented on as an
+  ;; entire one docstring block to display for, thus we hacked replace
+  ;; each ^$ empty line with dots sequence to indicate as a empty
+  ;; line.
+  ;;
+  ;; But for now: [2023-05-04 Thu 01:21:51] this problem is fixed by
+  ;; upstream, so we commented below hacks out but remaine as the
+  ;; example for such hacks for other modes.
+
+  ;; (defun entropy/emacs-separedit--indirect-buffer/tidy/in/sh-mode
+  ;;     (&rest _)
+  ;;   (let ()
+  ;;     (replace-regexp-in-region
+  ;;      "^\\.+ *$" "" (point-min) (point-max))))
+  ;; (defun entropy/emacs-separedit--indirect-buffer/tidy/out/sh-mode
+  ;;     (&rest _)
+  ;;   (let ()
+  ;;     (replace-regexp-in-region
+  ;;      "^$" "......" (point-min) (point-max))))
+
+  ;; (dolist (mm '(sh-mode bash-ts-mode))
+  ;;   (add-to-list 'entropy/emacs--separedit-buffer-creation-tidy-alist
+  ;;                (cons mm 'entropy/emacs-separedit--indirect-buffer/tidy/in/sh-mode))
+  ;;   (add-to-list 'entropy/emacs--separedit-before-abort-tidy-alist
+  ;;                (cons mm 'entropy/emacs-separedit--indirect-buffer/tidy/out/sh-mode)))
 
 ;; *** __end__
   )
