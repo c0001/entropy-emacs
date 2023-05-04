@@ -566,9 +566,11 @@ segmentation fault."
            entropy/emacs-shell-eemacs-shellpop--eyebrowse-curreg)))
 
   (defun entropy/emacs-shell--eemacs-shellpop-eyebrowse-save-reg (&rest _)
-    (let* ((cur-slot (eyebrowse--get 'current-slot))
-           (cur-tag (entropy/emacs-shell-eemacs-shellpop--eyebrowse-tag-get
-                     cur-slot)))
+    (entropy/emacs-when-let*-first
+        (((eq (selected-frame) entropy/emacs-main-frame))
+         (cur-slot (eyebrowse--get 'current-slot))
+         (cur-tag (entropy/emacs-shell-eemacs-shellpop--eyebrowse-tag-get
+                   cur-slot)))
       (entropy/emacs-shell--eemacs-shellpop--eyebrowse-curreg-prune
        cur-slot)
       (push (list cur-slot
@@ -577,16 +579,18 @@ segmentation fault."
             entropy/emacs-shell-eemacs-shellpop--eyebrowse-curreg)))
 
   (defun entropy/emacs-shell--eemacs-shellpop-eyebrowse-restore-reg (&rest _)
-    (let* ((cur-slot (eyebrowse--get 'current-slot))
-           (cur-tag (entropy/emacs-shell-eemacs-shellpop--eyebrowse-tag-get
-                     cur-slot))
-           (old-hist
-            (alist-get
-             cur-slot
-             entropy/emacs-shell-eemacs-shellpop--eyebrowse-curreg
-             nil nil 'equal))
-           (old-tag (plist-get old-hist :tag))
-           (old-reg (plist-get old-hist :reg)))
+    (entropy/emacs-when-let*-first
+        (((eq (selected-frame) entropy/emacs-main-frame))
+         (cur-slot (eyebrowse--get 'current-slot))
+         (cur-tag (entropy/emacs-shell-eemacs-shellpop--eyebrowse-tag-get
+                   cur-slot))
+         (old-hist
+          (alist-get
+           cur-slot
+           entropy/emacs-shell-eemacs-shellpop--eyebrowse-curreg
+           nil nil 'equal))
+         (old-tag (plist-get old-hist :tag))
+         (old-reg (plist-get old-hist :reg)))
       (when old-hist
         (entropy/emacs-shell--eemacs-shellpop--eyebrowse-curreg-prune
          cur-slot)

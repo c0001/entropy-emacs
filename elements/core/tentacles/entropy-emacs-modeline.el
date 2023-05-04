@@ -145,11 +145,7 @@
 (defvar entropy/emacs-modeline--mdl-common-eyebrowse-segment nil)
 (defvar entropy/emacs-modeline--mdl-common-eyebrowse-sysdaemon-indicator
   (entropy/emacs-getenv "EEMACS_SYSTEMD_DAEMON_SERVICE"))
-(defun entropy/emacs-modeline--mdl-common-eyebrowse-segment ()
-  "Entropy-emacs specific modeline style.
-
-This customization mainly adding the eyebrowse slot and tagging
-name show function."
+(defun entropy/emacs-modeline--mdl-common-eyebrowse-segment-1 ()
   (if (or (null entropy/emacs-modeline--mdl-common-eyebrowse-segment)
           (bound-and-true-p entropy/emacs-current-session-is-idle-p))
       (entropy/emacs-when-let*-firstn 5
@@ -179,6 +175,15 @@ name show function."
            " "))
         (setq entropy/emacs-modeline--mdl-common-eyebrowse-segment rtn))
     entropy/emacs-modeline--mdl-common-eyebrowse-segment))
+
+(defun entropy/emacs-modeline--mdl-common-eyebrowse-segment ()
+  "Entropy-emacs specific modeline style.
+
+This customization mainly adding the eyebrowse slot and tagging
+name show function."
+  (if (frame-parameter nil 'eyebrowse-window-configs)
+      (entropy/emacs-modeline--mdl-common-eyebrowse-segment-1)
+    ""))
 
 ;; *** modeline type defined
 ;; **** powerline group
