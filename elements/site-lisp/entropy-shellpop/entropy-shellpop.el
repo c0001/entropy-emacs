@@ -797,25 +797,29 @@ for current maximized pop-shell."))))))
       (when (and when-available (not available))
         (throw :exit nil))
       (unless available
-        (plist-put cur-type-plist :indexs
-                   (append
-                    (list
-                     (cons
-                      buff-index
-                      (or
-                       (and no-new-desc
-                            (stringp no-new-desc)
-                            (not (string-empty-p no-new-desc))
-                            no-new-desc)
-                       (and no-new-desc
-                            (format "anonymous new for '%s' at [%s]"
-                                    shellpop-type-name
-                                    buff-index))
-                       (read-string "Type slot 'DES': "))))
-                    cur-type-indexs)))
+        (setq cur-type-plist
+              (plist-put cur-type-plist :indexs
+                         (append
+                          (list
+                           (cons
+                            buff-index
+                            (or
+                             (and no-new-desc
+                                  (stringp no-new-desc)
+                                  (not (string-empty-p no-new-desc))
+                                  no-new-desc)
+                             (and no-new-desc
+                                  (format "anonymous new for '%s' at [%s]"
+                                          shellpop-type-name
+                                          buff-index))
+                             (read-string "Type slot 'DES': "))))
+                          cur-type-indexs)))
+        (setf (cdr shellpop-type-register) cur-type-plist))
       (unless (eq cur-type-pointer buff-index)
-        (plist-put cur-type-plist
-                   :pointer buff-index))
+        (setq cur-type-plist
+              (plist-put cur-type-plist
+                         :pointer buff-index))
+        (setf (cdr shellpop-type-register) cur-type-plist))
       t)))
 
 ;;;;; index overview
