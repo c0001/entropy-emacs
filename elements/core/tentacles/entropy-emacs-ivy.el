@@ -65,12 +65,41 @@
   ;; ;; Additional text for the message suffix
   ;; (setq isearch-message-suffix-add nil)
 
+  (eval-when-compile
+    (defmacro eemacs/isearch--with-edit-mode-spec (&rest body)
+      `(let ((isearch-message-prefix-add
+              (propertize "[edit] " 'face 'warning)))
+         ,(entropy/emacs-macroexp-progn body))))
+
+  (defun eemacs/isearch--Left-Char ()
+    (interactive)
+    (eemacs/isearch--with-edit-mode-spec
+     (isearch-edit-string)))
+
+  (defun eemacs/isearch--Right-Char ()
+    (interactive)
+    (eemacs/isearch--with-edit-mode-spec
+     (isearch-edit-string)))
+
+  (defun eemacs/isearch--Ctril-A ()
+    (interactive)
+    (eemacs/isearch--with-edit-mode-spec
+     (isearch-edit-string)))
+
+  (defun eemacs/isearch--Ctril-E ()
+    (interactive)
+    (eemacs/isearch--with-edit-mode-spec
+     (isearch-edit-string)))
+
+  (define-key isearch-mode-map (kbd "ESC ESC") 'isearch-cancel)
   ;; edit string mode for arbitrary search pattern modifiation
   (define-key isearch-mode-map "\M-e" 'isearch-edit-string)
   ;; either rediret common buffer operation to edit string mode to
   ;; make interaction be consistent with ivy
-  (define-key isearch-mode-map (kbd "<left>")  'isearch-edit-string)
-  (define-key isearch-mode-map (kbd "<right>") 'isearch-edit-string)
+  (define-key isearch-mode-map (kbd "<left>")  'eemacs/isearch--Left-Char)
+  (define-key isearch-mode-map (kbd "C-a")     'eemacs/isearch--Ctril-A)
+  (define-key isearch-mode-map (kbd "<right>") 'eemacs/isearch--Right-Char)
+  (define-key isearch-mode-map (kbd "C-e")     'eemacs/isearch--Ctril-E)
   ;; make up/down be selection jump
   (define-key isearch-mode-map (kbd "<down>") 'isearch-repeat-forward)
   (define-key isearch-mode-map (kbd "<up>") 'isearch-repeat-backward)
@@ -85,10 +114,29 @@
     "Using `isearch-query-replace' or `isearch-query-replace-regexp'
 based on `isearch-regexp' as filter."
     (interactive)
-    (call-interactively
-     (if isearch-regexp 'isearch-query-replace-regexp
-       'isearch-query-replace)))
+    (let ((inhibit-read-only t)
+          (set-message-functions
+           ;; disable mark set message to confuse user while long time
+           ;; of substitution
+           (append (list (lambda (x) (if (string= "Mark set" x) t)))
+                   set-message-functions))
+          (fun
+           (if isearch-regexp 'isearch-query-replace-regexp
+             'isearch-query-replace)))
+      (message "Do %s ..." fun)
+      (call-interactively fun)))
   (define-key isearch-mode-map (kbd "M-q") 'eemacs/isearch--query-replace)
+
+  (let ((map  minibuffer-local-isearch-map))
+    (define-key map (kbd "RET")     #'exit-minibuffer)
+    (define-key map (kbd "M-TAB")   #'isearch-complete-edit)
+    (define-key map (kbd "C-s")     #'isearch-forward-exit-minibuffer)
+    (define-key map (kbd "<down>")  #'isearch-forward-exit-minibuffer)
+    (define-key map (kbd "C-r")     #'isearch-reverse-exit-minibuffer)
+    (define-key map (kbd "<up>")    #'isearch-reverse-exit-minibuffer)
+    (define-key map (kbd "C-f")     #'isearch-yank-char-in-minibuffer)
+    (define-key map (kbd "<right>") #'right-char)
+    (define-key map (kbd "ESC ESC") #'abort-recursive-edit))
 
   )
 
