@@ -6789,6 +6789,25 @@ daemon has interrupted, restart it?"))
 (when (equal "main" (entropy/emacs-getenv "EEMACS_SYSTEMD_DAEMON_SERVICE"))
   (entropy/emacs-basic-safe-terminal-bracketed-paste))
 
+;; ** Basic Misc. commands
+
+(defun entropy/emacs-ansi-apply-buffer-region (_)
+  "Use `ansi-color-apply-on-region' for a region of `current-buffer'.
+
+If `region-active-p' return non-nil, the beginning and the ending
+is what `region-beginning' and `region-end' returns
+respectively. Otherwise `current-buffer's `point-min' and
+`point-max' is used respectively for the selected region instead."
+  (declare (interactive-only t))
+  (interactive "P")
+  (entropy/emacs-require-only-once 'ansi-color)
+  (let (beg end (inhibit-read-only t))
+    (if (not (region-active-p))
+        (setq beg (point-min) end (point-max))
+      (setq beg (region-beginning)
+            end (region-end)))
+    (ansi-color-apply-on-region beg end)))
+
 ;; ** Eemacs basic hydra-hollow instances
 
 (entropy/emacs-lazy-initial-for-hook
