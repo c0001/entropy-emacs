@@ -2393,7 +2393,10 @@ its origin defination.")
 second argument INHIBIT-BUFFER-HOOKS non-nil.
 
 This variable should always be a `let' binding since if not it will
-affect all buffer creation behavior.")
+affect all buffer creation behavior.
+
+NOTE: this flag has no effective for `emacs-major-version' less than
+28, since there's no such mechanism in those older emacs versions.")
 
 (defvar entropy/emacs-find-file-without-modes nil
   "Non-nil for all of `find-file*' prefixed emacs API find buffer of
@@ -2481,7 +2484,11 @@ is follow their original order in this hook.")
     (let ((bn  (car orig-args))
           (ibh (or entropy/emacs-buffer-create-without-hooks
                    (cadr orig-args))))
-      (funcall orig-func bn ibh)))
+      (if (< emacs-major-version 28)
+          ;; 27 and lower emacs version doesn't have the
+          ;; inhibt-buffer-hooks mechanism.
+          (funcall orig-func bn)
+        (funcall orig-func bn ibh))))
   (advice-add 'get-buffer-create
               :around #'entropy/emacs--get-buffer-create))
 

@@ -9267,6 +9267,10 @@ Additionally WITH-FIND-FILE-FUNCTION may also be one of below symbols:
   INHIBIT-BUFFER-HOOKS non-nil internally powered by wrapping
   with `entropy/emacs-buffer-create-without-hooks'.
 
+  NOTE: this flag has no effective for `emacs-major-version' less than
+  28, since there's no such mechanism in those older emacs
+  versions. Thus when ran in those emacs version, this flag is same as
+  what default behaviour declared for.
 
 Visitings collision dealing (VCD):
 
