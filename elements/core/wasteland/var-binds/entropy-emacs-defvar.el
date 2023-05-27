@@ -2244,7 +2244,23 @@ placed as the `current-buffer' before
                 (set-frame-parameter
                  (selected-frame)
                  'entropy/emacs-daemon-frame-initial-buffer
-                 (current-buffer))))))
+                 (current-buffer)))))
+  (defun entropy/emacs--daemon-server-keep-alive-guard ()
+    "The guard for a daemon server to ensure itself not be closed by
+unconditionally interruption so that emacsclient can always
+conntected to this server until `kill-emacs' happened."
+    (unless entropy/emacs-kill-emacs-running-p
+      (let ((rp (and (processp server-process)
+                     (process-live-p server-process)
+                     (eq 'listen (process-status server-process)))))
+        (unless rp
+          (warn "Emacs daemon server (%s) is killed by end user unconditional, \
+starting a new one ..." server-name)
+          (server-start
+           nil (if server-clients nil t))
+          (warn "New emacs daemon server (%s) is created successfully but \
+you should notice what casused thus since such a danger." server-name)))))
+  (run-with-idle-timer 10 t #'entropy/emacs--daemon-server-keep-alive-guard))
 
 ;; ** ime refer
 
