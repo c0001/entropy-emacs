@@ -1175,8 +1175,8 @@ When eq 'nil' that say the initialization is going on.")
 ;; ** kill emacs refer
 
 (defvar entropy/emacs-kill-emacs-running-p nil
-  "Non-nil when current progress is running and just before
-`kill-emacs'.")
+  "Non-nil when current progress is running in occasion while
+`kill-emacs' is triggered on.")
 (defun entropy/emacs--set-indicator-before-kill-emacs
     (orig-func &rest orig-args)
   (progn
