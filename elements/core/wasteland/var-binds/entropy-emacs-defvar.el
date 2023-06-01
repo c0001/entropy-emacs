@@ -1924,6 +1924,11 @@ NOTE: do not run it in any cases since its an `delete-frame' advice."
             #'entropy/emacs--run-eemacs-delete-frame-functions)
 
 ;; ** daemon refer
+
+(defvar server-process)
+(defvar server-name)
+(defvar server-clients)
+
 (defvar entropy/emacs-daemon-server-init-done nil
   "When non-nil indicate the daemon server has been initialized
 i.e. has been first called done by open from 'emacsclient'
