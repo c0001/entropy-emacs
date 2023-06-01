@@ -12888,6 +12888,11 @@ where PROGRESS is a emacs lisp form.
 2) WHEN-TUI-EACH is the PROGRESS ran after every tui daemon client frame created
 3) WHEN-GUI is the PROGRESS ran after the first gui daemon client frame created
 4) WHEN-GUI-EACH is the PROGRESS ran after every gui daemon client frame created
+5) WHEN-DIFF is the progress ran after all above only when
+   `entropy/emacs-daemon-frame-display-graphic-type-unique-p' return
+   non-nil for this client frame.
+6) WHEN-MAIN is the PROGRESS ran after all above and only when current
+   client can be judged by `entropy/emacs-daemon-current-is-main-client'.
 
 If WHEN-TUI-EACH and WHEN-TUI are both set, just WHEN-TUI-EACH is used
 to run. (same choice as when WHEN-GUI-EACH and WHEN-GUI are both set)
@@ -12927,7 +12932,8 @@ WHEN-GUI WHEN-GUI-EACH WHEN-TUI WHEN-TUI-EACH WITH-LEXICAL-BINDINGS &rest BODY)"
          (bdl-obj (entropy/emacs-defun--get-body-without-keys
                    args-plist nil
                    :when-gui :when-gui-each
-                   :when-tui :when-tui-each))
+                   :when-tui :when-tui-each
+                   :when-diff :when-main))
          (exl-pl (car bdl-obj))
          (inc-pl (cdr bdl-obj))
          (_
@@ -12946,6 +12952,10 @@ WHEN-GUI WHEN-GUI-EACH WHEN-TUI WHEN-TUI-EACH WITH-LEXICAL-BINDINGS &rest BODY)"
          (when-tui (entropy/emacs-macroexp-progn (list (plist-get exl-pl :when-tui))))
          (when-tui-each (entropy/emacs-macroexp-progn
                          (list (plist-get exl-pl :when-tui-each))))
+         (when-diff (entropy/emacs-macroexp-progn
+                     (list (plist-get exl-pl :when-diff))))
+         (when-main (entropy/emacs-macroexp-progn
+                     (list (plist-get exl-pl :when-main))))
          new-body new-args-parse new-args)
     (setq new-body
           `((let ((,guip-sym (display-graphic-p)))
@@ -12960,6 +12970,10 @@ WHEN-GUI WHEN-GUI-EACH WHEN-TUI WHEN-TUI-EACH WITH-LEXICAL-BINDINGS &rest BODY)"
                       (if ,(if when-tui-each t) ,when-tui-each
                         (unless (entropy/emacs-daemon-multi-tui-clients-p)
                           ,when-tui))))
+                    (when (entropy/emacs-daemon-frame-display-graphic-type-unique-p)
+                      ,when-diff)
+                    (when (entropy/emacs-daemon-current-is-main-client)
+                      ,when-main)
                     ,@user-body)
                 (error
                  (push (format "[%s]: time: (%s) display-type: (%s) error: (%S)"

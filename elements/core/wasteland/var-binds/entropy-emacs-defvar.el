@@ -1960,6 +1960,24 @@ reset.")
 (defvar entropy/emacs-daemon--legal-clients nil
   "A list of legal daemon clients representation.")
 
+(defun entropy/emacs-daemon-frame-display-graphic-type-unique-p
+    (&optional frame)
+  "Return non-nil when FRAME is a daemon client frame (defaults to
+`selected-frame') and its
+`display-graphic-p' type is other than any other siblings of
+current daemon session."
+  (entropy/emacs-when-let*-firstn 2
+      ((frame (or frame (selected-frame)))
+       ((entropy/emacs-daemon-frame-is-legal-daemon-client-p
+         frame))
+       (frame-type (display-graphic-p)))
+    (catch :rtn
+      (dolist (el entropy/emacs-daemon--legal-clients)
+        (if (eq (plist-get el :gui-p) frame-type)
+            (throw :rtn nil))))
+    (unless (entropy/emacs-daemon-current-is-main-client frame)
+      t)))
+
 (defun entropy/emacs-daemon-multi-gui-clients-p (&optional always-return)
   "Indicate whether current daemon clients has 2 or more gui
 clients.

@@ -1238,10 +1238,12 @@ style which defined in `entropy/emacs-modeline-style'."
   (entropy/emacs-with-daemon-make-frame-done
     'eemacs-modeline-init/for-daemon (&rest _)
     "Rest modeline for daemon client for eemacs adaption."
-    (entropy/emacs-modeline--mdl-tidy-spec)
-    (funcall (alist-get entropy/emacs-mode-line-sticker
-                        entropy/emacs-modeline--toggle-type-register
-                        nil nil 'string=))))
+    :when-main
+    (progn
+      (entropy/emacs-modeline--mdl-tidy-spec)
+      (funcall (alist-get entropy/emacs-mode-line-sticker
+                          entropy/emacs-modeline--toggle-type-register
+                          nil nil 'string=)))))
 
 ;; * provide
 (provide 'entropy-emacs-modeline)
