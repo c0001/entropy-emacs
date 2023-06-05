@@ -2531,6 +2531,171 @@ is follow their original order in this hook.")
   (advice-add 'get-buffer-create
               :around #'entropy/emacs--get-buffer-create))
 
+;; *** More file buffer metas
+
+(entropy/emacs-defconst
+  entropy/emacs-file-buffer-meta-null-value
+  (make-symbol "__eemacs-file-buffer-meta-null-value__")
+  "The value where should consider as a null indicator for the
+return of a `entropy/emacs-file-buffer-meta-setter'")
+(defvar entropy/emacs-file-buffer-meta-setter nil
+  "Plist of key with its setter to set
+`entropy/emacs-file-buffer-meta-plist'.
+
+Each setter is ran with `current-buffer' binding of the buffer
+who is operated on and should take two arguments:
+
+1. `ubfname': the buffer file name of the buffer working on, the
+   value is same as the value `buffer-file-name' of the buffer or
+   using the `default-directory' of the buffer when it's not
+   associated with any file.
+
+2. `ubopsym': the operation type (a symbol) for which operation
+   triggerred this setter, it can be:
+   * `create': the buffer is fresh newly created for file `ubfname'
+   * `save': the buffer is saved to file `ubfname'
+   * `revert': the buffer is reverted from file `ubfname'
+
+To define a setter, should only use
+`entropy/emacs-define-file-buffer-meta-setter' instead of any
+list manipulation to this variable to prevent from any potential
+collisions.
+
+If the return of a setter is `eq' to the value of
+`entropy/emacs-file-buffer-meta-null-value', then this set is ignored
+without any modification to `entropy/emacs-file-buffer-meta-plist'."
+  )
+
+(defmacro entropy/emacs-define-file-buffer-meta-setter
+    (&rest args)
+  "Define a setter to `entropy/emacs-file-buffer-meta-setter'.
+
+Each KEYWORD is a meta attribute key which either used in
+`entropy/emacs-file-buffer-meta-plist'. Each FUNC is a function
+which should obey the declaration where
+`entropy/emacs-file-buffer-meta-setter' defined as.
+
+\(fn [KEYWORD FUNC]...)"
+  (macroexp-let2* ignore ((pl nil) (key nil) (func nil))
+    `(let ((,pl (list ,@(entropy/emacs-macroexp-rest args))))
+       (catch :exit
+         (if (eq (car ,pl) nil) (throw :exit nil))
+         (while ,pl
+           (setq ,key (pop ,pl))
+           (unless (keywordp ,key) (throw :exit nil))
+           (unless ,pl (throw :exit nil))
+           (setq ,func (pop ,pl))
+           (unless (functionp ,func) (throw :exit nil))
+           (when (plist-get entropy/emacs-file-buffer-meta-setter
+                            ,key)
+             (error "redefined file buffer meta setter: %s"
+                    ,key))
+           (entropy/emacs-plist-put
+               entropy/emacs-file-buffer-meta-setter
+             ,key ,func))))))
+
+(entropy/emacs-defvar-local-with-pml
+  entropy/emacs-file-buffer-meta-plist nil
+  "Plist of sets of current file buffer metas set according to
+`entropy/emacs-file-buffer-meta-setter' where originally has one
+key set by eemacs internally as `:file-attributes' where is the
+`file-attributes' of the file which the buffer is standing by or
+the `default-directory' of the buffer when it's no associated
+with any file.")
+
+(entropy/emacs-defconst/only-allow/local
+  __eemacs--set-file-buffer-meta-use-filename__ nil)
+(entropy/emacs-defconst/only-allow/local
+  __eemacs--set-file-buffer-meta-use-operation__ nil)
+(defun entropy/emacs--set-file-buffer-meta
+    (orig-func &rest orig-args)
+  (let* ((rtn  (apply orig-func orig-args))
+         (buff (if (bufferp rtn) rtn))
+         (cbuff (current-buffer))
+         (ubuff (or buff cbuff))
+         (ubuff-op __eemacs--set-file-buffer-meta-use-operation__)
+         cbuff-fname cbuff-fattr
+         ubuff-fname ubuff-fattr)
+    (if (and (setq cbuff-fname (buffer-file-name cbuff))
+             (file-exists-p cbuff-fname))
+        (setq cbuff-fattr (file-attributes cbuff-fname))
+      (setq cbuff-fattr (file-attributes default-directory)))
+    (entropy/emacs-setf-by-body ubuff-fname
+      (or __eemacs--set-file-buffer-meta-use-filename__
+          (buffer-file-name ubuff)))
+    (if (not buff) (setq ubuff-fattr cbuff-fattr)
+      (if (and ubuff-fname (file-exists-p ubuff-fname))
+          (setq ubuff-fattr (file-attributes ubuff-fname))
+        (entropy/emacs-setf-by-body ubuff-fattr
+          (file-attributes
+           (buffer-local-value 'default-directory ubuff)))))
+    (with-current-buffer ubuff
+      (entropy/emacs-plist-put
+          entropy/emacs-file-buffer-meta-plist
+        :file-attributes ubuff-fattr)
+      (let ((pl entropy/emacs-file-buffer-meta-setter)
+            key func)
+        (catch :exit
+          (while pl
+            (setq key (pop pl))
+            (unless (keywordp key) (throw :exit nil))
+            (unless pl (throw :exit nil))
+            (setq func (pop pl))
+            (unless (functionp func) (throw :exit nil))
+            (let ((val
+                   (funcall
+                    func ubuff-fname ubuff-op)))
+              (unless (eq entropy/emacs-file-buffer-meta-null-value
+                          val)
+                (entropy/emacs-plist-put
+                    entropy/emacs-file-buffer-meta-plist
+                  key val)))))))
+    rtn))
+
+(defun entropy/emacs--set-file-buffer-meta/create-file-buffer
+    (orig-func &rest orig-args)
+  (let ((__eemacs--set-file-buffer-meta-use-filename__
+         (car orig-args))
+        (__eemacs--set-file-buffer-meta-use-operation__
+         'create))
+    (apply #'entropy/emacs--set-file-buffer-meta
+           orig-func orig-args)))
+(advice-add 'create-file-buffer
+            :around
+            #'entropy/emacs--set-file-buffer-meta/create-file-buffer)
+
+(defun entropy/emacs--set-file-buffer-meta/revert-buffer
+    (orig-func &rest orig-args)
+  (let ((__eemacs--set-file-buffer-meta-use-operation__
+         'revert)
+        (__eemacs--set-file-buffer-meta-use-filename__
+         (when (derived-mode-p 'dired-mode)
+           (directory-file-name default-directory))))
+    (apply #'entropy/emacs--set-file-buffer-meta
+           orig-func orig-args)))
+(advice-add 'revert-buffer
+            :around
+            #'entropy/emacs--set-file-buffer-meta/revert-buffer)
+
+(defun entropy/emacs--set-file-buffer-meta/save-buffer
+    (orig-func &rest orig-args)
+  (let ((__eemacs--set-file-buffer-meta-use-operation__
+         'save))
+    (apply #'entropy/emacs--set-file-buffer-meta
+           orig-func orig-args)))
+(advice-add 'basic-save-buffer
+            :around
+            #'entropy/emacs--set-file-buffer-meta/save-buffer)
+
+;; internal attributes
+(entropy/emacs-define-file-buffer-meta-setter
+ :debug-this-setter-args
+ (lambda (&rest args) args)
+ :create-time
+ (lambda (fname op)
+   (if (eq op 'create) (current-time)
+     entropy/emacs-file-buffer-meta-null-value)))
+
 ;; ** prog-modes
 ;; *** union
 ;; **** treesit prefer

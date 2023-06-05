@@ -124,6 +124,28 @@ raised up."
                  (error "Do not modify const variable `%s'"
                         ',symbol))))))))
 
+(defmacro entropy/emacs-defconst/only-allow/local
+    (symbol initvalue &optional docstring)
+  "Same as `defconst' but do not allow any set
+and any even modification for variable SYMBOL, but only local
+binding in `let' refer. If not an error is raised up."
+  (declare (indent defun) (doc-string 3))
+  (setq docstring
+        (concat (or (and docstring (replace-regexp-in-string "\n+$" "" docstring))
+                    "A const variable.")
+                "\n\n(NOTE: this variable is defined by \
+`entropy/emacs-defconst/only-allow/local')"))
+  (macroexp-let2* ignore ((ival nil))
+    `(let ((,ival ,initvalue))
+       (prog1 (defconst ,symbol ,ival ,docstring)
+         (add-variable-watcher
+          ',symbol
+          (lambda (sym _nval op _wh)
+            (and (eq sym ',symbol)
+                 (not (memq op '(let unlet)))
+                 (error "Do not modify const variable `%s'"
+                        ',symbol))))))))
+
 (entropy/emacs-defconst entropy/emacs-false-symbol (make-symbol "false")
   "A non-`intern'ed symbol which indicated semantic \"false\" for
 eemacs only.
@@ -366,6 +388,21 @@ IGNORE-STRING is non-nil."
     (if (or (not (sequencep x)) (and ignore-string (stringp x))) x
       (if pred (funcall pred x)
         (if (consp x) (car x) (aref x 0))))))
+
+(defmacro entropy/emacs-plist-put
+    (plist prop val &optional predicate)
+  "Same as `plist-put' but no need to perform the new value into
+PLIST to ensure its value be updated even if PLIST is nil.
+
+Plist should be a variable name or a place from where `gv-ref'
+can be grabbed"
+  (declare (indent 1))
+  (entropy/emacs-with-lexical-binding-check t
+    (macroexp-let2* ignore
+        ((vref `(gv-ref ,plist))
+         (oval `(gv-deref ,vref)))
+      `(entropy/emacs-setf-by-body (gv-deref ,vref)
+         (plist-put ,oval ,prop ,val ,predicate)))))
 
 (defmacro entropy/emacs-run-body-only-once (&rest body)
   "Run BODY just once i.e. the first time invoke it, and return its

@@ -763,10 +763,6 @@ symbolic link."
     :global nil
     (setq buffer-read-only t))
 
-  (defvar entropy/emacs-basic--dired-file-current-delete nil
-    "Current file pre deleted by
-`entropy/emacs-basic-dired-delete-file-recursive'.")
-
   (defvar entropy/emacs-basic--dired-files-deleted-history nil
     "Actually file deleted by
 `entropy/emacs-basic-dired-delete-file-recursive', as an history
@@ -793,7 +789,7 @@ condition state for whether be continuing rest process."
         t
       (error "Cancel deleting files!")))
 
-  (defun entropy/emacs-basic-dired-delete-file-recursive
+  (entropy/emacs-!cl-defun entropy/emacs-basic-dired-delete-file-recursive
       (&optional pre-files just-kill-refers)
     "Delete file recursively with refer buffer cleaned (i.e. files
 under this dir will cleaned their corresponding buffers (file
@@ -814,90 +810,106 @@ For lisp code, optional args:
 - JUST-KILL-REFERS: just kill file referred file buffer or hosted
   dir's dired buffers.
 "
-    (interactive)
-    (let* ((base-files (cond ((and (equal major-mode 'dired-mode)
-                                   (not pre-files))
+    (interactive (list (dired-get-marked-files) (if current-prefix-arg t)))
+    (unless (derived-mode-p 'dired-mode)
+      (entropy/emacs-!user-error
+       "current-buffer <%S> is not a dired buffer"
+       (current-buffer)))
+    (let* ((base-files (cond ((null pre-files)
                               (dired-get-marked-files))
-                             ((and (not (null pre-files))
-                                   (listp pre-files))
+                             ((and pre-files (listp pre-files))
                               pre-files)
                              (t (error "Dir list invalid!"))))
            (did-times (length base-files))
-           cur-file-type
            (pbufname entropy/basic--dired-recursive-delete-prompt-buffer-name)
-           (prompt-buffer (with-current-buffer (get-buffer-create
-                                                pbufname)
-                            (let ((inhibit-read-only t))
-                              (erase-buffer)
-                              (insert
-                               "========== File Deletion Error Handle Prompt Buffer ==========\n"))
-                            (current-buffer)))
-           error-occurred
+           (prompt-buffer
+            (with-current-buffer (get-buffer-create pbufname)
+              (let ((inhibit-read-only t))
+                (erase-buffer)
+                (insert
+                 "========== File Deletion Error Handle Prompt Buffer ==========\n"))
+              (current-buffer)))
+           (current-dired-buffer (current-buffer))
+           cur-file-type error-occurred
            (count 0))
 
+      ;; hints warns for deletion
       (unless just-kill-refers
         (entropy/emacs-basic--dired-delete-file-prompt base-files))
 
       (dolist (file base-files)
         (cl-incf count)
 
-        ;; killed refer buffers.
-        (dolist (el (buffer-list))
-          (let* ((buffer-file (buffer-file-name el)))
-            (when (and (buffer-live-p el)
-                       buffer-file
-                       (entropy/emacs-existed-filesystem-nodes-equal-p file buffer-file))
-              (add-to-list 'entropy/emacs-basic--dired-delete-file-refer-files-buffer-history
-                           (cons (buffer-name el) (current-time-string)))
-              (message "[eemacs-dired-delete-file]: killed file <%s> referred buffer '%s'"
-                       file el)
-              (kill-buffer el))))
-
-        ;; killed refer dired buffers
-        (dolist (el dired-buffers)
-          (let* ((dir (car el))
-                 (dirname-sans (entropy/emacs-directory-file-name dir))
-                 (fname-sans (entropy/emacs-directory-file-name file))
-                 (fname-dirp (or (file-directory-p file)
-                                 ;; if file not exist then we match the name string
-                                 (directory-name-p file)))
-                 (buffer (cdr el)))
-            (when (and
-                   (buffer-live-p buffer)
-                   (if (eq major-mode 'dired-mode)
-                       (not (eq buffer (current-buffer)))
+        ;; killed refer dired/file/common buffers
+        (let ((fname-sans (entropy/emacs-directory-file-name file))
+              (fname-dirp (or (file-directory-p file) (directory-name-p file)))
+              (fname-attr (file-attributes file))
+              buff buff-dired-p)
+          (dolist (el (buffer-list))
+            (when-let*
+                (((setq buff el))
+                 ;; escape current dired buffer
+                 ((not (eq el current-dired-buffer)))
+                 (buff-fname
+                  (or (buffer-file-name el)
+                      (with-current-buffer el
+                        (when (setq buff-dired-p
+                                    (derived-mode-p 'dired-mode))
+                          default-directory))))
+                 (buff-fattr
+                  (with-current-buffer el
+                    (plist-get entropy/emacs-file-buffer-meta-plist
+                               :file-attributes))))
+              (when (and
+                     (entropy/emacs-existed-filesystem-nodes-equal-p
+                      ;; NOTE: we must delete the trailing slash of
+                      ;; the dired directory container retrieved by
+                      ;; each car of the element of `dired-buffer'
+                      ;; since it may cause handle magick filenames
+                      ;; using `tramp-archive-file-name-handler'
+                      ;; such as directory name includes '.*.tar/'
+                      ;; etc. , which may cause the loop break with
+                      ;; specified handle error by gvfs.
+                      (entropy/emacs-directory-file-name buff-fname) fname-sans
+                      'chase-link
+                      ;; use eemacs dired meta to speedup check
+                      buff-fattr fname-attr)
+                     ;; TODO: more filters
                      t)
-                   (entropy/emacs-existed-filesystem-nodes-equal-p
-                    (if fname-dirp
-                        ;; NOTE: we must delete the trailing slash of
-                        ;; the dired directory container retrieved by
-                        ;; each car of the element of `dired-buffer'
-                        ;; since it may cause handle magick filenames
-                        ;; using `tramp-archive-file-name-handler'
-                        ;; such as directory name includes '.*.tar/'
-                        ;; etc. , which may cause the loop break with
-                        ;; specified handle error by gvfs.
-                        dirname-sans
-                      ;; fake file as under the curret dired dir
-                      (expand-file-name
-                       (file-name-nondirectory fname-sans) dir))
-                    fname-sans
-                    'chase-link))
-              (add-to-list 'entropy/emacs-basic--dired-delete-file-refer-dired-buffers-history
-                           (cons el (current-time-string)))
-              (message "[eemacs-dired-delete-file]: killed file <%s> referred dired buffer '%s'"
-                       file buffer)
-              (kill-buffer buffer))))
+                (if buff-dired-p
+                    (progn
+                      (add-to-list
+                       'entropy/emacs-basic--dired-delete-file-refer-dired-buffers-history
+                       (cons el (current-time-string)))
+                      (message "[eemacs-dired-delete-file]: killed %s <%s> \
+referred dired buffer '%s'"
+                               (if fname-dirp "dir" "file")
+                               (file-name-nondirectory file) buff))
+                  (progn
+                    (add-to-list
+                     'entropy/emacs-basic--dired-delete-file-refer-files-buffer-history
+                     (cons el (current-time-string)))
+                    (message "[eemacs-dired-delete-file]: killed %s <%s> \
+referred %s buffer '%s'"
+                             (if fname-dirp "dir" "file")
+                             (file-name-nondirectory file)
+                             (with-current-buffer buff
+                               (if buffer-file-name "file" "non-file"))
+                             buff)))
+                (kill-buffer buff)))))
 
         ;; Do deletion
         (when (not just-kill-refers)
           (condition-case this-error
-              (progn
-                (setq entropy/emacs-basic--dired-file-current-delete (list file))
-                (cond ((f-symlink-p file)
+              (let ((delete-by-moving-to-trash
+                     ;; TODO: Do we should grab user's choice?
+                     delete-by-moving-to-trash))
+                (cond ((not (file-exists-p file))
+                       (error "file is not exist: %s" file))
+                      ((file-symlink-p file)
                        (setq cur-file-type 'symbol_link)
                        (delete-file file))
-                      ((f-file-p file)
+                      ((eq (file-regular-p file) t)
                        (setq cur-file-type 'file)
                        (delete-file file))
                       ((f-directory-p file)
@@ -905,15 +917,18 @@ For lisp code, optional args:
                        (delete-directory file t)))
                 (push (list :file-type cur-file-type
                             :file-path file
-                            :date (current-time-string))
+                            :date (cons (current-time-string) (current-time)))
                       entropy/emacs-basic--dired-files-deleted-history)
                 (cl-case cur-file-type
                   (symbol_link
-                   (entropy/emacs-safety-message (format "Delete symbolink '%s' done! -v-" file)))
+                   (entropy/emacs-safety-message
+                    (format "Delete symbolink '%s' done! -v-" file)))
                   (file
-                   (entropy/emacs-safety-message (format "Delete file '%s' done! -v-" file)))
+                   (entropy/emacs-safety-message
+                    (format "Delete file '%s' done! -v-" file)))
                   (directory
-                   (entropy/emacs-safety-message (format "Delete directory '%s' done! -v-" file)))))
+                   (entropy/emacs-safety-message
+                    (format "Delete directory '%s' done! -v-" file)))))
             (error
              (setq error-occurred t)
              (let* ((inhibit-read-only t))
@@ -931,7 +946,7 @@ For lisp code, optional args:
 
       ;; update dired buffer after deletion
       (when (and (not just-kill-refers)
-                 (equal major-mode 'dired-mode)
+                 (derived-mode-p 'dired-mode)
                  (= count did-times))
         (revert-buffer))
       ;; error prompt
