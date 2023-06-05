@@ -2692,7 +2692,7 @@ with any file.")
  :debug-this-setter-args
  (lambda (&rest args) args)
  :create-time
- (lambda (fname op)
+ (lambda (_fname op)
    (if (eq op 'create) (current-time)
      entropy/emacs-file-buffer-meta-null-value)))
 
