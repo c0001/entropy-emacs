@@ -657,6 +657,162 @@ such NO-ADD is happened)."
    (entropy/emacs-profiler-is-running-p)
    ))
 
+(defun entropy/emacs-ansi-apply-string (string &optional no-properties)
+  "Strip string STRING's ansi control/escape characters by replacing
+them as encoding the plain string with emacs text properties.
+Return thus of plain string encoded with thus text properties or
+just the plain string while NO-PROPERTIES is non-nil.
+
+This function is an extraction ver. of obsoleted emacs-27
+`ansi-color-apply' but using `face' instead of `font-lock-face'."
+  (if (string-empty-p string) string
+    (entropy/emacs-require-only-once 'ansi-color)
+    (with-temp-buffer
+      (let*
+          ((codes (car ansi-color-context))
+           (start 0) end result rtn
+           ;; obsolete libs
+           (func/ansi-color-parse-sequence
+            (lambda (escape-seq)
+              "Return the list of all the parameters in ESCAPE-SEQ.
+
+ESCAPE-SEQ is a SGR control sequences such as \\033[34m.  The parameter
+34 is used by `ansi-color-get-face-1' to return a face definition.
+
+Returns nil only if there's no match for `ansi-color-parameter-regexp'."
+              (let ((i 0)
+                    codes val)
+                (while (string-match ansi-color-parameter-regexp escape-seq i)
+                  (setq i (match-end 0)
+                        val (string-to-number (match-string 1 escape-seq) 10))
+                  ;; It so happens that (string-to-number "") => 0.
+                  (push val codes))
+                (nreverse codes))))
+           (func/ansi-color-apply-sequence
+            (lambda (escape-sequence codes)
+              "Apply ESCAPE-SEQUENCE to CODES and return the new list of codes.
+
+ESCAPE-SEQUENCE is an escape sequence parsed by
+`ansi-color-parse-sequence'.
+
+For each new code, the following happens: if it is 1-7, add it to
+the list of codes; if it is 21-25 or 27, delete appropriate
+parameters from the list of codes; if it is 30-37 (or 90-97) resp. 39,
+the foreground color code is replaced or added resp. deleted; if it
+is 40-47 (or 100-107) resp. 49, the background color code is replaced
+or added resp. deleted; any other code is discarded together with the
+old codes.  Finally, the so changed list of codes is returned."
+              ;; (declare (obsolete ansi-color--update-face-vec "29.1"))
+              (let ((new-codes (funcall func/ansi-color-parse-sequence escape-sequence)))
+                (while new-codes
+                  (let* ((new (pop new-codes))
+                         (q (/ new 10)))
+                    (setq codes
+                          (pcase q
+                            (0 (unless (memq new '(0 8 9))
+                                 (cons new (remq new codes))))
+                            (2 (unless (memq new '(20 26 28 29))
+                                 ;; The standard says `21 doubly underlined' while
+                                 ;; https://en.wikipedia.org/wiki/ANSI_escape_code claims
+                                 ;; `21 Bright/Bold: off or Underline: Double'.
+                                 (remq (- new 20) (pcase new
+                                                    (22 (remq 1 codes))
+                                                    (25 (remq 6 codes))
+                                                    (_ codes)))))
+                            ((or 3 4 9 10) (let ((r (mod new 10)))
+                                             (unless (= r 8)
+                                               (let (beg)
+                                                 (while (and codes (/= q (/ (car codes) 10)))
+                                                   (push (pop codes) beg))
+                                                 (setq codes (nconc (nreverse beg) (cdr codes)))
+                                                 (if (= r 9)
+                                                     codes
+                                                   (cons new codes))))))
+                            (_ nil)))))
+                codes)))
+           (func/ansi-color-get-face-1
+            (lambda (ansi-code &optional bright)
+              "Get face definition for ANSI-CODE.
+BRIGHT, if non-nil, requests \"bright\" ANSI colors, even if ANSI-CODE
+is a normal-intensity color."
+              ;; (declare (obsolete ansi-color--face-vec-face "29.1"))
+              (when (and bright (<= 30 ansi-code 49))
+                (setq ansi-code (+ ansi-code 60)))
+              (cond ((<= 0 ansi-code 7)
+                     (aref ansi-color-basic-faces-vector ansi-code))
+                    ((<= 30 ansi-code 38)
+                     (list :foreground
+                           (face-foreground
+                            (aref ansi-color-normal-colors-vector (- ansi-code 30))
+                            nil 'default)))
+                    ((<= 40 ansi-code 48)
+                     (list :background
+                           (face-background
+                            (aref ansi-color-normal-colors-vector (- ansi-code 40))
+                            nil 'default)))
+                    ((<= 90 ansi-code 98)
+                     (list :foreground
+                           (face-foreground
+                            (aref ansi-color-bright-colors-vector (- ansi-code 90))
+                            nil 'default)))
+                    ((<= 100 ansi-code 108)
+                     (list :background
+                           (face-background
+                            (aref ansi-color-bright-colors-vector (- ansi-code 100))
+                            nil 'default))))))
+           (func/ansi-color--find-face
+            (lambda (codes)
+              "Return the face corresponding to CODES."
+              (let (faces)
+                (while codes
+                  (let ((face (funcall func/ansi-color-get-face-1 (pop codes))))
+                    ;; In the (default underline) face, say, the value of the
+                    ;; "underline" attribute of the `default' face wins.
+                    (unless (eq face 'default)
+                      (push face faces))))
+                ;; Avoid some long-lived conses in the common case.
+                (if (cdr faces)
+                    (nreverse faces)
+                  (car faces))))))
+        ;; If context was saved and is a string, prepend it.
+        (if (cadr ansi-color-context)
+            (setq string (concat (cadr ansi-color-context) string)
+                  ansi-color-context nil))
+        ;; Find the next escape sequence.
+        (while (setq end (string-match
+                          ansi-color-control-seq-regexp string start))
+          (let ((esc-end (match-end 0)))
+            ;; Colorize the old block from start to end using old face.
+            (when codes
+              (put-text-property start end 'face
+                                 (funcall func/ansi-color--find-face codes)
+                                 string))
+            (push (substring string start end) result)
+            (setq start (match-end 0))
+            ;; If this is a color escape sequence,
+            (when (eq (aref string (1- esc-end)) ?m)
+              ;; create a new face from it.
+              (setq codes (funcall
+                           func/ansi-color-apply-sequence
+                           (substring string end esc-end) codes)))))
+        ;; if the rest of the string should have a face, put it there
+        (when codes
+          (put-text-property start (length string)
+                             'face (funcall func/ansi-color--find-face codes)
+                             string))
+        ;; save context, add the remainder of the string to the result
+        (let (fragment)
+          (if (string-match "\033" string start)
+              (let ((pos (match-beginning 0)))
+                (setq fragment (substring string pos))
+                (push (substring string start pos) result))
+            (push (substring string start) result))
+          (setq ansi-color-context
+                (if (or codes fragment) (list codes fragment))))
+        (setq rtn (apply 'concat (nreverse result)))
+        (if (not no-properties) rtn
+          (substring-no-properties rtn))))))
+
 ;; *** eemacs def*
 
 (defvar entropy/emacs-inner-sym-for/current-defname
