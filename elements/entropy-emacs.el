@@ -395,14 +395,19 @@ IGNORE-STRING is non-nil."
 PLIST to ensure its value be updated even if PLIST is nil.
 
 Plist should be a variable name or a place from where `gv-ref'
-can be grabbed"
+can be grabbed
+
+NOTE: PREDICATE is ignored for `emacs-major-version' less than 29
+since it's implemented only on above of thus."
   (declare (indent 1))
   (entropy/emacs-with-lexical-binding-check t
     (macroexp-let2* ignore
         ((vref `(gv-ref ,plist))
          (oval `(gv-deref ,vref)))
       `(entropy/emacs-setf-by-body (gv-deref ,vref)
-         (plist-put ,oval ,prop ,val ,predicate)))))
+         (if (< emacs-major-version 29)
+             (plist-put ,oval ,prop ,val)
+           (plist-put ,oval ,prop ,val ,predicate))))))
 
 (defmacro entropy/emacs-run-body-only-once (&rest body)
   "Run BODY just once i.e. the first time invoke it, and return its
