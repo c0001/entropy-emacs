@@ -1394,6 +1394,56 @@ updating."
    entropy/emacs-codeserver-lsp-ui-doc-timer
    entropy/emacs-codeserver--lsp-ui-doc-make-request)
 
+
+;; ******** Enhancement
+;; TODO
+;; ******* end
+  )
+;; ******* lsp ui peek
+
+(use-package lsp-ui-peek
+  :ensure nil
+  :after lsp-ui
+  :config
+  (defvar-local __ya/lsp-ui-peek--win-start nil)
+  (defun __ya/lsp-ui-peek-find-references (orig-func &rest orig-args)
+    "Tempo Fix `lsp-ui-peek--show' hardcoded window recenter for exhibition
+of peeks where will make the navigation visual be out of the
+window bottom.
+
+FIXME: should investigating the source code for indeed fixing.
+
+NOTE: related to the display char height?"
+    (let ((owstart (window-start)))
+      (setq __ya/lsp-ui-peek--win-start owstart)
+      ;; condition is grab from `lsp-ui-peek--show'
+      (when (< (- (line-number-at-pos (window-end)) (line-number-at-pos))
+               (+ lsp-ui-peek-peek-height 3))
+        (recenter 0)
+        ;; ensure window-start is flushed for subroutine
+        (redisplay t)))
+    (apply orig-func orig-args))
+  (advice-add 'lsp-ui-peek-find-references
+              :around
+              #'__ya/lsp-ui-peek-find-references)
+
+  (defun __ya/lsp-ui-peek--abort (orig-func &rest orig-args)
+    (let ((nostart __ya/lsp-ui-peek--win-start))
+      (when nostart
+        (setq lsp-ui-peek--win-start nostart))
+      (prog1 (apply orig-func orig-args)
+        (setq __ya/lsp-ui-peek--win-start nil))))
+  (advice-add 'lsp-ui-peek--abort
+              :around
+              #'__ya/lsp-ui-peek--abort)
+
+  (define-key lsp-ui-peek-mode-map (kbd "M-o")
+              ;; use lsp native references finding mechanism which
+              ;; use `completing-read' framwork which has more rich
+              ;; search functioal.
+              (lambda nil (interactive)
+                (lsp-ui-peek--disable)
+                (call-interactively #'lsp-find-references)))
   )
 
 ;; ****** lsp-mode other extension
