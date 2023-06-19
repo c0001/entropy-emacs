@@ -1414,18 +1414,38 @@ window bottom.
 FIXME: should investigating the source code for indeed fixing.
 
 NOTE: related to the display char height?"
-    (let ((owstart (window-start)))
+    (let* ((owstart (window-start))
+           (owend   (window-end))
+           (lnm (line-number-at-pos))
+           (lnm-wstart (line-number-at-pos owstart))
+           (lnm-wend   (line-number-at-pos owend)))
       (setq __ya/lsp-ui-peek--win-start owstart)
       ;; condition is grab from `lsp-ui-peek--show'
-      (when (< (- (line-number-at-pos (window-end)) (line-number-at-pos))
-               (+ lsp-ui-peek-peek-height 3))
+      (when (and
+             ;; in which case the bottom is the top, thus we don't
+             ;; need to recenter to top anymore.
+             (not (= lnm-wstart lnm-wend))
+             (< (- lnm-wend lnm) (+ lsp-ui-peek-peek-height 3)))
         (recenter 0)
         ;; ensure window-start is flushed for subroutine
         (redisplay t)))
-    (apply orig-func orig-args))
+    (entropy/emacs-message-simple-progress-message
+        (format "Picking up references of <%s>" (symbol-at-point))
+      :with-temp-message t
+      :with-fit-window-width t
+      (apply orig-func orig-args)))
   (advice-add 'lsp-ui-peek-find-references
               :around
               #'__ya/lsp-ui-peek-find-references)
+
+  (advice-patch 'lsp-ui-peek--show
+                nil
+                ;; Since we've patched on top of
+                ;; `lsp-ui-peek-find-references' thus we should
+                ;; cleanup this hardcoded one.
+                '(when (< (- (line-number-at-pos (window-end)) (line-number-at-pos))
+                          (+ lsp-ui-peek-peek-height 3))
+                   (recenter 15)))
 
   (defun __ya/lsp-ui-peek--abort (orig-func &rest orig-args)
     (let ((nostart __ya/lsp-ui-peek--win-start))
