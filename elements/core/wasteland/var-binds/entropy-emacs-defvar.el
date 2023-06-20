@@ -2622,7 +2622,14 @@ with any file.")
       (setq cbuff-fattr (file-attributes default-directory)))
     (entropy/emacs-setf-by-body ubuff-fname
       (or __eemacs--set-file-buffer-meta-use-filename__
-          (buffer-file-name ubuff)))
+          (when-let ((fnm (buffer-file-name ubuff)))
+            (if (and (not (directory-name-p fnm))
+                     (not (file-directory-p fnm)))
+                ;; we should use the truename of a regular file name
+                ;; since the file-attribtues of a symlink is
+                ;; meaningless for we used for
+                ;; `entropy/emacs-file-buffer-meta-plist'.
+                (file-truename fnm) fnm))))
     (if (not buff) (setq ubuff-fattr cbuff-fattr)
       (if (and ubuff-fname (file-exists-p ubuff-fname))
           (setq ubuff-fattr (file-attributes ubuff-fname))

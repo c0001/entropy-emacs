@@ -6648,7 +6648,12 @@ internal maybe used which will be generated if not given by caller."
       ;; secton1: inode and device number compare in same filesystem
       (when chase-link
         (setq filesystem-node1 (file-truename filesystem-node1)
-              filesystem-node2 (file-truename filesystem-node2)))
+              ;; since we may chase the symbolic so that the user spec
+              ;; file-attributes is not proper for the target in most
+              ;; of cases, thus we should cover it for subroutines.
+              filesystem-node1-attributes nil
+              filesystem-node2 (file-truename filesystem-node2)
+              filesystem-node2-attributes nil))
       (let ((f1-p (entropy/emacs--filesystem-node-exists-p
                    filesystem-node1 t filesystem-node1-attributes))
             (f2-p (entropy/emacs--filesystem-node-exists-p

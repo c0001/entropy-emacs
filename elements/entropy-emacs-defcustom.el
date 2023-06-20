@@ -3104,14 +3104,6 @@ eemacs.")
                     entropy/emacs-fall-love-with-pdumper))))
     rtn))
 
-;; *** remote refer apis
-
-(defun entropy/emacs-filename-is-remote-p (filename)
-  "Judge whether file name is remote style"
-  (if (fboundp 'tramp-tramp-file-p)
-      (tramp-tramp-file-p filename)
-    nil))
-
 ;; *** large file/buffer detection
 
 (defvar so-long-threshold)
@@ -3390,7 +3382,7 @@ origin config file."
        ;; ignore any existed buffer matched FILENAME
        (not (find-buffer-visiting (car orig-args)))
        ;; Not remote file
-       (not (entropy/emacs-filename-is-remote-p (car orig-args)))
+       (not (file-remote-p (car orig-args)))
        ;; Not judge for magic filename handler for
        ;; `openwith-file-handler', since its open with external
        ;; app.

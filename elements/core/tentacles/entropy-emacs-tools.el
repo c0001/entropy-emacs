@@ -55,8 +55,8 @@
   :config
 
   (entropy/emacs-add-to-list
-   entropy/emacs-find-file-judge-filename-is-emacs-intspecially-core-ignore-handlers
-   'openwith-file-handler)
+    entropy/emacs-find-file-judge-filename-is-emacs-intspecially-core-ignore-handlers
+    'openwith-file-handler)
 
   (eval-when-compile (require 'rx))
   (setq openwith-associations
@@ -176,9 +176,13 @@ with ARGLIST."
     "The `openwith-file-handler' hander log used for eemacs debug only.")
   (defun __ya/openwith-file-handler (operation &rest args)
     "Like `openwith-file-handler' but enhanced"
-    (push (cons operation args) __openwith-file-handler-history)
+    (when (entropy/emacs-debugger-is-running-p)
+      (push (cons operation args) __openwith-file-handler-history))
     (progn
-      (when (and openwith-mode (not (buffer-modified-p)) (zerop (buffer-size)))
+      (when (and (bound-and-true-p openwith-mode)
+                 (eq operation 'insert-file-contents)
+                 (not (buffer-modified-p))
+                 (zerop (buffer-size)))
         (let ((assocs openwith-associations)
               (file (car args))
               oa)
@@ -186,8 +190,7 @@ with ARGLIST."
           ;; temporarily unbind it
           (catch :exit-match
             (while assocs
-              (setq oa (car assocs)
-                    assocs (cdr assocs))
+              (setq oa (car assocs) assocs (cdr assocs))
               (when (let
                         ;; we must ensure `case-fold-search' since the
                         ;; extenxion have uppercaes variants
@@ -200,15 +203,16 @@ with ARGLIST."
                                               (mapconcat #'identity params " ")))
                             (throw :exit-match nil))
                     (if (eq system-type 'windows-nt)
-                        (openwith-open-windows (cadr oa) params)
+                        (__ya/openwith-open-windows (cadr oa) params)
                       (openwith-open-unix (cadr oa) params))
-                    (kill-buffer nil)
-                    (when (bound-and-true-p recentf-mode)
-                      (recentf-add-file file))
+                    ;; kill buffer without hooks
+                    (let (kill-buffer-hook) (kill-buffer))
+                    ;; TODO: more as common `find-file'
+                    (and (bound-and-true-p recentf-mode) (recentf-add-file file))
                     ;; quit procedure while matched rules
-                    (let ((debug-on-error nil))
-                      (error "Opened %s in external program"
-                             (file-name-nondirectory file))))))))))
+                    (entropy/emacs-error-without-debugger
+                     "Opening \"%s\" in external program ..."
+                     (file-name-nondirectory file)))))))))
       ;; when no association was found, relay the operation to other handlers
       (let ((inhibit-file-name-handlers
              (cons 'openwith-file-handler

@@ -871,7 +871,13 @@ For lisp code, optional args:
                       ;; etc. , which may cause the loop break with
                       ;; specified handle error by gvfs.
                       (entropy/emacs-directory-file-name buff-fname) fname-sans
-                      'chase-link
+                      ;; forbiden link chase link since it's need I/O
+                      ;; injection which will slow down the checking
+                      ;; speed, further more since our
+                      ;; `entropy/emacs-file-buffer-meta-plist' is
+                      ;; using `file-truename' at meta built time
+                      ;; already.
+                      nil
                       ;; use eemacs dired meta to speedup check
                       buff-fattr fname-attr)
                      ;; TODO: more filters
