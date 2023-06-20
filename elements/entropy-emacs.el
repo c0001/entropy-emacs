@@ -884,11 +884,12 @@ available.
 
 (see `entropy/emacs-inner-sym-for/current-defname')"
   (unless args (setq args (list nil)))
-  `(entropy/emacs-!with-cdefn
-     :with-it-as cur-defn
-     (if (not cur-defn) (message ,format-string ,@args)
-       (message (concat "[%s] " ,format-string)
-                cur-defn ,@args))))
+  (let ((sym (make-symbol "it")))
+    `(entropy/emacs-!with-cdefn
+       :with-it-as ,sym
+       (if (not ,sym) (message ,format-string ,@args)
+         (message (concat "[%s] " ,format-string)
+                  ,sym ,@args)))))
 
 (defmacro entropy/emacs-!error (string &rest args)
   "Like `error' but message with =eemacs-defn-bind= as prefix when
@@ -896,11 +897,12 @@ available.
 
 (see `entropy/emacs-inner-sym-for/current-defname')"
   (unless args (setq args (list nil)))
-  `(entropy/emacs-!with-cdefn
-     :with-it-as cur-defn
-     (if (not cur-defn) (error ,string ,@args)
-       (error (concat "[%s] " ,string)
-              cur-defn ,@args))))
+  (let ((sym (make-symbol "it")))
+    `(entropy/emacs-!with-cdefn
+       :with-it-as ,sym
+       (if (not ,sym) (error ,string ,@args)
+         (error (concat "[%s] " ,string)
+                ,sym ,@args)))))
 
 (defmacro entropy/emacs-!user-error (string &rest args)
   "Like `user-error' but message with =eemacs-defn-bind= as prefix
@@ -908,11 +910,12 @@ when available.
 
 (see `entropy/emacs-inner-sym-for/current-defname')"
   (unless args (setq args (list nil)))
-  `(entropy/emacs-!with-cdefn
-     :with-it-as cur-defn
-     (if (not cur-defn) (user-error ,string ,@args)
-       (user-error (concat "[%s] " ,string)
-                   cur-defn ,@args))))
+  (let ((sym (make-symbol "it")))
+    `(entropy/emacs-!with-cdefn
+       :with-it-as ,sym
+       (if (not ,sym) (user-error ,string ,@args)
+         (user-error (concat "[%s] " ,string)
+                     ,sym ,@args)))))
 
 ;; *** making procedure
 (defvar __entropy/emacs-is-make-session-check-done nil)
