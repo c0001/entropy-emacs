@@ -865,6 +865,33 @@ Use =eemacs-defn-bind= of SYMBOL for DEFINITION if it's an
        (defalias ,sym-name ,@(cdr args))
        ,sym-name)))
 
+(defmacro entropy/emacs-!defgeneric (&rest args)
+  "Same as `cl-defgeneric' but also:
+
+Use =eemacs-defn-bind= of SYMBOL for DEFAULT-BODY when
+`lexical-binding' is non-nil. (see
+`entropy/emacs-inner-sym-for/current-defname')
+
+\(fn NAME ARGS [DOC-STRING] [OPTIONS-AND-METHODS...] &rest DEFAULT-BODY)"
+  (declare (indent 2) (doc-string 3))
+  (let((sym-name (car args)))
+    `(let ((,entropy/emacs-inner-sym-for/current-defname
+            ',sym-name))
+       (cl-defgeneric ,sym-name ,@(cdr args)))))
+
+(defmacro entropy/emacs-!defmethod (&rest args)
+  "Same as `cl-defmethod' but also:
+
+Use =eemacs-defn-bind= of SYMBOL for BODY when `lexical-binding'
+is non-nil. (see `entropy/emacs-inner-sym-for/current-defname')
+
+\(fn NAME [EXTRA] [QUALIFIER] ARGS &rest [DOCSTRING] BODY)"
+  (declare (doc-string cl--defmethod-doc-pos) (indent defun))
+  (let ((sym-name (car args)))
+    `(let ((,entropy/emacs-inner-sym-for/current-defname
+            ',sym-name))
+       (cl-defmethod ,sym-name ,@(cdr args)))))
+
 (cl-defmacro entropy/emacs-!with-cdefn
     (&rest body &key with-it-as &allow-other-keys)
   "Run body with binding lexical var symbol set by
