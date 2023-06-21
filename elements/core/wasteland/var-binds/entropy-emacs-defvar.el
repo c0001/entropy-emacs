@@ -2614,28 +2614,38 @@ with any file.")
          (cbuff (current-buffer))
          (ubuff (or buff cbuff))
          (ubuff-op __eemacs--set-file-buffer-meta-use-operation__)
+         (fattr-func
+          ;; we should use the truename of a regular file name
+          ;; since the file-attribtues of a symlink is
+          ;; meaningless for we used for
+          ;; `entropy/emacs-file-buffer-meta-plist'.
+          (lambda (file)
+            (let ((file-name
+                   (if (and (not (directory-name-p file))
+                            (not (file-directory-p file)))
+                       ;; we should use the truename of a regular file name
+                       ;; since the file-attribtues of a symlink is
+                       ;; meaningless for we used for
+                       ;; `entropy/emacs-file-buffer-meta-plist'.
+                       (file-truename file) file)))
+              (file-attributes file-name))))
          cbuff-fname cbuff-fattr
          ubuff-fname ubuff-fattr)
     (if (and (setq cbuff-fname (buffer-file-name cbuff))
              (file-exists-p cbuff-fname))
-        (setq cbuff-fattr (file-attributes cbuff-fname))
-      (setq cbuff-fattr (file-attributes default-directory)))
+        (setq cbuff-fattr (funcall fattr-func cbuff-fname))
+      (entropy/emacs-setf-by-body cbuff-fattr
+        (funcall fattr-func
+                 (buffer-local-value 'default-directory cbuff))))
     (entropy/emacs-setf-by-body ubuff-fname
       (or __eemacs--set-file-buffer-meta-use-filename__
-          (when-let ((fnm (buffer-file-name ubuff)))
-            (if (and (not (directory-name-p fnm))
-                     (not (file-directory-p fnm)))
-                ;; we should use the truename of a regular file name
-                ;; since the file-attribtues of a symlink is
-                ;; meaningless for we used for
-                ;; `entropy/emacs-file-buffer-meta-plist'.
-                (file-truename fnm) fnm))))
+          (buffer-file-name ubuff)))
     (if (not buff) (setq ubuff-fattr cbuff-fattr)
       (if (and ubuff-fname (file-exists-p ubuff-fname))
-          (setq ubuff-fattr (file-attributes ubuff-fname))
+          (setq ubuff-fattr (funcall fattr-func ubuff-fname))
         (entropy/emacs-setf-by-body ubuff-fattr
-          (file-attributes
-           (buffer-local-value 'default-directory ubuff)))))
+          (funcall fattr-func
+                   (buffer-local-value 'default-directory ubuff)))))
     (with-current-buffer ubuff
       (entropy/emacs-plist-put
           entropy/emacs-file-buffer-meta-plist
