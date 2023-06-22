@@ -910,17 +910,19 @@ referred %s buffer '%s'"
               (let ((delete-by-moving-to-trash
                      ;; TODO: Do we should grab user's choice?
                      delete-by-moving-to-trash))
-                (cond ((not (file-exists-p file))
-                       (error "file is not exist: %s" file))
-                      ((file-symlink-p file)
+                (cond ((file-symlink-p file)
                        (setq cur-file-type 'symbol_link)
                        (delete-file file))
+                      ((not (file-exists-p file))
+                       (error "file is not exist: %s" file))
                       ((eq (file-regular-p file) t)
                        (setq cur-file-type 'file)
                        (delete-file file))
                       ((f-directory-p file)
                        (setq cur-file-type 'directory)
-                       (delete-directory file t)))
+                       (delete-directory file t))
+                      (t
+                       (error "unknown file type: %s" file)))
                 (push (list :file-type cur-file-type
                             :file-path file
                             :date (cons (current-time-string) (current-time)))
