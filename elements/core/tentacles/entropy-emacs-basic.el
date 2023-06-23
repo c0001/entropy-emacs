@@ -6531,6 +6531,20 @@ we do not want to init as duplicated which will cause messy."
 ;; **** Emacs process and system proced manager hacking
 ;; ***** process
 
+(defun __ya/process-menu-delete-process/with-inct-safety
+    (orig-func &rest orig-args)
+  "When `called-interactively-p' of any interactivation, do user
+confirmation for such of safety case."
+  (if (not (called-interactively-p 'any))
+      (apply orig-func orig-args)
+    (let* ((proc (tabulated-list-get-id))
+           (proc-name (process-name proc)))
+      (when (yes-or-no-p (format "Really kill the process: %s " proc-name))
+        (apply orig-func orig-args)))))
+(advice-add 'process-menu-delete-process
+            :around
+            #'__ya/process-menu-delete-process/with-inct-safety)
+
 (entropy/emacs-lazy-initial-advice-after
  '(process-menu-mode)
  "process-menu-mode-hydra-hollow-init" "process-menu-mode-hydra-hollow-init"
