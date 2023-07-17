@@ -59,49 +59,56 @@
     'openwith-file-handler)
 
   (eval-when-compile (require 'rx))
-  (setq openwith-associations
-        (eval-when-compile
-          (list
-           (list
-            (concat "^.*\\.\\("
-                    (eval
-                     `(rx
-                       (or
-                        ,@'(
-                            ;; audio & video files
-                            "mpg" "mpeg" "mp3" "mp4" "rmvb" "webm"
-                            "avi" "wmv" "wav" "mov" "flv"
-                            "ogm" "ogg" "mkv" "m4a" "flac" "aac" "ape"
-                            ;; documents
-                            "pdf" "djvu" "odt"
-                            (regex "docx?") (regex "xslx?") (regex "pptx?")
-                            ;; ==========
-                            ;; FIXME: the `jka-compr-handler' defaulty
-                            ;; handle common gnu tar type of archives,
-                            ;; so we can not handle that while
-                            ;; openwith or the emacs internal loading
-                            ;; procedure will be junked because emacs
-                            ;; load lisp files from those archives.
-                            ;;
-                            ;;    "tgz" "txz" "t7z" "tbz"
-                            ;;
-                            ;; NOTE: do not set 'tar\..+' regex since
-                            ;; the 'tar.sig' suffix is used for emacs
-                            ;; internal IO like `package-intall'.
-                            ;;
-                            ;;   (regex "tar\\.\\(gz\\|xz\\|bz\\)")
-                            ;; ==========
-                            ;; but we can assoc non-tar archives
-                            "zip" "7z" "xz" "rar" "bzip2" "bz2"
-
-                            ))))
-                    "\\)$")
-            ;; we use xdg-open(linux) and start(windows) as default mime handler
-            (cond (sys/is-linux-and-graphic-support-p
-                   "xdg-open")
-                  (sys/is-wingroup-and-graphic-support-p
-                   "start"))
-            '(file)))))
+  (entropy/emacs-setf-by-body openwith-associations
+    (let ((eemacs-xdg-open-cmd
+           (getenv "EEMACS_SPAWN_BASH_SCRIPT_XDG_OPEN"))
+          use-eemacs-xdg-open-cmd)
+      (list
+       (list
+        (concat
+         "^.*\\.\\("
+         (eval
+          `(rx
+            (or
+             ,@(list
+                ;; audio & video files
+                "mpg" "mpeg" "mp3" "mp4" "rmvb" "webm"
+                "avi" "wmv" "wav" "mov" "flv"
+                "ogm" "ogg" "mkv" "m4a" "flac" "aac" "ape"
+                ;; documents
+                "pdf" "djvu" "odt"
+                '(regex "docx?") '(regex "xslx?") '(regex "pptx?")
+                ;; ==========
+                ;; FIXME: the `jka-compr-handler' defaulty
+                ;; handle common gnu tar type of archives,
+                ;; so we can not handle that while
+                ;; openwith or the emacs internal loading
+                ;; procedure will be junked because emacs
+                ;; load lisp files from those archives.
+                ;;
+                ;;    "tgz" "txz" "t7z" "tbz"
+                ;;
+                ;; NOTE: do not set 'tar\..+' regex since
+                ;; the 'tar.sig' suffix is used for emacs
+                ;; internal IO like `package-intall'.
+                ;;
+                ;;   (regex "tar\\.\\(gz\\|xz\\|bz\\)")
+                ;; ==========
+                ;; but we can assoc non-tar archives
+                "zip" "7z" "xz" "rar" "bzip2" "bz2"
+                ))))
+         "\\)$")
+        ;; we use xdg-open(linux) and start(windows) as default mime handler
+        (cond (sys/is-linux-and-graphic-support-p
+               (unless (file-exists-p eemacs-xdg-open-cmd)
+                 (setq eemacs-xdg-open-cmd nil))
+               (if (not eemacs-xdg-open-cmd) "xdg-open"
+                 (setq use-eemacs-xdg-open-cmd t)
+                 "bash"))
+              (sys/is-wingroup-and-graphic-support-p
+               "start"))
+        (if (not use-eemacs-xdg-open-cmd) '(file)
+          `(,eemacs-xdg-open-cmd file))))))
 
   (defun __ya/openwith-open-unix (command arglist)
     "like `openwith-open-unix' but use `start-process' to open the

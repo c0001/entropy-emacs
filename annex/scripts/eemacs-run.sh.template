@@ -18,7 +18,7 @@ cd "$srcdir"
 
 # ** declare
 Eemacs_Var_EmacsExec="${EMACS:-emacs}"
-Eemacs_Var_EmacsSessionName="${1:-main}"
+Eemacs_Var_EmacsSessionName="${EEMACS_SYSTEMD_DAEMON_SERVICE:-default}"
 
 # Strip ANSI escape codes/sequences [$1: input string, $2: target variable]
 #
@@ -44,16 +44,26 @@ function __strip_escape_codes() {
 
 # ** libs
 
+function Eemacs_Func_TermEchoStderr ()
+{
+    echo -e "$*" >&2
+}
+
 function Eemacs_Func_Echo ()
 {
     local msg="$1"
     local nmsg
     __strip_escape_codes "$msg" nmsg
-    if command -v notify-send 1>/dev/null 2>&1
+    nmsg="(eemacs_bash) $nmsg"
+    if { [ -n "$DISPLAY" ] || [ -n "$WAYLAND_DISPLAY" ]; } && \
+           command -v notify-send 1>/dev/null 2>&1
     then
-        notify-send -t 3000 -a "$Eemacs_Var_EmacsSessionName" "$nmsg"
+        notify-send \
+            -t 3000 -a \
+            "eemacs_${Eemacs_Var_EmacsSessionName}" \
+            "$nmsg"
     fi
-    echo -e "$1"
+    Eemacs_Func_TermEchoStderr "$1"
 }
 
 function Eemacs_Func_Time ()

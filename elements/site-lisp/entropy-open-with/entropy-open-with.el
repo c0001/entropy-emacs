@@ -667,13 +667,20 @@ firstly using 'npm install -g wsl-open'"))
         (w32-shell-execute "open" file-path))
        ;; linux
        ((entropy/open-with-linux-env-p)
-        (let ((process-connection-type t))
+        (let ((process-connection-type t)
+              (eemacs-xdg-open-cmd
+               (getenv "EEMACS_SPAWN_BASH_SCRIPT_XDG_OPEN")))
+          (unless (file-exists-p eemacs-xdg-open-cmd)
+            (setq eemacs-xdg-open-cmd nil))
           (set-process-sentinel
-           (start-process
+           (apply
+            'start-process
             (format "eemacs-linux-open-with_xdg_for_file_%s"
                     file-path)
             (generate-new-buffer " *eemacs-linux-open-with-native* ")
-            "setsid" "-w" "xdg-open" file-path)
+            "setsid" "-w"
+            (if (not eemacs-xdg-open-cmd) (list "xdg-open" file-path)
+              (list "bash" eemacs-xdg-open-cmd file-path)))
            proc-sentinel)))
        ;; macos
        ((eq system-type 'darwin)

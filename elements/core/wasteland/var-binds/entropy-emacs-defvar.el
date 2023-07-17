@@ -152,6 +152,12 @@ next command.")
          (expand-file-name
           "annex/scripts"
           entropy/emacs-user-emacs-directory)))
+(setenv "EEMACS_SPAWN_BASH_SCRIPT_XDG_OPEN"
+        (expand-file-name
+         "eemacs-xdg-open.sh"
+         (expand-file-name
+          "annex/scripts"
+          entropy/emacs-user-emacs-directory)))
 
 ;; ** byte compile refer
 
