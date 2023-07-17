@@ -462,17 +462,16 @@ we need to strongly distinguish wsl and linux env."
   "Predicate FILENAME for top-level judgemments, if no error,
 return the predicated filename."
   (let (rtn)
-    (if (and (not (entropy/open-with--on-win32))
+    (if (and (file-remote-p filename)
              (string-match-p "^/sudo:root@.*?:/" filename))
-        (setq rtn (replace-regexp-in-string "^/sudo:root@.*?:/" "/" filename))
+        (setq rtn (file-local-name filename))
       (setq rtn filename))
-    (cond ((and (require 'tramp)
-                (tramp-tramp-file-p rtn))
-           (error "can not open tramp file '%s'" rtn))
+    (cond ((file-remote-p filename)
+           (error "Can not use entropy-open-with to open remote file '%s'"
+                  filename))
           ((not (file-readable-p rtn))
            (error "file '%s' is not readable" rtn))
-          (t
-           rtn))))
+          (t rtn))))
 
 (defun entropy/open-with--do-list ()
   "Expand `entropy/open-with-type-list' to `entropy/open-with--type-list-full'.

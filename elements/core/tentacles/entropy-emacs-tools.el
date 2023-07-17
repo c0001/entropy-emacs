@@ -185,14 +185,13 @@ with ARGLIST."
     "Like `openwith-file-handler' but enhanced"
     (when (entropy/emacs-debugger-is-running-p)
       (push (cons operation args) __openwith-file-handler-history))
-    (progn
+    (let ((file (car args)))
       (when (and (bound-and-true-p openwith-mode)
                  (eq operation 'insert-file-contents)
                  (not (buffer-modified-p))
-                 (zerop (buffer-size)))
-        (let ((assocs openwith-associations)
-              (file (car args))
-              oa)
+                 (zerop (buffer-size))
+                 (not (file-remote-p file)))
+        (let ((assocs openwith-associations) oa)
           ;; do not use `dolist' here, since some packages (like cl)
           ;; temporarily unbind it
           (catch :exit-match
