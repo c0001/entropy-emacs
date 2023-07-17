@@ -1,4 +1,15 @@
 #!/usr/bin/env bash
+#
+# Various function extracted from =xdg-open= of =xdg-utils= project to
+# handle local file's mime matching opening, but not recursively try
+# next compatible app where current exit as failed, to avoid the non
+# proper occasions occurred.
+#
+# For developer, you should always tracking the as-is named function's
+# functional with =xdg-open= shell script to update with new
+# specifications from [[https://specifications.freedesktop.org/][Freedesktop.org Specifications]].
+#
+# Current follow =xdg-utils= version: 1.1.3
 set -e
 declare this_curpwd="$(pwd)"
 . "$EEMACS_SPAWN_BASH_SCRIPT_TEMPLATE"
