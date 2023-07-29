@@ -10568,13 +10568,14 @@ original."
          (orig-buffname (buffer-name orig-buff))
          ;; (orig-frame (selected-frame))
          (is-exhaust nil)
-         (nbuffname
+         (nspbuffname
           (or buffname
               (and (setq is-exhaust t)
                    entropy/emacs-split-window-default-exhaustion-buffname)))
          (buff (if is-exhaust
-                   (entropy/emacs-generate-new-buffer nbuffname t)
-                 (get-buffer-create nbuffname)))
+                   (entropy/emacs-generate-new-buffer nspbuffname t)
+                 (get-buffer-create nspbuffname)))
+         (new-buffname (buffer-name buff))
          (window (apply 'split-window
                         (list window size side pixelwise))))
     (set-window-buffer window buff)
@@ -10598,7 +10599,9 @@ window use origin buffer `%S'"
         (entropy/emacs-local-set-key
          (kbd "q")
          (lambda () (interactive)
-           (when-let ((buffname (buffer-name buff)))
+           (if-let (((not (buffer-live-p buff))))
+               (user-error "Exhausted buffer is not existed any more: %s"
+                           new-buffname)
              (when (and (window-live-p window)
                         (not (frame-root-window-p window))
                         (not (one-window-p)))
@@ -10608,7 +10611,7 @@ window use origin buffer `%S'"
              (when (buffer-live-p buff)
                (message "Deleting exhausted buffer %s ..." buff)
                (kill-buffer buff))
-             (message "Delete exhausted buffer %s done" buffname))))
+             (message "Delete exhausted buffer %s done" new-buffname))))
         (entropy/emacs-local-set-key
          (kbd "e")
          (lambda () (interactive)
