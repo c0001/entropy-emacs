@@ -10564,10 +10564,17 @@ of the new buffer on new-window which returned as the same as the
 original."
   (let* ((orig-dfdir default-directory)
          (orig-win (selected-window))
-         (bfname
+         (orig-buff (current-buffer))
+         (orig-buffname (buffer-name orig-buff))
+         ;; (orig-frame (selected-frame))
+         (is-exhaust nil)
+         (nbuffname
           (or buffname
-              entropy/emacs-split-window-default-exhaustion-buffname))
-         (buff (get-buffer-create bfname))
+              (and (setq is-exhaust t)
+                   entropy/emacs-split-window-default-exhaustion-buffname)))
+         (buff (if is-exhaust
+                   (entropy/emacs-generate-new-buffer nbuffname t)
+                 (get-buffer-create nbuffname)))
          (window (apply 'split-window
                         (list window size side pixelwise))))
     (set-window-buffer window buff)
@@ -10581,10 +10588,36 @@ original."
 the new window splitted from origin window <%s>,
 you should switch to another buffer by [C-x b] or in other way
 because this buffer is auto-generated and has no meaning
-unless this hints."
-                   orig-win)))
+unless this hints.
+
+Type `q' to bury and kill this buffer, type `e' to set this
+window use origin buffer `%S'"
+                   orig-win orig-buff)))
         (unless (bound-and-true-p buffer-read-only)
-          (setq-local buffer-read-only t))))
+          (setq-local buffer-read-only t))
+        (entropy/emacs-local-set-key
+         (kbd "q")
+         (lambda () (interactive)
+           (when-let ((buffname (buffer-name buff)))
+             (when (and (window-live-p window)
+                        (not (frame-root-window-p window))
+                        (not (one-window-p)))
+               (message "Deleting exhausted buffer window %s of buffer %s ..."
+                        window buff)
+               (delete-window window))
+             (when (buffer-live-p buff)
+               (message "Deleting exhausted buffer %s ..." buff)
+               (kill-buffer buff))
+             (message "Delete exhausted buffer %s done" buffname))))
+        (entropy/emacs-local-set-key
+         (kbd "e")
+         (lambda () (interactive)
+           (if (not (buffer-live-p orig-buff))
+               (user-error "Origin buffer %s not lived any more!"
+                           orig-buffname)
+             (entropy/emacs-message-simple-progress-message
+                 (format "Use origin buffer %s" orig-buffname)
+               (set-window-buffer window orig-buff)))))))
     ;; finally return the WINDOW same as `split-window'
     window))
 
