@@ -10602,12 +10602,13 @@ window use origin buffer `%S'"
            (if-let (((not (buffer-live-p buff))))
                (user-error "Exhausted buffer is not existed any more: %s"
                            new-buffname)
-             (when (and (window-live-p window)
-                        (not (frame-root-window-p window))
-                        (not (one-window-p)))
+             (when-let* (((not (one-window-p)))
+                         (the-buff-win (get-buffer-window buff))
+                         ((eq the-buff-win (selected-window)))
+                         ((not (frame-root-window-p the-buff-win))))
                (message "Deleting exhausted buffer window %s of buffer %s ..."
-                        window buff)
-               (delete-window window))
+                        the-buff-win buff)
+               (delete-window the-buff-win))
              (when (buffer-live-p buff)
                (message "Deleting exhausted buffer %s ..." buff)
                (kill-buffer buff))
