@@ -1376,7 +1376,11 @@ When non-nil, INITIAL-INPUT is the initial search pattern."
           (and buffer-file-name
                (jka-compr-get-compression-info buffer-file-name))
           (funcall counsel-grep-use-swiper-p))
-      (swiper-isearch initial-input))
+      ;; FIXME: [2023-08-01 Tue 23:35:31] temporarily fallback to use
+      ;; `swiper' instead of `swiper-isearch' since it stucked via
+      ;; `ivy-next/previous-line' i.e. can not move to begin/end of
+      ;; candi list, is this related to our hackings on swiper stuffs?
+      (swiper initial-input))
      ((buffer-file-name)
       ;; save the buffer first
       (when (and (buffer-modified-p)
