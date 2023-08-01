@@ -465,12 +465,14 @@ bug of (EEMACS_BUG: h-17036bdc-c6e9-4ac2-bac8-1c55bd8ecda4)."
       ;; let `swiper' like function using origin since its
       ;; internal needed in ivy source filea
       swiper
+      swiper-thing-at-point
       swiper-all
       swiper-all-thing-at-point
       __ya/swiper-all-thing-at-point
       swiper-isearch
       swiper-isearch-thing-at-point
       counsel-grep-or-swiper
+      __eemacs/ivy-minibuffer-common-thing-at-point
       ))
   (dolist (cmd __eemacs-ivy-thing-at-pt-nignore-cmds)
     (put cmd '__eemacs-ivy-thing-at-pt-nignore-cmd-p t))
@@ -494,9 +496,7 @@ bug of (EEMACS_BUG: h-17036bdc-c6e9-4ac2-bac8-1c55bd8ecda4)."
     "Ignore `ivy-thing-at-point' to return emtpy string but with some
 occasions since the internal `thing-at-point' is so laggy with
 large buffer."
-    ;; big buffer always disable checking thing at point to reduce lag and gc
-    (cond ((> (entropy/emacs-buffer-size) (* 5 (expt 1024 2))) "")
-          ((or
+    (cond ((or
             ;; TODO: could we use this: `current-prefix-arg' ?
 
             ;; FIXME: shall we need to use `with-ivy-window' to
@@ -806,7 +806,7 @@ upon emacs 28.2 due to emacs new minibuffer resize mechanism while
   :config
 
 ;; **** core advice
-;; ***** enhance `swiper-isearch-thing-at-point'
+;; ***** enhance `swiper-*-thing-at-point'
 
   (defun __eemacs/swiper-call-with-thing-at-point (name func)
     "entropy-emacs union ivy framework inline `thing-at-point' core
@@ -1012,12 +1012,25 @@ unwind occasion.")
 
   ;; EEMACS_MAINTENANCE: follow upstreams updates
 
+  (defvar __ya/swiper-match-usable-p/no-hack-p nil)
   (defun __ya/swiper-match-usable-p (orig-func &rest orig-args)
     ;; since messy search via `re-search-*' may be cross line which is
     ;; unusable.
-    (unless (looking-at-p "^$") (apply orig-func orig-args)))
+    (when (or __ya/swiper-match-usable-p/no-hack-p
+              (not (looking-at-p "^$")))
+      (apply orig-func orig-args)))
   (advice-add 'swiper-match-usable-p
               :around #'__ya/swiper-match-usable-p)
+  ;; Since `swiper' relying on line-number pos offset from `point-min'
+  ;; to counting the preselection line to display at the caller
+  ;; initialization, we should respect each empty line which will be
+  ;; counted via `count-screen-lines' in body of `swiper'.
+  (defun __ya/swiper--candidates (orig-func &rest orig-args)
+    (let ((__ya/swiper-match-usable-p/no-hack-p t))
+      (apply orig-func orig-args)))
+  (advice-add 'swiper--candidates
+              :around
+              #'__ya/swiper--candidates)
 
   (defun __ya/swiper-isearch-function (orig-func &rest orig-args)
     (condition-case err
