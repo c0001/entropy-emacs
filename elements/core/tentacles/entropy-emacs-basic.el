@@ -6803,7 +6803,7 @@ featured. Or specified in elisp.)"
      ;; Always stick into tmp dir since we should consider directory
      ;; removable occasions thus of that using `default-directory'
      ;; where this func ran is not satisfied this thoughts.
-     :with-default-directory entropy/emacs-system-temporary-file-directory
+     :default-directory entropy/emacs-system-temporary-file-directory
      :command (list "bash"
                     (expand-file-name
                      "eemacs-termsafe.sh"
