@@ -2278,7 +2278,8 @@ placed as the `current-buffer' before
     "The guard for a daemon server to ensure itself not be closed by
 unconditionally interruption so that emacsclient can always
 conntected to this server until `kill-emacs' happened."
-    (unless entropy/emacs-kill-emacs-running-p
+    (unless (or entropy/emacs-kill-emacs-running-p
+                (not (boundp 'server-process)))
       (let ((rp (and (processp server-process)
                      (process-live-p server-process)
                      (eq 'listen (process-status server-process)))))
