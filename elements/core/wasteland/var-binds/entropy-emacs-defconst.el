@@ -418,7 +418,7 @@ but current stands on '%s'"
 ;; *** eemacs api restriction defination
 (defun entropy/emacs-api-restriction-display-warn (msg &optional do-error)
   (if do-error
-      (error msg)
+      (entropy/emacs-error-without-debugger msg)
     (display-warning
      'eemacs-api-restriction
      msg

@@ -89,7 +89,10 @@ loading.")
                :repo-lc entropy/emacs-ext-eemacs-elpkg-eemacs-ext-project-local-path
                :version-lc (expand-file-name "version"
                                              entropy/emacs-ext-eemacs-elpkg-eemacs-ext-project-local-path)
-               :version "2.0.0"
+               :version
+               (substring
+                entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-version
+                1)
                :indicator-lc (expand-file-name "entropy-emacs-extensions"
                                                entropy/emacs-ext-eemacs-elpkg-eemacs-ext-project-local-path)
                :inited-indicator-lc (expand-file-name "init"

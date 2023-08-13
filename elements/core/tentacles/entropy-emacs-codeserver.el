@@ -934,7 +934,7 @@ shutdown since it is managed by the customize variable
                  entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-version
                  1)))
        (and (entropy/emacs-version-compare
-             '<= ver "3.0.8")
+             '<= ver "3.0.9")
             (entropy/emacs-version-compare
              '>= ver "3.0.7"))))
     (defun __adv/lsp-bash-check-sh-shell/enable-for-bash-ts-mode

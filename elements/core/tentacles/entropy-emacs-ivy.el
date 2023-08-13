@@ -558,7 +558,7 @@ large buffer."
     :do-error t
     :detector
     (not (version=
-          "3.0.8"
+          "3.0.9"
           (substring
            entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-version
            1)))
@@ -567,7 +567,7 @@ large buffer."
      entropy/emacs-package-version-incompatible-error-symbol
      (list 'entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-version
            entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-version
-           "require: v3.0.8"))
+           "require: v3.0.9"))
 
     (defvar eemacs/ivy--prompt-cache nil)
     (defvar eemacs/ivy--insert-prompt-lazy-commands
