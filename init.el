@@ -54,7 +54,10 @@
 ;; Disable all auto native compilation bootstraps since we use union
 ;; native comp procedure in the makefile's 'make native-comp' section.
 (setq native-comp-always-compile nil
-      native-comp-deferred-compilation nil)
+      native-comp-deferred-compilation nil
+      ;; emacs 29.1 declared as replacement of
+      ;; `native-comp-deferred-compilation'
+      native-comp-jit-compilation nil)
 (setq native-comp-deferred-compilation-deny-list
       '(
         ;; general exclusions
