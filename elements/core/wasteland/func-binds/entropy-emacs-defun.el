@@ -12095,7 +12095,7 @@ thus."))
        ((= emacs-major-version 28)
         (entropy/emacs--set-user-package-dir-common "28.1"))
        ((= emacs-major-version 29)
-        (entropy/emacs--set-user-package-dir-common "29.0.50"))
+        (entropy/emacs--set-user-package-dir-common "29.1"))
        (t (error "Unsupport emacs version '%s'" emacs-version))))
     (when (memq entropy/emacs-ext-elpkg-get-type
                 '(entropy-emacs-extenisons-project
