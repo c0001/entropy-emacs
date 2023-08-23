@@ -1677,22 +1677,22 @@ in generally meaning range which says that basically can did so.")
                ((and (boundp sym)
                      (eq (symbol-value sym) 'treesit))))
       (cond
-       ((eq for-major-mode 'java-mode)
+       ((and (version< emacs-version "29.1") (eq for-major-mode 'java-mode))
         (set sym 'traditional)
         (entropy/emacs-run-body-only-once
          (warn "eemacs disabled `java-ts-mode' forcely \
-since `lsp-java' can not boot correctly in that case. \
+since in emacs-%s `lsp-java' can not boot correctly in that case. \
 Thus we've got fallback to traditional `java-mode'. \
-(warn by detection of `%s' set.)" sym)) nil)
-       ((eq for-major-mode 'sh-mode)
+(warn by detection of `%s' set.)" emacs-version sym)) nil)
+       ((and (version< emacs-version "29.1") (eq for-major-mode 'sh-mode))
         (if (not (member (entropy/emacs-shell-script-get-shell-type)
                          '("sh" "bash"))) nil
           (eval `(setq-local ,sym 'traditional))
           (entropy/emacs-run-body-only-once
            (warn "eemacs disabled `bash-ts-mode' forcely \
-since it's buggy or not comprehensive implemented as robust \
+since in emacs-%s it's buggy or not comprehensive implemented as robust \
 as `sh-mode' does for daily usage
-(warn by detection of `%s' set.)" sym))) nil)
+(warn by detection of `%s' set.)" emacs-version sym))) nil)
        (t t)))))
 
 (defun entropy/emacs-ide-gen-customized-variables ()
