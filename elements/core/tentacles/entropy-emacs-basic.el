@@ -358,6 +358,23 @@ With prefix argument binds, jump to the previous mark place."
   (setq dired-recursive-deletes 'always
         dired-recursive-copies 'always)
 
+;; ******* Revet prompting
+
+  (defun __ya/dired-revert/with-prompting (orig-func &rest orig-args)
+    "This advice let `dired-revert' takes care of the user nervousness
+and result feedback for a refresh of the result of the directory
+user expected to known about."
+    (entropy/emacs-message-simple-progress-message
+        (let ((cur-buff (current-buffer))
+              (fmstr "Reverting dired buffer %S"))
+          (when (bound-and-true-p dired-omit-mode)
+            (setq fmstr (concat fmstr " (with omitting nodes)")))
+          (format fmstr cur-buff))
+      (apply orig-func orig-args)))
+  (advice-add 'dired-revert
+              :around
+              #'__ya/dired-revert/with-prompting)
+
 ;; ****** Core advice
 ;; ******* Patch for `dired-mark-pop-up'
 
