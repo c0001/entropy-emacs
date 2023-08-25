@@ -179,6 +179,24 @@ files destroying."
               :around
               #'entropy/emacs-advice-for-common-do-with-http-proxy)
 
+
+  (defun __ya/magit-refresh/with-prompting (orig-func &rest orig-args)
+    "This advice let `magit-refresh' takes care of the user nervousness
+and result feedback for a refresh of the result of the git repo
+user expected to known about."
+    (if (not (eq this-command 'magit-refresh))
+        ;; only for diretly interactiely invoking `magit-refresh' so
+        ;; that doesn't pollute msg from other commands.
+        (apply orig-func orig-args)
+      (entropy/emacs-message-simple-progress-message
+          (let ((cur-buff (current-buffer))
+                (fmstr "Refresh magit buffer %S"))
+            (format fmstr cur-buff))
+        (apply orig-func orig-args))))
+  (advice-add 'magit-refresh
+              :around
+              #'__ya/magit-refresh/with-prompting)
+
   )
 
 (use-package ssh-agency
