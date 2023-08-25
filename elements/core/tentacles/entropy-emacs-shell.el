@@ -393,6 +393,12 @@ segmentation fault."
   ;; extra keybinding exclusions
   ;; --- FIXME: why 'M-O' conflicated with <f1> in `vterm-mode-map'?
   (define-key vterm-mode-map (kbd "M-O") nil)
+  ;; Disable the C-d keybinding since it usually terminate the vterm
+  ;; tty unexpectedly.
+  (define-key vterm-mode-map (kbd "C-d")
+              #'(lambda () (interactive)
+                  (user-error "C-d is inhibited in vterm since \
+it usually kill the current vterm tty unexpectedly")))
 
   ;; enable native ime toggle for `vterm-mode'. Based on vterm updates
   ;; of
