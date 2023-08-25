@@ -209,7 +209,8 @@
 
         ;; proc buffers
         ;;  --- emacs async ---
-        ("^\\*emacs\\(<[0-9]+>\\)?\\*" :regexp t   :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
+        ("^\\*emacs\\(:err\\)?\\(<[0-9]+>\\)?\\*"
+         :regexp t :dedicated t :align bottom :size 0.4 :autoclose t :select nil)
         ;; --- others ---
         ("^ ?\\*openwith-process\\*"   :regexp t   :dedicated t :align bottom :size 0.2 :autoclose t   :select nil)
         ))

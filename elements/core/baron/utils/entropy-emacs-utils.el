@@ -80,7 +80,12 @@
                   (proc-buff (process-buffer proc))
                   ((and (bufferp proc-buff) (buffer-live-p proc-buff))))
         (with-current-buffer proc-buff
-          (setq entropy/emacs-should-be-read-only t)))
+          (setq entropy/emacs-should-be-read-only t))
+        (when-let* ((proc-buff-stderr (entropy/emacs-process-stderr-buffer proc))
+                    ((and (bufferp proc-buff-stderr)
+                          (buffer-live-p proc-buff-stderr))))
+          (with-current-buffer proc-buff-stderr
+            (setq entropy/emacs-should-be-read-only t))))
       ;; orig return
       rtn))
   (advice-add 'async-start-process

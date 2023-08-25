@@ -1217,6 +1217,27 @@ that name as FILE later."
         (with-temp-file file
           (entropy/emacs-file-truename file))))))
 
+;; *** process
+
+(defun entropy/emacs--make-process-top-advice (orig-func &rest orig-args)
+  (let ((stderr (plist-get orig-args :stderr))
+        (proc (apply orig-func orig-args)))
+    (process-put proc '__eemacs_make_process_prop_stderr__
+                 stderr)
+    proc))
+(advice-add 'make-process :around #'entropy/emacs--make-process-top-advice)
+
+(defun entropy/emacs-process-stderr-buffer (process)
+  "Like `process-buffer' but return its stderr buffer or nil if non
+of thus."
+  (process-get process '__eemacs_make_process_prop_stderr__))
+
+(defun entropy/emacs-process-buffer-prefer-stderr (process)
+  "Like `process-buffer' but preferred return its stderr buffer if
+it has one of thus, otherwise same as `process-buffer'."
+  (or (entropy/emacs-process-stderr-buffer process)
+      (process-buffer process)))
+
 ;; ** INIT
 
 (entropy/emacs-defconst
