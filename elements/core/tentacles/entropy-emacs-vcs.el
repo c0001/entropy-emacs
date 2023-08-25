@@ -179,7 +179,6 @@ files destroying."
               :around
               #'entropy/emacs-advice-for-common-do-with-http-proxy)
 
-
   (defun __ya/magit-refresh/with-prompting (orig-func &rest orig-args)
     "This advice let `magit-refresh' takes care of the user nervousness
 and result feedback for a refresh of the result of the git repo
