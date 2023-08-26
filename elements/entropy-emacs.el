@@ -1230,7 +1230,9 @@ that name as FILE later."
 (defun entropy/emacs-process-stderr-buffer (process)
   "Like `process-buffer' but return its stderr buffer or nil if non
 of thus."
-  (process-get process '__eemacs_make_process_prop_stderr__))
+  (when-let* ((buff (process-get process '__eemacs_make_process_prop_stderr__))
+              ((and (bufferp buff) (buffer-live-p buff))))
+    buff))
 
 (defun entropy/emacs-process-buffer-prefer-stderr (process)
   "Like `process-buffer' but preferred return its stderr buffer if
