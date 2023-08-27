@@ -1584,8 +1584,16 @@ used for `entropy/emacs-window-center-mode' internally only.")
                 (unless (equal tcl truncate-lines)
                   (setq truncate-lines tcl))))))
   (setq entropy/emacs-wc--uncenter-window-function #'(lambda () (olivetti-mode 0)))
-  (setq entropy/emacs-wc--expand-center-window-function #'olivetti-expand)
-  (setq entropy/emacs-wc--shrink-center-window-function #'olivetti-shrink)
+  (setq entropy/emacs-wc--expand-center-window-function
+        (lambda ()
+          (unless (bound-and-true-p olivetti-mode)
+            (olivetti-mode 1))
+          (olivetti-expand)))
+  (setq entropy/emacs-wc--shrink-center-window-function
+        (lambda ()
+          (unless (bound-and-true-p olivetti-mode)
+            (olivetti-mode 1))
+          (olivetti-shrink)))
 
   :config
 
