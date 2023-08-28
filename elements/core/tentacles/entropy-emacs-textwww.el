@@ -47,6 +47,7 @@
           current-page-url current-link-url previous-page next-page
           search-query
           search-engine
+          goto-url refresh-current-page
           open-history)
   (let ((cmd-get-func
          (lambda (cmd-maybe)
@@ -67,7 +68,17 @@
       (entropy/emacs-hydra-hollow-define-major-mode-hydra-common-sparse-tree
        ',mode '(,feature ,mode-map) t
        '("Basic"
-         (("s" ,(funcall cmd-get-func search-query)
+         (("r" ,(funcall cmd-get-func goto-url)
+           "Goto url"
+           :enable ,(not (null goto-url))
+           ,@(funcall map-get-func search-query)
+           :exit t)
+          ("g" ,(funcall cmd-get-func refresh-current-page)
+           "Refresh current page"
+           :enable ,(not (null refresh-current-page))
+           ,@(funcall map-get-func search-query)
+           :exit t)
+          ("s" ,(funcall cmd-get-func search-query)
            "Search"
            :enable ,(not (null search-query))
            ,@(funcall map-get-func search-query)
@@ -215,6 +226,8 @@
    :mode w3m-mode
    :feature w3m
    :mode-map w3m-mode-map
+   :goto-url w3m-goto-url
+   :refresh-current-page w3m-reload-this-page
    :toggle-image w3m-toggle-inline-images
    :toggle-inline-image w3m-toggle-inline-image
    :bookmark-library-view w3m-bookmark-view
@@ -652,6 +665,8 @@ to restore."
    :mode eww-mode
    :feature eww
    :mode-map eww-mode-map
+   :goto-url eww
+   :refresh-current-page eww-reload
    :toggle-image entropy/emacs-textwww--eww-toggle-show-image-whole-page
    :bookmark-library-view eww-list-bookmarks
    :bookmark-add eww-add-bookmark
