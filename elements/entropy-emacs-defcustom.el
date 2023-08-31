@@ -1649,7 +1649,7 @@ in generally meaning range which says that basically can did so.")
           'go-ts-mode 'rust-ts-mode
           'python-ts-mode 'js-ts-mode 'typescript-ts-mode
           'json-ts-mode 'css-ts-mode
-          'bash-ts-mode
+          'bash-ts-mode 'yaml-ts-mode
           )))
 
 (defvar entropy/emacs-ide-for-them/classic
@@ -1658,7 +1658,8 @@ in generally meaning range which says that basically can did so.")
     go-mode  rust-mode
     python-mode php-mode js-mode js2-mode
     json-mode css-mode html-mode web-mode nxml-mode
-    sh-mode powershell-mode))
+    sh-mode powershell-mode
+    yaml-mode))
 
 (defvar entropy/emacs-ide-for-them
   `(,@entropy/emacs-ide-for-them/classic
