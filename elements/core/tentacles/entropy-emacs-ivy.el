@@ -58,18 +58,61 @@
 ;; ** isearch
 (use-package isearch
   :ensure nil
+  :init
+  ;; Never wrap searching so that we can stick on top/bottom match
+  ;; place precisely.
+  (setq isearch-wrap-pause nil)
   :config
-
-  ;; ;; Additional text for the message prefix
-  ;; (setq isearch-message-prefix-add nil)
-  ;; ;; Additional text for the message suffix
-  ;; (setq isearch-message-suffix-add nil)
-
+  (defvar __eemacs_isearch_prefix_added_p__ nil)
   (eval-when-compile
     (defmacro eemacs/isearch--with-edit-mode-spec (&rest body)
       `(let ((isearch-message-prefix-add
-              (propertize "[edit] " 'face 'warning)))
+              (propertize "[edit] " 'face 'warning))
+             (__eemacs_isearch_prefix_added_p__ t))
          ,(entropy/emacs-macroexp-progn body))))
+
+  (defun __ya/isearch-message-prefix (fn &rest args)
+    (if (bound-and-true-p __eemacs_isearch_prefix_added_p__) (apply fn args)
+      (let ((isearch-message-prefix-add
+             (if (eq this-command 'isearch-edit-string)
+                 (propertize
+                  (substitute-command-keys "\
+[type \\<minibuffer-local-isearch-map>\\[exit-minibuffer] to finish edit] ")
+                  'face 'warning)
+               (propertize
+                ;; FIXME: `substitute-command-keys' can not choose a
+                ;; specified key-binding to show while various key
+                ;; binding to a same defination?
+                ;;
+                ;; (substitute-command-keys
+                ;;  "[type \\<isearch-mode-map>\\[isearch-edit-string] to edit-string] ")
+                "[type M-e to edit-string] "
+                'face 'warning))))
+        (apply fn args))))
+  (advice-add 'isearch-message-prefix
+              :around
+              #'__ya/isearch-message-prefix)
+
+  (defvar __ya/isearch-mode-for-winprop nil)
+  (defun __ya/isearch-mode/main-func (fn &rest args)
+    ;; only init for the top invocation of `isearch-*' commands so
+    ;; that the prop not changed via incremental search.
+    (unless (bound-and-true-p isearch-mode)
+      (setq __ya/isearch-mode-for-winprop
+            (list
+             :win (selected-window)
+             :win-start (window-start)
+             :win-point (window-point))))
+    (apply fn args))
+  (advice-add 'isearch-mode
+              :around #'__ya/isearch-mode/main-func)
+
+  (defun eemacs/isearch--edit-string-with-eemacs-internal-ime ()
+    (interactive)
+    (eemacs/isearch--with-edit-mode-spec
+     (let ((entropy/emacs-inhibit-minibuffer-setup-reset-internal-IME t))
+       (minibuffer-with-setup-hook entropy/emacs-internal-IME-toggle-function
+         (isearch-edit-string)))))
 
   (defun eemacs/isearch--Left-Char ()
     (interactive)
@@ -91,9 +134,38 @@
     (eemacs/isearch--with-edit-mode-spec
      (isearch-edit-string)))
 
-  (define-key isearch-mode-map (kbd "ESC ESC") 'isearch-cancel)
+  (defun eemacs/isearch--exit-minibuffer ()
+    (interactive)
+    (unwind-protect (and (minibufferp) (abort-minibuffers))
+      (run-with-idle-timer
+       0.001 nil
+       (lambda nil
+         (when isearch-mode
+           ;;  FIXME: why needed this?
+           (discard-input)
+           (unwind-protect (isearch-cancel)
+             (unwind-protect
+                 (when (consp __ya/isearch-mode-for-winprop)
+                   (let ((win (plist-get __ya/isearch-mode-for-winprop :win))
+                         (win-start (plist-get __ya/isearch-mode-for-winprop :win-start))
+                         (win-pt (plist-get __ya/isearch-mode-for-winprop :win-point)))
+                     (when (window-live-p win)
+                       (with-selected-window win
+                         (and (>= win-pt (point-max)) (<= win-pt (point-max))
+                              (goto-char win-pt)))
+                       (and (>= win-start (point-max)) (<= win-start (point-max))
+                            (set-window-start win win-start)))))
+               (setq __ya/isearch-mode-for-winprop nil))
+             (if (minibufferp) (minibuffer-keyboard-quit)
+               (keyboard-quit))))))))
+
+  (define-key isearch-mode-map (kbd "ESC ESC") '#'abort-minibuffers)
+  (entropy/emacs-define-key-for-C-g-and-its-malwares
+   isearch-mode-map 'eemacs/isearch--exit-minibuffer)
   ;; edit string mode for arbitrary search pattern modifiation
-  (define-key isearch-mode-map "\M-e" 'isearch-edit-string)
+  (define-key isearch-mode-map (kbd "M-e") 'isearch-edit-string)
+  (define-key isearch-mode-map (kbd entropy/emacs-internal-ime-toggling-kbd-key)
+              'eemacs/isearch--edit-string-with-eemacs-internal-ime)
   ;; either rediret common buffer operation to edit string mode to
   ;; make interaction be consistent with ivy
   (define-key isearch-mode-map (kbd "<left>")  'eemacs/isearch--Left-Char)
@@ -104,7 +176,10 @@
   (define-key isearch-mode-map (kbd "<down>") 'isearch-repeat-forward)
   (define-key isearch-mode-map (kbd "<up>") 'isearch-repeat-backward)
   ;; either for more:
-  (define-key isearch-mode-map (kbd "M-DEL") 'isearch-edit-string)
+  (define-key isearch-mode-map (kbd "M-<backspace>")
+              (lambda nil (interactive)
+                (let ((this-command 'isearch-edit-string))
+                  (isearch-edit-string))))
 
   (define-key isearch-mode-map (kbd "C-c C-o") 'isearch-occur)
   (define-key isearch-mode-map "\M-c" 'isearch-toggle-case-fold)
@@ -136,7 +211,9 @@ based on `isearch-regexp' as filter."
     (define-key map (kbd "<up>")    #'isearch-reverse-exit-minibuffer)
     (define-key map (kbd "C-f")     #'isearch-yank-char-in-minibuffer)
     (define-key map (kbd "<right>") #'right-char)
-    (define-key map (kbd "ESC ESC") #'abort-recursive-edit))
+    (define-key map (kbd "ESC ESC") #'abort-minibuffers)
+    (entropy/emacs-define-key-for-C-g-and-its-malwares
+     map #'eemacs/isearch--exit-minibuffer))
 
   )
 
@@ -1378,7 +1455,8 @@ When non-nil, INITIAL-INPUT is the initial search pattern."
     (interactive)
     (cond
      ;; big buffer always use `isearch' to reduce lag and gc
-     ((> (entropy/emacs-buffer-size) (* 5 (expt 1024 2)))
+     ((or current-prefix-arg
+          (> (entropy/emacs-buffer-size) (* 5 (expt 1024 2))))
       (isearch-forward t t))
      ((or (not buffer-file-name)
           (buffer-narrowed-p)

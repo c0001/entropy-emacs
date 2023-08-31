@@ -2335,6 +2335,20 @@ requirements.")
   (setq entropy/emacs-internal-IME-toggle-function func)
   (run-hooks 'entropy/emacs-internal-IME-toggle-function-set-hook))
 
+(entropy/emacs-defconst/only-allow/local
+  entropy/emacs-inhibit-minibuffer-setup-reset-internal-IME nil
+  "Non-nil inhibit eemacs reset IME when entering minibuffer with
+`minibuffer-setup-hook'.")
+
+;; Forcely rest plain input method while active minibuffer
+(defun entropy/emacs-internal-IME--reset-while-minibuffer-setup
+    (&rest _)
+  (unless (or entropy/emacs-inhibit-minibuffer-setup-reset-internal-IME
+              (null current-input-method))
+    (set-input-method nil)))
+(add-hook 'minibuffer-setup-hook
+          #'entropy/emacs-internal-IME--reset-while-minibuffer-setup)
+
 ;; ** package patches refer
 
 (defvar entropy/emacs-ivy-patch/inhibit-dynamic-exhibit-conditions nil

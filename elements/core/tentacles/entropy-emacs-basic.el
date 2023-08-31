@@ -5633,14 +5633,7 @@ described variable."
   (setq describe-bindings-outline t))
 
 ;; **** Minibuffer Setup
-
-;; Forcely rest plain input method while active minibuffer
-(defun entropy/emacs-basic--reset-ime-in-minibuffer
-    (&rest _)
-  (unless (null current-input-method)
-    (set-input-method nil)))
-(add-hook 'minibuffer-setup-hook
-          #'entropy/emacs-basic--reset-ime-in-minibuffer)
+;; TODO
 
 ;; **** font-lock
 (defun __eemacs/jit-lock-function-auto-disable
