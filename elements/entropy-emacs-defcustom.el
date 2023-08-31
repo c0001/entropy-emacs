@@ -1544,6 +1544,9 @@ in generally meaning range which says that basically can did so.")
   (add-to-list 'treesit-extra-load-path
                entropy/emacs-treesit-libs-default-load-path))
 
+;; EEMACS_MAINTENANCE: all lang name should respect
+;; `treesit-language-available-p' invocation via every `prog-mode's'
+;; treesit variant `major-mode'.
 (defvar entropy/emacs-ide--lang-mode-info-alist
   `((js-mode            :lang javascript
                         :treesit-mode-p nil
