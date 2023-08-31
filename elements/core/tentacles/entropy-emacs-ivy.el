@@ -63,16 +63,16 @@
   ;; place precisely.
   (setq isearch-wrap-pause nil)
   :config
-  (defvar __eemacs_isearch_prefix_added_p__ nil)
+  (defvar __eemacs/isearch_prefix_added_p__ nil)
   (eval-when-compile
     (defmacro eemacs/isearch--with-edit-mode-spec (&rest body)
       `(let ((isearch-message-prefix-add
               (propertize "[edit] " 'face 'warning))
-             (__eemacs_isearch_prefix_added_p__ t))
+             (__eemacs/isearch_prefix_added_p__ t))
          ,(entropy/emacs-macroexp-progn body))))
 
   (defun __ya/isearch-message-prefix (fn &rest args)
-    (if (bound-and-true-p __eemacs_isearch_prefix_added_p__) (apply fn args)
+    (if (bound-and-true-p __eemacs/isearch_prefix_added_p__) (apply fn args)
       (let ((isearch-message-prefix-add
              (if (eq this-command 'isearch-edit-string)
                  (propertize
