@@ -134,9 +134,18 @@
     (eemacs/isearch--with-edit-mode-spec
      (isearch-edit-string)))
 
+  (defun eemacs/isearch--yank-kill (event)
+    (interactive "e")
+    (if (display-graphic-p) (isearch-yank-kill)
+      (entropy/emacs-with-xterm-paste-core
+       event (isearch-yank-kill))))
+
   (defun eemacs/isearch--exit-minibuffer ()
     (interactive)
-    (unwind-protect (and (minibufferp) (abort-minibuffers))
+    (unwind-protect
+        (progn (and (minibufferp) (abort-minibuffers))
+               (if (minibufferp) (minibuffer-keyboard-quit)
+                 (keyboard-quit)))
       (run-with-idle-timer
        0.001 nil
        (lambda nil
@@ -155,11 +164,9 @@
                               (goto-char win-pt)))
                        (and (>= win-start (point-max)) (<= win-start (point-max))
                             (set-window-start win win-start)))))
-               (setq __ya/isearch-mode-for-winprop nil))
-             (if (minibufferp) (minibuffer-keyboard-quit)
-               (keyboard-quit))))))))
+               (setq __ya/isearch-mode-for-winprop nil))))))))
 
-  (define-key isearch-mode-map (kbd "ESC ESC") '#'abort-minibuffers)
+  (define-key isearch-mode-map (kbd "ESC ESC") #'abort-minibuffers)
   (entropy/emacs-define-key-for-C-g-and-its-malwares
    isearch-mode-map 'eemacs/isearch--exit-minibuffer)
   ;; edit string mode for arbitrary search pattern modifiation
@@ -184,6 +191,10 @@
   (define-key isearch-mode-map (kbd "C-c C-o") 'isearch-occur)
   (define-key isearch-mode-map "\M-c" 'isearch-toggle-case-fold)
   (define-key isearch-mode-map "\M-r" 'isearch-toggle-regexp)
+
+  (define-key isearch-mode-map (kbd "C-y") 'eemacs/isearch--yank-kill)
+  (define-key isearch-mode-map (kbd "S-<insert>") 'eemacs/isearch--yank-kill)
+  (define-key isearch-mode-map (kbd "<xterm-paste>") 'eemacs/isearch--yank-kill)
 
   (defun eemacs/isearch--query-replace ()
     "Using `isearch-query-replace' or `isearch-query-replace-regexp'
