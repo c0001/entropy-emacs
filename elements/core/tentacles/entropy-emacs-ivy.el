@@ -117,7 +117,7 @@
        0.001 nil
        (lambda nil
          (when (entropy/emacs-debugger-is-running-p)
-           (message "iedit: %S ..." op))
+           (message "op: %S ..." op))
          (when (and (bound-and-true-p isearch-suspended)
                     (minibufferp) (functionp op))
            (funcall op))))
