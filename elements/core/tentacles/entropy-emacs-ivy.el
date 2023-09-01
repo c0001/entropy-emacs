@@ -274,6 +274,10 @@
   (define-key isearch-mode-map (kbd "S-<insert>") 'isearch-yank-kill)
   (define-key isearch-mode-map (kbd "<xterm-paste>") 'eemacs/isearch--S-insert)
 
+  ;; remove anoying `isearch-help-map'
+  (define-key isearch-mode-map (kbd "C-h")
+              (lambda nil (interactive) (isearch-update)))
+
   (defun eemacs/isearch--query-replace ()
     "Using `isearch-query-replace' or `isearch-query-replace-regexp'
 based on `isearch-regexp' as filter."
