@@ -100,7 +100,11 @@
              (if (bound-and-true-p isearch-suspended)
                  (concat new-prefix isearch-message-prefix-add)
                new-prefix)))
-        (apply fn args))))
+        ;; FIXME: disable internal method since eemacs internal chinese
+        ;; IMEs can not work out in `isearch-mode' (see
+        ;; https://github.com/DogLooksGood/emacs-rime/issues/199 or use
+        ;; [[https://github.com/astoff/isearch-mb][isearch-mb]])
+        (let (current-input-method) (apply fn args)))))
   (advice-add 'isearch-message-prefix
               :around
               #'__ya/isearch-message-prefix)
@@ -130,37 +134,39 @@
              :win (selected-window)
              :win-start (window-start)
              :win-point (window-point))))
-    (apply fn args))
+    ;; FIXME: disable internal method since eemacs internal chinese
+    ;; IMEs can not work out in `isearch-mode' (see
+    ;; https://github.com/DogLooksGood/emacs-rime/issues/199 or use
+    ;; [[https://github.com/astoff/isearch-mb][isearch-mb]])
+    (let (current-input-method) (apply fn args)))
   (advice-add 'isearch-mode
               :around #'__ya/isearch-mode/main-func)
 
-  (defvar-local eemacs/isearch-edit-string--local-internal-ime-enabled nil)
-  (defun eemacs/isearch--toggle-internal-ime-core ()
+  (defun eemacs/isearch--toggle-internal-ime-core (&optional type)
     (and (functionp entropy/emacs-internal-IME-toggle-function)
-         (progn (funcall entropy/emacs-internal-IME-toggle-function) t)
-         (setq eemacs/isearch-edit-string--local-internal-ime-enabled
-               (not eemacs/isearch-edit-string--local-internal-ime-enabled))))
-  (defun eemacs/isearch--toggle-internal-ime (&optional can-err)
-    (if can-err (eemacs/isearch--toggle-internal-ime-core)
-      (ignore-errors (eemacs/isearch--toggle-internal-ime-core))))
+         (funcall entropy/emacs-internal-IME-toggle-function type)))
+  (defun eemacs/isearch--toggle-internal-ime (&optional can-err type)
+    (if can-err (eemacs/isearch--toggle-internal-ime-core type)
+      (ignore-errors (eemacs/isearch--toggle-internal-ime-core type))))
   (defun eemacs/isearch--edit-string-with-eemacs-internal-ime ()
     (interactive)
     (eemacs/isearch--with-edit-mode-spec
      (let* ((entropy/emacs-inhibit-minibuffer-setup-reset-internal-IME t)
             (imefunc #'eemacs/isearch--toggle-internal-ime)
             (imetest-func
-             (lambda nil
+             (lambda (&optional type)
                (condition-case nil
-                   (eemacs/isearch--toggle-internal-ime t)
+                   (eemacs/isearch--toggle-internal-ime t type)
                  (error 'failed))))
             (isearch-message-prefix-add
-             (let ((fatalp (funcall imetest-func)))
+             (let ((fatalp (funcall imetest-func 'enable)))
                (prog1
                    (if (and (bound-and-true-p current-input-method)
                             current-input-method-title)
                        (format "[%s] " current-input-method-title))
-                 (unless fatalp (funcall imefunc))))))
-       (minibuffer-with-setup-hook imefunc (isearch-edit-string)))))
+                 (unless fatalp (funcall imefunc 'disable))))))
+       (minibuffer-with-setup-hook (lambda nil (funcall imefunc nil 'enable))
+         (isearch-edit-string)))))
 
   (defun eemacs/isearch--Left-Char ()
     (interactive)
