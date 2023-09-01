@@ -56,20 +56,19 @@
 (defvar company-search-string)
 
 ;; ** isearch
-(use-package isearch
-  :ensure nil
-  :init
+(defvar __eemacs/isearch_prefix_added_p__ nil)
+(eval-when-compile
+  (defmacro eemacs/isearch--with-edit-mode-spec (&rest body)
+    `(let ((__eemacs/isearch_prefix_added_p__ t))
+       ,(entropy/emacs-macroexp-progn body))))
+
+;; FIXME: we can not `use-package' for `isearch' package who cause the
+;; lexical binding env useless for
+;; `__eemacs/isearch-edit-string-idle-operation' lambda?
+(progn
   ;; Never wrap searching so that we can stick on top/bottom match
   ;; place precisely.
   (setq isearch-wrap-pause nil)
-
-  :config
-  (defvar __eemacs/isearch_prefix_added_p__ nil)
-  (eval-when-compile
-    (defmacro eemacs/isearch--with-edit-mode-spec (&rest body)
-      `(let ((__eemacs/isearch_prefix_added_p__ t))
-         ,(entropy/emacs-macroexp-progn body))))
-
   (defvar __eemacs/isearch_commands_from_edit_buffer nil)
   (dolist (el (list 'exit-minibuffer 'abort-minibuffers))
     (add-to-list '__eemacs/isearch_commands_from_edit_buffer
@@ -113,6 +112,8 @@
       (run-with-idle-timer
        0.001 nil
        (lambda nil
+         (when (entropy/emacs-debugger-is-running-p)
+           (message "iedit: %S ..." op))
          (when (and (bound-and-true-p isearch-suspended)
                     (minibufferp) (functionp op))
            (funcall op))))
