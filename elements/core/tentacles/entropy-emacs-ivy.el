@@ -62,6 +62,7 @@
   ;; Never wrap searching so that we can stick on top/bottom match
   ;; place precisely.
   (setq isearch-wrap-pause nil)
+
   :config
   (defvar __eemacs/isearch_prefix_added_p__ nil)
   (eval-when-compile
@@ -70,9 +71,12 @@
          ,(entropy/emacs-macroexp-progn body))))
 
   (defvar __eemacs/isearch_commands_from_edit_buffer nil)
+  (dolist (el (list 'exit-minibuffer 'abort-minibuffers))
+    (add-to-list '__eemacs/isearch_commands_from_edit_buffer
+                 el))
 
   (defun __ya/isearch-message-prefix (fn &rest args)
-    (let ((isearch-message-prefix-add
+    (let ((new-prefix
            (if (or (and (bound-and-true-p __eemacs/isearch_prefix_added_p__)
                         (not (memq this-command
                                    __eemacs/isearch_commands_from_edit_buffer)))
@@ -90,10 +94,30 @@
               ;;  "[type \\<isearch-mode-map>\\[isearch-edit-string] to edit-string] ")
               "[type M-e to edit-string] "
               'face 'warning))))
-      (apply fn args)))
+      (let ((isearch-message-prefix-add
+             ;; TODO: we currently only append extra msg prefix in
+             ;; edit state since we don't have a filter to judge when
+             ;; to add that.
+             (if (bound-and-true-p isearch-suspended)
+                 (concat new-prefix isearch-message-prefix-add)
+               new-prefix)))
+        (apply fn args))))
   (advice-add 'isearch-message-prefix
               :around
               #'__ya/isearch-message-prefix)
+
+  (entropy/emacs-defconst/only-allow/local
+    __eemacs/isearch-edit-string-idle-operation nil)
+  (defun __ya/isearch-edit-string (fn &rest args)
+    (let ((op __eemacs/isearch-edit-string-idle-operation))
+      (run-with-idle-timer
+       0.001 nil
+       (lambda nil
+         (when (and (bound-and-true-p isearch-suspended)
+                    (minibufferp) (functionp op))
+           (funcall op))))
+      (apply fn args)))
+  (advice-add 'isearch-edit-string :around #'__ya/isearch-edit-string)
 
   (defvar __ya/isearch-mode-for-winprop nil)
   (defun __ya/isearch-mode/main-func (fn &rest args)
@@ -109,32 +133,61 @@
   (advice-add 'isearch-mode
               :around #'__ya/isearch-mode/main-func)
 
+  (defvar-local eemacs/isearch-edit-string--local-internal-ime-enabled nil)
+  (defun eemacs/isearch--toggle-internal-ime-core ()
+    (and (functionp entropy/emacs-internal-IME-toggle-function)
+         (progn (funcall entropy/emacs-internal-IME-toggle-function) t)
+         (setq eemacs/isearch-edit-string--local-internal-ime-enabled
+               (not eemacs/isearch-edit-string--local-internal-ime-enabled))))
+  (defun eemacs/isearch--toggle-internal-ime (&optional can-err)
+    (if can-err (eemacs/isearch--toggle-internal-ime-core)
+      (ignore-errors (eemacs/isearch--toggle-internal-ime-core))))
   (defun eemacs/isearch--edit-string-with-eemacs-internal-ime ()
     (interactive)
     (eemacs/isearch--with-edit-mode-spec
-     (let ((entropy/emacs-inhibit-minibuffer-setup-reset-internal-IME t))
-       (minibuffer-with-setup-hook entropy/emacs-internal-IME-toggle-function
-         (isearch-edit-string)))))
+     (let* ((entropy/emacs-inhibit-minibuffer-setup-reset-internal-IME t)
+            (imefunc #'eemacs/isearch--toggle-internal-ime)
+            (imetest-func
+             (lambda nil
+               (condition-case nil
+                   (eemacs/isearch--toggle-internal-ime t)
+                 (error 'failed))))
+            (isearch-message-prefix-add
+             (let ((fatalp (funcall imetest-func)))
+               (prog1
+                   (if (and (bound-and-true-p current-input-method)
+                            current-input-method-title)
+                       (format "[%s] " current-input-method-title))
+                 (unless fatalp (funcall imefunc))))))
+       (minibuffer-with-setup-hook imefunc (isearch-edit-string)))))
 
   (defun eemacs/isearch--Left-Char ()
     (interactive)
     (eemacs/isearch--with-edit-mode-spec
-     (isearch-edit-string)))
+     (let ((__eemacs/isearch-edit-string-idle-operation
+            'left-char))
+       (isearch-edit-string))))
 
   (defun eemacs/isearch--Right-Char ()
     (interactive)
     (eemacs/isearch--with-edit-mode-spec
-     (isearch-edit-string)))
+     (let ((__eemacs/isearch-edit-string-idle-operation
+            'right-char))
+       (isearch-edit-string))))
 
   (defun eemacs/isearch--Ctril-A ()
     (interactive)
     (eemacs/isearch--with-edit-mode-spec
-     (isearch-edit-string)))
+     (let ((__eemacs/isearch-edit-string-idle-operation
+            (lambda nil (move-beginning-of-line 1))))
+       (isearch-edit-string))))
 
   (defun eemacs/isearch--Ctril-E ()
     (interactive)
     (eemacs/isearch--with-edit-mode-spec
-     (isearch-edit-string)))
+     (let ((__eemacs/isearch-edit-string-idle-operation
+            (lambda nil (move-end-of-line 1))))
+       (isearch-edit-string))))
 
   (let ((gfunc (lambda nil (interactive) (isearch-yank-kill)))
         (tfunc
@@ -171,9 +224,9 @@
                          (win-pt (plist-get __ya/isearch-mode-for-winprop :win-point)))
                      (when (window-live-p win)
                        (with-selected-window win
-                         (and (>= win-pt (point-max)) (<= win-pt (point-max))
+                         (and (>= win-pt (point-min)) (<= win-pt (point-max))
                               (goto-char win-pt)))
-                       (and (>= win-start (point-max)) (<= win-start (point-max))
+                       (and (>= win-start (point-min)) (<= win-start (point-max))
                             (set-window-start win win-start)))))
                (setq __ya/isearch-mode-for-winprop nil))))))))
 
@@ -195,8 +248,13 @@
   (define-key isearch-mode-map (kbd "<up>") 'isearch-repeat-backward)
   ;; either for more:
   (let ((cmd
-         (lambda nil (interactive)
-           (let ((this-command 'isearch-edit-string))
+         (lambda (arg) (interactive "p")
+           (let ((this-command 'isearch-edit-string)
+                 (__eemacs/isearch-edit-string-idle-operation
+                  (lambda nil
+                    (delete-region
+                     (point)
+                     (progn (forward-word (- arg)) (point))))))
              (isearch-edit-string)))))
     (dolist (key (list "M-DEL" "M-<backspace>"))
       (define-key isearch-mode-map (kbd key) cmd)))
