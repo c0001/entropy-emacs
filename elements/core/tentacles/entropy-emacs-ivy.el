@@ -66,29 +66,31 @@
   (defvar __eemacs/isearch_prefix_added_p__ nil)
   (eval-when-compile
     (defmacro eemacs/isearch--with-edit-mode-spec (&rest body)
-      `(let ((isearch-message-prefix-add
-              (propertize "[edit] " 'face 'warning))
-             (__eemacs/isearch_prefix_added_p__ t))
+      `(let ((__eemacs/isearch_prefix_added_p__ t))
          ,(entropy/emacs-macroexp-progn body))))
 
+  (defvar __eemacs/isearch_commands_from_edit_buffer nil)
+
   (defun __ya/isearch-message-prefix (fn &rest args)
-    (if (bound-and-true-p __eemacs/isearch_prefix_added_p__) (apply fn args)
-      (let ((isearch-message-prefix-add
-             (if (eq this-command 'isearch-edit-string)
-                 (propertize
-                  (substitute-command-keys "\
-[type \\<minibuffer-local-isearch-map>\\[exit-minibuffer] to finish edit] ")
-                  'face 'warning)
+    (let ((isearch-message-prefix-add
+           (if (or (and (bound-and-true-p __eemacs/isearch_prefix_added_p__)
+                        (not (memq this-command
+                                   __eemacs/isearch_commands_from_edit_buffer)))
+                   (eq this-command 'isearch-edit-string))
                (propertize
-                ;; FIXME: `substitute-command-keys' can not choose a
-                ;; specified key-binding to show while various key
-                ;; binding to a same defination?
-                ;;
-                ;; (substitute-command-keys
-                ;;  "[type \\<isearch-mode-map>\\[isearch-edit-string] to edit-string] ")
-                "[type M-e to edit-string] "
-                'face 'warning))))
-        (apply fn args))))
+                (substitute-command-keys "\
+[type \\<minibuffer-local-isearch-map>\\[exit-minibuffer] to finish edit] ")
+                'face 'warning)
+             (propertize
+              ;; FIXME: `substitute-command-keys' can not choose a
+              ;; specified key-binding to show while various key
+              ;; binding to a same defination?
+              ;;
+              ;; (substitute-command-keys
+              ;;  "[type \\<isearch-mode-map>\\[isearch-edit-string] to edit-string] ")
+              "[type M-e to edit-string] "
+              'face 'warning))))
+      (apply fn args)))
   (advice-add 'isearch-message-prefix
               :around
               #'__ya/isearch-message-prefix)
@@ -134,11 +136,20 @@
     (eemacs/isearch--with-edit-mode-spec
      (isearch-edit-string)))
 
-  (defun eemacs/isearch--yank-kill (event)
-    (interactive "e")
-    (if (display-graphic-p) (isearch-yank-kill)
-      (entropy/emacs-with-xterm-paste-core
-       event (isearch-yank-kill))))
+  (let ((gfunc (lambda nil (interactive) (isearch-yank-kill)))
+        (tfunc
+         (lambda (event)
+           (interactive "e")
+           (entropy/emacs-with-xterm-paste-core
+            event (isearch-yank-kill))))
+        (fsym 'eemacs/isearch--S-insert))
+    (if (not (daemonp))
+        (if (display-graphic-p) (fset fsym gfunc)
+          (fset fsym tfunc))
+      (entropy/emacs-with-daemon-make-frame-done
+        '__eemacs/define_eemacs/isearch--yank-kill nil
+        :when-gui-each (fset fsym gfunc)
+        :when-tui-each (fset fsym tfunc))))
 
   (defun eemacs/isearch--exit-minibuffer ()
     (interactive)
@@ -183,18 +194,20 @@
   (define-key isearch-mode-map (kbd "<down>") 'isearch-repeat-forward)
   (define-key isearch-mode-map (kbd "<up>") 'isearch-repeat-backward)
   ;; either for more:
-  (define-key isearch-mode-map (kbd "M-<backspace>")
-              (lambda nil (interactive)
-                (let ((this-command 'isearch-edit-string))
-                  (isearch-edit-string))))
+  (let ((cmd
+         (lambda nil (interactive)
+           (let ((this-command 'isearch-edit-string))
+             (isearch-edit-string)))))
+    (dolist (key (list "M-DEL" "M-<backspace>"))
+      (define-key isearch-mode-map (kbd key) cmd)))
 
   (define-key isearch-mode-map (kbd "C-c C-o") 'isearch-occur)
   (define-key isearch-mode-map "\M-c" 'isearch-toggle-case-fold)
   (define-key isearch-mode-map "\M-r" 'isearch-toggle-regexp)
 
-  (define-key isearch-mode-map (kbd "C-y") 'eemacs/isearch--yank-kill)
-  (define-key isearch-mode-map (kbd "S-<insert>") 'eemacs/isearch--yank-kill)
-  (define-key isearch-mode-map (kbd "<xterm-paste>") 'eemacs/isearch--yank-kill)
+  (define-key isearch-mode-map (kbd "C-y") 'isearch-yank-kill)
+  (define-key isearch-mode-map (kbd "S-<insert>") 'isearch-yank-kill)
+  (define-key isearch-mode-map (kbd "<xterm-paste>") 'eemacs/isearch--S-insert)
 
   (defun eemacs/isearch--query-replace ()
     "Using `isearch-query-replace' or `isearch-query-replace-regexp'
@@ -218,8 +231,12 @@ based on `isearch-regexp' as filter."
     (define-key map (kbd "M-TAB")   #'isearch-complete-edit)
     (define-key map (kbd "C-s")     #'isearch-forward-exit-minibuffer)
     (define-key map (kbd "<down>")  #'isearch-forward-exit-minibuffer)
+    (add-to-list '__eemacs/isearch_commands_from_edit_buffer
+                 'isearch-forward-exit-minibuffer)
     (define-key map (kbd "C-r")     #'isearch-reverse-exit-minibuffer)
     (define-key map (kbd "<up>")    #'isearch-reverse-exit-minibuffer)
+    (add-to-list '__eemacs/isearch_commands_from_edit_buffer
+                 'isearch-reverse-exit-minibuffer)
     (define-key map (kbd "C-f")     #'isearch-yank-char-in-minibuffer)
     (define-key map (kbd "<right>") #'right-char)
     (define-key map (kbd "ESC ESC") #'abort-minibuffers)

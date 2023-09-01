@@ -12860,7 +12860,8 @@ when the last event contet doesn't change, this useful to prevent
 yanking an obsolete entry from `kill-ring' when the emacs
 internal cut operation has updated the kill-ring but
 `xterm-paste' will still yank the previouse event content."
-  (let* ((paste-str (nth 1 event)))
+  (when-let (((eq (car-safe event) 'xterm-paste))
+             (paste-str (nth 1 event)))
     (with-temp-buffer
       (unless (string= paste-str
                        entropy/emacs--xterm-clipboard-head)
