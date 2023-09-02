@@ -4272,7 +4272,10 @@ collection."
               (when (yes-or-no-p
                      (format "Buffer %S has a running process; kill it? "
                              (buffer-name buff)))
-                (set-process-filter proc nil)
+                (set-process-filter
+                 proc
+                 ;; ignore any futher outputs
+                 t)
                 (delete-process proc)
                 (let ((kill-buffer-query-functions nil))
                   (funcall mfunc)))
@@ -4294,8 +4297,8 @@ its a exists file's buffer."
     (kill-buffer buff)
     (when (and (eq frame (selected-frame)) (file-exists-p fname))
       (entropy/emacs-message-simple-progress-message
-       "Revert to the dired of current buffer's `default-directory'"
-       (dired (file-name-directory fname))))))
+          "Revert to the dired of current buffer's `default-directory'"
+        (dired (file-name-directory fname))))))
 
 (defun entropy/emacs-basic-kill-buffer-and-its-window-when-grids ()
   "Kill buffer and close it's host window if windows conuts
@@ -4336,20 +4339,50 @@ retrieve from `window-list' larger than 1."
       (kill-buffer))))
 
 (defun entropy/emacs-basic-kill-buffer ()
-  "Entropy emacs specified `kill-buffer' method, used for replace
-as thus."
+  "Eemacs specified `kill-buffer' method with more human-centred
+designation."
   (declare (interactive-only t))
   (interactive)
   (cond
-   ((eq major-mode 'term-mode)
-    (call-interactively #'entropy/emacs-basic-kill-ansiterm-buffer)
-    (message "Kill current ansi-term buffer done."))
+   ;; COND 1: for miscs.
+   ((or (when (eq major-mode 'term-mode)
+          (let ((inhibit-quit t))
+            (prog1 t
+              (call-interactively #'entropy/emacs-basic-kill-ansiterm-buffer)
+              (message "Kill current ansi-term buffer done."))))
+        ;; TODO
+        ))
+   ;; COND2:
+   ;;
+   ;; Sibling sidebar style layout dealing as just show the sidebar
+   ;; like `dired-mode' buffer when their *HOST DIR* path relative
+   ;; level less than 2, which means:
+   ;;
+   ;; #+begin_example
+   ;;   dired A <---> file B
+   ;;     |             |
+   ;;     v             v
+   ;;   A's PATH AD   B's host dir path BD
+   ;;
+   ;;   For example:
+   ;;
+   ;;   1) If:
+   ;;           AD=/0/1/2/3
+   ;;           BD=/0/1/2
+   ;;      THEN window of B is also closed
+   ;;
+   ;;   2) If:
+   ;;           AD=/0/1/2/3
+   ;;           BD=/0/1/
+   ;;
+   ;;      This condition is not satisfied by this section and pass to next
+   ;;      condition filter.
+   ;; #+end_example
    ((and (buffer-file-name)
-         ;; not the 2 window horizontal overlay with the other one
-         ;; (not selected one) is the dired which match the dir of
-         ;; current `default-directory'.
          (let ((current-defdir default-directory)
-               (win-is-2hp (entropy/emacs-window-overlay-is-2-horizontal-splits-p nil t)))
+               (win-is-2hp
+                (entropy/emacs-window-overlay-is-2-horizontal-splits-p
+                 nil t)))
            (if win-is-2hp
                (with-current-buffer (window-buffer win-is-2hp)
                  (if (and
@@ -4358,13 +4391,16 @@ as thus."
                        ;; if location is equalized
                        (entropy/emacs-existed-filesystem-nodes-equal-p
                         default-directory current-defdir)
-                       ;; or the file's host is a nested subpath of
-                       ;; the side dired window
-                       (entropy/emacs-make-relative-filename
-                        (directory-file-name current-defdir)
-                        default-directory)))
+                       ;; or the file's host path is a nested subpath
+                       ;; of the side dired window
+                       (< (length
+                           (entropy/emacs-make-relative-filename
+                            (directory-file-name current-defdir)
+                            default-directory t))
+                          2)))
                      nil t)) t)))
     (call-interactively #'entropy/emacs-basic-kill-buffer-and-show-its-dired))
+   ;; Default COND: kill buffer and window
    (t
     (call-interactively
      #'entropy/emacs-basic-kill-buffer-and-its-window-when-grids))))
