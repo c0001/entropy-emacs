@@ -12538,22 +12538,11 @@ corresponding stuffs."
       (entropy/emacs-set-face-attribute
        'solaire-default-face frame
        :background "unspecified-bg"))
-    (when (and (daemonp) (> emacs-major-version 28))
+    (when (and (daemonp))
       ;; FIXME: unspecified-bg value is only adopted for TUI session
       ;; i.e.  while set, the GUI daemon client can not be raised up
       ;; successfully anymore in emacs-29 and above version, is that
       ;; the updates of emacs is not backward compatible or a bug?
-      (add-hook
-       'entropy/emacs-delete-frame-functions
-       (entropy/emacs-defalias
-           'eemacs/disable-cover0-theme-for-last-tui-daemon-client/because-of-tui-unspecifed-bg-set
-         (lambda (frame)
-           (when-let (((and
-                        (frame-parameter frame 'eemacs-current-frame-is-daemon-created)
-                        (entropy/emacs-daemon-current-is-main-client frame)))
-                      (inhibit-quit t))
-             (when (= 1 (length entropy/emacs-daemon--legal-clients))
-               (entropy/emacs-defun--theme-cover-0-reset 'no-renable))))))
       (warn "You should consider that the non-bg TUI daemon client will block
 emacs's ability to open a simulation GUI client in the same daemon
 session since procedure that launching GUI client can not preserving

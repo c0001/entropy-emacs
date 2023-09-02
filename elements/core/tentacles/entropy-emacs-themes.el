@@ -453,6 +453,26 @@ progress."
         (unless (or noninteractive (frame-parent))
           (funcall 'entropy/emacs-themes--load-theme-for-daemon-client-new)))
 
+      (add-hook 'entropy/emacs-delete-frame-functions
+                (entropy/emacs-defalias
+                    'entropy/emacs-daemon--disable-theme-when-main-client-closed
+                  (lambda (frame)
+                    (let ((inhibit-quit t))
+                      (when (and (entropy/emacs-daemon-frame-is-legal-daemon-client-p
+                                  frame)
+                                 (not (entropy/emacs-daemon-multi-clients-p)))
+                        (entropy/emacs-message-simple-progress-message
+                            (format "Disable daemon main clinet theme `%s'"
+                                    entropy/emacs-theme-sticker)
+                          (entropy/emacs-defun--theme-cover-0-reset 'no-renable)
+                          (disable-theme entropy/emacs-theme-sticker)))))
+                  "\
+For the last daemon frame, disable current enabled eemacs theme
+to avoid causing emacs UI freeze since non-compatible display
+type specs remained for new daemon frame. (e.g. erros like
+\"emacs has no capability of surrounding-text feature\" for tui)"
+                  ))
+
       )))
 
 ;; * provide

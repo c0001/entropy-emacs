@@ -1989,6 +1989,16 @@ current daemon session."
     (unless (entropy/emacs-daemon-current-is-main-client frame)
       t)))
 
+(defun entropy/emacs-daemon-multi-clients-p (&optional always-return)
+  "Indicate whether current daemon clients has 2 or more clients.
+
+Return the number of clients if thus or nil when not of thus.
+
+If ALWAYS-RETURN is non-nil then return the detected daemon-clients
+number."
+  (let ((num (length entropy/emacs-daemon--legal-clients)))
+    (if always-return num (and (> num 1) num))))
+
 (defun entropy/emacs-daemon-multi-gui-clients-p (&optional always-return)
   "Indicate whether current daemon clients has 2 or more gui
 clients.
