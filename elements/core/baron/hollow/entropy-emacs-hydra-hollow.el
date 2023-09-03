@@ -80,6 +80,7 @@
 ;; * Code
 ;; ** require
 (!eemacs-require 'entropy-emacs-defun)
+(!eemacs-require 'entropy-emacs-message)
 (!eemacs-require 'entropy-emacs-utils)
 (require 'use-package)
 
@@ -98,9 +99,7 @@ at some proper time.")
 (defvar entropy/emacs-hydra-hollow-call-before-hook nil
   "Hook before run any eemacs-hydra-hollow instances")
 
-(defun entropy/emacs-hydra-hollow-call-union-form (&rest _)
-  "Call `entropy/emacs-hydra-hollow-union-form' recursively til
-it becoming one empty form."
+(defun entropy/emacs-hydra-hollow-call-union-form-1 (&rest _)
   ;; Firstly we run the before hook before any operations
   (run-hooks 'entropy/emacs-hydra-hollow-call-before-hook)
   (let (
@@ -126,6 +125,14 @@ it becoming one empty form."
           (setq entropy/emacs-hydra-hollow-union-form
                 (copy-sequence
                  entropy/emacs-hydra-hollow-union-form-const)))))))
+
+(defun entropy/emacs-hydra-hollow-call-union-form (&rest _)
+  "Call `entropy/emacs-hydra-hollow-union-form' recursively til
+it becoming one empty form."
+  (entropy/emacs-message-simple-progress-message
+      "Dispatch hydra hollow union form"
+    :with-temp-message t
+    (entropy/emacs-hydra-hollow-call-union-form-1)))
 
 (defvar entropy/emacs-hydra-hollow-call-union-form-adviced-list nil
   "A list of functions who has been adviced by

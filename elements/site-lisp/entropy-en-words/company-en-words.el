@@ -29,9 +29,9 @@
 ;; inhibit require trie directly when byte-compile since it relying on
 ;; an old compat package `tNFA' which use obsolete cl-* functions,
 ;; while many obsolete warnings will popup when in compilation.
-(declare-function make-trie     "ext:trie")
-(declare-function trie-insert   "ext:trie")
-(declare-function trie-complete "ext:trie")
+(declare-function make-trie     "ext:trie" nil 'check-file-only)
+(declare-function trie-insert   "ext:trie" nil 'check-file-only)
+(declare-function trie-complete "ext:trie" nil 'check-file-only)
 (require 'company-en-words-data "./company-en-words-data.el")
 
 (defvar company-en-words/var--doc-buffer-name "*company-en-words-doc*")
@@ -83,8 +83,11 @@
 (when (or (bound-and-true-p entropy/emacs-fall-love-with-pdumper)
           (daemonp)
           (and (boundp 'entropy/emacs-custom-enable-lazy-load)
+               (boundp 'entropy/emacs-session-in-byte-compile-emacs-core-p)
                (not (bound-and-true-p
-                     entropy/emacs-custom-enable-lazy-load))))
+                     entropy/emacs-custom-enable-lazy-load))
+               (not (bound-and-true-p
+                     entropy/emacs-session-in-byte-compile-emacs-core-p))))
   (company-en-words/lib--init-trie))
 
 (defun company-en-words/lib--query-candis-core (word maxnum)

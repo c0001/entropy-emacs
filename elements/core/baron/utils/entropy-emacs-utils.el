@@ -104,7 +104,7 @@
 
 ;; ** trie
 
-(use-package trie
+(entropy/emacs-usepackage-with-no-require trie
   ;; inhibit require when byte-compile since it relying on an old
   ;; compat package `tNFA' which use obsolete cl-* functions, while
   ;; many obsolete warnings will popup when in compilation.

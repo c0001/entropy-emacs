@@ -99,6 +99,9 @@ emacs upstream")
 ;; prevent judgment interaction missing upon emacs-28.
 (setq use-dialog-box nil)
 
+;; Enlarge log max for log full startup verbose diagnostics
+(setq message-log-max 3000)
+
 ;; Disable `help-mode' auto load library for its doc render request
 ;; since we needed pure charge of how packages are loading for.
 (setq help-enable-autoload nil

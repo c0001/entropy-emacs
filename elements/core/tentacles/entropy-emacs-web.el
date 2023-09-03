@@ -274,11 +274,11 @@ set of `entropy/emacs-browse-url-function-get-for-web-preview'."
                   t))))
 
 ;; **** Emmet-mode for quick edittng
-(use-package emmet-mode
-  :commands emmet-mode
+(entropy/emacs-usepackage-with-no-require emmet-mode
   ;; FIXME: since it use obsolete `cl' package which will cause
   ;; byte-compiler warning
   :no-require t
+  :commands emmet-mode
   :defines emmet-mode-keymap
   :hook ((web-mode . emmet-mode)
          (html-mode . emmet-mode))

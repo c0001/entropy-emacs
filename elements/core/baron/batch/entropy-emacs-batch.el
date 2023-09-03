@@ -664,7 +664,7 @@ faild with hash '%s' which must match '%s'"
                  (kill-buffer log-buff))))))))
 
 (defvar entropy/emacs-batch--bytecompile-item-register
-  '(
+  `(
     (eemacs-top-declare
      "top"
      nil)
@@ -746,9 +746,10 @@ faild with hash '%s' which must match '%s'"
     (eemacs-site-lisp_entropy-shellpop
      "-entropy-shellpop"
      nil)
-    (eemacs-site-lisp_image-dired-28-patch
-     "-image-dired/28"
-     nil)
+    ,(when (= emacs-major-version 28)
+       '(eemacs-site-lisp_image-dired-28-patch
+         "-image-dired/28"
+         nil))
     (eemacs-site-lisp_lsp-java-simple
      "-lsp-java-simple"
      nil)
@@ -760,6 +761,8 @@ faild with hash '%s' which must match '%s'"
      nil)
 
     ))
+(setq entropy/emacs-batch--bytecompile-item-register
+      (delete nil entropy/emacs-batch--bytecompile-item-register))
 
 (defun entropy/emacs-batch--do-bytecompile-eemacs-core
     (&optional clean)
