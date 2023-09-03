@@ -811,12 +811,14 @@ Optional argument PREFIX if doubled i.e. eq '(16):
 
 ;;;###autoload
 (defun entropy/open-with-buffer ()
-  "Buffer open with portable apps.
+  "Buffer of `current-buffer' open with portable apps.
 
 It's core function is `entropy/open-with-match-open', see it for
 details."
   (interactive)
-  (let ((tname (file-truename (buffer-file-name))))
+  (let ((tname
+         (file-truename
+          (or (buffer-file-name) default-directory))))
     (entropy/open-with-match-open (list tname))))
 
 (provide 'entropy-open-with)
