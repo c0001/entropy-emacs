@@ -143,7 +143,14 @@
 
 
 (entropy/emacs-lazy-initial-for-hook
- '(window-configuration-change-hook)
+ '(
+   ;; NOTE: should not regist this lazy form in
+   ;; `window-configuration-change-hook' since we can not consider
+   ;; that `window-configuration-change-hook' can be indeed triggered
+   ;; in via eemacs startup done or the default emacs keybinging for
+   ;; `C-left/right' is to `next-buffer' which will make user
+   ;; confusion.
+   entropy/emacs-after-startup-idle-hook)
  "window-jump-extra-hydra-hollow-init"
  "window-jump-extra-hydra-hollow-init"
  :prompt-type 'prompt-echo

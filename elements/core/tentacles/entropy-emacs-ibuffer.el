@@ -41,7 +41,7 @@
      :defer
      (:data
       (:adfors
-       (entropy/emacs-hydra-hollow-call-before-hook)
+       (entropy/emacs-after-startup-idle-hook)
        :adtype hook :pdumper-no-end t))))
    ("WI&BUF"
     (("C-x C-b" ibuffer "Begin using Ibuffer to edit a list of buffers"

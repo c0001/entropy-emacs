@@ -1014,16 +1014,17 @@ initialize the default non-lazy configs.
               (run-with-idle-timer
                0.1 nil
                (lambda nil
-                 (let ((inhibit-message
-                        (or entropy/emacs-package-init-with-quick-start-p
-                            (not entropy/emacs-startup-with-Debug-p))))
-                   (run-hooks 'entropy/emacs-after-startup-idle-hook))
-                 (entropy/emacs-message-do-message
-                  "%s --- %s %s"
-                  (bold base-str)
-                  (magenta "Happy hacking")
-                  "('C-h v entropy/emacs-run-startup-duration' see startup time)"
-                  ))))
+                 (let (window-configuration-change-hook)
+                   (let ((inhibit-message
+                          (or entropy/emacs-package-init-with-quick-start-p
+                              (not entropy/emacs-startup-with-Debug-p))))
+                     (run-hooks 'entropy/emacs-after-startup-idle-hook))
+                   (entropy/emacs-message-do-message
+                    "%s --- %s %s"
+                    (bold base-str)
+                    (magenta "Happy hacking")
+                    "('C-h v entropy/emacs-run-startup-duration' see startup time)"
+                    )))))
             (message
              "%s"
              "==================== eemacs after end hooks ran out ====================")

@@ -234,6 +234,15 @@ was found."
   :if (entropy/emacs-vterm-support-p)
   :defer (or entropy/emacs-fall-love-with-pdumper entropy/emacs-custom-enable-lazy-load)
   :commands (vterm vterm-mode)
+  :eemacs-functions
+  (vterm-mode
+   vterm-send-string
+   vterm-send-return
+   vterm-check-proc
+   vterm-copy-mode
+   vterm-delete-region
+   vterm--get-end-of-line
+   vterm--get-prompt-point)
   :preface
   ;; EEMACS_MAINTENANCE: add support to for-zsh and for-fishrc etc too.
   (defun entropy/emacs-shell--vterm-pwd-hack-for-current-shell ()
@@ -427,134 +436,96 @@ it usually kill the current vterm tty unexpectedly")))
   (entropy/emacs-shell--vterm-pwd-hack-for-current-shell))
 
 ;; ** Shell Pop
-(use-package entropy-shellpop
+;; *** entropy shell pop2
+
+(use-package entropy-shellpop2
   :ensure nil
-  :commands (entropy/shellpop-start)
+  :eemacs-functions (entropy/shellpop2/main/make-core-command)
   :preface
-
-  (defun entropy/emacs-shell--shellpop-bindkey-for-eshell (func)
-    (entropy/emacs-hydra-hollow-add-for-top-dispatch
-     `("Shellpop"
-       (("-" ,func "Shellpop For Eshell"
-         :enable t
-         :exit t
-         :eemacs-top-bind t))))
-    (unless (display-graphic-p)
-      (define-key entropy-shellpop-mode-map
-        (kbd (concat entropy/emacs-top-key " " "-"))
-        func)))
-
-  (defun entropy/emacs-shell--shellpop-bindkey-for-shell (func)
-    (let ((key "s s"))
+  (defvar entropy/emacs-shell--shellpop2-commands nil)
+  (defun entropy/emacs-shell--shellpop2-bindkey-for-vterm (func)
+    (let ((key "="))
       (entropy/emacs-hydra-hollow-add-for-top-dispatch
        `("Shellpop"
-         ((,key ,func "Shellpop For emacs shell-mode"
+         ((,key ,func
+                "Shellpop2 For vterm"
                 :enable t
                 :exit t
                 :eemacs-top-bind t))))
       (unless (display-graphic-p)
-        (define-key entropy-shellpop-mode-map
+        (define-key entropy/shellpop2/main//keymap::minor-mode/core-mode
                     (kbd (concat entropy/emacs-top-key " " key))
                     func))))
+  (add-to-list 'entropy/emacs-shell--shellpop2-commands
+               (cons 'vterm 'entropy/emacs-shell--shellpop2-bindkey-for-vterm))
 
-  (defun entropy/emacs-shell--shellpop-bindkey-for-ansiterm (func)
-    (let ((key "s a"))
+  (defun entropy/emacs-shell--shellpop2-bindkey-for-eshell (func)
+    (let ((key "-"))
       (entropy/emacs-hydra-hollow-add-for-top-dispatch
        `("Shellpop"
-         ((,key ,func "Shellpop For Ansi-Term"
+         ((,key ,func
+                "Shellpop2 For eshell"
                 :enable t
                 :exit t
                 :eemacs-top-bind t))))
       (unless (display-graphic-p)
-        (define-key entropy-shellpop-mode-map
-          (kbd (concat entropy/emacs-top-key " " key))
-          func))))
+        (define-key entropy/shellpop2/main//keymap::minor-mode/core-mode
+                    (kbd (concat entropy/emacs-top-key " " key))
+                    func))))
+  (add-to-list 'entropy/emacs-shell--shellpop2-commands
+               (cons 'eshell 'entropy/emacs-shell--shellpop2-bindkey-for-eshell))
 
-  (when (and (member "MODULES" (split-string system-configuration-features nil t))
-             (not sys/win32p))
-    (defun entropy/emacs-shell--shellpop-bindkey-for-vterm (func)
+
+  (defun entropy/emacs-shell--shellpop2-bindkey-for-emacs-shell (func)
+    (let ((key "DEL"))
       (entropy/emacs-hydra-hollow-add-for-top-dispatch
        `("Shellpop"
-         (("=" ,func "Shellpop For Vterm"
-           :enable t
-           :exit t
-           :eemacs-top-bind t))))
+         ((,key ,func
+                "Shellpop2 For emacs-shell"
+                :enable t
+                :exit t
+                :eemacs-top-bind t))))
       (unless (display-graphic-p)
-        (define-key entropy-shellpop-mode-map
-          (kbd (concat entropy/emacs-top-key " " "="))
-          func))))
+        (define-key entropy/shellpop2/main//keymap::minor-mode/core-mode
+                    (kbd (concat entropy/emacs-top-key " " key))
+                    func))))
+  (add-to-list 'entropy/emacs-shell--shellpop2-commands
+               (cons 'emacs-shell
+                     'entropy/emacs-shell--shellpop2-bindkey-for-emacs-shell))
+
 
   :init
-  (defvar entropy/emacs-shell--shpop-types)
-  (setq entropy/emacs-shell--shpop-types
-        `(:ansiterm
-          (:type-name
-           "eemacs-ansiterm"
-           :shackle-size 0.3
-           :shackle-align below
-           :type-keybind entropy/emacs-shell--shellpop-bindkey-for-ansiterm
-           :type-body
-           (ansi-term "/bin/bash"))
-          :eshell
-          (:type-name
-           "eemacs-eshell"
-           :shackle-size 0.3
-           :shackle-align below
-           :type-keybind entropy/emacs-shell--shellpop-bindkey-for-eshell
-           :type-body
-           (eshell))
-          :shell
-          (:type-name
-           "eemacs-shell"
-           :shackle-size 0.3
-           :shackle-align below
-           :type-keybind entropy/emacs-shell--shellpop-bindkey-for-shell
-           :type-body
-           (shell (current-buffer)))
-          :vterm
-          (:type-name
-           "eemacs-vterm"
-           :shackle-size 0.3
-           :shackle-align bottom
-           :type-keybind entropy/emacs-shell--shellpop-bindkey-for-vterm
-           :type-body
-           (let
-               (;; prevent vterm auto rename buffer that lost register linkage
-                (vterm-buffer-name-string nil))
-             (vterm-mode)))))
-
-  (entropy/emacs-lazy-with-load-trail 'shellpop-feature
+  (defvar entropy/emacs-shell--shpop2-types (list 'vterm 'eshell 'emacs-shell))
+  (entropy/emacs-lazy-with-load-trail 'shellpop2-feature
     :pdumper-no-end t
     (cond ((or (not sys/win32p)
                (and sys/win32p (bound-and-true-p fakecygpty--activated)))
-           (setq entropy/shellpop-pop-types
-                 (list (plist-get entropy/emacs-shell--shpop-types :eshell)
-                       (plist-get entropy/emacs-shell--shpop-types :ansiterm)
-                       (plist-get entropy/emacs-shell--shpop-types :shell)))
-           (when (and (member "MODULES" (split-string system-configuration-features nil t))
-                      (not sys/win32p)
-                      (let ((execs '("git" "cmake" "make" "gcc" "libtool"))
-                            judge)
-                        (catch :exit
-                          (dolist (exec execs)
-                            (unless (executable-find exec)
-                              (setq judge t)
-                              (throw :exit nil))))
-                        (if judge nil t)))
-             (add-to-list 'entropy/shellpop-pop-types
-                          (plist-get entropy/emacs-shell--shpop-types :vterm))))
+           (unless (and (member "MODULES" (split-string system-configuration-features nil t))
+                        (not sys/win32p)
+                        (let ((execs '("git" "cmake" "make" "gcc" "libtool"))
+                              judge)
+                          (catch :exit
+                            (dolist (exec execs)
+                              (unless (executable-find exec)
+                                (setq judge t)
+                                (throw :exit nil))))
+                          (if judge nil t)))
+             (setq entropy/emacs-shell--shpop2-types
+                   (delete 'vterm entropy/emacs-shell--shpop2-types))))
           (sys/win32p
-           (setq entropy/shellpop-pop-types
-                 (list (plist-get entropy/emacs-shell--shpop-types :eshell)
-                       (plist-get entropy/emacs-shell--shpop-types :shell)))))
-    (entropy/shellpop-start))
+           (setq entropy/emacs-shell--shpop2-types
+                 (delete 'vterm entropy/emacs-shell--shpop2-types))))
+    (when entropy/emacs-shell--shpop2-types
+      (dolist (el entropy/emacs-shell--shellpop2-commands)
+        (when (memq (car el) entropy/emacs-shell--shpop2-types)
+          (funcall (cdr el) (entropy/shellpop2/main/make-core-command (car el)))))))
 
   :config
 
   (declare-function eyebrowse--get "ext:eyebrowse")
-  (defvar entropy/emacs-shell-eemacs-shellpop--eyebrowse-curreg nil)
+  (defvar entropy/emacs-shell-eemacs-shellpop2--eyebrowse-curreg nil)
 
-  (defun entropy/emacs-shell-eemacs-shellpop--eyebrowse-tag-get
+  (defun entropy/emacs-shell-eemacs-shellpop2--eyebrowse-tag-get
       (slot)
     (when (or slot
               (setq slot
@@ -565,40 +536,40 @@ it usually kill the current vterm tty unexpectedly")))
         slot
         (eyebrowse--get 'window-configs)))))
 
-  (defun entropy/emacs-shell--eemacs-shellpop--eyebrowse-curreg-prune (var)
-    (setq entropy/emacs-shell-eemacs-shellpop--eyebrowse-curreg
+  (defun entropy/emacs-shell--eemacs-shellpop2--eyebrowse-curreg-prune (var)
+    (setq entropy/emacs-shell-eemacs-shellpop2--eyebrowse-curreg
           (cl-remove-if
            (lambda (x) (equal (car x) var))
-           entropy/emacs-shell-eemacs-shellpop--eyebrowse-curreg)))
+           entropy/emacs-shell-eemacs-shellpop2--eyebrowse-curreg)))
 
-  (defun entropy/emacs-shell--eemacs-shellpop-eyebrowse-save-reg (&rest _)
+  (defun entropy/emacs-shell--eemacs-shellpop2-eyebrowse-save-reg (&rest _)
     (entropy/emacs-when-let*-first
         (((eq (selected-frame) entropy/emacs-main-frame))
          (cur-slot (eyebrowse--get 'current-slot))
-         (cur-tag (entropy/emacs-shell-eemacs-shellpop--eyebrowse-tag-get
+         (cur-tag (entropy/emacs-shell-eemacs-shellpop2--eyebrowse-tag-get
                    cur-slot)))
-      (entropy/emacs-shell--eemacs-shellpop--eyebrowse-curreg-prune
+      (entropy/emacs-shell--eemacs-shellpop2--eyebrowse-curreg-prune
        cur-slot)
       (push (list cur-slot
                   :tag cur-tag
-                  :reg (entropy/shellpop-expose-type-registers-pointer))
-            entropy/emacs-shell-eemacs-shellpop--eyebrowse-curreg)))
+                  :reg (entropy/shellpop2/main/getfous/all))
+            entropy/emacs-shell-eemacs-shellpop2--eyebrowse-curreg)))
 
-  (defun entropy/emacs-shell--eemacs-shellpop-eyebrowse-restore-reg (&rest _)
+  (defun entropy/emacs-shell--eemacs-shellpop2-eyebrowse-restore-reg (&rest _)
     (entropy/emacs-when-let*-first
         (((eq (selected-frame) entropy/emacs-main-frame))
          (cur-slot (eyebrowse--get 'current-slot))
-         (cur-tag (entropy/emacs-shell-eemacs-shellpop--eyebrowse-tag-get
+         (cur-tag (entropy/emacs-shell-eemacs-shellpop2--eyebrowse-tag-get
                    cur-slot))
          (old-hist
           (alist-get
            cur-slot
-           entropy/emacs-shell-eemacs-shellpop--eyebrowse-curreg
+           entropy/emacs-shell-eemacs-shellpop2--eyebrowse-curreg
            nil nil 'equal))
          (old-tag (plist-get old-hist :tag))
          (old-reg (plist-get old-hist :reg)))
       (when old-hist
-        (entropy/emacs-shell--eemacs-shellpop--eyebrowse-curreg-prune
+        (entropy/emacs-shell--eemacs-shellpop2--eyebrowse-curreg-prune
          cur-slot)
         (when (and
                old-reg
@@ -607,16 +578,13 @@ it usually kill the current vterm tty unexpectedly")))
                     (format "Use an old shellpop register associate \
 the same eyebrowse slot as current use?(tag: %s) "
                             old-tag))))
-          (entropy/shellpop-replace-type-registers-pointer-as
-           old-reg
-           (entropy/emacs-shell-eemacs-shellpop--eyebrowse-tag-get
-            nil))))))
+          (entropy/shellpop2/main/setfous/all old-reg)))))
 
   (with-eval-after-load 'eyebrowse
     (add-hook 'eyebrowse-pre-window-switch-hook
-              #'entropy/emacs-shell--eemacs-shellpop-eyebrowse-save-reg)
+              #'entropy/emacs-shell--eemacs-shellpop2-eyebrowse-save-reg)
     (add-hook 'eyebrowse-post-window-switch-hook
-              #'entropy/emacs-shell--eemacs-shellpop-eyebrowse-restore-reg))
+              #'entropy/emacs-shell--eemacs-shellpop2-eyebrowse-restore-reg))
   )
 
 ;; ** provide
