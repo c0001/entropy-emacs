@@ -96,7 +96,7 @@
         ("*Help*"                      :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
         ("*Messages*"                  :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
         ("*compilation*"               :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
-        (,byte-compile-log-buffer      :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
+        (,byte-compile-log-buffer      :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
         ("*Warnings*"                  :regexp nil :dedicated t :align bottom :size 0.2 :autoclose t   :select nil)
         ("*Completions*"               :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
         ("*Shell Command Output*"      :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
