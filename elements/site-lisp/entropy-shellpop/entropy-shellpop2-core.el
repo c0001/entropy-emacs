@@ -5,7 +5,7 @@
 
 ;; * libs
 
-(cl-defun entropy/shellpop2/func/get-def-body (list-var &optional with-safe)
+(cl-defun entropy/shellpop2/core/func/get-def-body (list-var &optional with-safe)
   "Get BODY inside of plist like list LIST-VAR, commonly is the
 last `keywordp' keypair's cdr or return LIST-VAR when the car of
 LIST-VAR is not a `keywordp' keyword.
@@ -79,7 +79,20 @@ either root window or with dedicated non-kill properties:
        (cur-uri-sym `(or ,with-spec-cururi default-directory)))
     `(progn
        (unless (file-equal-p ,uri-sym ,cur-uri-sym)
-         ,@(entropy/shellpop2/func/get-def-body body t)))))
+         ,@(entropy/shellpop2/core/func/get-def-body body t)))))
+
+;;;###autoload
+(cl-defmacro entropy/shellpop2/core/macro/with-judge/bufferp
+    (buffer &rest body &key with-livep &allow-other-keys)
+  (declare (indent 1))
+  (macroexp-let2* ignore
+      ((buffsym buffer))
+    `(progn
+       (unless (bufferp ,buffsym) (error "Not a buffer: %S" ,buffsym))
+       (when ,with-livep
+         (unless (buffer-live-p ,buffsym)
+           (error "Not a lived buffer: %S" ,buffsym)))
+       ,@(entropy/shellpop2/core/func/get-def-body body))))
 
 ;; * tops
 
@@ -350,21 +363,25 @@ messy `entropy/shellpop2/core//var/register/shell/objs' of key %s"
          (setq entropy/shellpop2/core//var/shell/buffer::orphans
                (nreverse ln)))
        ,@body)))
+
 (defun entropy/shellpop2/core//func/get/shell/buffer::orphans-list nil
   (entropy/shellpop2/core//macro/do-with/shell/buffer::orphans
-   entropy/shellpop2/core//var/shell/buffer::orphans))
+   (copy-sequence entropy/shellpop2/core//var/shell/buffer::orphans)))
 (defun entropy/shellpop2/core//func/remove/shell/buffer::orphan (shell/buffer)
-  (entropy/shellpop2/core//macro/do-with/shell/buffer::orphans
-   (setq entropy/shellpop2/core//var/shell/buffer::orphans
-         (delete shell/buffer
-                 entropy/shellpop2/core//var/shell/buffer::orphans))))
+  (entropy/shellpop2/core/macro/with-judge/bufferp shell/buffer
+    (entropy/shellpop2/core//macro/do-with/shell/buffer::orphans
+     (setq entropy/shellpop2/core//var/shell/buffer::orphans
+           (delete shell/buffer
+                   entropy/shellpop2/core//var/shell/buffer::orphans)))))
 (defun entropy/shellpop2/core//func/regist/shell/buffer::orphan (shell/buffer)
-  (entropy/shellpop2/core//macro/do-with/shell/buffer::orphans
-   (unless (memq shell/buffer entropy/shellpop2/core//var/shell/buffer::orphans)
-     (push shell/buffer entropy/shellpop2/core//var/shell/buffer::orphans))))
+  (entropy/shellpop2/core/macro/with-judge/bufferp shell/buffer
+    (entropy/shellpop2/core//macro/do-with/shell/buffer::orphans
+     (unless (memq shell/buffer entropy/shellpop2/core//var/shell/buffer::orphans)
+       (push shell/buffer entropy/shellpop2/core//var/shell/buffer::orphans)))))
 (defun entropy/shellpop2/core//func/member/shell/buffer::orphan (shell/buffer)
-  (entropy/shellpop2/core//macro/do-with/shell/buffer::orphans
-   (memq shell/buffer entropy/shellpop2/core//var/shell/buffer::orphans)))
+  (entropy/shellpop2/core/macro/with-judge/bufferp shell/buffer
+    (entropy/shellpop2/core//macro/do-with/shell/buffer::orphans
+     (memq shell/buffer entropy/shellpop2/core//var/shell/buffer::orphans))))
 
 ;; ** objects operations
 ;; *** do with shell/buffer/obj

@@ -1821,7 +1821,8 @@ be good for maintenance:
                        mpc-status-mode
                        mpc-tagbrowser-dir-mode))
     ;; special minor-mode enabled in current-buffer
-    (or (bound-and-true-p entropy-shellpop-mode))
+    (or (bound-and-true-p entropy-shellpop-mode)
+        (bound-and-true-p entropy/shellpop2/main//minor-mode/core-mode))
     )
   "list of predicates for compute to judge whether in this case
 the `mode-line-format' is special when the return is non-nil.
