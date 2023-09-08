@@ -86,6 +86,8 @@ either root window or with dedicated non-kill properties:
 (defvar entropy/shellpop2/core//var/shell-type-flag-sym
   'entropy/shellpop2/core//var/shell/type/name//id:1397442003498390672)
 (eval `(defvar ,entropy/shellpop2/core//var/shell-type-flag-sym nil))
+(cl-defmacro entropy/shellpop2/core/macro/get/env/shell/type/name nil
+  `(progn ,entropy/shellpop2/core//var/shell-type-flag-sym))
 (cl-defmacro entropy/shellpop2/core/macro/do-with/shell/type/name
     (shell/type/name &rest body)
   (declare (indent 1))
@@ -286,7 +288,7 @@ cl-labels bingings invalid"))))
   (setq shell/type/name
         (or
          shell/type/name
-         entropy/shellpop2/core//var/shell-type-flag-sym
+         (entropy/shellpop2/core/macro/get/env/shell/type/name)
          (error "No shell/type/name specifed in current context")))
   (let* ((l entropy/shellpop2/core//var/register/shell/objs)
          (exist-p (alist-get shell/type/name l)))
@@ -317,18 +319,15 @@ messy `entropy/shellpop2/core//var/register/shell/objs' of key %s"
   (let ((it (bound-and-true-p entropy/shellpop2/var//shell/buffer/local/flag/inited-p)))
     (and (entropy/shellpop2/core//obj/shell/buffer/pred/typep (car it))
          (entropy/shellpop2/core//obj/shell/type/pred/typep (cdr it)))))
-(eval-and-compile
-  (defmacro entropy/shellpop2/core//func/set/current-buffer/shell/buffer/obj::flag
-      (shell/buffer/obj &optional shell/type/obj)
-    (macroexp-let2* ignore
-        ((sbo-sym shell/buffer/obj) (sto-sym shell/type/obj))
-      `(progn
-         (setq ,sto-sym
-               (or ,sto-sym
-                   (entropy/shellpop2/core//func/get/shell/type/obj
-                    ,entropy/shellpop2/core//var/shell-type-flag-sym)))
-         (setq entropy/shellpop2/var//shell/buffer/local/flag/inited-p
-               (cons ,sbo-sym ,sto-sym))))))
+(defun entropy/shellpop2/core//func/set/current-buffer/shell/buffer/obj::flag
+    (shell/buffer/obj shell/type/obj)
+  (let (_)
+    (setq shell/buffer/obj
+          (or shell/buffer/obj
+              (entropy/shellpop2/core//func/get/shell/type/obj
+               (entropy/shellpop2/core/macro/get/env/shell/type/name))))
+    (setq entropy/shellpop2/var//shell/buffer/local/flag/inited-p
+          (cons shell/buffer/obj shell/type/obj))))
 (defun entropy/shellpop2/core//func/get/current-buffer/shell/buffer/obj::flag
     (&optional with::shell/type/obj)
   (unless (entropy/shellpop2/core//func//current-buffer-is-inited/shell/buffer::p)
