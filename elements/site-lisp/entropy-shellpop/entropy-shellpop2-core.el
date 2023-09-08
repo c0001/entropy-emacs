@@ -180,6 +180,12 @@ either root window or with dedicated non-kill properties:
 (entropy/shellpop2/core//macro/defgeneric
   entropy/shellpop2/core/generic/shell/buffer/op/cwd
   (shell/buffer/obj uri))
+(cl-defmethod entropy/shellpop2/core/generic/shell/buffer/op/cwd
+  :around (shell/buffer/obj uri)
+  (let ((inhibit-quit t))
+    (cl-call-next-method
+     shell/buffer/obj
+     (expand-file-name uri))))
 
 (defun entropy/shellpop2/core//func/defgeneric/append/env/shell/type/name
     (shell/type/name defargs)
