@@ -493,9 +493,24 @@ it usually kill the current vterm tty unexpectedly")))
                (cons 'emacs-shell
                      'entropy/emacs-shell--shellpop2-bindkey-for-emacs-shell))
 
+  (defun entropy/emacs-shell--shellpop2-bindkey-for-ansiterm (func)
+    (let ((key "M-DEL"))
+      (entropy/emacs-hydra-hollow-add-for-top-dispatch
+       `("Shellpop"
+         ((,key ,func
+                "Shellpop2 For ansiterm"
+                :enable t
+                :exit t
+                :eemacs-top-bind t))))
+      (unless (display-graphic-p)
+        (define-key entropy/shellpop2/main//keymap::minor-mode/core-mode
+                    (kbd (concat entropy/emacs-top-key " " key))
+                    func))))
+  (add-to-list 'entropy/emacs-shell--shellpop2-commands
+               (cons 'ansiterm 'entropy/emacs-shell--shellpop2-bindkey-for-ansiterm))
 
   :init
-  (defvar entropy/emacs-shell--shpop2-types (list 'vterm 'eshell 'emacs-shell))
+  (defvar entropy/emacs-shell--shpop2-types (list 'vterm 'ansiterm 'eshell 'emacs-shell))
   (entropy/emacs-lazy-with-load-trail 'shellpop2-feature
     :pdumper-no-end t
     (cond ((or (not sys/win32p)

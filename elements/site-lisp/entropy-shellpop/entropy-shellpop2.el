@@ -3,6 +3,7 @@
 (require 'entropy-shellpop2-shell-type-vterm)
 (require 'entropy-shellpop2-shell-type-eshell)
 (require 'entropy-shellpop2-shell-type-emacs-shell)
+(require 'entropy-shellpop2-shell-type-ansiterm)
 
 (defvar entropy/shellpop2/main//var/show/shell/buffer/after/hook nil)
 
