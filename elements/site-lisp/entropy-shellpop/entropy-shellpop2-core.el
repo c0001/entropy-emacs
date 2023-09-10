@@ -491,7 +491,7 @@ messy `entropy/shellpop2/core//var/register/shell/objs' of key %s"
     `(progn
        (let (ln)
          (dolist (el entropy/shellpop2/core//var/shell/buffer::orphans)
-           (cond ((not (buffer-live-p el)) (kill-buffer el))
+           (cond ((not (buffer-live-p el)) (and (bufferp el) (kill-buffer el)))
                  (t (push el ln))))
          (setq entropy/shellpop2/core//var/shell/buffer::orphans
                (nreverse ln)))
@@ -522,8 +522,9 @@ messy `entropy/shellpop2/core//var/register/shell/objs' of key %s"
   entropy/shellpop2/core/generic/shell/buffer/op/init (shell/buffer/obj)
   "Init SHELL/BUFFER/OBJ via
 `entropy/shellpop2/core/macro/do-with/shell/buffer/obj' to let
-its buffer be a `shell/buffer' belong to the current
-`shell/type'.")
+its buffer be a `shell/buffer' belong to the current `shell/type'
+and return that buffer (to set a new buffer to this
+SHELL/BUFFER/OBJ).")
 (cl-defmethod entropy/shellpop2/core/generic/shell/buffer/op/init
   :around (shell/buffer/obj)
   (let ((inhibit-quit t))
