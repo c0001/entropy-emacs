@@ -10,7 +10,8 @@
 ;; * lib
 
 ;;;###autoload
-(defun entropy/shellpop2/main/show/shell/buffer (shell/type/name &optional index new)
+(defun entropy/shellpop2/main/show/shell/buffer
+    (shell/type/name &optional index new no-hide)
   (let ((defdir default-directory) newp)
     (entropy/shellpop2/core/macro/do-with/shell/type/obj shell/type/name
       (let ((buffobj-focus
@@ -41,7 +42,9 @@
                      (entropy/shellpop2/core/api/obj/shell/buffer/op/get-buffer)))
                 (and (buffer-live-p buff)
                      (get-buffer-window buff t))))
-            (entropy/shellpop2/core/generic/shell/buffer/op/hide buffobj-focus)
+            (if no-hide (message "No need re-show for shell/buffer: %S"
+                                 (entropy/shellpop2/core/api/obj/shell/buffer/op/get-buffer))
+              (entropy/shellpop2/core/generic/shell/buffer/op/hide buffobj-focus))
           (entropy/shellpop2/core/generic/shell/buffer/op/display
            buffobj-focus))
         (unless newp
@@ -166,7 +169,7 @@
                            (entropy/shellpop2/main/choose/shell/buffer/obj ,stn-sym)))
                       (entropy/shellpop2/core/macro/do-with/shell/type/obj ,stn-sym
                         (entropy/shellpop2/core/api/obj/shell/type/op/set-focus shell/buffer/obj)))
-                    (entropy/shellpop2/main/show/shell/buffer ,stn-sym))
+                    (entropy/shellpop2/main/show/shell/buffer ,stn-sym nil nil 'no-hide))
                    ((eql narg 16)
                     (entropy/shellpop2/main/show/shell/buffer ,stn-sym nil t))
                    (t

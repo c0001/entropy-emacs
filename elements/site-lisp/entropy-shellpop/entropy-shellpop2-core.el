@@ -35,6 +35,25 @@ To get the real-body in BODY use
                  (if (not with-safe) it
                    (or it (list nil)))))))))
 
+;;;###autoload
+(defmacro entropy/shellpop2/core/macro/defconst (symbol initvalue &optional docstring)
+  "Same as `defconst' but do not allow any set, local bind,
+and any even modification for variable SYMBOL, if not an error is
+raised up."
+  (declare (indent defun) (doc-string 3))
+  (setq docstring
+        (concat (or (and docstring (replace-regexp-in-string "\n+$" "" docstring))
+                    "A const variable.")
+                "\n\n(NOTE: this variable is defined by `entropy/emacs-defconst')"))
+  (macroexp-let2* ignore ((ival nil))
+    `(let ((,ival ,initvalue))
+       (prog1 (defconst ,symbol ,ival ,docstring)
+         (add-variable-watcher
+          ',symbol
+          (lambda (sym &rest _)
+            (and (eq sym ',symbol)
+                 (error "Do not modify const variable `%s'"
+                        ',symbol))))))))
 
 ;;;###autoload
 (defun entropy/shellpop2/core/func/remove-buffer-window (buffer-or-name)
@@ -165,21 +184,21 @@ with-redefine &allow-other-keys)"
             (cons (intern (format "\
 entropy/shellpop2/core//var/sym/__type-pred-func-name__/%s"
                                   name))
-                  `(quote ,type-pred-func-name)))
+                  type-pred-func-name))
            (type-pred-func-name-sym (car type-pred-func-name-sym-cons))
 
            (with-judge-macro-name-sym-cons
             (cons (intern (format "\
 entropy/shellpop2/core//var/sym/__with-judge-macro-name__/%s"
                                   name))
-                  `(quote ,with-judge-macro-name)))
+                  with-judge-macro-name))
            (with-judge-macro-name-sym (car with-judge-macro-name-sym-cons))
 
            (with-judge-return-func-name-sym-cons
             (cons (intern (format "\
 entropy/shellpop2/core//var/sym/__with-judge-return-func-name__/%s"
                                   name))
-                  `(quote ,with-judge-return-func-name)))
+                  with-judge-return-func-name))
            (with-judge-return-func-name-sym
             (car with-judge-return-func-name-sym-cons)))
 
@@ -191,8 +210,9 @@ entropy/shellpop2/core//var/sym/__with-judge-return-func-name__/%s"
            ,@(cl-loop for el in `(,type-pred-func-name-sym-cons
                                   ,with-judge-macro-name-sym-cons
                                   ,with-judge-return-func-name-sym-cons)
-                      collect `(progn (eval-when-compile (defvar ,(car el) ,(cdr el)))
-                                      (setq ,(car el) ,(cdr el))))
+                      collect `(eval-and-compile
+                                 (entropy/shellpop2/core/macro/defconst
+                                   ,(car el) ',(cdr el))))
            (cl-defstruct ,oname ,doc-string ,@slots)
            (unless (fboundp ,type-pred-func-name-sym)
              (error "CL-X predicate function `%s' not found after `cl-defstruct' defination!"

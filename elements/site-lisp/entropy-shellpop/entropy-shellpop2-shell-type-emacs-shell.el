@@ -67,15 +67,24 @@ command `shell' do not return buffer"))))))
      (let* ((buff (entropy/shellpop2/core/api/obj/shell/buffer/op/get-buffer)))
        (with-current-buffer buff
          (entropy/shellpop2/core/macro/with-canbe-cdw uri
-           (goto-char (point-max))
-           (comint-kill-input)
-           (insert
-            (concat
-             "cd "
-             (shell-quote-argument
-              (entropy/shellpop2/emacs-shell//get-uri uri))))
-           (let ((comint-process-echoes t)) (comint-send-input))
-           (recenter 1))))))
+           (let (_)
+             (if (or
+                  ;; `comint-last-prompt' is null when there's
+                  ;; child process running.
+                  (null comint-last-prompt)
+                  (> (point)
+                     (entropy/shellpop2/emacs-shell//func/get-comint-mode-bol-pos)))
+                 (message "No CD did since \
+either exist process running or current input not empty.")
+               (goto-char (point-max))
+               (comint-kill-input)
+               (insert
+                (concat
+                 "cd "
+                 (shell-quote-argument
+                  (entropy/shellpop2/emacs-shell//get-uri uri))))
+               (let ((comint-process-echoes t)) (comint-send-input))
+               (recenter 1))))))))
   (entropy/shellpop2/core/generic/shell/buffer/op/display
    (shell/buffer/obj)
    (entropy/shellpop2/core/macro/do-with/shell/buffer/obj nil shell/buffer/obj
