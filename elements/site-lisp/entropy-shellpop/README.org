@@ -1,0 +1,43 @@
+#+title: entropy-shellpop2
+
+#+begin_example
+Copyright (C) 20230910  Entropy
+
+Author:           Entropy <bmsac0001@gmail.com>
+Maintainer:       Entropy <bmsac001@gmail.com>
+Package-Version:  20230910.1000
+Version:          0.1.0
+Created:          2023-09-10 12:00:00
+Keywords:         shellpop
+Compatibility:    GNU Emacs 27.1;
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#+end_example
+
+The version2 of =entropy-shellpop= via rewritting the context by using
+generic and =cl-defstruct= management to involving best API
+dispatching and management ability.
+
+The core api is ~entropy/shellpop2/core/macro/make/shell/type/obj~
+which providing a single macro wrapper to let developer create a shell
+type simply with clear all-in-one code structure.
+
+There's two CL-X objects related to the creation via
+~entropy/shellpop2/core/macro/make/shell/type/obj~ i.e. the
+=shell/buffer/obj= and =shell/type/obj= where each of them has its own
+api wrapper
+i.e. ~entropy/shellpop2/core/macro/do-with/shell/buffer/obj~ and
+~entropy/shellpop2/core/macro/do-with/shell/type/obj~ respectfully.
+
+See the docstring of them from [[file+emacs:./entropy-shellpop2-core.el][entropy-shellpop2-core.el]] for details.
