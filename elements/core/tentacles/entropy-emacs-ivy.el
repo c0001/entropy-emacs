@@ -1771,6 +1771,10 @@ Since we chosen the kmacro from ring, we set it as the
   ;; obsolete which can not be used anymore.
   (unless (version< emacs-version "29.1")
     (require 'kmacro)
+    (defun __ext/counsel--kmacro-equal-last (x)
+      (when-let ((lkeys (if (stringp last-kbd-macro) (key-parse last-kbd-macro)
+                          last-kbd-macro)))
+        (equal lkeys (kmacro--keys x))))
     (defun counsel--kmacro-candidates ()
       "Create the list of keyboard macros used by `counsel-kmacro'.
 This is a combination of `kmacro-ring' and, together with the
@@ -1808,11 +1812,11 @@ made `kmacro' use `last-kbd-macro',
 Either delete a macro from `kmacro-ring', or set `last-kbd-macro'
 to the popped head of the ring."
       (let ((actual-macro (cdr x)))
-        (if (eq (kmacro--keys actual-macro) last-kbd-macro)
-            (setq last-kbd-macro
-                  (if (eq kmacro-ring nil)
-                      nil (pop kmacro-ring)))
-          (setq kmacro-ring (delq actual-macro kmacro-ring)))))
+        (while (__ext/counsel--kmacro-equal-last actual-macro)
+          (setq last-kbd-macro
+                (if (not kmacro-ring) nil
+                  (pop kmacro-ring))))
+        (setq kmacro-ring (delq actual-macro kmacro-ring))))
 
     (defun counsel-kmacro-action-copy-initial-counter-value (x)
       "Pass an existing keyboard macro's original value to `kmacro-set-counter'.
@@ -1847,7 +1851,7 @@ This is convenient when using \\[kmacro-end-or-call-macro] to call macros.
 Note that cycling the ring changes the starting value of the current macro
 to changes the current macro counter."
       (let ((actual-kmacro (cdr x)))
-        (unless (equal last-kbd-macro (kmacro--keys actual-kmacro))
+        (unless (__ext/counsel--kmacro-equal-last actual-kmacro)
           (while (not (equal actual-kmacro (car kmacro-ring)))
             (kmacro-cycle-ring-previous))
           ;; Once selected macro is at the head of the ring,
