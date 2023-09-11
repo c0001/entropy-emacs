@@ -1117,5 +1117,26 @@ really stop it before start a new one? \
 
   )
 
+;; ** xclip-mode
+
+(use-package xclip
+  :commands (xclip-mode)
+  :eemacs-functions
+  (xclip-set-selection
+   xclip-get-selection)
+  :config
+  (defun __adv/xclip-with-tmpdir-as-default-directory
+      (fn &rest args)
+    "Advice for xclip's `call-process' and `start-process' to handle
+invocation with system tmpfs as `default-directory' to avoid
+after while the process looking for a non-exited directory any
+more."
+    (let ((default-directory
+           entropy/emacs-system-temporary-file-directory))
+      (apply fn args)))
+  (dolist (fn (list 'xclip-set-selection 'xclip-get-selection))
+    (advice-add fn :around
+                #'__adv/xclip-with-tmpdir-as-default-directory)))
+
 ;; * provide
 (provide 'entropy-emacs-utils)
