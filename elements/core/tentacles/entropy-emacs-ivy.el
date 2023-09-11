@@ -1815,7 +1815,9 @@ to the popped head of the ring."
         (while (__ext/counsel--kmacro-equal-last actual-macro)
           (setq last-kbd-macro
                 (if (not kmacro-ring) nil
-                  (pop kmacro-ring))))
+                  ;; `last-kbd-macro' must be a string or vector or
+                  ;; nil according to its docstring
+                  (kmacro--keys (pop kmacro-ring)))))
         (setq kmacro-ring (delq actual-macro kmacro-ring))))
 
     (defun counsel-kmacro-action-copy-initial-counter-value (x)
