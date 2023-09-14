@@ -3112,6 +3112,103 @@ using one of other specified types as see:
                   (t `(entropy/emacs-cl-lambda-with-lcb nil
                         ,@(entropy/emacs-macroexp-rest it-val)))))))))
 
+;; *** Ring manipulation
+
+(cl-defmacro entropy/emacs--with-ring-p-check
+    (ring &rest body &key with-error &allow-other-keys)
+  (declare (indent 1))
+  (macroexp-let2* ignore
+      ((ring-sym ring))
+    `(progn
+       (if (ring-p ,ring-sym)
+           (progn ,@(entropy/emacs-defun--get-real-body body t))
+         (when ,with-error
+           (error "wrong type of argument: ring-p %S"
+                  ,ring-sym))))))
+
+(defun entropy/emacs-ring-insert (ring item)
+  "Like `ring-insert' but always increase the RING's size when full
+before inserting so that no elements is lost."
+  (entropy/emacs--with-ring-p-check ring
+    :with-error t
+    (let ((ring-size (ring-size ring)))
+      (unless (< (ring-length ring) ring-size)
+        (ring-resize ring (1+ ring-size)))
+      (ring-insert ring item))))
+
+(defun entropy/emacs-ring-member (ring item &optional test)
+  "Return index of ITEM if on RING, else nil.
+Comparison is done via `equal' or use function TEST.  The index
+is 0-based."
+  (entropy/emacs--with-ring-p-check ring
+    :with-error t
+    (catch 'found
+      (dotimes (ind (ring-length ring))
+        (when (funcall (or test 'equal)
+                       item (ring-ref ring ind))
+          (throw 'found ind))))))
+
+(defun entropy/emacs-ring-remove (ring item &optional test)
+  "Remove the first occurrence of ITEM in RING via pred
+TEST (`equal' as default)."
+  (entropy/emacs--with-ring-p-check ring
+    :with-error t
+    (unless (ring-empty-p ring)
+      (when-let ((idx (entropy/emacs-ring-member ring item test)))
+        (ring-remove ring idx)))))
+
+(defun entropy/emacs-ring-remove-all (ring item &optional test)
+  "Like `entropy/emacs-ring-remove' but remove all occurrence of
+ITEM."
+  (entropy/emacs--with-ring-p-check ring
+    :with-error t
+    (unless (ring-empty-p ring)
+      (let (idx)
+        (while (setq idx (entropy/emacs-ring-member ring item test))
+          (ring-remove ring idx))))))
+
+(defun entropy/emacs-ring-pop (ring)
+  "Return the newest ITEM and removed it from ring, as `pop' for
+ a list.
+
+Return `entropy/emacs-false-symbol' when RING is empty so that
+noting can be poped out."
+  (entropy/emacs--with-ring-p-check ring
+    :with-error t
+    (if (ring-empty-p ring) entropy/emacs-false-symbol
+      (ring-remove ring 0))))
+
+(defun entropy/emacs-ring-pop-last (ring)
+  "Return the oldest ITEM and removed it from ring.
+
+Return `entropy/emacs-false-symbol' when RING is empty so that
+noting can be poped out."
+  (entropy/emacs--with-ring-p-check ring
+    :with-error t
+    (if (ring-empty-p ring) entropy/emacs-false-symbol
+      (ring-remove ring nil))))
+
+(defun entropy/emacs-ring-set-head (ring item &optional item-is-index)
+  "Set the newest element of ring RING to ITEM.
+
+If ITEM-IS-INDEX is non-nil, then ITEM should satisfy
+`entropy/emacs-natural-number-p' and reset that indexed element
+to be the newest without making dups of it, otherwise all element
+`eq' to ITEM will be removed before set ITEM as the head."
+  (entropy/emacs--with-ring-p-check ring
+    :with-error t
+    (if (not item-is-index)
+        (progn
+          (entropy/emacs-ring-remove-all ring item 'eq)
+          (entropy/emacs-ring-insert ring item))
+      (unless (eql item 0)
+        (unless (entropy/emacs-natural-number-p item)
+          (error "wrong type of argument: \
+entropy/emacs-natural-number-p %S" item))
+        (let ((val (ring-ref ring item)))
+          (ring-remove ring item)
+          (ring-insert ring val))))))
+
 ;; *** String manipulation
 
 (cl-defun entropy/emacs-string-match-p
