@@ -486,9 +486,10 @@ entropy/emacs-basic--dired-cmd-run-with-simple-progress-prompt/for/%s/"
          (defun ,fnm-sym (fn &rest args)
            ,(format "Simple progress message around advice for dired command `%s'."
                     cmd-name)
-           (entropy/emacs-message-simple-progress-message ,msg
-             ,@(if body body
-                 '((apply fn args)))))
+           (if (not (called-interactively-p 'interactive)) (apply fn args)
+             (entropy/emacs-message-simple-progress-message ,msg
+               ,@(if body body
+                   '((apply fn args))))))
          (advice-add ',cmd-name :around ',fnm-sym))))
 
   (entropy/emacs-basic--dired-cmd-run-with-simple-progress-prompt
