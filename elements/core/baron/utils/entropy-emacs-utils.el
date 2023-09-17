@@ -62,7 +62,21 @@
 ;; and to help you update your patches accordingly.
 
 (use-package advice-patch
-  :eemacs-functions (advice--patch advice-patch))
+  :eemacs-functions (advice--patch advice-patch)
+  :config
+  ;; we should kill the src buffer for preventing user's misbehave on
+  ;; that src file after emacs inited for thus.
+  (defun __ya/advice-patch/kill-def-buffer-after-patched
+      (fn &rest args)
+    (unwind-protect (apply fn args)
+      (when-let* ((fb (ignore-errors
+                        (find-function-noselect (car args) 'lisp-only)))
+                  (buff (car fb)))
+        (let (kill-buffer-hook)
+          (kill-buffer buff)))))
+  (advice-add 'advice-patch
+              :around
+              #'__ya/advice-patch/kill-def-buffer-after-patched))
 
 ;; ** async
 
