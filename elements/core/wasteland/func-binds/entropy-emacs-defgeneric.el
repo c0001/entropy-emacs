@@ -358,7 +358,7 @@ Return %s when %s is a CL-X of %o or nil (error when WITH-ERROR is non-nil)."
                  ,@oslots ,@cl-defgeneric-args)))))))
 
 (defvar entropy/emacs/generic//var/generic-function-group/hub nil)
-(defun entropy/emacs/generic//func/get-generic-function-group
+(defun entropy/emacs/generic//func/get/obj/generic-function-group
     (generic-function-group/name &optional must-exist)
   (let ((val (alist-get generic-function-group/name
                         entropy/emacs/generic//var/generic-function-group/hub)))
@@ -383,9 +383,16 @@ Return %s when %s is a CL-X of %o or nil (error when WITH-ERROR is non-nil)."
 ;;;###autoload
 (cl-defmacro entropy/emacs/generic/macro/def/generic-function-group
     (generic-function-group/name &optional doc &rest args)
-  "
+  "Define a eemacs generic function group where each GENERIC should
+be a `cl-defgeneric' form but can be any other context related
+expressions.
 
-\(fn GENERIC-FUNCTION-GROUP/NAME &optional DOC &rest GENERICS)"
+If GENERIC is used with GENERIC-FUNCTION-GROUP/NAME (if non-nil)
+then its name is made prefixed by
+that. GENERIC-FUNCTION-GROUP/NAME should be explicitly set as a
+symbol name if used.
+
+\(fn GENERIC-FUNCTION-GROUP/NAME &optional DOC &rest GENERICs)"
   (declare (indent 1) (doc-string 2))
   (let (fns
         (use-gob-sym (make-symbol "obj/generic-function-group"))
@@ -429,7 +436,7 @@ Return %s when %s is a CL-X of %o or nil (error when WITH-ERROR is non-nil)."
             (cons (entropy/emacs/generic//func/gen/generic-function-sym
                    generic-function-group/name (car args))
                   (cdr args)))
-           (gob (entropy/emacs/generic//func/get-generic-function-group
+           (gob (entropy/emacs/generic//func/get/obj/generic-function-group
                  generic-function-group/name
                  'must-exist))
            (fob (entropy/emacs/generic//obj/generic-function-group/pred/get
@@ -451,9 +458,7 @@ Return %s when %s is a CL-X of %o or nil (error when WITH-ERROR is non-nil)."
                      (setq final-exp (append (list pred-exp) final-exp)))
                     (t
                      (setq final-exp (append final-exp (list pred-exp)))))))))
-      (macroexp-let2* ignore
-          ()
-        `(progn ,@final-exp)))))
+      `(progn ,@final-exp))))
 
 (eval-and-compile
   (defun entropy/emacs/generic//func/make-defmethod-args
@@ -518,7 +523,7 @@ that group, error raised up either.
         (push
          `(progn
             (setq ,gob-sym
-                  (entropy/emacs/generic//func/get-generic-function-group
+                  (entropy/emacs/generic//func/get/obj/generic-function-group
                    ',generic-function-group/name
                    'must-exist))
             (ignore ,gob-sym))
