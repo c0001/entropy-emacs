@@ -105,6 +105,8 @@
 (defvar entropy/emacs-run-startup-top-init-timestamp (current-time)
   "Time-stamp eemacs top init prepare")
 
+(defvar entropy/emacs-defconst--just-warn
+  (bound-and-true-p entropy/emacs-startup-with-Debug-p))
 (defmacro entropy/emacs-defconst (symbol initvalue &optional docstring)
   "Same as `defconst' but do not allow any set, local bind,
 and any even modification for variable SYMBOL, if not an error is
@@ -121,8 +123,10 @@ raised up."
           ',symbol
           (lambda (sym &rest _)
             (and (eq sym ',symbol)
-                 (error "Do not modify const variable `%s'"
-                        ',symbol))))))))
+                 (funcall (if (bound-and-true-p entropy/emacs-defconst--just-warn)
+                              #'warn #'error)
+                          "Do not modify const variable `%s'"
+                          ',symbol))))))))
 
 (defmacro entropy/emacs-defconst/only-allow/local
     (symbol initvalue &optional docstring)
