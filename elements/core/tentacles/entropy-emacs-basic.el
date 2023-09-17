@@ -6410,6 +6410,14 @@ This function will store the `rime' loading callback to
                      rime-posframe-buffer)
                     (buffer-name buff))))
 
+  ;; fix emacs freeze while killing session since rime is not
+  ;; finalized.
+  (add-hook 'kill-emacs-hook
+            (entropy/emacs-defalias 'entropy/emacs-basic--rime-kill-emacs-hook
+              (lambda nil
+                (when (fboundp 'rime-lib-finalize)
+                  (rime-lib-finalize)))))
+
 ;; ******* core advice
   (defvar __emacs-rime-current-schema nil
     "The current `rime' schema selected.")
