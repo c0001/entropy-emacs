@@ -53,8 +53,10 @@ raised up."
             ',symbol
             (lambda (sym &rest _)
               (and (eq sym ',symbol)
-                   (error "Do not modify const variable `%s'"
-                          ',symbol)))))))))
+                   (funcall (if (bound-and-true-p entropy/emacs-defconst--just-warn)
+                                #'warn #'error)
+                            "Do not modify const variable `%s'"
+                            ',symbol)))))))))
 
 ;;;###autoload
 (defun entropy/shellpop2/core/func/remove-buffer-window (buffer-or-name)
