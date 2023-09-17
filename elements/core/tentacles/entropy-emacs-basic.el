@@ -472,25 +472,26 @@ modifcation is to remove this feature.
 
 ;; ******* Patch for using commands progress prompts
 
-  (defmacro entropy/emacs-basic--dired-cmd-run-with-simple-progress-prompt
-      (cmd-name msg &rest body)
-    ;; NOTE: preserved symbol for msg and body fn=function-name
-    ;; args=applied-arguments
-    (declare (indent 2))
-    (let ((fnm-sym
-           (entropy/emacs-make-new-interned-symbol
-            (format "\
+  (eval-and-compile
+    (defmacro entropy/emacs-basic--dired-cmd-run-with-simple-progress-prompt
+        (cmd-name msg &rest body)
+      ;; NOTE: preserved symbol for msg and body fn=function-name
+      ;; args=applied-arguments
+      (declare (indent 2))
+      (let ((fnm-sym
+             (entropy/emacs-make-new-interned-symbol
+              (format "\
 entropy/emacs-basic--dired-cmd-run-with-simple-progress-prompt/for/%s/"
-                    (symbol-name cmd-name)))))
-      `(progn
-         (defun ,fnm-sym (fn &rest args)
-           ,(format "Simple progress message around advice for dired command `%s'."
-                    cmd-name)
-           (if (not (called-interactively-p 'interactive)) (apply fn args)
-             (entropy/emacs-message-simple-progress-message ,msg
-               ,@(if body body
-                   '((apply fn args))))))
-         (advice-add ',cmd-name :around ',fnm-sym))))
+                      (symbol-name cmd-name)))))
+        `(progn
+           (defun ,fnm-sym (fn &rest args)
+             ,(format "Simple progress message around advice for dired command `%s'."
+                      cmd-name)
+             (if (not (called-interactively-p 'interactive)) (apply fn args)
+               (entropy/emacs-message-simple-progress-message ,msg
+                 ,@(if body body
+                     '((apply fn args))))))
+           (advice-add ',cmd-name :around ',fnm-sym)))))
 
   (entropy/emacs-basic--dired-cmd-run-with-simple-progress-prompt
       dired-create-directory
