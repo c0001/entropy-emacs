@@ -91,9 +91,10 @@ Emacs on windows
 @node Preface
 @chapter Preface
 
-Entropy emacs was one personal emacs config built for me at the
-begining and derived from @uref{https://github.com/seagle0128/.emacs.d, centaur emacs} which was one simple pure and
-with sets of mordern emacs extension tracking on.
+Entropy emacs was one personal emacs config built for my daily usage
+at the begining and is derived from @uref{https://github.com/seagle0128/.emacs.d, centaur emacs} which was one simple
+and vanilla orientated emacs configuration but with sets of mordern
+emacs extensions tracking on via the emacs communitiy.
 
 @quotation
 @samp{entropy-emacs} was based on the commit of @samp{centaur-emacs} by
@@ -115,8 +116,9 @@ dir struct used by myself.
 
 In the root node, it be with three folder: annex, stuff, elements.
 
-This three folder has their own meaning respectively, all of them was
-created as the part of one normal project I used/created, thus for:
+This three folder has their own meaning respectively, all of them were
+created as the part of a normal project as one I defined usually
+follow mine own habit, thus for:
 
 @itemize
 @item
@@ -204,8 +206,8 @@ Files:
 @tab the startup font settings
 @item @samp{entropy-emacs-path.el}
 @tab the startup @samp{$PATH} environment initialization
-@item
-@tab
+@item 
+@tab 
 @end multitable
 
 @item
@@ -272,105 +274,105 @@ descriptions:
 @headitem @strong{Category}
 @tab @strong{init package}
 @tab @strong{package description}
-@item
+@item 
 @tab entropy-emacs-themes.el
 @tab theme collections and startup default theme sets
 @item basic-ui
 @tab entropy-emacs-modeline.el
 @tab modeline themes collection and default modeline theme setes
-@item
-@tab
-@tab
+@item 
+@tab 
+@tab 
 @item basic-config
 @tab entropy-emacs-basic.el
 @tab basic setting for @samp{entropy-emacs}
-@item
-@tab
-@tab
-@item
+@item 
+@tab 
+@tab 
+@item 
 @tab entropy-emacs-wc.el
 @tab The emacs window moving and workaround emulator configuration
 @item window conigurations
 @tab entropy-emacs-popwin.el
 @tab The popuped window procedure implementation
-@item
-@tab
-@tab
+@item 
+@tab 
+@tab 
 @item interactive chains
 @tab entropy-emacs-ivy.el
 @tab @uref{https://github.com/abo-abo/swiper, ivy} mode configs and others refer enhancements
-@item
-@tab
-@tab
-@item
+@item 
+@tab 
+@tab 
+@item 
 @tab entropy-emacs-org.el
 @tab emacs org mode configs
-@item
+@item 
 @tab entropy-emacs-markdown.el
 @tab emacs markdown mode configs
-@item
+@item 
 @tab entropy-emacs-c.el
 @tab C/C++ mode configs
-@item
+@item 
 @tab entropy-emacs-lisp.el
 @tab Emacs Lisp configs
 @item major-modes
 @tab entropy-emacs-web.el
 @tab web mode (web front/back end) configs (inclues js css html php)
-@item
+@item 
 @tab entropy-emacs-python.el
 @tab Python lang config
-@item
+@item 
 @tab entropy-emacs-lua.el
 @tab Lua lang configs
-@item
+@item 
 @tab entropy-emacs-rust.el
 @tab Rust lang configs
-@item
+@item 
 @tab entropy-emacs-go.el
 @tab Go lang configs
-@item
+@item 
 @tab entropy-emacs-yaml.el
 @tab Yaml lang configs
-@item
+@item 
 @tab entropy-emacs-codeserver.el
 @tab the dashboard for language server initialization
 @item IDE emulation
 @tab entropy-emacs-company.el
 @tab @uref{https://github.com/company-mode/company-mode, company-mode} confifs and other refer enhancements
-@item
+@item 
 @tab entropy-emacs-yas.el
 @tab @uref{https://github.com/joaotavora/yasnippet, yasnippet for emacs} configs and other refer enhancements
-@item
-@tab
-@tab
-@item
+@item 
+@tab 
+@tab 
+@item 
 @tab entropy-emacs-shell.el
 @tab emacs internal shell front-end enhancements
 @item tool-chains
 @tab entropy-emacs-vcs.el
 @tab git/svn codes version control with @samp{magit}
-@item
+@item 
 @tab entropy-emacs-structure.el
-@tab programme editting structs fold/expanding feature package
-@item
+@tab programme editing structs fold/expanding feature package
+@item 
 @tab entropy-emacs-highlight.el
 @tab codes snippet highlighting guide feature provider
-@item
+@item 
 @tab entropy-emacs-zeal.el
 @tab external api query prompt powerd by external tool @uref{https://github.com/zealdocs/zeal, zeal}
-@item
-@tab
-@tab
+@item 
+@tab 
+@tab 
 @item entertainments
 @tab entropy-emacs-music.el
 @tab gnu emms as media play control panel @samp{entropy-emacs} specifics
-@item
+@item 
 @tab entropy-emacs-game.el
 @tab emacs internal game setting config optimization
-@item
-@tab
-@tab
+@item 
+@tab 
+@tab 
 @end multitable
 
 @node Self built packages
@@ -402,8 +404,6 @@ Now, I built serveral packages shown as below table:
 @tab point char or region translation for chinese words (also useful for traditional chinese)
 @item entropy-sdcv
 @tab the emacs multi-dictionaries framework
-@item entropy-common-library
-@tab librarys for building other @samp{entropy-emacs} package
 @item entropy-dired-cp-or-mv
 @tab dired copy or move files extension for enhancing based dired refer function
 @item entropy-global-read-only-mode
@@ -616,7 +616,7 @@ configuration files in that file which see as:
 ...
 
 ;; advices
-(advice-add 'entropy/emas-xxx :after #'(lambda (&rest args) ...))
+(advice-add 'entropy/emacs-xxx :after #'(lambda (&rest args) ...))
 ...
 
 ;; my functions
@@ -637,32 +637,34 @@ done, before @samp{entropy-emacs} be initing.
 @node Config feature specifiction introduction
 @chapter Config feature specifiction introduction
 
-This chapter introducts the main config features of @samp{entropy-emacs},
-each part of below sections pointing one feature category which was
-the collection sets description and feature specified core sets, you
-may want to select refer things you'd been mentioned or caring about
-for, from jumping with the sequence as the section it self. But I
-recommended for reading sections one by one from first to the end,
-instead of jumping randomly while you are fisrt using @samp{entropy-emacs}.
+This chapter introduced the main configuration features of
+@samp{entropy-emacs}, each of below sections pointing one feature category
+of core eemacs configurations, you may want to select refer things
+you'd been mentioned or caring about for, from jumping to one sequence
+whose section title is referred to. But I recommended for reading
+sections one by one from first to the end, instead of jumping randomly
+while you are fisrt using @samp{entropy-emacs}.
 
 Each feature required the basic emacs using experience has been got,
 which means if you are the newbie of emacs, you must reading the emacs
-internal tutorial first and then doing thus.
+internal tutorial first and then viewing around this document.
 
 For WINDOWS specification section, only suggested to read for someone
-using emacs on windows, that section was the sets of experiences by me
-for using emacs on windows, I often using emacs on WINDOWS with one
-portable programming encapsulation environment and that is designed
-for this.
+using emacs on windows, that section was the sets of mine experiences
+for using emacs on windows, although I rarely use emacs on windows but
+I try to implement the consistent eemacs using experience as much as
+possible thru those configurations. Thus neglects and bugs frequently
+occurred via eemacs WINDOWS spec is normal and any contributions and
+improvements are welcom.
 
 For chinese emacs user, when you want to input chinese and showing CJK
 fonts well (without lagging or other crash problem when using emacs
 with cjk occasions), you can obtain the minor skills from 'Font
 specific' section.
 
-Latest, all of below section can be the taste of @samp{entropy-emacs} for
-understanding the difference between this to the default emacs using
-experience, happy hacking with @samp{entropy-emacs}.
+Latest, all of below section gives a shorter description for
+understanding the difference of using experience between eemacs and
+the vanilla emacs, happy hacking with @samp{entropy-emacs}.
 
 @menu
 * Internal basic setting specific::
@@ -674,30 +676,29 @@ experience, happy hacking with @samp{entropy-emacs}.
 @node Internal basic setting specific
 @section Internal basic setting specific
 
-@samp{entropy-emacs} using elpa/melpa emacs extension to build basic
-work-around, for enhancing the basic emacs using experience.
+@samp{entropy-emacs} using @uref{https://elpa.gnu.org, elpa}/@uref{https://melpa.org, melpa} emacs extensions to build basic
+work-arounds, for enhancing the vanilla emacs using experience.
 
 Basic config of @samp{entropy-emacs} can be splitting into seven nodes:
 @itemize
 @item
 workspace (window configuration) toggle/create
 @item
-modeline specific
+modeline style toggle
 @item
-global buffer lock
+global buffer lock mode
 @item
-input method of chinese refer
+chinese input method enable
 @item
-org mode
+org mode specifications involved
 @item
-font specific
+fontset specifications involved
 @item
-miscellaneous config
+miscellaneous configurations
 @end itemize
 
 These seven parts consist the basic core of @samp{entropy-emacs}
-config. They are oriented respectively for their individual direction,
-and was necessary be the part of core of this.
+config. They are oriented for their individual direction respectively.
 
 @menu
 * Windows configuration and workspace defination::
@@ -713,27 +714,28 @@ and was necessary be the part of core of this.
 @subsection Windows configuration and workspace defination
 
 Emacs using @strong{buffer}, @strong{window}, @strong{frame} to recoganize the current
-editting space and recorde it's state, they are the basic conceptions
-for elisp programmer for built editting aspect extensions for as more
-convenience to create, move, toggle the editting space, we call such a
-'editting space' is a @strong{workspace}.
+editing space and recorde it's state, they are the basic conceptions
+for elisp programmer for building editing aspect extensions for
+enhanced vanilla emacs with more convenience to create, move, toggle
+the editing space, we call such a 'editing space' is termed as
+@strong{workspace} in eemacs.
 
-Workspace managements consists of two parts:
+Eemacs workspace management consists of two parts:
 @enumerate
 @item
-workspace/layout/window configurations toggle
+workspace/layout/window configurations switcher
 @item
-window toggle
+window jumping/switcher
 @end enumerate
 
 A workspace was one layout consists with several displayed windows
-where that layout is in term of @strong{window-configuration} in emacs.
-Layout toggle is used as switching different workspace, creating
-layouts with different working purposes. This is useful for who
-marking different tasks at the same time.
+where that layout is in term of @strong{@ref{Window Configurations,window-configuration,,elisp,}} in emacs.
+Layout switcher is used as switching between different workspaces,
+creating layouts with different jobbing purposes. This is useful for
+who is marking different tasks at the same time.
 
-Thus, as the layout toggle, the basic thing when you facing to emacs
-using was to jump the cusor point with sets of windows, for editting
+Thus, as the layout switcher, the basic thing when you facing to emacs
+using was to jump the cusor point with sets of windows, for editing
 buffers stored in those windows, cusor switching upon different
 windows was called window toggle.
 
@@ -1443,7 +1445,7 @@ remove all the hook and cancel all the advisors this package maked in.
 @node Org-mode
 @subsection Org-mode
 
-Org mode was the structure plain text document editting system
+Org mode was the structure plain text document editing system
 combined with emacs closely, which obtained the admiration with
 various emacs users. This section was implicitly for the user who
 understand with the basic Org-mode knowledgebase and had used it for a
@@ -1530,30 +1532,33 @@ place follow codes snippet into your custom file"
 @item
 @strong{Org file open associate application:}
 
-Org mode have the functional for open link in a buffer with
-'org-mode' as major mode, each file were recognized for their file
-type judged by it's file name suffix e.g. ("\\.pdf", "\\.docx",
-"\\.cpp"). In org mode, file identifier can be more than the file
-name suffixes rule recognizing, custom variabl @samp{org-file-apps}
-controlling thus.
+Org mode have the functional for opening link of a file like a
+web-browser using experience, each file can be recognized for their
+type simply as judging it's file name suffix e.g. ("\\.pdf",
+"\\.docx", "\\.cpp"). In org mode, file identifier can be more than
+the file name suffixes rule convention, custom variabl
+@samp{org-file-apps} controlling thus.
 
-In @samp{entropy-emacs}, the value of @samp{org-file-apps} was minor setting
-with few entries be pdf and gif files.
+In @samp{entropy-emacs}, the value of @samp{org-file-apps} is built without
+entries for @strong{pdf} and @strong{gif} files, since the performance issue that:
 
+@quotation
 Gif files was the animation picture foramt for web or local state,
-it can be containd dozen frames (animation stacks) which can be the
+it was consist of dozen frames (animation stacks) which can be the
 size cover 'kb' to 'Mb'. However, when the size larger than several
 'Mb', emacs will lagging seriously for a long time to display the
 animation before analyzing it's fram counts, because emacs display
 gif files through the way splitting the picture into the frame list
-and then render them one by one, this was low effectively compared
+and then render them one by one, this has low effectiveness compared
 with other picture viewers. Therefore, @samp{entropy-emacs} set all the
 gif file links of org file to be opened with external system picture
 viewer.
 
 Pdf files were rendered in emacs with frame stacks in turn as the
-way for display gifs, thus viewing pdf within emacs was not a good
+way for display gifs, thus reading pdf within emacs was not a good
 idea, thus using system application referred it as well.
+
+@end quotation
 
 @item
 @strong{Org html exporting style:}
@@ -1839,9 +1844,9 @@ behaviour as so. There's also a global mode
 in each displayed window.
 
 @item
-@strong{Auto sudo editting:}
+@strong{Auto sudo editing:}
 
-When using emacs on unix like OS, visiting or editting privilege
+When using emacs on unix like OS, visiting or editing privilege
 permission required files will using emacs @uref{https://www.gnu.org/software/tramp/, tramp} feature, the
 manually way for it will cost time for inputting the special file
 path string, @samp{entropy-emacs} using melpa package @uref{https://github.com/ncaq/auto-sudoedit, auto-sudoedit}
@@ -1921,22 +1926,23 @@ extending were including the coding interaction cases such as context
 folding and expanding uppon the regions or parentheses, and even for
 debug tool-chains.
 
-@samp{entropy-emacs} treats emacs as the lightweight IDE (i.e. integrated
-development environment), extended with third-party lanuage servers,
-with the quickly ripened opensource lanugue protocol @uref{https://github.com/microsoft/language-server-protocol, Microsoft
-language server} (LSP), we are trending to use the LSP as the IDE core
-component, its powerful with unified crossplatform protocol defination
-and ripened communitiy driven. But for those old IDE configuration
-(i.e. individually un-unified code sever) were remained in
-@samp{entropy-emacs} with just limited supplement.
+@samp{entropy-emacs} treats emacs as the lightweight IDE (i.e. @uref{https://en.wikipedia.org/wiki/Integrated_development_environment, integrated
+development environment}), extended with third-party language
+servers, with the quickly mature opensource lanugue protocol @uref{https://github.com/microsoft/language-server-protocol, Microsoft
+language server} (LSP), we are trending to use the LSP as the IDE
+core component, it's powerful with unified crossplatform protocol
+defination and driven by peppy communitiy across world-wide. But for
+those old code integration configuration (i.e. individually un-unified
+code sever) were remained in @samp{entropy-emacs} with just limited
+supplements.
 
 The switcher for @samp{lsp} and the old IDE configuration is relying on
 customized variable @samp{entropy/emacs-use-ide-type-for-MAJOR-MODE} whose
-valid values are 'lsp or 'traditional, where the 'MAJOR-MODE' place is
-wildcards like, which case that if you want to use a LSP ide type for
-major-mode @samp{c-mode}, the corresponding customized variable is
-@samp{entropy/emacs-use-ide-type-for-c-mode} and manually set it to
-'traditional'. By default, we use LSP for all occasions.
+valid values are @emph{lsp} or @emph{traditional}, where the @samp{MAJOR-MODE'} place
+used to substitute with for which case that if you want to use a LSP
+ide type for major-mode @samp{c-mode}, the corresponding customized
+variable is @samp{entropy/emacs-use-ide-type-for-c-mode}. By default, we
+use LSP for all occasions.
 
 Follow sections given the description for each major mode which have
 been enhanced for those IDE features.
@@ -1968,10 +1974,10 @@ Use ide type customized variable: @samp{entropy/emacs-use-ide-type-for-[c/c++]-m
 @tab @uref{https://github.com/Sarcasm/irony-mode, irony-mode}
 @tab yes
 @tab yes
-@item
-@tab
-@tab
-@tab
+@item 
+@tab 
+@tab 
+@tab 
 @end multitable
 
 @itemize
@@ -2046,7 +2052,7 @@ melpa package @uref{http://web-mode.org, web-mode} for the enhancements for web 
 context.
 
 web-mode provide sets of mordern features as for. Tag folding and
-expanding with @uref{https://github.com/smihica/emmet-mode, emmet-mode}'s abbrevation tag editting, giving the more
+expanding with @uref{https://github.com/smihica/emmet-mode, emmet-mode}'s abbrevation tag editing, giving the more
 sensitive web refer coding.
 
 Our self built func @code{entropy/emacs-web-browse-web-buffer} can quickly
@@ -2072,7 +2078,7 @@ major-modes.
 @tab html: no
 @tab yes (@uref{https://github.com/osv/company-web, company-web})
 @tab no
-@item
+@item 
 @tab css:  no
 @tab yes (company-capf)
 @tab no
@@ -2116,7 +2122,7 @@ providing the web front-end realtime previewer feature.
 it emulates the real-time evaluation mechanism upon emacs elisp
 environment, using the way of the interaction of synchronizing with
 external browser's internal javascript engine, evaluating the codes
-snippet within current editting buffer. It support the repl by the
+snippet within current editing buffer. It support the repl by the
 same way as well.
 
 It's mechanism for:

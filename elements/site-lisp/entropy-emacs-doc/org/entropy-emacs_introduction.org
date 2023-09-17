@@ -11,9 +11,10 @@
 :CUSTOM_ID: h-622e3623-f12f-46cd-95bd-925940a5e3e7
 :END:
 
-Entropy emacs was one personal emacs config built for me at the
-begining and derived from [[https://github.com/seagle0128/.emacs.d][centaur emacs]] which was one simple pure and
-with sets of mordern emacs extension tracking on.
+Entropy emacs was one personal emacs config built for my daily usage
+at the begining and is derived from [[https://github.com/seagle0128/.emacs.d][centaur emacs]] which was one simple
+and vanilla orientated emacs configuration but with sets of mordern
+emacs extensions tracking on via the emacs communitiy.
 
 #+BEGIN_QUOTE
 =entropy-emacs= was based on the commit of =centaur-emacs= by
@@ -36,8 +37,9 @@ dir struct used by myself.
 
 In the root node, it be with three folder: annex, stuff, elements.
 
-This three folder has their own meaning respectively, all of them was
-created as the part of one normal project I used/created, thus for:
+This three folder has their own meaning respectively, all of them were
+created as the part of a normal project as one I defined usually
+follow mine own habit, thus for:
 
 - *annex:* stored auxiliaries used by =entropy-emacs=.
 
@@ -183,7 +185,7 @@ descriptions:
 |----------------------+-----------------------------+-----------------------------------------------------------------|
 |                      | entropy-emacs-shell.el      | emacs internal shell front-end enhancements                     |
 | tool-chains          | entropy-emacs-vcs.el        | git/svn codes version control with =magit=                      |
-|                      | entropy-emacs-structure.el  | programme editting structs fold/expanding feature package       |
+|                      | entropy-emacs-structure.el  | programme editing structs fold/expanding feature package        |
 |                      | entropy-emacs-highlight.el  | codes snippet highlighting guide feature provider               |
 |                      | entropy-emacs-zeal.el       | external api query prompt powerd by external tool [[https://github.com/zealdocs/zeal][zeal]]          |
 |                      |                             |                                                                 |
@@ -446,53 +448,54 @@ done, before =entropy-emacs= be initing.
 :CUSTOM_ID: h-c6193e3f-dade-485f-a82e-e12aa35543cc
 :END:
 
-This chapter introducts the main config features of =entropy-emacs=,
-each part of below sections pointing one feature category which was
-the collection sets description and feature specified core sets, you
-may want to select refer things you'd been mentioned or caring about
-for, from jumping with the sequence as the section it self. But I
-recommended for reading sections one by one from first to the end,
-instead of jumping randomly while you are fisrt using =entropy-emacs=.
+This chapter introduced the main configuration features of
+=entropy-emacs=, each of below sections pointing one feature category
+of core eemacs configurations, you may want to select refer things
+you'd been mentioned or caring about for, from jumping to one sequence
+whose section title is referred to. But I recommended for reading
+sections one by one from first to the end, instead of jumping randomly
+while you are fisrt using =entropy-emacs=.
 
 Each feature required the basic emacs using experience has been got,
 which means if you are the newbie of emacs, you must reading the emacs
-internal tutorial first and then doing thus.
+internal tutorial first and then viewing around this document.
 
 For WINDOWS specification section, only suggested to read for someone
-using emacs on windows, that section was the sets of experiences by me
-for using emacs on windows, I often using emacs on WINDOWS with one
-portable programming encapsulation environment and that is designed
-for this.
+using emacs on windows, that section was the sets of mine experiences
+for using emacs on windows, although I rarely use emacs on windows but
+I try to implement the consistent eemacs using experience as much as
+possible thru those configurations. Thus neglects and bugs frequently
+occurred via eemacs WINDOWS spec is normal and any contributions and
+improvements are welcom.
 
 For chinese emacs user, when you want to input chinese and showing CJK
 fonts well (without lagging or other crash problem when using emacs
 with cjk occasions), you can obtain the minor skills from 'Font
 specific' section.
 
-Latest, all of below section can be the taste of =entropy-emacs= for
-understanding the difference between this to the default emacs using
-experience, happy hacking with =entropy-emacs=.
+Latest, all of below section gives a shorter description for
+understanding the difference of using experience between eemacs and
+the vanilla emacs, happy hacking with =entropy-emacs=.
 
 ** Internal basic setting specific
 :PROPERTIES:
 :CUSTOM_ID: h-50f1e907-51ea-4e62-841b-2f7addb4c1d8
 :END:
 
-=entropy-emacs= using elpa/melpa emacs extension to build basic
-work-around, for enhancing the basic emacs using experience.
+=entropy-emacs= using [[https://elpa.gnu.org][elpa]]/[[https://melpa.org][melpa]] emacs extensions to build basic
+work-arounds, for enhancing the vanilla emacs using experience.
 
 Basic config of =entropy-emacs= can be splitting into seven nodes:
 - workspace (window configuration) toggle/create
-- modeline specific
-- global buffer lock
-- input method of chinese refer
-- org mode
-- font specific
-- miscellaneous config
+- modeline style toggle
+- global buffer lock mode
+- chinese input method enable
+- org mode specifications involved
+- fontset specifications involved
+- miscellaneous configurations
 
 These seven parts consist the basic core of =entropy-emacs=
-config. They are oriented respectively for their individual direction,
-and was necessary be the part of core of this.
+config. They are oriented for their individual direction respectively.
 
 *** Windows configuration and workspace defination
 :PROPERTIES:
@@ -500,23 +503,24 @@ and was necessary be the part of core of this.
 :END:
 
 Emacs using *buffer*, *window*, *frame* to recoganize the current
-editting space and recorde it's state, they are the basic conceptions
-for elisp programmer for built editting aspect extensions for as more
-convenience to create, move, toggle the editting space, we call such a
-'editting space' is a *workspace*.
+editing space and recorde it's state, they are the basic conceptions
+for elisp programmer for building editing aspect extensions for
+enhanced vanilla emacs with more convenience to create, move, toggle
+the editing space, we call such a 'editing space' is termed as
+*workspace* in eemacs.
 
-Workspace managements consists of two parts:
-1. workspace/layout/window configurations toggle
-2. window toggle
+Eemacs workspace management consists of two parts:
+1. workspace/layout/window configurations switcher
+2. window jumping/switcher
 
 A workspace was one layout consists with several displayed windows
-where that layout is in term of *window-configuration* in emacs.
-Layout toggle is used as switching different workspace, creating
-layouts with different working purposes. This is useful for who
-marking different tasks at the same time.
+where that layout is in term of *[[info:elisp#Window Configurations][window-configuration]]* in emacs.
+Layout switcher is used as switching between different workspaces,
+creating layouts with different jobbing purposes. This is useful for
+who is marking different tasks at the same time.
 
-Thus, as the layout toggle, the basic thing when you facing to emacs
-using was to jump the cusor point with sets of windows, for editting
+Thus, as the layout switcher, the basic thing when you facing to emacs
+using was to jump the cusor point with sets of windows, for editing
 buffers stored in those windows, cusor switching upon different
 windows was called window toggle.
 
@@ -1132,7 +1136,7 @@ remove all the hook and cancel all the advisors this package maked in.
 :CUSTOM_ID: h-2263f98f-eba0-4248-8dcd-03928af7978c
 :END:
 
-Org mode was the structure plain text document editting system
+Org mode was the structure plain text document editing system
 combined with emacs closely, which obtained the admiration with
 various emacs users. This section was implicitly for the user who
 understand with the basic Org-mode knowledgebase and had used it for a
@@ -1211,30 +1215,32 @@ while, and the rest introduction was the specification of
 
 + *Org file open associate application:*
 
-  Org mode have the functional for open link in a buffer with
-  'org-mode' as major mode, each file were recognized for their file
-  type judged by it's file name suffix e.g. ("\\.pdf", "\\.docx",
-  "\\.cpp"). In org mode, file identifier can be more than the file
-  name suffixes rule recognizing, custom variabl =org-file-apps=
-  controlling thus.
+  Org mode have the functional for opening link of a file like a
+  web-browser using experience, each file can be recognized for their
+  type simply as judging it's file name suffix e.g. ("\\.pdf",
+  "\\.docx", "\\.cpp"). In org mode, file identifier can be more than
+  the file name suffixes rule convention, custom variabl
+  =org-file-apps= controlling thus.
 
-  In =entropy-emacs=, the value of =org-file-apps= was minor setting
-  with few entries be pdf and gif files.
+  In =entropy-emacs=, the value of =org-file-apps= is built without
+  entries for *pdf* and *gif* files, since the performance issue that:
 
+  #+begin_quote
   Gif files was the animation picture foramt for web or local state,
-  it can be containd dozen frames (animation stacks) which can be the
+  it was consist of dozen frames (animation stacks) which can be the
   size cover 'kb' to 'Mb'. However, when the size larger than several
   'Mb', emacs will lagging seriously for a long time to display the
   animation before analyzing it's fram counts, because emacs display
   gif files through the way splitting the picture into the frame list
-  and then render them one by one, this was low effectively compared
+  and then render them one by one, this has low effectiveness compared
   with other picture viewers. Therefore, =entropy-emacs= set all the
   gif file links of org file to be opened with external system picture
   viewer.
 
   Pdf files were rendered in emacs with frame stacks in turn as the
-  way for display gifs, thus viewing pdf within emacs was not a good
+  way for display gifs, thus reading pdf within emacs was not a good
   idea, thus using system application referred it as well.
+  #+end_quote
 
 + *Org html exporting style:*
 
@@ -1489,9 +1495,9 @@ This section was the introduction for thus.
   ~entropy/emacs-basic-smooth-scrolling-global-mode~ which used that
   in each displayed window.
 
-+ *Auto sudo editting:*
++ *Auto sudo editing:*
 
-  When using emacs on unix like OS, visiting or editting privilege
+  When using emacs on unix like OS, visiting or editing privilege
   permission required files will using emacs [[https://www.gnu.org/software/tramp/][tramp]] feature, the
   manually way for it will cost time for inputting the special file
   path string, =entropy-emacs= using melpa package [[https://github.com/ncaq/auto-sudoedit][auto-sudoedit]]
@@ -1572,22 +1578,23 @@ extending were including the coding interaction cases such as context
 folding and expanding uppon the regions or parentheses, and even for
 debug tool-chains.
 
-=entropy-emacs= treats emacs as the lightweight IDE (i.e. integrated
-development environment), extended with third-party lanuage servers,
-with the quickly ripened opensource lanugue protocol [[https://github.com/microsoft/language-server-protocol][Microsoft
-language server]] (LSP), we are trending to use the LSP as the IDE core
-component, its powerful with unified crossplatform protocol defination
-and ripened communitiy driven. But for those old IDE configuration
-(i.e. individually un-unified code sever) were remained in
-=entropy-emacs= with just limited supplement.
+=entropy-emacs= treats emacs as the lightweight IDE (i.e. [[https://en.wikipedia.org/wiki/Integrated_development_environment][integrated
+development environment]]), extended with third-party language
+servers, with the quickly mature opensource lanugue protocol [[https://github.com/microsoft/language-server-protocol][Microsoft
+language server]] (LSP), we are trending to use the LSP as the IDE
+core component, it's powerful with unified crossplatform protocol
+defination and driven by peppy communitiy across world-wide. But for
+those old code integration configuration (i.e. individually un-unified
+code sever) were remained in =entropy-emacs= with just limited
+supplements.
 
 The switcher for =lsp= and the old IDE configuration is relying on
 customized variable =entropy/emacs-use-ide-type-for-MAJOR-MODE= whose
-valid values are 'lsp or 'traditional, where the 'MAJOR-MODE' place is
-wildcards like, which case that if you want to use a LSP ide type for
-major-mode =c-mode=, the corresponding customized variable is
-=entropy/emacs-use-ide-type-for-c-mode= and manually set it to
-'traditional'. By default, we use LSP for all occasions.
+valid values are /lsp/ or /traditional/, where the =MAJOR-MODE'= place
+used to substitute with for which case that if you want to use a LSP
+ide type for major-mode =c-mode=, the corresponding customized
+variable is =entropy/emacs-use-ide-type-for-c-mode=. By default, we
+use LSP for all occasions.
 
 Follow sections given the description for each major mode which have
 been enhanced for those IDE features.
@@ -1665,7 +1672,7 @@ melpa package [[http://web-mode.org][web-mode]] for the enhancements for web tec
 context.
 
 web-mode provide sets of mordern features as for. Tag folding and
-expanding with [[https://github.com/smihica/emmet-mode][emmet-mode]]'s abbrevation tag editting, giving the more
+expanding with [[https://github.com/smihica/emmet-mode][emmet-mode]]'s abbrevation tag editing, giving the more
 sensitive web refer coding.
 
 Our self built func ~entropy/emacs-web-browse-web-buffer~ can quickly
@@ -1716,7 +1723,7 @@ providing the web front-end realtime previewer feature.
   it emulates the real-time evaluation mechanism upon emacs elisp
   environment, using the way of the interaction of synchronizing with
   external browser's internal javascript engine, evaluating the codes
-  snippet within current editting buffer. It support the repl by the
+  snippet within current editing buffer. It support the repl by the
   same way as well.
 
   It's mechanism for:

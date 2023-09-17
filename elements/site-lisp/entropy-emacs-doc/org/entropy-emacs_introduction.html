@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2022-11-16 Wed 05:49 -->
+<!-- 2023-09-17 Sun 11:54 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>entropy emacs introduction</title>
@@ -63,7 +63,7 @@ body > div
   font-size: 0.75em;
   color: crimson;
   text-decoration: underline;
-
+  
 }
 
 #content span.section-number-2{border: solid 0.2px; padding: 0 0.3em; margin: 8px;}
@@ -117,7 +117,7 @@ body > div
 #content blockquote p a:visited
 {
   color: lightsteelblue;
-
+  
 }
 
 #content blockquote p a:hover
@@ -1222,7 +1222,7 @@ img
 </div>
 </div>
 
-<div id="org4154636" class="figure">
+<div id="orgefc90ab" class="figure">
 <p><img src="../annex/img/logo.png" alt="logo.png" width="300px" />
 </p>
 </div>
@@ -1230,9 +1230,10 @@ img
 <h2 id="h-622e3623-f12f-46cd-95bd-925940a5e3e7"><span class="section-number-2">1.</span> Preface</h2>
 <div class="outline-text-2" id="text-h-622e3623-f12f-46cd-95bd-925940a5e3e7">
 <p>
-Entropy emacs was one personal emacs config built for me at the
-begining and derived from <a href="https://github.com/seagle0128/.emacs.d">centaur emacs</a> which was one simple pure and
-with sets of mordern emacs extension tracking on.
+Entropy emacs was one personal emacs config built for my daily usage
+at the begining and is derived from <a href="https://github.com/seagle0128/.emacs.d">centaur emacs</a> which was one simple
+and vanilla orientated emacs configuration but with sets of mordern
+emacs extensions tracking on via the emacs communitiy.
 </p>
 
 <blockquote>
@@ -1265,8 +1266,9 @@ In the root node, it be with three folder: annex, stuff, elements.
 </p>
 
 <p>
-This three folder has their own meaning respectively, all of them was
-created as the part of one normal project I used/created, thus for:
+This three folder has their own meaning respectively, all of them were
+created as the part of a normal project as one I defined usually
+follow mine own habit, thus for:
 </p>
 
 <ul class="org-ul">
@@ -1692,7 +1694,7 @@ descriptions:
 <tr>
 <td class="org-left">&#xa0;</td>
 <td class="org-left">entropy-emacs-structure.el</td>
-<td class="org-left">programme editting structs fold/expanding feature package</td>
+<td class="org-left">programme editing structs fold/expanding feature package</td>
 </tr>
 
 <tr>
@@ -1784,11 +1786,6 @@ Now, I built serveral packages shown as below table:
 <tr>
 <td class="org-left">entropy-sdcv</td>
 <td class="org-left">the emacs multi-dictionaries framework</td>
-</tr>
-
-<tr>
-<td class="org-left">entropy-common-library</td>
-<td class="org-left">librarys for building other <code>entropy-emacs</code> package</td>
 </tr>
 
 <tr>
@@ -1932,7 +1929,7 @@ means its a unified platform, a framework or a system.
 <b>Hydra-Hollow UI:</b>
 </p>
 
-<pre class="example" id="org7713528">
+<pre class="example" id="orgbb699b7">
 +---------------------------------------------------------------------------------------------------------------------+
 | [page indicator] eemacs top dispacher [up]: previous page [down]: next page                                         |
 |                                                                                                                     |
@@ -2091,24 +2088,24 @@ that you could write features or loading extra self-defined
 configuration files in that file which see as:
 </p>
 <div class="org-src-container">
-<pre class="src src-emacs-lisp"><span style="color: #888888; font-style: italic;">;; </span><span style="color: #888888; font-style: italic;">this is the start of custom.el</span>
-(<span style="color: #8197bf;">setq</span> foo bar)
+<pre class="src src-emacs-lisp"><span style="color: #62686E;">;; </span><span style="color: #62686E;">this is the start of custom.el</span>
+(<span style="color: #51afef;">setq</span> foo bar)
 
-<span style="color: #888888; font-style: italic;">;; </span><span style="color: #888888; font-style: italic;">other eemas customizations</span>
+<span style="color: #62686E;">;; </span><span style="color: #62686E;">other eemas customizations</span>
 ...
 
-<span style="color: #888888; font-style: italic;">;; </span><span style="color: #888888; font-style: italic;">advices</span>
-(advice-add 'entropy/emas-xxx <span style="color: #8fbfdc;">:after</span> #'(<span style="color: #8197bf;">lambda</span> (<span style="color: #8fbfdc;">&amp;rest</span> args) ...))
+<span style="color: #62686E;">;; </span><span style="color: #62686E;">advices</span>
+(advice-add 'entropy/emacs-xxx <span style="color: #C57BDB;">:after</span> #'(<span style="color: #51afef;">lambda</span> (<span style="color: #FCCE7B;">&amp;rest</span> args) ...))
 ...
 
-<span style="color: #888888; font-style: italic;">;; </span><span style="color: #888888; font-style: italic;">my functions</span>
+<span style="color: #62686E;">;; </span><span style="color: #62686E;">my functions</span>
 
-(<span style="color: #8197bf;">defun</span> <span style="color: #fad07a;">myfunction-0</span> nil xxx)
+(<span style="color: #51afef;">defun</span> <span style="color: #5cEfFF;">myfunction-0</span> nil xxx)
 ...
 
-<span style="color: #888888; font-style: italic;">;; </span><span style="color: #888888; font-style: italic;">in the end, load "my_entropy-emacs_extern.el" in "custom.el".</span>
-(<span style="color: #8197bf;">let</span> ((file (file-exists-p <span style="color: #99ad6a;">"/xxx/xxxx/.../my_entropy-emacs_extern.el"</span>)))
-  (<span style="color: #8197bf;">when</span> (file-exists-p file)
+<span style="color: #62686E;">;; </span><span style="color: #62686E;">in the end, load "my_entropy-emacs_extern.el" in "custom.el".</span>
+(<span style="color: #51afef;">let</span> ((file (file-exists-p <span style="color: #7bc275;">"/xxx/xxxx/.../my_entropy-emacs_extern.el"</span>)))
+  (<span style="color: #51afef;">when</span> (file-exists-p file)
     (load-file file)))
 </pre>
 </div>
@@ -2125,27 +2122,29 @@ done, before <code>entropy-emacs</code> be initing.
 <h2 id="h-c6193e3f-dade-485f-a82e-e12aa35543cc"><span class="section-number-2">9.</span> Config feature specifiction introduction</h2>
 <div class="outline-text-2" id="text-h-c6193e3f-dade-485f-a82e-e12aa35543cc">
 <p>
-This chapter introducts the main config features of <code>entropy-emacs</code>,
-each part of below sections pointing one feature category which was
-the collection sets description and feature specified core sets, you
-may want to select refer things you'd been mentioned or caring about
-for, from jumping with the sequence as the section it self. But I
-recommended for reading sections one by one from first to the end,
-instead of jumping randomly while you are fisrt using <code>entropy-emacs</code>.
+This chapter introduced the main configuration features of
+<code>entropy-emacs</code>, each of below sections pointing one feature category
+of core eemacs configurations, you may want to select refer things
+you'd been mentioned or caring about for, from jumping to one sequence
+whose section title is referred to. But I recommended for reading
+sections one by one from first to the end, instead of jumping randomly
+while you are fisrt using <code>entropy-emacs</code>.
 </p>
 
 <p>
 Each feature required the basic emacs using experience has been got,
 which means if you are the newbie of emacs, you must reading the emacs
-internal tutorial first and then doing thus.
+internal tutorial first and then viewing around this document.
 </p>
 
 <p>
 For WINDOWS specification section, only suggested to read for someone
-using emacs on windows, that section was the sets of experiences by me
-for using emacs on windows, I often using emacs on WINDOWS with one
-portable programming encapsulation environment and that is designed
-for this.
+using emacs on windows, that section was the sets of mine experiences
+for using emacs on windows, although I rarely use emacs on windows but
+I try to implement the consistent eemacs using experience as much as
+possible thru those configurations. Thus neglects and bugs frequently
+occurred via eemacs WINDOWS spec is normal and any contributions and
+improvements are welcom.
 </p>
 
 <p>
@@ -2156,9 +2155,9 @@ specific' section.
 </p>
 
 <p>
-Latest, all of below section can be the taste of <code>entropy-emacs</code> for
-understanding the difference between this to the default emacs using
-experience, happy hacking with <code>entropy-emacs</code>.
+Latest, all of below section gives a shorter description for
+understanding the difference of using experience between eemacs and
+the vanilla emacs, happy hacking with <code>entropy-emacs</code>.
 </p>
 </div>
 
@@ -2166,8 +2165,8 @@ experience, happy hacking with <code>entropy-emacs</code>.
 <h3 id="h-50f1e907-51ea-4e62-841b-2f7addb4c1d8"><span class="section-number-3">9.1.</span> Internal basic setting specific</h3>
 <div class="outline-text-3" id="text-h-50f1e907-51ea-4e62-841b-2f7addb4c1d8">
 <p>
-<code>entropy-emacs</code> using elpa/melpa emacs extension to build basic
-work-around, for enhancing the basic emacs using experience.
+<code>entropy-emacs</code> using <a href="https://elpa.gnu.org">elpa</a>/<a href="https://melpa.org">melpa</a> emacs extensions to build basic
+work-arounds, for enhancing the vanilla emacs using experience.
 </p>
 
 <p>
@@ -2175,18 +2174,17 @@ Basic config of <code>entropy-emacs</code> can be splitting into seven nodes:
 </p>
 <ul class="org-ul">
 <li>workspace (window configuration) toggle/create</li>
-<li>modeline specific</li>
-<li>global buffer lock</li>
-<li>input method of chinese refer</li>
-<li>org mode</li>
-<li>font specific</li>
-<li>miscellaneous config</li>
+<li>modeline style toggle</li>
+<li>global buffer lock mode</li>
+<li>chinese input method enable</li>
+<li>org mode specifications involved</li>
+<li>fontset specifications involved</li>
+<li>miscellaneous configurations</li>
 </ul>
 
 <p>
 These seven parts consist the basic core of <code>entropy-emacs</code>
-config. They are oriented respectively for their individual direction,
-and was necessary be the part of core of this.
+config. They are oriented for their individual direction respectively.
 </p>
 </div>
 
@@ -2195,31 +2193,32 @@ and was necessary be the part of core of this.
 <div class="outline-text-4" id="text-h-cba6d0f3-2f63-4c83-990d-55b8a38e5104">
 <p>
 Emacs using <b>buffer</b>, <b>window</b>, <b>frame</b> to recoganize the current
-editting space and recorde it's state, they are the basic conceptions
-for elisp programmer for built editting aspect extensions for as more
-convenience to create, move, toggle the editting space, we call such a
-'editting space' is a <b>workspace</b>.
+editing space and recorde it's state, they are the basic conceptions
+for elisp programmer for building editing aspect extensions for
+enhanced vanilla emacs with more convenience to create, move, toggle
+the editing space, we call such a 'editing space' is termed as
+<b>workspace</b> in eemacs.
 </p>
 
 <p>
-Workspace managements consists of two parts:
+Eemacs workspace management consists of two parts:
 </p>
 <ol class="org-ol">
-<li>workspace/layout/window configurations toggle</li>
-<li>window toggle</li>
+<li>workspace/layout/window configurations switcher</li>
+<li>window jumping/switcher</li>
 </ol>
 
 <p>
 A workspace was one layout consists with several displayed windows
-where that layout is in term of <b>window-configuration</b> in emacs.
-Layout toggle is used as switching different workspace, creating
-layouts with different working purposes. This is useful for who
-marking different tasks at the same time.
+where that layout is in term of <b><a href="https://www.gnu.org/software/emacs/manual/html_mono/elisp.html#Window-Configurations">window-configuration</a></b> in emacs.
+Layout switcher is used as switching between different workspaces,
+creating layouts with different jobbing purposes. This is useful for
+who is marking different tasks at the same time.
 </p>
 
 <p>
-Thus, as the layout toggle, the basic thing when you facing to emacs
-using was to jump the cusor point with sets of windows, for editting
+Thus, as the layout switcher, the basic thing when you facing to emacs
+using was to jump the cusor point with sets of windows, for editing
 buffers stored in those windows, cusor switching upon different
 windows was called window toggle.
 </p>
@@ -2262,7 +2261,7 @@ slot.
 In <code>entropy-emacs</code> , the tag-name and slot number was displayed on
 the left of modeline which like as:
 </p>
-<pre class="example" id="org158d87b">
+<pre class="example" id="org77bc5ae">
 +--------------------------------------------------------------------------------+
 |  * 169 U(Unix) *scratch*      Lisp Interactioin Orgstruct&gt;&gt;      &lt;&lt; 4: 23 ALL  |
 +--------------------------------------------------------------------------------+
@@ -2318,7 +2317,7 @@ eyesight. (also thought about this happened when your screen
 produced with low dimessions as traditional '1366x768qqq'.)
 </p>
 
-<pre class="example" id="org65ba804">
+<pre class="example" id="orgd977ce3">
 
 
 +---------------+-------+--------------------------+
@@ -2375,7 +2374,7 @@ above description. Derived slot will be created when you doing for
 arbitrary reason for that.
 </p>
 
-<pre class="example" id="orgc4464c7">
+<pre class="example" id="org0396aa9">
 
 +------------+ +------------+ +------------+
 | main slot 1| | main slot 2| |main slot 3 |
@@ -2474,7 +2473,7 @@ has a beneficently way for handling thus.
 <li><p>
 <b>Demo workspace layout:</b><br />
 </p>
-<pre class="example" id="orgf543de9">
+<pre class="example" id="org390a4ea">
 
 +-------------+-----------------------------+
 |             |                             |
@@ -2510,7 +2509,7 @@ jumping is hinting corresponding numberic key as illustrating the
 visual feedback of below demo:
 </p>
 
-<pre class="example" id="org913d0d2">
+<pre class="example" id="orgb566492">
 +------------------------------+-------------------+---------------------+
 |1                             | 4                 |  8                  |
 |                              |                   |                     |
@@ -2659,10 +2658,10 @@ Each of them are combined with specifics for be fit for
 table:
 </p>
 <div class="org-src-container">
-<pre class="src src-emacs-lisp"><span style="color: #888888; font-style: italic;">;; </span><span style="color: #888888; font-style: italic;">demo modeline setting code snippets of entropy-emacs</span>
-(<span style="color: #8197bf;">setq</span> entropy/emacs-modeline-style 'powerline)
-(<span style="color: #8197bf;">setq</span> entropy/emacs-modeline-style 'spaceline)
-<span style="color: #888888; font-style: italic;">;; </span><span style="color: #888888; font-style: italic;">.... and so on</span>
+<pre class="src src-emacs-lisp"><span style="color: #62686E;">;; </span><span style="color: #62686E;">demo modeline setting code snippets of entropy-emacs</span>
+(<span style="color: #51afef;">setq</span> entropy/emacs-modeline-style 'powerline)
+(<span style="color: #51afef;">setq</span> entropy/emacs-modeline-style 'spaceline)
+<span style="color: #62686E;">;; </span><span style="color: #62686E;">.... and so on</span>
 </pre>
 </div>
 
@@ -2789,7 +2788,7 @@ PYIM 是一个 Emacs 中文输入法，支持全拼，双拼，五笔，仓颉 �
 </p>
 </blockquote>
 
-<pre class="example" id="orgc8866d7">
+<pre class="example" id="org706794f">
 这是一段中文说明，你好shijie
                       ^
                       |
@@ -2812,7 +2811,7 @@ minibuffer
 <p>
 Using minibuffer be the widget as:
 </p>
-<pre class="example" id="org986eb8a">
+<pre class="example" id="orge387fdf">
 +----------------------------+
 |                            |
 | xxx|                       |
@@ -2839,7 +2838,7 @@ that display type.
 </p></li>
 
 <li><p>
-<b>Pyim dicts:</b> <a id="orge0dd3fa"></a>
+<b>Pyim dicts:</b> <a id="orgf589b46"></a>
 </p>
 
 <p>
@@ -2854,7 +2853,7 @@ completion.
 <p>
 <code>pyim</code> extra dict was plain text format as:
 </p>
-<pre class="example" id="org8b0b945">
+<pre class="example" id="orgaa249ae">
 ni-hao 你好
 shi-jie 世界
 </pre>
@@ -2918,7 +2917,7 @@ emacs startup finished i.e. set
 <code>entropy/emacs-internal-ime-use-backend</code> as <code>pyim</code>, you can active
 it in your <code>custom.el</code> file, then the next time you start up or open
 new session of emacs , pyim will automatically startup using the
-default dicts specific by <code>entropy-emacs</code> as introduced from <a href="#orge0dd3fa">pyim
+default dicts specific by <code>entropy-emacs</code> as introduced from <a href="#orgf589b46">pyim
 dicts section</a>, or if you want to enable dicts specified by yourself,
 you can setting up custom-variable <code>entropy/emacs-pyim-dicts</code>, the
 variable information and value format can be shown by hinting <code>C-h v
@@ -3032,8 +3031,8 @@ You will enable it do with filling follow elisp codes snippet into
 custom file:
 </p>
 <div class="org-src-container">
-<pre class="src src-emacs-lisp">(<span style="color: #8197bf;">setq</span> entropy/grom-enable t)
-(<span style="color: #8197bf;">setq</span> entropy/grom-readonly-type <span style="color: #99ad6a;">"all"</span>)
+<pre class="src src-emacs-lisp">(<span style="color: #51afef;">setq</span> entropy/grom-enable t)
+(<span style="color: #51afef;">setq</span> entropy/grom-readonly-type <span style="color: #7bc275;">"all"</span>)
 </pre>
 </div>
 
@@ -3089,7 +3088,7 @@ remove all the hook and cancel all the advisors this package maked in.
 <h4 id="h-2263f98f-eba0-4248-8dcd-03928af7978c"><span class="section-number-4">9.1.5.</span> Org-mode</h4>
 <div class="outline-text-4" id="text-h-2263f98f-eba0-4248-8dcd-03928af7978c">
 <p>
-Org mode was the structure plain text document editting system
+Org mode was the structure plain text document editing system
 combined with emacs closely, which obtained the admiration with
 various emacs users. This section was implicitly for the user who
 understand with the basic Org-mode knowledgebase and had used it for a
@@ -3126,14 +3125,14 @@ org-mode's default sets.
 <p>
 <code>roman</code> type displayed as the sequence list as:
 </p>
-<pre class="example" id="org6184f36">
+<pre class="example" id="orgea79823">
 "●" "Ⅱ" "Ⅲ" "Ⅳ" "Ⅴ" "Ⅵ" "Ⅶ" "Ⅷ" "Ⅸ" "Ⅹ" "Ⅺ" "Ⅻ"
 </pre>
 
 <p>
 The instance for this is:
 </p>
-<pre class="example" id="orge26a18f">
+<pre class="example" id="org1e50641">
 ● heading 1
   Ⅱ heading 2
     Ⅲ heading 3
@@ -3147,7 +3146,7 @@ The instance for this is:
 <p>
 Same sytle show for circle numberic:
 </p>
-<pre class="example" id="orga68bd97">
+<pre class="example" id="org7587bd4">
 "⓪" "①" "②" "③" "④" "⑤" "⑥" "⑦"
 "⑧" "⑨" "⑩" "⑪" "⑫" "⑬" "⑭" "⑮"
 "⑯" "⑰" "⑱" "⑲" "⑳"
@@ -3158,7 +3157,7 @@ Bullets shown style was the minor fancy setup, choosing the taste as
 your way. follow config codes snippet for doing thus:
 </p>
 <div class="org-src-container">
-<pre class="src src-emacs-lisp">(<span style="color: #8197bf;">setq</span> entropy/emacs-org-bullets-type <span style="color: #99ad6a;">"roman"</span>) <span style="color: #888888; font-style: italic;">; </span><span style="color: #888888; font-style: italic;">or with "circle numberic"</span>
+<pre class="src src-emacs-lisp">(<span style="color: #51afef;">setq</span> entropy/emacs-org-bullets-type <span style="color: #7bc275;">"roman"</span>) <span style="color: #62686E;">; </span><span style="color: #62686E;">or with "circle numberic"</span>
 </pre>
 </div></li>
 
@@ -3185,12 +3184,12 @@ place follow codes snippet into your custom file"
 </p>
 
 <div class="org-src-container">
-<pre class="src src-emacs-lisp">(<span style="color: #8197bf;">setq</span> entropy/emacs-disable-org-heading-scale nil)
+<pre class="src src-emacs-lisp">(<span style="color: #51afef;">setq</span> entropy/emacs-disable-org-heading-scale nil)
 
-<span style="color: #888888; font-style: italic;">;; </span><span style="color: #888888; font-style: italic;">Reload major-mode for current to trigger the hook if enabled that</span>
-<span style="color: #888888; font-style: italic;">;; </span><span style="color: #888888; font-style: italic;">in a running session yet</span>
-<span style="color: #888888; font-style: italic;">;;</span>
-<span style="color: #888888; font-style: italic;">;; </span><span style="color: #888888; font-style: italic;">(funcall major-mode)</span>
+<span style="color: #62686E;">;; </span><span style="color: #62686E;">Reload major-mode for current to trigger the hook if enabled that</span>
+<span style="color: #62686E;">;; </span><span style="color: #62686E;">in a running session yet</span>
+<span style="color: #62686E;">;;</span>
+<span style="color: #62686E;">;; </span><span style="color: #62686E;">(funcall major-mode)</span>
 </pre>
 </div></li>
 
@@ -3199,27 +3198,28 @@ place follow codes snippet into your custom file"
 </p>
 
 <p>
-Org mode have the functional for open link in a buffer with
-'org-mode' as major mode, each file were recognized for their file
-type judged by it's file name suffix e.g. ("\\.pdf", "\\.docx",
-"\\.cpp"). In org mode, file identifier can be more than the file
-name suffixes rule recognizing, custom variabl <code>org-file-apps</code>
-controlling thus.
+Org mode have the functional for opening link of a file like a
+web-browser using experience, each file can be recognized for their
+type simply as judging it's file name suffix e.g. ("\\.pdf",
+"\\.docx", "\\.cpp"). In org mode, file identifier can be more than
+the file name suffixes rule convention, custom variabl
+<code>org-file-apps</code> controlling thus.
 </p>
 
 <p>
-In <code>entropy-emacs</code>, the value of <code>org-file-apps</code> was minor setting
-with few entries be pdf and gif files.
+In <code>entropy-emacs</code>, the value of <code>org-file-apps</code> is built without
+entries for <b>pdf</b> and <b>gif</b> files, since the performance issue that:
 </p>
 
+<blockquote>
 <p>
 Gif files was the animation picture foramt for web or local state,
-it can be containd dozen frames (animation stacks) which can be the
+it was consist of dozen frames (animation stacks) which can be the
 size cover 'kb' to 'Mb'. However, when the size larger than several
 'Mb', emacs will lagging seriously for a long time to display the
 animation before analyzing it's fram counts, because emacs display
 gif files through the way splitting the picture into the frame list
-and then render them one by one, this was low effectively compared
+and then render them one by one, this has low effectiveness compared
 with other picture viewers. Therefore, <code>entropy-emacs</code> set all the
 gif file links of org file to be opened with external system picture
 viewer.
@@ -3227,9 +3227,10 @@ viewer.
 
 <p>
 Pdf files were rendered in emacs with frame stacks in turn as the
-way for display gifs, thus viewing pdf within emacs was not a good
+way for display gifs, thus reading pdf within emacs was not a good
 idea, thus using system application referred it as well.
-</p></li>
+</p>
+</blockquote></li>
 
 <li><p>
 <b>Org html exporting style:</b>
@@ -3469,9 +3470,9 @@ point and it is constructed like:
 </p>
 
 <div class="org-src-container">
-<pre class="src src-emacs-lisp">(<span style="color: #8197bf;">defun</span> <span style="color: #fad07a;">custom-org-download-method</span> (link)
+<pre class="src src-emacs-lisp">(<span style="color: #51afef;">defun</span> <span style="color: #5cEfFF;">custom-org-download-method</span> (link)
   (org-download--fullname (org-link-unescape link)))
-(<span style="color: #8197bf;">setq</span> org-download-method 'custom-org-download-method)
+(<span style="color: #51afef;">setq</span> org-download-method 'custom-org-download-method)
 </pre>
 </div></li>
 
@@ -3602,11 +3603,11 @@ in each displayed window.
 </p></li>
 
 <li><p>
-<b>Auto sudo editting:</b>
+<b>Auto sudo editing:</b>
 </p>
 
 <p>
-When using emacs on unix like OS, visiting or editting privilege
+When using emacs on unix like OS, visiting or editing privilege
 permission required files will using emacs <a href="https://www.gnu.org/software/tramp/">tramp</a> feature, the
 manually way for it will cost time for inputting the special file
 path string, <code>entropy-emacs</code> using melpa package <a href="https://github.com/ncaq/auto-sudoedit">auto-sudoedit</a>
@@ -3717,24 +3718,25 @@ debug tool-chains.
 </p>
 
 <p>
-<code>entropy-emacs</code> treats emacs as the lightweight IDE (i.e. integrated
-development environment), extended with third-party lanuage servers,
-with the quickly ripened opensource lanugue protocol <a href="https://github.com/microsoft/language-server-protocol">Microsoft
-language server</a> (LSP), we are trending to use the LSP as the IDE core
-component, its powerful with unified crossplatform protocol defination
-and ripened communitiy driven. But for those old IDE configuration
-(i.e. individually un-unified code sever) were remained in
-<code>entropy-emacs</code> with just limited supplement.
+<code>entropy-emacs</code> treats emacs as the lightweight IDE (i.e. <a href="https://en.wikipedia.org/wiki/Integrated_development_environment">integrated
+development environment</a>), extended with third-party language
+servers, with the quickly mature opensource lanugue protocol <a href="https://github.com/microsoft/language-server-protocol">Microsoft
+language server</a> (LSP), we are trending to use the LSP as the IDE
+core component, it's powerful with unified crossplatform protocol
+defination and driven by peppy communitiy across world-wide. But for
+those old code integration configuration (i.e. individually un-unified
+code sever) were remained in <code>entropy-emacs</code> with just limited
+supplements.
 </p>
 
 <p>
 The switcher for <code>lsp</code> and the old IDE configuration is relying on
 customized variable <code>entropy/emacs-use-ide-type-for-MAJOR-MODE</code> whose
-valid values are 'lsp or 'traditional, where the 'MAJOR-MODE' place is
-wildcards like, which case that if you want to use a LSP ide type for
-major-mode <code>c-mode</code>, the corresponding customized variable is
-<code>entropy/emacs-use-ide-type-for-c-mode</code> and manually set it to
-'traditional'. By default, we use LSP for all occasions.
+valid values are <i>lsp</i> or <i>traditional</i>, where the <code>MAJOR-MODE'</code> place
+used to substitute with for which case that if you want to use a LSP
+ide type for major-mode <code>c-mode</code>, the corresponding customized
+variable is <code>entropy/emacs-use-ide-type-for-c-mode</code>. By default, we
+use LSP for all occasions.
 </p>
 
 <p>
@@ -3915,7 +3917,7 @@ context.
 
 <p>
 web-mode provide sets of mordern features as for. Tag folding and
-expanding with <a href="https://github.com/smihica/emmet-mode">emmet-mode</a>'s abbrevation tag editting, giving the more
+expanding with <a href="https://github.com/smihica/emmet-mode">emmet-mode</a>'s abbrevation tag editing, giving the more
 sensitive web refer coding.
 </p>
 
@@ -4051,7 +4053,7 @@ providing the web front-end realtime previewer feature.
 it emulates the real-time evaluation mechanism upon emacs elisp
 environment, using the way of the interaction of synchronizing with
 external browser's internal javascript engine, evaluating the codes
-snippet within current editting buffer. It support the repl by the
+snippet within current editing buffer. It support the repl by the
 same way as well.
 </p>
 
@@ -4086,7 +4088,7 @@ functionals are divided into three minor-modes individually and they
 are list as below:
 </p>
 
-<pre class="example" id="org551281b">
+<pre class="example" id="org84d48b8">
 The keybindings for evaluating expressions from emacs to the browser
 are just like did that for Lisp modes. These are provided by the minor
 mode skewer-mode.
@@ -4147,7 +4149,7 @@ same folder of css or html files along into the server.
 <p>
 When one folder structer list as:
 </p>
-<pre class="example" id="org0dfba4f">
+<pre class="example" id="orgfa957bd">
 ~/:
  |____index.html
  |____index.css
@@ -4265,7 +4267,7 @@ Ivy remap <code>M-x</code> with <code>swiper</code>, with the interactive interf
 visualized as:
 </p>
 
-<pre class="example" id="orgbfae97a">
+<pre class="example" id="org1cc38bd">
 +-----------------------------------+
 | I                                 |
 |                                   |
@@ -4421,8 +4423,8 @@ exhibited as one demo which <code>counsel-describe-face</code> coded for:
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(ivy-set-actions
  'counsel-describe-variable
- '((<span style="color: #99ad6a;">"I"</span> counsel-info-lookup-symbol <span style="color: #99ad6a;">"info"</span>)
-   (<span style="color: #99ad6a;">"d"</span> counsel--find-symbol <span style="color: #99ad6a;">"definition"</span>)))
+ '((<span style="color: #7bc275;">"I"</span> counsel-info-lookup-symbol <span style="color: #7bc275;">"info"</span>)
+   (<span style="color: #7bc275;">"d"</span> counsel--find-symbol <span style="color: #7bc275;">"definition"</span>)))
 </pre>
 </div></li>
 
@@ -4625,8 +4627,8 @@ those two variable to be the bridge to directed to the home path using
 the elisp code illustrated as:
 </p>
 <div class="org-src-container">
-<pre class="src src-emacs-lisp">(<span style="color: #8197bf;">defvar</span> <span style="color: #cf6a4c;">device-root</span> (concat (substring invocation-directory 0 -11) <span style="color: #99ad6a;">"Msys2/"</span>))
-(setenv <span style="color: #99ad6a;">"HOME"</span> (expand-file-name (concat device-root <span style="color: #99ad6a;">"portable-HOME"</span>)))
+<pre class="src src-emacs-lisp">(<span style="color: #51afef;">defvar</span> <span style="color: #dcafe9;">device-root</span> (concat (substring invocation-directory 0 -11) <span style="color: #7bc275;">"Msys2/"</span>))
+(setenv <span style="color: #7bc275;">"HOME"</span> (expand-file-name (concat device-root <span style="color: #7bc275;">"portable-HOME"</span>)))
 </pre>
 </div>
 
@@ -4669,7 +4671,7 @@ this by touching <code>win</code> key again.
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: Entropy</p>
-<p class="date">Created: 2022-11-16 Wed 05:49</p>
+<p class="date">Created: 2023-09-17 Sun 11:54</p>
 <p class="validation"><a href="https://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>
