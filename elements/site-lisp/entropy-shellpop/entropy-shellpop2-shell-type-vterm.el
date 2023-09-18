@@ -54,9 +54,8 @@
    (entropy/shellpop2/core/macro/do-with/shell/buffer/obj nil shell/buffer/obj
      (when-let* ((buff (entropy/shellpop2/core/api/obj/shell/buffer/op/get-buffer)))
        (entropy/shellpop2/core/func/remove-buffer-window buff))))
-  (entropy/shellpop2/core/generic/shell/buffer/op/remove
-   (_shell/buffer/obj)
-   ;; TODO
-   nil))
+  (entropy/shellpop2/core/generic/shell/buffer/op/kill
+   (shell/buffer)
+   (entropy/shellpop2/core/func/kill-buffer-with-proc shell/buffer)))
 
 (provide 'entropy-shellpop2-shell-type-vterm)

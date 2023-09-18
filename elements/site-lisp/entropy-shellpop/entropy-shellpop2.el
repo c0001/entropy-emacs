@@ -27,9 +27,19 @@
                 (entropy/shellpop2/core/macro/do-with/shell/buffer/obj
                     shell/type/name nil it)
                 newp t)
-          (setq nbuff
-                (entropy/shellpop2/core/generic/shell/buffer/op/init
-                 buffobj-focus))
+          (entropy/shellpop2/macro/unwind-protect-unless-success
+              (setq nbuff
+                    (entropy/shellpop2/core/generic/shell/buffer/op/init
+                     buffobj-focus))
+            (entropy/shellpop2/core/macro/do-with/shell/buffer/obj
+                shell/type/name buffobj-focus
+              (let ((buff (entropy/shellpop2/core/api/obj/shell/buffer/op/get-buffer)))
+                (when (buffer-live-p buff)
+                  (kill-buffer buff))))
+            (when (buffer-live-p nbuff)
+              (if (get-buffer-process nbuff)
+                  (entropy/shellpop2/core/generic/shell/buffer/op/kill nbuff)
+                (kill-buffer nbuff))))
           (entropy/shellpop2/core/macro/do-with/shell/buffer/obj
               shell/type/name buffobj-focus
             (entropy/shellpop2/core/api/obj/shell/buffer/op/set-buffer

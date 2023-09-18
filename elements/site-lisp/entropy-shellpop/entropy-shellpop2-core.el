@@ -59,6 +59,17 @@ raised up."
                             ',symbol)))))))))
 
 ;;;###autoload
+(eval-and-compile
+  (defmacro entropy/shellpop2/macro/unwind-protect-unless-success
+      (body &rest unwindforms)
+    "Like `unwind-protect' but just run UNWINDFORMS when BODY run with fatal."
+    (declare (indent 1))
+    (let ((sym (make-symbol "sym")))
+      `(let ((,sym t))
+         (unwind-protect (prog1 ,body (setq ,sym nil))
+           (if ,sym ,(entropy/emacs-macroexp-progn unwindforms)))))))
+
+;;;###autoload
 (defun entropy/shellpop2/core/func/remove-buffer-window (buffer-or-name)
   (let ((wins (get-buffer-window-list
                buffer-or-name nil (selected-frame)))
@@ -132,6 +143,17 @@ sharing the same local keymap."
             (signal 'wrong-type-argument (list 'arrayp key)))
         (define-key map key command)))
     (use-local-map map)))
+
+;;;###autoload
+(defun entropy/shellpop2/core/func/kill-buffer-with-proc (buffer)
+  (when-let ((buffer (and (buffer-live-p buffer) buffer)))
+    (let ((proc (get-buffer-process buffer)))
+      (if (not proc) (kill-buffer buffer)
+        (pop-to-buffer buffer)
+        (let ((kill-buffer-query-functions
+               (append kill-buffer-query-functions
+                       (list 'process-kill-buffer-query-function))))
+          (kill-buffer buffer))))))
 
 ;; * tops
 
@@ -540,9 +562,9 @@ SHELL/BUFFER/OBJ).")
   "Reverse what
 `entropy/shellpop2/core/generic/shell/buffer/op/display' did.")
 (entropy/shellpop2/core//macro/defgeneric
-  entropy/shellpop2/core/generic/shell/buffer/op/remove (shell/buffer/obj)
+  entropy/shellpop2/core/generic/shell/buffer/op/kill (shell/buffer)
   "TODO: undefined")
-(cl-defmethod entropy/shellpop2/core/generic/shell/buffer/op/remove
+(cl-defmethod entropy/shellpop2/core/generic/shell/buffer/op/kill
   :around (shell/buffer/obj)
   (let ((inhibit-quit t))
     (ignore shell/buffer/obj)
@@ -601,7 +623,9 @@ The original buffer will be killed when it's not inited or marked
 as orphan."
                   (unless (buffer-live-p x) (error "wrong type of argument: bufferp %S" x))
                   (let ((obuff
-                         (entropy/shellpop2/core//obj/shell/buffer/slot/shell/buffer ,it-sym)))
+                         (entropy/shellpop2/core//obj/shell/buffer/slot/shell/buffer ,it-sym))
+                        ;; ensure orphan registed
+                        (inhibit-quit t))
                     (when (and obuff (buffer-live-p obuff) (not (eq obuff x)))
                       (if (with-current-buffer obuff
                             (entropy/shellpop2/core//func//current-buffer-is-inited/shell/buffer::p))
@@ -740,7 +764,8 @@ not existed."
                     "Set current `shell/type's focused `shell/buffer/obj' to X."
                     (entropy/shellpop2/core//obj/shell/buffer/pred/with-judge x
                       :with-error t
-                      (let* ((ob ,sto-ring-sym) (idx (ring-member ob x)))
+                      (let* ((ob ,sto-ring-sym) (idx (ring-member ob x))
+                             (inhibit-quit t))
                         (and idx (ring-remove ob idx))
                         (entropy/shellpop2/core//func/ring/insert ob x))))
                   (entropy/shellpop2/core/api/obj/shell/type/op/get-at-index (&optional idx)
