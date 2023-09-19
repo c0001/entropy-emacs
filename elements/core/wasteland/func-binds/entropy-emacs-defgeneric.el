@@ -1,5 +1,41 @@
-;; -*- lexical-binding: t; -*-
-
+;;; entropy-emacs-defgeneric.el --- entropy emacs generic framework  -*- lexical-binding: t; -*-
+;;
+;; * Copyright (C) date  author
+;; #+BEGIN_EXAMPLE
+;; Author:        Entropy <bmsac0001@gmail.com>
+;; Maintainer:    Entropy <bmsac001@gmail.com>
+;; URL:           https://github.com/c0001/entropy-emacs/blob/master/elements/entropy-emacs-defgeneric.el
+;;
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+;;
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; #+END_EXAMPLE
+;;
+;; * Commentary:
+;;
+;; This file was built on the =func-binds= concept of entropy-emacs's
+;; designation.
+;;
+;; For be as the underlying project function library hosting
+;; master. Every part of this file can be sharing on the context and
+;; splitting into categories individually with using outline mode
+;; doc's context format.
+;;
+;; * Configuration:
+;;
+;; Just requiring it before checking the file dependencies.
+;;
+;; * Code
+;; ** Libs
 (require 'entropy-emacs-defun)
 
 (defun entropy/emacs/generic//func/get-cl-defmethod-args-plist
@@ -35,7 +71,7 @@
     (when doc (push doc rtn))
     (append (nreverse rtn) body)))
 
-;; * defgeneric
+;; ** Defgeneric
 
 (eval-and-compile
   (cl-defmacro entropy/emacs/generic//macro/cl-defstruct
@@ -266,6 +302,7 @@ Return %s when %s is a CL-X of %o or nil (error when WITH-ERROR is non-nil)."
                     `(cl-defmethod
                        ,@(progn (entropy/emacs-plist-setf ap :qualifier (list adv))
                                 (entropy/emacs-plist-setf ap :body x)
+                                (entropy/emacs-plist-setf ap :arglist (list '&rest 'args))
                                 (entropy/emacs/generic//func/gen-cl-defmethod-args
                                  ap)))))))))
        '((:eemacs-adv-before adv-before :before)
@@ -381,9 +418,9 @@ Return %s when %s is a CL-X of %o or nil (error when WITH-ERROR is non-nil)."
                 entropy/emacs/generic//var/generic-function-group/hub)))))
 
 ;;;###autoload
-(cl-defmacro entropy/emacs/generic/macro/def/generic-function-group
+(cl-defmacro entropy/emacs/generic/macro/defgenerics
     (generic-function-group/name &optional doc &rest args)
-  "Define a eemacs generic function group where each GENERIC should
+  "Define sets of `cl-defgeneric' where each GENERIC in GENERICs should
 be a `cl-defgeneric' form but can be any other context related
 expressions.
 
@@ -391,6 +428,21 @@ If GENERIC is used with GENERIC-FUNCTION-GROUP/NAME (if non-nil)
 then its name is made prefixed by
 that. GENERIC-FUNCTION-GROUP/NAME should be explicitly set as a
 symbol name if used.
+
+If GENERIC-FUNCTION-GROUP/NAME is used, then each GENERIC form of
+`cl-defgeneric' has extra OPTIONS-AND-METHODS has meaning of listing
+as below:
+- `:eemacs-adv-before' : where its cdr are forms wrap to make a before
+  advice (with `(&rest args)' arglist) for later usage of
+  `entropy/emacs/generic/macro/defmethods' to
+  define its implementation with that before advice just after its
+  main implements defined.
+
+- `:eemacs-adv-after'  : as `:eemacs-adv-before' but for after advice.
+
+- `:eemacs-adv-around' : as `:eemacs-adv-before' but for around advice
+  and the forms should self-maintained to call `cl-call-next-method'
+  to invoke base implements.
 
 \(fn GENERIC-FUNCTION-GROUP/NAME &optional DOC &rest GENERICs)"
   (declare (indent 1) (doc-string 2))
@@ -422,7 +474,7 @@ symbol name if used.
                       :doc ,doc))))
          ,@(nreverse fns)))))
 
-;; * defmethod
+;; ** Defmethod
 
 (cl-defmacro entropy/emacs/generic//macro/cl-defmethod
     (generic-function-group/name &rest args)
@@ -494,26 +546,28 @@ argument list."
       (nreverse rtn))))
 
 ;;;###autoload
-(cl-defmacro entropy/emacs/generic/macro/defmethods/with-same-contexts
-    (&rest args &key generic-function-group/name with-contexts &allow-other-keys)
-  "Define `cl-defmethod' with contexts which is list of
-`cl-defmethod's context (expr spec) formed in WITH-CONTEXTS if
-any.
+(cl-defmacro entropy/emacs/generic/macro/defmethods
+    (generic-function-group/name
+     &rest args &key with-contexts &allow-other-keys)
+  "Define sets of `cl-defmethod' where each METHOD in METHODS usually is
+a `cl-defmethod' lisp form but can be any other context related
+expressions.
 
-Each method in METHODS usually is a `cl-defmethd' lisp form but
-can be any other forms to integrate the definations into this
-macro.
+If GENERIC-FUNCTION-GROUP/NAME is non-nil, it should be a explicit
+eemacs GENERIC-FUNCTION-GROUP/NAME to indicate each METHOD's name is a
+GENERIC-FUNCTION/NAME of a OBJ/GENERIC-FUNCTION defined via
+`entropy/emacs/generic/macro/defgenerics' use
+GENERIC-FUNCTION-GROUP/NAME. In which case, if no such
+GENERIC-FUNCTION-GROUP/NAME is declared before ran of this macro,
+error will be raised up. If one METHOD's name is not such a
+GENERIC-FUNCTION/NAME in that group, error raised up either.
 
-If GENERIC-FUNCTION-GROUP/NAME is non-nil, it should be a
-explicit eemacs GENERIC-FUNCTION-GROUP/NAME which will be
-prefixed to each METHOD's name before those methods defined. In
-which case, if the eemacs OBJ/GENERIC-FUNCTION-GROUP is not
-declared for thus name, error will be raised up, if the
-pre-defined method name is not a declared generic function in
-that group, error raised up either.
+WITH-CONTEXTS if defined should be a explicit list of `cl-defmethod's
+context (expr spec) forms used to make each METHODs' defination has
+same context indicator.
 
-\(fn &key GENERIC-FUNCTION-GROUP/NAME WITH-CONTEXTS &rest METHODS)"
-  (declare (indent 0))
+\(fn GENERIC-FUNCTION-GROUP/NAME &key WITH-CONTEXTS &rest METHODS)"
+  (declare (indent 1))
   (setq args (entropy/emacs-defun--get-real-body args))
   (let (fns fn-name fn-rest fn-args fn-args-index
             (gob-sym (make-symbol "obj/generic-function-group"))

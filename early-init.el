@@ -174,6 +174,11 @@ emacs upstream")
 (setq pgtk-wait-for-event-timeout 0
       pgtk-selection-timeout 0)
 
+;;;; Byte compile tweak
+
+;; more wide elisp doc-string warning threshold
+(setq byte-compile-docstring-max-column 200)
+
 ;;; early-init.el loaded done indicator
 
 (defvar entropy/emacs-early-init-done t
