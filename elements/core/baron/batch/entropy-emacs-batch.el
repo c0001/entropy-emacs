@@ -257,6 +257,15 @@ In used emacs version is: %s
                (yes-or-no-p "Compile? "))
        ,@body)))
 
+(defmacro entropy/emacs-batch--prompts-for-byte-compile-clean-eemacs-internal
+    (&rest body)
+  `(entropy/emacs-batch--with-prompts-msg
+       "Section for byte-compile eemacs internal"
+     (when (or (entropy/emacs-is-make-all-session)
+               (entropy/emacs-is-make-with-all-yes-session)
+               (yes-or-no-p "Clean compilations? "))
+       ,@body)))
+
 ;; *** make sections
 ;; **** dump emacs
 (defun entropy/emacs-batch--dump-emacs-core ()
@@ -821,7 +830,7 @@ since we solved deps broken")))))
          (entropy/emacs-batch--do-bytecompile-eemacs-core t))
        (entropy/emacs-batch--do-bytecompile-eemacs-core)))
      ((equal type "Compile-Clean")
-      (entropy/emacs-batch--prompts-for-byte-compile-eemacs-internal
+      (entropy/emacs-batch--prompts-for-byte-compile-clean-eemacs-internal
        (entropy/emacs-batch--do-bytecompile-eemacs-core t)))
      ((equal type "Install-Coworkers")
       (entropy/emacs-batch--prompts-for-coworkers-installing-section
