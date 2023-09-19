@@ -71,7 +71,11 @@
         ;; we must excluded eemacs code for native comp
         "^.*/?entropy-emacs-[^/]*\\.el$"
         "^.*/?liberime[^/]*\\.el$"
-        "^.*/?fakecygpty[^/]*\\.el$"))
+        "^.*/?fakecygpty[^/]*\\.el$")
+      ;; emacs 29.1 declared as replacement of
+      ;; `native-comp-deferred-compilation-deny-list'
+      native-comp-jit-compilation-deny-list
+      native-comp-deferred-compilation-deny-list)
 
 ;; Take them after basic native-comp configs so that the load
 ;; procedure respect what we ordered for.

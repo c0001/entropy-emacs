@@ -45,7 +45,10 @@ session"
   )
 
 ;; do not auto native-comp while we did batch make
-(setq native-comp-deferred-compilation nil)
+(setq native-comp-deferred-compilation nil
+      ;; emacs 29.1 declared as replacement of
+      ;; `native-comp-deferred-compilation'
+      native-comp-jit-compilation      nil)
 
 (defun entropy/emacs-batch-require-prefer-use-source
     (feature)
@@ -179,24 +182,24 @@ In used emacs version is: %s
 ;; *** common library
 
 ;; *** section prompting
+
+(defmacro entropy/emacs-batch--with-prompts-msg (msg &rest body)
+  (declare (indent 1))
+  `(progn (entropy/emacs-message-do-message
+           "\n%s\n%s\n%s\n"
+           (blue    "==================================================")
+           (yellow "       %s ..." ,msg)
+           (blue    "=================================================="))
+          ,@body))
+
 (defmacro entropy/emacs-batch--prompts-for-ext-install-section
     (&rest body)
-  `(let ()
-     (entropy/emacs-message-do-message
-      "\n%s\n%s\n%s\n"
-      (blue    "==================================================")
-      (yellow "       Section for extensions installing ...")
-      (blue    "=================================================="))
+  `(entropy/emacs-batch--with-prompts-msg "Section for extensions installing"
      ,@body))
 
 (defmacro entropy/emacs-batch--prompts-for-dump-section
     (&rest body)
-  `(let ()
-     (entropy/emacs-message-do-message
-      "\n%s\n%s\n%s\n"
-      (blue    "==================================================")
-      (yellow "           Section for emacs dump ...")
-      (blue    "=================================================="))
+  `(entropy/emacs-batch--with-prompts-msg "Section for emacs dump"
      (when (or (entropy/emacs-is-make-all-session)
                (entropy/emacs-is-make-with-all-yes-session)
                (yes-or-no-p "Dump eemacs? "))
@@ -204,12 +207,7 @@ In used emacs version is: %s
 
 (defmacro entropy/emacs-batch--prompts-for-ext-update-section
     (&rest body)
-  `(let ()
-     (entropy/emacs-message-do-message
-      "\n%s\n%s\n%s\n"
-      (blue    "==================================================")
-      (yellow "       Section for extensions updating ...")
-      (blue    "=================================================="))
+  `(entropy/emacs-batch--with-prompts-msg "Section for extensions updating"
      (when (or (entropy/emacs-is-make-all-session)
                (entropy/emacs-is-make-with-all-yes-session)
                (yes-or-no-p "Do package update? "))
@@ -217,12 +215,7 @@ In used emacs version is: %s
 
 (defmacro entropy/emacs-batch--prompts-for-coworkers-installing-section
     (&rest body)
-  `(let ()
-     (entropy/emacs-message-do-message
-      "\n%s\n%s\n%s\n"
-      (blue    "==================================================")
-      (yellow "       Section for coworkers installing ...")
-      (blue    "=================================================="))
+  `(entropy/emacs-batch--with-prompts-msg "Section for coworkers installing"
      (when (or (entropy/emacs-is-make-all-session)
                (entropy/emacs-is-make-with-all-yes-session)
                (yes-or-no-p "Install them? "))
@@ -230,12 +223,8 @@ In used emacs version is: %s
 
 (defmacro entropy/emacs-batch--prompts-for-native-compile
     (&rest body)
-  `(let ()
-     (entropy/emacs-message-do-message
-      "\n%s\n%s\n%s\n"
-      (blue    "==================================================")
-      (yellow "       Section for native compiling `package-user-dir' ...")
-      (blue    "=================================================="))
+  `(entropy/emacs-batch--with-prompts-msg
+       "Section for native compiling `package-user-dir'"
      (when (or (entropy/emacs-is-make-all-session)
                (entropy/emacs-is-make-with-all-yes-session)
                (yes-or-no-p "Native compile `package-user-dir'? "))
@@ -243,12 +232,8 @@ In used emacs version is: %s
 
 (defmacro entropy/emacs-batch--prompts-for-eemacs-ext-build-repo-install
     (&rest body)
-  `(let ()
-     (entropy/emacs-message-do-message
-      "\n%s\n%s\n%s\n"
-      (blue    "==================================================")
-      (yellow "       Section for install entropy-emacs-extensions stable build ...")
-      (blue    "=================================================="))
+  `(entropy/emacs-batch--with-prompts-msg
+       "Section for install entropy-emacs-extensions stable build"
      (when (or (entropy/emacs-is-make-all-session)
                (entropy/emacs-is-make-with-all-yes-session)
                (yes-or-no-p "install eemacs-ext stable build? "))
@@ -256,12 +241,8 @@ In used emacs version is: %s
 
 (defmacro entropy/emacs-batch--prompts-for-eemacs-fonts-install
     (&rest body)
-  `(let ()
-     (entropy/emacs-message-do-message
-      "\n%s\n%s\n%s\n"
-      (blue    "==================================================")
-      (yellow "       Section for install eemacs-fonts ...")
-      (blue    "=================================================="))
+  `(entropy/emacs-batch--with-prompts-msg
+       "Section for install eemacs-fonts"
      (when (or (entropy/emacs-is-make-all-session)
                (entropy/emacs-is-make-with-all-yes-session)
                (yes-or-no-p "install eemacs-fonts? "))
@@ -269,12 +250,8 @@ In used emacs version is: %s
 
 (defmacro entropy/emacs-batch--prompts-for-byte-compile-eemacs-internal
     (&rest body)
-  `(let ()
-     (entropy/emacs-message-do-message
-      "\n%s\n%s\n%s\n"
-      (blue    "==================================================")
-      (yellow "       Section for byte-compile eemacs internal ...")
-      (blue    "=================================================="))
+  `(entropy/emacs-batch--with-prompts-msg
+       "Section for byte-compile eemacs internal"
      (when (or (entropy/emacs-is-make-all-session)
                (entropy/emacs-is-make-with-all-yes-session)
                (yes-or-no-p "Compile? "))
@@ -332,7 +309,10 @@ In used emacs version is: %s
   (let* ((native-comp-verbose 0)
          (pkg-dirs `(,package-user-dir ,(file-name-directory (locate-library "subr"))))
          (native-comp-async-cu-done-functions '(entropy/emacs-batch--native-comp-cu-done))
-         (ignore-rexps native-comp-deferred-compilation-deny-list)
+         (ignore-rexps
+          (if (version< emacs-version "29.1")
+              (bound-and-true-p native-comp-deferred-compilation-deny-list)
+            (bound-and-true-p native-comp-jit-compilation-deny-list)))
          files)
     (dolist (pkg-dir pkg-dirs)
       (entropy/emacs-setf-by-body files
@@ -496,7 +476,7 @@ faild with hash '%s' which must match '%s'"
                  (entropy/emacs-error-without-debugger
                   "Sha256 hash verify for file <%s> \
 faild with hash '%s' which must match '%s'"
-                        file cur-hash stick-hash))
+                  file cur-hash stick-hash))
                t))))
     (unless (eq (symbol-value download-cbk) 'success)
       (entropy/emacs-message-do-error
@@ -825,7 +805,9 @@ faild with hash '%s' which must match '%s'"
        (red "Please re-do current make operation \
 since we solved deps broken")))))
 
-(when (entropy/emacs-ext-main)
+(when (and noninteractive
+           (bound-and-true-p entropy/emacs-batch--make-env-type)
+           (entropy/emacs-ext-main))
   (let ((type entropy/emacs-batch--make-env-type))
     (cond
      ((equal type "Install")

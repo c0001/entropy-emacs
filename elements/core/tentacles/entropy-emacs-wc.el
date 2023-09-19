@@ -403,8 +403,7 @@ This slot should obey the rules of:
   :init
 
   (entropy/emacs-lazy-with-load-trail
-    'eyebrowse-enable
-    (eyebrowse-mode +1))
+    'eyebrowse-enable (eyebrowse-mode +1))
 
   ;; simply prettify the slot chosen candi format
   (setq eyebrowse-tagged-slot-format "🏠 %-4s:%20t"
@@ -416,23 +415,32 @@ This slot should obey the rules of:
   ;; fake out origin map since we use hydra instead
   (setq eyebrowse-mode-map (make-sparse-keymap))
 
+  (defun entropy/emacs-wc--eyebrowse-init-p (&optional frame)
+    (setq frame (or frame (selected-frame)))
+    (eyebrowse--get 'window-configs frame))
   (defvar entropy/emacs-wc--eyebrowse-force-init nil)
-  (defadvice eyebrowse-init
-      (around eemacs/eyebrowse-init--base-advice first activate)
+  (defvar entropy/emacs-wc--eyebrowse-init-no-error nil)
+  (defun __ya/eyebrowse-init (fn &rest args)
     "Make `eyebrowse-init' just for those frame which we cared about."
-    (when (or (frame-parameter nil 'eemacs-current-frame-is-daemon-created)
-              (eq (selected-frame) entropy/emacs-main-frame)
-              entropy/emacs-wc--eyebrowse-force-init)
-      ;; the protection is needed for dups call
-      (unless (eyebrowse--get 'window-configs) ad-do-it)))
-  (entropy/emacs-with-daemon-make-frame-done
-    'eyebrowse-init-for-daemon-frame (&rest _)
-    "Forcely run `eyebrowse-init' after daemon frame created since
-we've hacked it but it's `after-make-frame-functions' which is
-ran before `entropy/emacs-daemon-server-after-make-frame-hook'
-while we've not set the eemacs daemon frame flag."
-    (let ((entropy/emacs-wc--eyebrowse-force-init t))
-      (eyebrowse-init)))
+    (if (or (frame-parameter nil 'eemacs-current-frame-is-daemon-created)
+            (eq (selected-frame) entropy/emacs-main-frame)
+            entropy/emacs-wc--eyebrowse-force-init)
+        ;; the protection is needed for dups call
+        (if (entropy/emacs-wc--eyebrowse-init-p)
+            (unless entropy/emacs-wc--eyebrowse-init-no-error
+              (error "eyebrowse is initied for `%s'" (selected-frame)))
+          (apply fn args))
+      (unless entropy/emacs-wc--eyebrowse-init-no-error
+        (error "eyebrowse should not init for `%s'" (selected-frame)))))
+  (advice-add 'eyebrowse-init :around #'__ya/eyebrowse-init)
+
+  (defun __ya/eyebrowse-mode (fn &rest args)
+    (let ((entropy/emacs-wc--eyebrowse-init-no-error t))
+      (apply fn args))
+    ;; we should handle `eyebrowse-init' manually which not for all
+    ;; frame made.
+    (remove-hook 'after-make-frame-functions 'eyebrowse-init))
+  (advice-add 'eyebrowse-mode :around #'__ya/eyebrowse-mode)
 
   (setq eyebrowse-mode-line-style nil
         eyebrowse-new-workspace
@@ -528,12 +536,12 @@ the sake of obeying its rules.
            (dstag
             (nth 2 (assoc dslot (eyebrowse--get 'window-configs)))))
       (entropy/emacs-message-simple-progress-message
-       "%s %s"
-       :with-message-color-args
-       `((green "Switching to eyebrowse slot")
-         (yellow ,(if dstag (format "%s: %s" dslot dstag)
-                    (format "%s" dslot))))
-       (apply orig-func orig-args))))
+          "%s %s"
+        :with-message-color-args
+        `((green "Switching to eyebrowse slot")
+          (yellow ,(if dstag (format "%s: %s" dslot dstag)
+                     (format "%s" dslot))))
+        (apply orig-func orig-args))))
   (advice-add 'eyebrowse-switch-to-window-config
               :around
               #'__ya/eyebrowse-switch-to-config)
@@ -981,10 +989,11 @@ enable the `eyebrowse-mode' before the restoration procedure."
           (throw :exit "No saved eyebrowse config found"))
         (if enable-eyebrowse-before-restore
             (unless (bound-and-true-p eyebrowse-mode)
-              (condition-case nil
-                  (eyebrowse-mode 1)
+              (condition-case err (eyebrowse-mode 1)
                 (error
-                 (throw :exit "enable eyebrowse mode with fatal"))))
+                 (throw :exit
+                        (format "enable eyebrowse mode with fatal: %s"
+                                err)))))
           (unless (bound-and-true-p eyebrowse-mode)
             (throw :exit "eyebrowse not enabeld")))
         (let* ((cfg-attr (caddr use-cfg))
@@ -1111,8 +1120,10 @@ stored the eyebrowse config user focused."
     "Restore the eyebrowse config for dameon client's frame FAME
 saved by
 `entropy/emacs-wc-eyebrowse-savecfg--daemon-client-guard'."
-    (entropy/emacs-when-let*-first
+    (entropy/emacs-when-let*-firstn 2
         (((entropy/emacs-daemon-current-is-main-client))
+         ;; only for eyebrowse inited frame
+         ((entropy/emacs-wc--eyebrowse-init-p))
          miniw
          (minibuff
           (if (entropy/emacs-minibufferp nil t) (current-buffer)
@@ -1145,6 +1156,8 @@ saved by
                 (unless (eq (current-buffer) buff) (switch-to-buffer buff)))
               ))))))
 
+;; ***** daemon injection
+
   (when (daemonp)
     ;; inject the delete frame function
     (add-to-list
@@ -1152,9 +1165,14 @@ saved by
      #'entropy/emacs-wc-eyebrowse-savecfg--daemon-client-guard)
     ;; build daemon injection
     (entropy/emacs-with-daemon-make-frame-done
-      'Restore-eyebrowse-config (&rest _)
-      "Preserve eyebrowse configs for daemon client."
+      'eyebrowse-init-for-daemon-frame (&rest _)
+      "Initial eyebrowse for newly created daemon client's frame."
       (let ((inhibit-quit t))
+        ;; init first
+        (if (entropy/emacs-wc--eyebrowse-init-p)
+            (error "inner: eyebrowse has inited yet for newly made client's frame")
+          (eyebrowse-init (selected-frame)))
+        ;; Preserve eyebrowse configs for daemon client.
         (entropy/emacs-wc-eyebrowse-savecfg--daemon-restore-saved-config
          (selected-frame)))))
 
