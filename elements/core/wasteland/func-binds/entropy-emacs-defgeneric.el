@@ -301,8 +301,11 @@ Return %s when %s is a CL-X of %o or nil (error when WITH-ERROR is non-nil)."
                  ,(unless (plist-get ap :qualifier)
                     `(cl-defmethod
                        ,@(progn (entropy/emacs-plist-setf ap :qualifier (list adv))
-                                (entropy/emacs-plist-setf ap :body x)
-                                (entropy/emacs-plist-setf ap :arglist (list '&rest 'args))
+                                (entropy/emacs-plist-setf
+                                 ap :body
+                                 `((progn (entropy/emacs-ignore-cl-defmethod-args
+                                           ,(plist-get ap :arglist))
+                                          ,@x)))
                                 (entropy/emacs/generic//func/gen-cl-defmethod-args
                                  ap)))))))))
        '((:eemacs-adv-before adv-before :before)
@@ -433,10 +436,12 @@ If GENERIC-FUNCTION-GROUP/NAME is used, then each GENERIC form of
 `cl-defgeneric' has extra OPTIONS-AND-METHODS has meaning of listing
 as below:
 - `:eemacs-adv-before' : where its cdr are forms wrap to make a before
-  advice (with `(&rest args)' arglist) for later usage of
-  `entropy/emacs/generic/macro/defmethods' to
-  define its implementation with that before advice just after its
-  main implements defined.
+  advice (without arglist preserved binding since the arbitrary
+  methods self arglist declaration) for later usage of
+  `entropy/emacs/generic/macro/defmethods' to define its
+  implementation with that before advice just after its main
+  implements defined. (This option has no effects when the pre-defined
+  method has a qualifier)
 
 - `:eemacs-adv-after'  : as `:eemacs-adv-before' but for after advice.
 

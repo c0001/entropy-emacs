@@ -107,6 +107,102 @@ ACTUAL-LEXICAL-BINDING when set non-nil then it is replaced the
 LEXICAL arg for `eval'."
   (eval form (or actual-lexical-binding t)))
 
+(defun entropy/emacs-get-cl-args-syms
+    (cl-args &optional cl-defmethod-args-p with-destructure)
+  "Parse a `cl-defun' argument list and  return a ARGS-PLISTS.
+
+If WITH-DESTRUCTURE is non-nil, then the any VAR in CL-ARGS with
+destructuring feature will be recursively parsed if it's so.
+
+If CL-DEFMETHOD-ARGS-P is non-nil then treat CL-ARGS as args
+passed to `cl-defmethod' and parsed rely on thus.
+
+A ARGS-PLISTS is a list of ARG-PLIST whose car is either a
+symbol (i.e. the var) or a CL-ARGS if WITH-DESTRUCTURE is not
+specified, and a ARGS-PLISTS if WITH-DESTRUCTURE is specified but
+not `eq' to symbol `flat' (as FLATP status).
+
+Any way, each ARG-PLIST in each ARGS-PLISTS is orderred as
+specfied in CL-ARGS and concat as so either for recursively
+parsing."
+  (entropy/emacs-when-let*-first
+      ((args (if cl-defmethod-args-p
+                 (cdr (cl--generic-split-args cl-args))
+               (copy-sequence cl-args)))
+       is-in-region
+       is-opt-region is-rest-region is-key-region is-aux-region
+       (setflag-func
+        (lambda (x)
+          (cond
+           ((eq x '&optional)
+            (setq is-opt-region  t
+                  is-rest-region nil
+                  is-key-region  nil
+                  is-aux-region  nil
+                  is-in-region   '&optional))
+           ((eq x '&rest)
+            (setq is-opt-region  nil
+                  is-rest-region t
+                  is-key-region  nil
+                  is-aux-region  nil
+                  is-in-region   '&rest))
+           ((eq x '&key)
+            (setq is-opt-region  nil
+                  is-rest-region nil
+                  is-key-region  t
+                  is-aux-region  nil
+                  is-in-region   '&key))
+           ((eq x '&aux)
+            (setq is-opt-region  nil
+                  is-rest-region nil
+                  is-key-region  nil
+                  is-aux-region  t
+                  is-in-region   '&aux))
+           (t nil))))
+       var svar rtn)
+    (dolist (el args)
+      (cond
+       ((funcall setflag-func el) (setq var nil))
+       (t
+        (if (not is-in-region) (setq var el)
+          (cond
+           (is-opt-region
+            (setq var (or (car-safe el) el))
+            (if (and (consp el) (= 3 (length el)))
+                (setq svar (nth 2 el))))
+           (is-rest-region (setq var el))
+           (is-key-region
+            (if (and (consp el) (= 3 (length el)))
+                (setq svar (nth 2 el)))
+            (if (and (consp el) (consp (car el)))
+                (setq el (cadar el)))
+            (setq var el))
+           (is-aux-region
+            (setq var (or (car-safe el) el)))))))
+      (when var
+        (if (not (and with-destructure (consp var)))
+            (push (list var :svar svar :type is-in-region) rtn)
+          (setq var (entropy/emacs-get-cl-args-syms
+                     var cl-defmethod-args-p with-destructure))
+          (if (not (eq with-destructure 'flat))
+              (push (list var :svar svar :type is-in-region) rtn)
+            (dolist (nel var) (push nel rtn))))))
+    (nreverse rtn)))
+
+(defmacro entropy/emacs-ignore-cl-args (cl-args)
+  "Ignore explist cl arguments list CL-ARGS"
+  (let ((args (entropy/emacs-get-cl-args-syms cl-args nil 'flat))
+        symbols)
+    (dolist (el args) (push (car el) symbols))
+    `(ignore ,@(nreverse symbols))))
+
+(defmacro entropy/emacs-ignore-cl-defmethod-args (cl-args)
+  "Ignore explist `cl-defmethod' arguments list CL-ARGS"
+  (let ((args (entropy/emacs-get-cl-args-syms cl-args t 'flat))
+        symbols)
+    (dolist (el args) (push (car el) symbols))
+    `(ignore ,@(nreverse symbols))))
+
 (defmacro entropy/emacs-cl-lambda (&rest args)
   "Same as `lambda' but its argument list allows full Common Lisp
 conventions.
