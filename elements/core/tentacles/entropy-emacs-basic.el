@@ -4068,6 +4068,8 @@ formatted in American style, e.g. Tuesday, November 15, 2022."
     (if (eq major-mode 'undo-tree-visualizer-mode)
         (user-error "Has non meaning for this command in \
 `undo-tree-visualizer-mode'.")
+      (if (eq buffer-undo-list t)
+          (user-error "No undo list in current buffer: %S" (current-buffer)))
       (entropy/emacs-basic--do-undo-1)))
   (defun entropy/emacs-basic--do-undo-1 nil
     (let* ((untree-ngc-p (entropy/emacs-basic--undotree-shouldnt-gc-p))
