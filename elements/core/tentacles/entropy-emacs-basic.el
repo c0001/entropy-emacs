@@ -6928,7 +6928,21 @@ daemon has interrupted, restart it?"))
            (setq entropy/emacs-basic-safe-terminal-bracketed-paste-norestart nil)
            (entropy/emacs-message-do-message
             "eemacs-safe-terminal-bracketed-paste: exit of reason (%s)"
-            (buffer-substring-no-properties (point-min) (point-max)))))))))
+            (buffer-substring-no-properties (point-min) (point-max)))))))
+    (entropy/emacs-message-do-warn
+     "[eemacs term pasge safety guard]:
+
+Note that this guard use `wl-paste' (for wayland session) `xclip' (or
+`xsel' if thus not found) (for X session) to grabing the DISPLAY's
+clipboarad contents for judging whether it's safe to pass to
+`xterm--pasted-text'. And all of these commands will raise a temporary
+xwayland window to transfer data via X display protocal if Xwayland or
+pure X environment detected so that the desktop environment will
+detect those fake windows and may be displayed them in task bar with
+anonymous icon periodically, so don't be consumed about that strange
+occasion or do not use this guard in you way."
+     )))
+
 ;; default enabled for basic daemon session
 (when (equal "main" (entropy/emacs-getenv "EEMACS_SYSTEMD_DAEMON_SERVICE"))
   (entropy/emacs-basic-safe-terminal-bracketed-paste))
