@@ -19,11 +19,12 @@
       (read-string "Set this vterm caption: " nil nil nil t))
      (let (
            ;; prevent vterm auto rename buffer that lost register linkage
-           (vterm-buffer-name-string nil))
-       (with-current-buffer
-           (entropy/shellpop2/core/api/obj/shell/buffer/op/get-buffer)
-         (vterm-mode)
-         (current-buffer)))))
+           (vterm-buffer-name-string nil)
+           (buff (entropy/shellpop2/core/api/obj/shell/buffer/op/get-buffer)))
+       (with-current-buffer buff (vterm-mode))
+       (unless (eq 'vterm-mode (buffer-local-value 'major-mode buff))
+         (error "inner: vterm not init to buffer: %S" buff))
+       buff)))
   (entropy/shellpop2/core/generic/shell/buffer/op/cwd
    (shell/buffer/obj uri)
    (entropy/shellpop2/core/macro/do-with/shell/buffer/obj nil shell/buffer/obj

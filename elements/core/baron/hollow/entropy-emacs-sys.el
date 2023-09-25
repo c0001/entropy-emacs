@@ -2,7 +2,6 @@
 
 (!eemacs-require 'entropy-emacs-defun)
 (!eemacs-require 'entropy-emacs-utils)
-(require 'use-package)
 
 (entropy/emacs-!cl-defun entropy/emacs-sys-simple-notify
     (msg &optional

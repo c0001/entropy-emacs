@@ -12943,9 +12943,9 @@ clipboard with native operation system."
           ;; gnu/linux platform
           (and sys/linuxp
                (or
-                (and (getenv "WAYLAND_DISPLAY")
+                (and (entropy/emacs-getenv "WAYLAND_DISPLAY")
                      (executable-find "wl-copy") 'wl-copy)
-                (and (getenv "DISPLAY") ;for X11
+                (and (entropy/emacs-getenv "DISPLAY") ;for X11
                      (or
                       (and (executable-find "xclip") 'xclip)
                       (and (executable-find "xsel")  'xsel)))))
@@ -12954,14 +12954,14 @@ clipboard with native operation system."
           ;; prevent it make a invisible frame to build connection with
           ;; current tui session.
           ;;
-          ;;(and (fboundp 'x-create-frame) (getenv "DISPLAY") 'emacs)
+          ;;(and (fboundp 'x-create-frame) (entropy/emacs-getenv "DISPLAY") 'emacs)
           )))
     (when (and
            ;; just satisfied return when in non-gui session since the
            ;; gui session has full support for system<->emacs
            ;; clipboard sync functional
            (not (display-graphic-p))
-           (fboundp 'xterm-paste)
+           (or noninteractive (fboundp 'xterm-paste))
            (when (and judger
                       (or (executable-find (symbol-name judger))
                           ;; in windows wsl env we must use
@@ -12984,7 +12984,6 @@ clipboard with native operation system."
                          :when-tui (xclip-mode 1)
                          :when-gui (xclip-mode 0)))
                       (when (and (not (bound-and-true-p xclip-mode))
-                                 (not noninteractive)
                                  (not (display-graphic-p)))
                         (xclip-mode 1))
                       t))))
