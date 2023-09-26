@@ -299,6 +299,7 @@ Version 2017-12-23"
                '("xterm"))
           ))
         ch)
+    (or al (user-error "No bultin supported term-emulator found in your system"))
     (setq ch
           (completing-read "Choose which terminal to use? "
                            al)
