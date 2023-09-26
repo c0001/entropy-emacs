@@ -272,7 +272,8 @@ Version 2017-12-23"
 (defvar entropy/emacs-tools-open-in-terminal--use-term nil)
 ;; TODO: support cross platforms term choosing, for now just support
 ;; linux
-(defun entropy/emacs-tools-open-in-terminal--choose-terms (&optional wcdir)
+(defun entropy/emacs-tools-open-in-terminal--choose-terms
+    (&optional wcdir)
   (setq wcdir (or wcdir default-directory))
   (let ((al
          (entropy/emacs-list-without-orphans
@@ -280,33 +281,43 @@ Version 2017-12-23"
           ;; A fast, lightweight and minimalistic Wayland terminal emulator
           (and (entropy/emacs-getenv "WAYLAND_DISPLAY")
                (executable-find "foot")
-               `("foot" "--working-directory" ,wcdir))
+               (cons "foot"
+                     (lambda (pwd)
+                       `("foot" "--working-directory" ,pwd))))
           ;; EEMACS_BUG: alacritty may cause multi process spwan invoked why?
           ;; - obviously in debian 11?
           ;; - no bug in archlinux?
           (and (executable-find "alacritty")
-               `("alacritty" "--working-directory" ,wcdir))
+               (cons "alacritty"
+                     (lambda (pwd)
+                       `("alacritty" "--working-directory" ,pwd))))
           ;; ----- use gpu accelerated terminal
           (and (executable-find "kitty")
-               `("kitty" "-d" ,wcdir))
+               (cons "kitty"
+                     (lambda (pwd) `("kitty" "-d" ,pwd))))
           ;; ----- use DE based terminal
           (and (executable-find "gnome-terminal")
-               `("gnome-terminal" ,wcdir))
+               (cons "gnome-terminal"
+                     (lambda (pwd) `("gnome-terminal" ,pwd))))
           (and (executable-find "konsole")
-               `("konsole"))
+               (cons "konsole"
+                     (lambda (_) (list "konsole"))))
           ;; ----- fallback to use xterm
           (and (executable-find "uxterm")
-               '("uxterm"))
+               (cons "uxterm"
+                     (lambda (_) (list "uxterm"))))
           (and (executable-find "xterm")
-               '("xterm"))
+               (cons "xterm"
+                     (lambda (_) (list "xterm"))))
           ))
         ch)
     (or al (user-error "No bultin supported term-emulator found in your system"))
     (setq ch
           (completing-read "Choose which terminal to use? "
                            al)
-          ch (assoc ch al 'string=))
+          ch (alist-get ch al nil nil 'string=))
     (setq entropy/emacs-tools-open-in-terminal--use-term ch)))
+
 (defun entropy/emacs-tools-open-in-terminal (arg)
   "Open the current dir in a new terminal window.
 URL `http://ergoemacs.org/emacs/emacs_dired_open_file_in_ext_apps.html'
@@ -385,7 +396,8 @@ Version 2017-10-09"
             ;; inherited issue.
             (process-connection-type t)
             (exec-and-arg
-             entropy/emacs-tools-open-in-terminal--use-term))
+             (funcall entropy/emacs-tools-open-in-terminal--use-term
+                      wcdir)))
         (unless exec-and-arg
           (error "Can not find proper terminal emulator on your system."))
         (setq proc-obj
