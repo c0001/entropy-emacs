@@ -270,6 +270,8 @@ Version 2017-12-23"
 
 ;; ***** Open in terminal
 (defvar entropy/emacs-tools-open-in-terminal--use-term nil)
+;; TODO: support cross platforms term choosing, for now just support
+;; linux
 (defun entropy/emacs-tools-open-in-terminal--choose-terms (&optional wcdir)
   (setq wcdir (or wcdir default-directory))
   (let ((al
