@@ -269,11 +269,46 @@ Version 2017-12-23"
   )
 
 ;; ***** Open in terminal
-(defun entropy/emacs-tools-open-in-terminal ()
+(defvar entropy/emacs-tools-open-in-terminal--use-term nil)
+(defun entropy/emacs-tools-open-in-terminal--choose-terms (&optional wcdir)
+  (setq wcdir (or wcdir default-directory))
+  (let ((al
+         (entropy/emacs-list-without-orphans
+          :with-orphans (list nil)
+          ;; A fast, lightweight and minimalistic Wayland terminal emulator
+          (and (entropy/emacs-getenv "WAYLAND_DISPLAY")
+               (executable-find "foot")
+               `("foot" "--working-directory" ,wcdir))
+          ;; EEMACS_BUG: alacritty may cause multi process spwan invoked why?
+          ;; - obviously in debian 11?
+          ;; - no bug in archlinux?
+          (and (executable-find "alacritty")
+               `("alacritty" "--working-directory" ,wcdir))
+          ;; ----- use gpu accelerated terminal
+          (and (executable-find "kitty")
+               `("kitty" "-d" ,wcdir))
+          ;; ----- use DE based terminal
+          (and (executable-find "gnome-terminal")
+               `("gnome-terminal" ,wcdir))
+          (and (executable-find "konsole")
+               `("konsole"))
+          ;; ----- fallback to use xterm
+          (and (executable-find "uxterm")
+               '("uxterm"))
+          (and (executable-find "xterm")
+               '("xterm"))
+          ))
+        ch)
+    (setq ch
+          (completing-read "Choose which terminal to use? "
+                           al)
+          ch (assoc ch al 'string=))
+    (setq entropy/emacs-tools-open-in-terminal--use-term ch)))
+(defun entropy/emacs-tools-open-in-terminal (arg)
   "Open the current dir in a new terminal window.
 URL `http://ergoemacs.org/emacs/emacs_dired_open_file_in_ext_apps.html'
 Version 2017-10-09"
-  (interactive)
+  (interactive "P")
   (let ((wcdir (expand-file-name default-directory))
         (proc-sentinel
          (lambda (proc _event)
@@ -297,6 +332,9 @@ Version 2017-10-09"
                       (let ((kill-buffer-hook nil))
                         (kill-buffer proc-buffer))))))))
         proc-obj)
+    (when (or arg (null entropy/emacs-tools-open-in-terminal--use-term))
+      (entropy/emacs-tools-open-in-terminal--choose-terms
+       wcdir))
     (cond
      (sys/win32p
       ;;(message "Microsoft Windows not supported bash shell, and we use cmd instead")
@@ -344,28 +382,7 @@ Version 2017-10-09"
             ;; inherited issue.
             (process-connection-type t)
             (exec-and-arg
-             (or
-              ;; ----- use gpu accelerated terminal
-              (and (executable-find "kitty")
-                   `("kitty" "-d" ,wcdir))
-              ;; EEMACS_BUG: alacritty may cause multi process spwan invoked why?
-              ;; - obviously in debian 11?
-              ;; - no bug in archlinux?
-              (and (executable-find "alacritty")
-                   `("alacritty" "--working-directory" ,wcdir))
-
-              ;; ----- use DE based terminal
-              (and (executable-find "gnome-terminal")
-                   `("gnome-terminal" ,wcdir))
-              (and (executable-find "konsole")
-                   `("konsole"))
-
-              ;; ----- fallback to use xterm
-              (and (executable-find "uxterm")
-                   '("uxterm"))
-              (and (executable-find "xterm")
-                   '("xterm"))
-              )))
+             entropy/emacs-tools-open-in-terminal--use-term))
         (unless exec-and-arg
           (error "Can not find proper terminal emulator on your system."))
         (setq proc-obj
