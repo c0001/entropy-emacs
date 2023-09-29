@@ -7281,6 +7281,7 @@ newline."
           with-sentinel-proc-sym
           with-sentinel-event-sym
           with-sentinel-destination-sym
+          with-sentinel-stderr-sym
           with-sentinel-proc-exit-status-sym)
   "The core of `entropy/emacs-make-process' as an macro with all
 key's meaning as same, but all key's value is an lisp expression
@@ -7289,6 +7290,7 @@ ran within the code context."
     (let (($sentinel/proc             (or with-sentinel-proc-sym '$sentinel/proc))
           ($sentinel/event            (or with-sentinel-event-sym '$sentinel/event))
           ($sentinel/destination      (or with-sentinel-destination-sym '$sentinel/destination))
+          ($sentinel/stderr           (or with-sentinel-stderr-sym '$sentinel/stderr))
           ($sentinel/proc-exit-status (or with-sentinel-proc-exit-status-sym
                                           '$sentinel/proc-exit-status))
           ($this-after-form   (or after   '(progn nil)))
@@ -7315,6 +7317,7 @@ ran within the code context."
 
            ;; call-process arg
            ($call_proc_destination           destination)
+           ($call_proc_stdrr                 `(car-safe (cdr-safe ,$call_proc_destination)))
            ($call_proc_infile                infile)
            ($call_proc_display               display)
            ($call_proc_command               nil)
@@ -7325,6 +7328,7 @@ ran within the code context."
            ($thiscur_sync_sym                nil)
            ($thiscur_proc                    nil)
            ($thiscur_proc_buffer             nil)
+           ($thiscur_proc_stderr             nil)
            ($exit-code                       nil)
            ($ran-out-p                       nil)
 
@@ -7340,11 +7344,13 @@ ran within the code context."
                 (,$sentinel/proc                   nil)
                 (,$sentinel/event                  nil)
                 (,$sentinel/destination            nil)
+                (,$sentinel/stderr                 nil)
                 (,$sentinel/proc-exit-status       nil)
                 )
            ;; skip bytecomp warnings
            (ignore ,$sentinel/proc ,$sentinel/event
-                   ,$sentinel/destination ,$sentinel/proc-exit-status)
+                   ,$sentinel/destination ,$sentinel/proc-exit-status
+                   ,$sentinel/stderr)
 
            ;; Bind omitted `call-process' arguments
            (unless ,$call_proc_command
@@ -7385,9 +7391,11 @@ ran within the code context."
                     ;; skip bytecomp warnings
                     (ignore ,$sentinel/proc ,$sentinel/event)
                     (let* ((,$sentinel/destination (process-buffer ,$sentinel/proc))
+                           (,$sentinel/stderr      (entropy/emacs-process-stderr-object
+                                                    ,$sentinel/proc))
                            (,$ran-out-p nil))
                       ;; skip bytecomp warnings
-                      (ignore ,$sentinel/destination)
+                      (ignore ,$sentinel/destination ,$sentinel/stderr)
                       (unwind-protect
                           (unwind-protect
                               ;; run user spec sentinel when pure async run
@@ -7410,13 +7418,15 @@ ran within the code context."
                               (set ,$thiscur_sync_sym ,$ran-out-p)
                             ,$this-cleanup-form)))))))
 
-               (setq ,$thiscur_proc_buffer (process-buffer ,$thiscur_proc))
+               (setq ,$thiscur_proc_buffer (process-buffer ,$thiscur_proc)
+                     ,$thiscur_proc_stderr (entropy/emacs-process-stderr-object ,$thiscur_proc))
 
                (when ,$synchronously
                  (while (null (symbol-value ,$thiscur_sync_sym))
                    ;; NOTE: do not set to 0 since its same as ran without waiting.
                    (sleep-for 0.001))
                  (let ((,$sentinel/destination  ,$thiscur_proc_buffer)
+                       (,$sentinel/stderr       ,$thiscur_proc_stderr)
                        (,$sentinel/proc-exit-status
                         (let ((st (symbol-value ,$thiscur_sync_sym)))
                           (if (eq st t) 0 (plist-get st :exit-status))))
@@ -7431,6 +7441,7 @@ ran within the code context."
                ,$thiscur_proc)
               (t
                (let ((,$sentinel/destination ,$call_proc_destination)
+                     (,$sentinel/stderr      ,$call_proc_stdrr)
                      (inhibit-quit t) ,$exit-code)
                  (setq ,$exit-code
                        (apply 'call-process ,$call_proc_command ,$call_proc_infile
@@ -7563,13 +7574,20 @@ be used into your form:
    * Slots support: `:after', `:cleanup', `:sentinel', `:error'
 
 3) =$sentinel/destination=
-   * description: its a process buffer or for the meaning for the
+   * description: it's a process buffer or for the meaning for the
      `call-process''s =destination= arg when calling process
      synchronously with it.
    * limitation: both async and sync process calling type
    * Slots support: `:after', `:cleanup', `:sentinel', `:error'
 
-4) =$sentinel/proc-exit-status=
+4) =$sentinel/destination=
+   * description: it's a process stderr object both for the
+     `make-process's `:stderr' slot or the `cadr' of `call-process's
+     destination set via =$sentinel/destination=.
+   * limitation: both async and sync process calling type
+   * Slots support: `:after', `:cleanup', `:sentinel', `:error'
+
+5) =$sentinel/proc-exit-status=
    * description: the process exit code for =$sentinel/proc=, it's
      returned from `process-exit-status'.
    * limitation: just usable for sync process since any async process

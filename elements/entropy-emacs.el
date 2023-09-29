@@ -1231,15 +1231,21 @@ that name as FILE later."
     proc))
 (advice-add 'make-process :around #'entropy/emacs--make-process-top-advice)
 
+(defun entropy/emacs-process-stderr-object (process)
+  "Return the `stderr' object of process made via `make-process'."
+  (process-get process '__eemacs_make_process_prop_stderr__))
+
 (defun entropy/emacs-process-stderr-buffer (process)
-  "Like `process-buffer' but return its stderr buffer or nil if non
+  "Like `process-buffer' but when PROCESS is made by `make-process'
+then return its stderr buffer or nil if non
 of thus."
   (when-let* ((buff (process-get process '__eemacs_make_process_prop_stderr__))
               ((and (bufferp buff) (buffer-live-p buff))))
     buff))
 
 (defun entropy/emacs-process-buffer-prefer-stderr (process)
-  "Like `process-buffer' but preferred return its stderr buffer if
+  "Like `process-buffer' but preferred return its stderr buffer when
+PROCESS is made via `make-process' and
 it has one of thus, otherwise same as `process-buffer'."
   (or (entropy/emacs-process-stderr-buffer process)
       (process-buffer process)))
