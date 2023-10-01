@@ -1395,6 +1395,26 @@ release.
   informations which is calculated by ~format-mode-line~ firstly, so
   that the preventing the crash happens.
 
+
+** TODO eemacs daemon freeze bug since lisp nesting call level exceeds in =delete-frame-functions= when trigger ~delete-frame~
+:PROPERTIES:
+:CUSTOM_ID: h:c621974f-ec39-40ee-a9a5-f0be94119993
+:END:
+
+#+begin_example
+Save eyebrowse config for current daemon client ...
+Switching to eyebrowse slot -1:  ... done
+Save eyebrowse config for current daemon client done
+Disable daemon main clinet theme `spacemacs-dark' ... done
+Error during redisplay: (run-hook-with-args company-box--kill-buffer #<frame  0x55bf615d62a8>) signaled (error "Lisp nesting exceeds ‘max-lisp-eval-depth’")
+Error during redisplay: (run-hook-with-args blink-cursor--rescan-frames #<dead frame  0x55bf615d62a8>) signaled (excessive-lisp-nesting 1601)
+When done with this frame, type C-x 5 0
+#+end_example
+
+This bug will cause the eemacs daemon frame shutdown procedure ran
+without completely to cause that the next main client frame raise with
+error and may be freeze via thus.
+
 * COMMENT Local Varaibles
 :PROPERTIES:
 :CUSTOM_ID: h-550f1e2d-23da-47d3-98e1-cd8be05baa7d
