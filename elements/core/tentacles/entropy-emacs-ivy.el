@@ -501,6 +501,19 @@ upstream and may be make risky follow the ivy updates.
 
 ;; **** idle post for `ivy--queue-exhibit'
 
+  (defun entropy/emacs-ivy--left-char (&optional n)
+    "Same as `left-char' but prevent moving ahead of
+`minibuffer-prompt-end'."
+    (interactive "^p") (setq n (or n 1))
+    (let* ((cpt (point)) (pept (minibuffer-prompt-end))
+           (m (- cpt pept))
+           (rpt (- cpt n)))
+      (if (not (< rpt pept)) (left-char n)
+        (if (<= m 0) (goto-char pept) (left-char m))
+        (user-error "Beginning of minibuffer"))))
+  (define-key ivy-minibuffer-map (kbd "<left>")
+              #'entropy/emacs-ivy--left-char)
+
   (defvar __idle/ivy-queue-exhited-ivy-done-like-cmds
     '(ivy-alt-done
       ivy-mouse-done
@@ -541,7 +554,8 @@ upstream and may be make risky follow the ivy updates.
       ivy-backward-delete-char
       ivy-backward-kill-word
       ivy-forward-char
-      backward-char))
+      backward-char left-char
+      entropy/emacs-ivy--left-char))
   (dolist (cmd __eemacs-ivy-dynamic-commands)
     (put cmd '__eemacs-ivy-dynamic-command-p t))
 
