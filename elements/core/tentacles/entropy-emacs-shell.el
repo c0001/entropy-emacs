@@ -352,47 +352,50 @@ segmentation fault."
     (declare (interactive-only t))
     (interactive nil vterm-mode)
     (vterm-send-key "<left>" nil t nil))
+  (define-key vterm-mode-map [M-left]
+              #'entropy/emacs-shell-vterm-meta-left)
 
   (defun entropy/emacs-shell-vterm-meta-right ()
     ""
     (declare (interactive-only t))
     (interactive nil vterm-mode)
     (vterm-send-key "<right>" nil t nil))
+  (define-key vterm-mode-map [M-right]
+              #'entropy/emacs-shell-vterm-meta-right)
 
   (defun entropy/emacs-shell-vterm-ctrl-left ()
     ""
     (declare (interactive-only t))
     (interactive nil vterm-mode)
     (vterm-send-key "<left>" nil nil t))
+  (define-key vterm-mode-map [C-left]
+              #'entropy/emacs-shell-vterm-ctrl-left)
 
   (defun entropy/emacs-shell-vterm-ctrl-right ()
     ""
     (declare (interactive-only t))
     (interactive nil vterm-mode)
     (vterm-send-key "<right>" nil nil t))
+  (define-key vterm-mode-map [C-right]
+              #'entropy/emacs-shell-vterm-ctrl-right)
 
   (defun entropy/emacs-shell-vterm-ctrl-backspace ()
     ""
     (declare (interactive-only t))
     (interactive nil vterm-mode)
     (vterm-send-key "<backspace>" nil nil t))
-
-  (define-key vterm-mode-map [C-left]
-    #'entropy/emacs-shell-vterm-ctrl-left)
-  (define-key vterm-mode-map [C-right]
-    #'entropy/emacs-shell-vterm-ctrl-right)
-  (define-key vterm-mode-map [M-left]
-    #'entropy/emacs-shell-vterm-meta-left)
-  (define-key vterm-mode-map [M-right]
-    #'entropy/emacs-shell-vterm-meta-right)
   (define-key vterm-mode-map [C-backspace]
-    #'entropy/emacs-shell-vterm-ctrl-backspace)
+              #'entropy/emacs-shell-vterm-ctrl-backspace)
+
+  ;; `vterm-undo' as shell-undo which commonly bind to `C-/'
+  (define-key vterm-mode-map [remap undo] #'vterm-undo)
+  (define-key vterm-mode-map [remap entropy/emacs-basic-do-undo] #'vterm-undo)
 
   ;; Remap `vterm-copy-mode-done' to disable `vterm-copy-mode-done'
   ;; features to disable auto kill-ring save feature while thus.
   (define-key vterm-copy-mode-map
-    [remap vterm-copy-mode-done]
-    #'(lambda (&rest _) (interactive) (vterm-copy-mode 0)))
+              [remap vterm-copy-mode-done]
+              #'(lambda (&rest _) (interactive) (vterm-copy-mode 0)))
 
   ;; Remove conflicting f12 keybind via `vterm-mode-map' and function
   ;; `entropy/emacs-tools-time-show'
@@ -414,8 +417,8 @@ it usually kill the current vterm tty unexpectedly")))
   ;; https://github.com/akermu/emacs-libvterm/commit/2b1392cb2b14ec5bd0b7355197d5f353aa5d3983
   (defun entropy/emacs-shell--vterm-set-ime-key (&optional func)
     (define-key vterm-mode-map
-      (kbd entropy/emacs-internal-ime-toggling-kbd-key)
-      (or func entropy/emacs-internal-IME-toggle-function)))
+                (kbd entropy/emacs-internal-ime-toggling-kbd-key)
+                (or func entropy/emacs-internal-IME-toggle-function)))
   ;; set at vterm first load time
   (entropy/emacs-shell--vterm-set-ime-key)
   ;; inject for future changes
