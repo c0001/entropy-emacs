@@ -10542,6 +10542,20 @@ mistaking stroke."
   (dolist (key (list "C-g" "A-C-g" "C-s-g" "C-M-g" "C-M-s-g"))
     (define-key keymap (kbd key) def remove)))
 
+(defun entropy/emacs-swap-keymap-two-keydefs (keymap key1 key2)
+  "Swap two KEYs' (KEY1 and KEY2) definations in KEYMAP only when
+both of KEYs has valid definations and return t, otherwise return
+nil without any modifications for KEYMAP.
+
+KEY of KEYs should satisfy same argument of `define-key', either
+for KEYMAP."
+  (when-let ((key1-def (lookup-key keymap key1))
+             ((not (numberp key1-def)))
+             (key2-def (lookup-key keymap key2))
+             ((not (numberp key2-def))))
+    (define-key keymap key1 key2-def)
+    (define-key keymap key2 key1-def) t))
+
 ;; *** Compress or decompress file
 
 (defun __eemacs/archive--dowith-execfind_error (&rest execs)
