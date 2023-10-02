@@ -10556,6 +10556,16 @@ for KEYMAP."
     (define-key keymap key1 key2-def)
     (define-key keymap key2 key1-def) t))
 
+(defun entropy/emacs-clone-keymap-keydefs (keymap by-key &rest keys)
+  "Via `define-key' for all KEY in KEYS of binding them to the
+defination of key BY-KEY in KEYMAP. Return t if BY-KEY has valid
+defination can be used for, or nil without any modifications of
+KEYMAP."
+  (when-let
+      ((keydef (lookup-key keymap by-key)))
+    (dolist (key keys)
+      (define-key keymap key keydef)) t))
+
 ;; *** Compress or decompress file
 
 (defun __eemacs/archive--dowith-execfind_error (&rest execs)

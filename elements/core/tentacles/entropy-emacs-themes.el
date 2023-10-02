@@ -458,9 +458,7 @@ progress."
                     'entropy/emacs-daemon--disable-theme-when-main-client-closed
                   (lambda (frame)
                     (let ((inhibit-quit t))
-                      (when (and (entropy/emacs-daemon-frame-is-legal-daemon-client-p
-                                  frame)
-                                 (not (entropy/emacs-daemon-multi-clients-p)))
+                      (when (entropy/emacs-daemon-current-is-main-client frame)
                         (entropy/emacs-message-simple-progress-message
                             (format "Disable daemon main clinet theme `%s'"
                                     entropy/emacs-theme-sticker)

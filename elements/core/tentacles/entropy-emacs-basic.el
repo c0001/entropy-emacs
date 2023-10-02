@@ -5281,17 +5281,18 @@ successfully both of situation of read persisit of create an new."
 
 ;; ***** more conventions
 
-;; arrange multi easy to mis-hints keyboard shortcuts to `keyboard-quit'
+;; ****** Arrange multi easy to mis-hints keyboard shortcuts
+
+;; `keyboard-quit'
 (defvar ivy-minibuffer-map)
 (let ((keys '(
               ;; when unintended active this, using 'QUIT' as 'C-g'
               "C-M-g"
-              ;; same as above of super key intended active
               "C-s-g"
-              ;; same as above of super key intended active
+              "C-S-s-g"
               "A-C-g"
-              ;; same as above of super key intended active
               "C-M-s-g"
+              "C-M-S-s-g"
               )))
   ;; for global mode map
   (dolist (key keys)
@@ -5301,7 +5302,27 @@ successfully both of situation of read persisit of create an new."
   (eval-after-load 'ivy
     `(dolist (key ',keys)
        (define-key ivy-minibuffer-map
-         (kbd key) 'minibuffer-keyboard-quit))))
+                   (kbd key) 'minibuffer-keyboard-quit))))
+
+;; `backward-char'
+(apply
+ 'entropy/emacs-clone-keymap-keydefs
+ global-map
+ (kbd "C-b")
+ (mapcar 'kbd
+         (list
+          "C-M-S-s-b" "C-S-s-b"
+          "C-s-b" "C-M-s-b")))
+
+;; `scroll-up-command'
+(apply
+ 'entropy/emacs-clone-keymap-keydefs
+ global-map
+ (kbd "C-v")
+ (mapcar 'kbd
+         (list
+          "C-M-S-s-v" "C-S-s-v"
+          "C-s-v" "C-M-s-v")))
 
 ;; ***** key re-mapping
 ;; Binding 'super' and 'hyper' on win32 and mac.
