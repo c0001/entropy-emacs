@@ -210,10 +210,11 @@
 ;; * minor mode
 ;; ** mode line
 (defface entropy/shellpop2/main//face/modeline-highlight-basic
-  '((((class color) (min-colors 88) (background light))
+  '((((type tty)) :inherit default)
+    (((type graphic) (class color) (min-colors 88) (background light))
      :weight light
      :box (:line-width -1 :color "grey75" :style nil))
-    (((class color) (min-colors 88) (background dark) )
+    (((type graphic) (class color) (min-colors 88) (background dark))
      :weight light
      :box (:line-width -1 :color "grey40" :style nil)))
   "")
@@ -222,10 +223,12 @@
   '((default
      :inherit
      entropy/shellpop2/main//face/modeline-highlight-basic)
-    (((class color) (min-colors 88) (background light))
+    (((type tty) (background light)) :weight bold :foreground "red")
+    (((type graphic) (class color) (min-colors 88) (background light))
      :weight bold :foreground "red"
      :box (:line-width -1 :color "grey75" :style nil))
-    (((class color) (min-colors 88) (background dark) )
+    (((type tty) (background dark)) :weight bold :foreground "yellow")
+    (((type graphic) (class color) (min-colors 88) (background dark))
      :weight bold :foreground "yellow"
      :box (:line-width -1 :color "grey40" :style nil)))
   "")
@@ -234,9 +237,9 @@
   '((default
      :inherit
      entropy/shellpop2/main//face/modeline-highlight-basic)
-    (((class color) (min-colors 88) (background light))
+    (((type graphic) (class color) (min-colors 88) (background light))
      :slant italic :weight bold)
-    (((class color) (min-colors 88) (background dark) )
+    (((type graphic) (class color) (min-colors 88) (background dark))
      :slant italic :weight bold))
   "")
 
@@ -244,9 +247,9 @@
   '((default
      :inherit
      entropy/shellpop2/main//face/modeline-highlight-basic)
-    (((class color) (min-colors 88) (background light))
+    (((type graphic) (class color) (min-colors 88) (background light))
      :slant italic :weight light)
-    (((class color) (min-colors 88) (background dark) )
+    (((type graphic) (class color) (min-colors 88) (background dark))
      :slant italic :weight light))
   "")
 

@@ -1396,7 +1396,8 @@ release.
   that the preventing the crash happens.
 
 
-** TODO eemacs daemon freeze bug since lisp nesting call level exceeds in =delete-frame-functions= when trigger ~delete-frame~
+** DONE eemacs daemon freeze bug since lisp nesting call level exceeds in =delete-frame-functions= when trigger ~delete-frame~
+CLOSED: [2023-10-03 Tue 11:59]
 :PROPERTIES:
 :CUSTOM_ID: h:c621974f-ec39-40ee-a9a5-f0be94119993
 :END:
@@ -1414,6 +1415,16 @@ When done with this frame, type C-x 5 0
 This bug will cause the eemacs daemon frame shutdown procedure ran
 without completely to cause that the next main client frame raise with
 error and may be freeze via thus.
+
+- [2023-10-03 Tue 11:59:50] : fixed via add variable
+  `__ya/company-box--kill-buffer-no-run' since
+  `delete-frame-functions' is a dynamic variable ran by ~delete-frame~
+  via ~run-hook-with-args~ which always get its dynamic value slot
+  other than the lexical restriction, and a =company-box= buffer
+  deletion cause its childframe deletion on where the nesting
+  invocation occurre since this triggerred a nest ~delete-frame~
+  operation, but I haven't got whether its a emacs feature or its just
+  a internal feature of =company-box=?
 
 * COMMENT Local Varaibles
 :PROPERTIES:

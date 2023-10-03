@@ -245,7 +245,8 @@ e.g. '/bin/sdcv'."
   "Whether prompt for manually choose query target when not
 explicit match any sdcv candidates.")
 
-(defface entropy/sdcv-backends--sdcv-box-face '((t :box t))
+(defface entropy/sdcv-backends--sdcv-box-face
+  '((default :inherit default) (((type graphic)) :box t))
   "Face sytle with box enable.")
 
 ;;;;;; error spec prompt

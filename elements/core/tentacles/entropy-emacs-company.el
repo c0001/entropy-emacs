@@ -1303,6 +1303,7 @@ And also with some other bugs fix."
               :override #'__ya/company-box--get-buffer)
 
   ;; EEMACS_MAINTENANCE: follow upstream updates
+  (defvar __ya/company-box--kill-buffer-no-run nil)
   (defun __ya/company-box--kill-buffer (frame)
     "Same as original func but run immediately in context without idle
 tricks.
@@ -1311,27 +1312,39 @@ We patched this since the idle trick is not suitable for other
 eemacs specs.
 
 Either for inner bugs fix."
-    (entropy/emacs-when-let*-first
-        ((
-          ;; EEMACS_TEMPORALLY_HACK: we must ensure that FRAME is
-          ;; lived since `frame-local-getq' is buggy if not of thus.
-          (frame-live-p frame))
-         (kill-buffer-hook nil)
-         (func
-          (lambda (buff) (when (buffer-live-p buff) (kill-buffer buff)))))
-      (funcall func (frame-local-getq company-box-buffer frame))
-      ;; FIXME: why kill the box main buffer will make the box frame
-      ;; be deleted? is emacs has that mechanism that what "frame
-      ;; dedicated buffer" i.e. delete the only buffer of that frame
-      ;; then the frame will be deleted either?
-      (when (frame-live-p frame)
-        (funcall func (frame-local-getq company-box-scrollbar frame)))))
+    (condition-case err
+        (entropy/emacs-when-let*-firstn 2
+            ((
+              ;; EEMACS_TEMPORALLY_HACK: we must ensure that FRAME is
+              ;; lived since `frame-local-getq' is buggy if not of thus.
+              (frame-live-p frame))
+             ((if (not (bound-and-true-p __ya/company-box--kill-buffer-no-run))
+                  (message "company-box--kill-buffer for frame: %s" frame)
+                (message "company-box--kill-buffer ignore frame: %s" frame)
+                nil))
+             ;; Temporally FIX EEMACS_BUG c621974f-ec39-40ee-a9a5-f0be94119993
+             (__ya/company-box--kill-buffer-no-run t)
+             (func
+              (lambda (buff) (when (buffer-live-p buff) (kill-buffer buff)))))
+          (funcall func (frame-local-getq company-box-buffer frame))
+          ;; FIXME: why kill the box main buffer will make the box
+          ;; frame be deleted? is emacs has that mechanism that what
+          ;; "frame dedicated buffer" i.e. delete the only buffer of
+          ;; that frame then the frame will be deleted either?
+          ;; (EEMACS_BUG c621974f-ec39-40ee-a9a5-f0be94119993)
+          (when (frame-live-p frame)
+            (funcall func (frame-local-getq company-box-scrollbar frame))))
+      ;; FIXME: we should never let this function be failed since it
+      ;; may break following `delete-frame-functions'
+      (error
+       (message "[debug] company-box--kill-buffer failed for frame `%S': %s"
+                frame err))))
   (advice-add 'company-box--kill-buffer
               :override #'__ya/company-box--kill-buffer)
 
 ;; ********* company box frames
 ;; ********** core
-  (defun entropy/emacs-company--cmpbox-del-frames (&rest _)
+  (defun entropy/emacs-company--cmpbox-del-frames (&rest use-frames)
     ;; abort all activated company activities firstly
     (dolist (buff (buffer-list))
       (with-current-buffer buff
@@ -1339,17 +1352,8 @@ Either for inner bugs fix."
           (company-abort))))
     ;; delete all `company-box' (and doc) frames with reset the frame
     ;; local var.
-    (dolist (frame (frame-list))
+    (dolist (frame (or use-frames (frame-list)))
       (let ((cmpbox-frame-p (frame-parameter frame 'this-company-box-frame-p))
-            ;; inhibit global delframe functions since we known what
-            ;; we are doing for and we must prevent messy inovked by
-            ;; those functions to guarantee this function ran
-            ;; successfully.
-            ;;
-            ;; but for package `frame-local--on-delete' which is need
-            ;; to update, since its tied with company-box and authored
-            ;; by the same author, although it's buggy.
-            (delete-frame-functions '(frame-local--on-delete))
             lfm)
         ;; then we must tidy up associated buffers since we'll close
         ;; all stick frames
@@ -1497,15 +1501,9 @@ recreates a new one for usage so that remove that collision."
                 ((frame-live-p frame)))
       (unless (window-live-p (frame-root-window frame))
         (let (
-              ;; NOTE: we should ensure that no run frame deletion
-              ;; hooks since we're just kill it. For more precisely
-              ;; that `company-box--kill-buffer' will be invoked via
-              ;; that way which is not what we expecting for.
-              ;;
-              ;; but for package `frame-local--on-delete' which is need
-              ;; to update, since its tied with company-box and authored
-              ;; by the same author, although it's buggy.
-              (delete-frame-functions '(frame-local--on-delete)))
+              ;; NOTE: remove frame without recreate the doc buffer to
+              ;; reduce performance lag
+              (__ya/company-box--kill-buffer-no-run t))
           (delete-frame frame t)
           (frame-local-setq company-box-doc-frame nil)))))
   (advice-add 'company-box-doc--show

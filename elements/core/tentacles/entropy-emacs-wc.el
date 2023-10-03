@@ -1116,7 +1116,8 @@ stored the eyebrowse config user focused."
             (message "Not save eyebrowse config for current daemon client (%s)"
                      log))))))
 
-  (defun entropy/emacs-wc-eyebrowse-savecfg--daemon-restore-saved-config (frame)
+  (defun entropy/emacs-wc-eyebrowse-savecfg--daemon-restore-saved-config
+      (frame &optional suppress-when-proper)
     "Restore the eyebrowse config for dameon client's frame FAME
 saved by
 `entropy/emacs-wc-eyebrowse-savecfg--daemon-client-guard'."
@@ -1129,32 +1130,37 @@ saved by
           (if (entropy/emacs-minibufferp nil t) (current-buffer)
             (and (setq miniw (active-minibuffer-window))
                  (window-buffer miniw)))))
-      (when minibuff
-        ;; quit minibuffer firstly since we can not restore
-        ;; window-configuration while thus actived. Using idle timer
-        ;; recalling this function since `abort-minibuffers' is abort to
-        ;; `top-level' thus we can not continuously did rest procedure.
-        (run-with-idle-timer
-         0.1 nil
-         #'entropy/emacs-wc-eyebrowse-savecfg--daemon-restore-saved-config
-         frame)
-        (with-current-buffer minibuff
-          (abort-minibuffers)))
-      (let* ((inhibit-quit t) log)
-        (when entropy/emacs-wc-eyebrowse-savecfg-current-config
-          (with-selected-frame frame
-            (message "Restore eyebrowse config from previous daemon client ...")
-            (progn
-              (setq log (entropy/emacs-wc-eyebrowes-savecfg--restore-previous-config
-                         nil t))
-              (if (eq log t)
-                  (message "Restore eyebrowse config from previous daemon client done")
-                (message "Not restore eyebrowse config for current daemon client (%s)"
-                         log))
-              ;; handling daemon edit buffer request
-              (when-let ((buff (entropy/emacs-daemon-get-initial-buffer)))
-                (unless (eq (current-buffer) buff) (switch-to-buffer buff)))
-              ))))))
+      (cond
+       ((and minibuff suppress-when-proper)
+        (message "Not restore eyebrowse config for current daemon client \
+(focused in minibuffer: %s)" minibuff))
+       (t
+        (when minibuff
+          ;; quit minibuffer firstly since we can not restore
+          ;; window-configuration while thus actived. Using idle timer
+          ;; recalling this function since `abort-minibuffers' is abort to
+          ;; `top-level' thus we can not continuously did rest procedure.
+          (run-with-idle-timer
+           0.1 nil
+           #'entropy/emacs-wc-eyebrowse-savecfg--daemon-restore-saved-config
+           frame)
+          (with-current-buffer minibuff
+            (abort-minibuffers)))
+        (let* ((inhibit-quit t) log)
+          (when entropy/emacs-wc-eyebrowse-savecfg-current-config
+            (with-selected-frame frame
+              (message "Restore eyebrowse config from previous daemon client ...")
+              (progn
+                (setq log (entropy/emacs-wc-eyebrowes-savecfg--restore-previous-config
+                           nil t))
+                (if (eq log t)
+                    (message "Restore eyebrowse config from previous daemon client done")
+                  (message "Not restore eyebrowse config for current daemon client (%s)"
+                           log))
+                ;; handling daemon edit buffer request
+                (when-let ((buff (entropy/emacs-daemon-get-initial-buffer)))
+                  (unless (eq (current-buffer) buff) (switch-to-buffer buff)))
+                ))))))))
 
 ;; ***** daemon injection
 
@@ -1174,7 +1180,12 @@ saved by
           (eyebrowse-init (selected-frame)))
         ;; Preserve eyebrowse configs for daemon client.
         (entropy/emacs-wc-eyebrowse-savecfg--daemon-restore-saved-config
-         (selected-frame)))))
+         (selected-frame)
+         ;; if proper we should inhibit the restoration since if not
+         ;; the following daemon Initialization may be interrupted by
+         ;; the restoration procedure like `abort-minibuffers'
+         ;; triggers wich return to the `top-level' finally.
+         t))))
 
 ;; **** __end__
 
