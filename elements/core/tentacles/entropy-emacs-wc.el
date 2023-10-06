@@ -1104,7 +1104,7 @@ stored the eyebrowse config user focused."
            ;; there's no need to run save when `kill-emacs'
            (not entropy/emacs-kill-emacs-running-p)
            (entropy/emacs-daemon-current-is-main-client frame)
-           (= 1 (length entropy/emacs-daemon--legal-clients))
+           (not (entropy/emacs-daemon-multi-clients-p))
            t)
       (with-selected-frame frame
         (let (log)

@@ -4438,11 +4438,11 @@ designation."
                         default-directory current-defdir)
                        ;; or the file's host path is a nested subpath
                        ;; of the side dired window
-                       (< (length
-                           (entropy/emacs-make-relative-filename
-                            (directory-file-name current-defdir)
-                            default-directory t))
-                          2)))
+                       (let ((rel
+                              (entropy/emacs-make-relative-filename
+                               (directory-file-name current-defdir)
+                               default-directory t)))
+                         (and rel (< (length rel) 2)))))
                      nil t)) t)))
     (call-interactively #'entropy/emacs-basic-kill-buffer-and-show-its-dired))
    ;; Default COND: kill buffer and window
