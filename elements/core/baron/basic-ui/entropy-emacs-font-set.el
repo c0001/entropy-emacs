@@ -59,6 +59,11 @@ it.
 ===== Missing fonts list: =====
 ")
 
+(defun entropy/emacs-font-set--plist-get (font-group key)
+  (or (plist-get font-group key)
+      ;; `nil' for symbol spec is meaningful
+      (and (not (eq key :symbol)) "Monospace")))
+
 (defun entropy/emacs-font-set-register ()
   (when (eq entropy/emacs-font-setting-enable t)
     (setq entropy/emacs-font-setting-enable 'fira-code))
@@ -68,17 +73,17 @@ it.
       (user-error "Invalid arg value for `entropy/emacs-font-setting-enable' to '%s'"
                   entropy/emacs-font-setting-enable))
     (setq entropy/emacs-fontsets-used-latin-font
-          (plist-get group :latin)
+          (entropy/emacs-font-set--plist-get group :latin)
           entropy/emacs-fontsets-used-cjk-sc-font
-          (plist-get group :sc)
+          (entropy/emacs-font-set--plist-get group :sc)
           entropy/emacs-fontsets-used-cjk-tc-font
-          (plist-get group :tc)
+          (entropy/emacs-font-set--plist-get group :tc)
           entropy/emacs-fontsets-used-cjk-jp-font
-          (plist-get group :jp)
+          (entropy/emacs-font-set--plist-get group :jp)
           entropy/emacs-fontsets-used-cjk-kr-font
-          (plist-get group :kr)
+          (entropy/emacs-font-set--plist-get group :kr)
           entropy/emacs-fontsets-used-symbol-font
-          (plist-get group :symbol)
+          (entropy/emacs-font-set--plist-get group :symbol)
           entropy/emacs-fontsets-used-extra-fonts
           (plist-get group :extra))
     (setq entropy/emacs-default-cjk-cn-font
@@ -163,7 +168,7 @@ it.
               '("fontset-default" "fontset-startup" "fontset-standard")))
 
       ;;Setting cjk
-      (dolist (charset '(han cjk-misc kana kanbun bopomofo))
+      (dolist (charset '(han cjk-misc kanbun bopomofo))
         (set-fontset-font nil
                           charset
                           (font-spec
@@ -173,6 +178,12 @@ it.
 
       (set-fontset-font nil
                         '(?ぁ . ?ヶ)
+                        (font-spec
+                         :family
+                         entropy/emacs-fontsets-used-cjk-jp-font)
+                        frame)
+      (set-fontset-font nil
+                        'kana
                         (font-spec
                          :family
                          entropy/emacs-fontsets-used-cjk-jp-font)
@@ -203,7 +214,7 @@ it.
         (funcall after-do frame))
 
       ;; font size scaling
-      (if (eq entropy/emacs-font-setting-enable 'sarasa)
+      (if (memq entropy/emacs-font-setting-enable '(sarasa maple))
           (setq face-font-rescale-alist nil)
         (setq face-font-rescale-alist
               `((,entropy/emacs-fontsets-used-cjk-sc-font . 1.2)
