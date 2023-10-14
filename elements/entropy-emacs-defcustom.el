@@ -386,28 +386,39 @@ set for that messy with modeline type, default to nil."
 (defcustom entropy/emacs-font-setting-enable nil
   "Enable entropy-emacs specific font setting, when its non-nil.
 
-If its non-nil, the valid value are 'google' for using google noto
-family fonts, 'sarasa' for usign sarasa-gothic family which was a
-fork for google noto refer, or 'fira-code' which was better for
-daily development using.
+If its non-nil, the valid value are `google' for using google noto
+family fonts, `sarasa' for usign sarasa-gothic family which was a fork
+for google noto refer, or `fira-code' which was better for daily
+development using.
 
-When its value is 't', then fallback its to 'fira-code'.
+When its value is `t', then fallback its to `fira-code'.
 
-NOTE:
+Features:
 
-1) 'sarasa' is CJK and latin width balance font spec, pretty
-aequilate table messed with thus are ok in `org-mode' etc.
+1) `sarasa' is CJK and latin width balance font spec, pretty aequilate
+   table messed with thus are ok in `org-mode' etc.
 
-2) In old platform without high perfomance ssd and cpu
-supporting, using 'sarasa' fonts is not suggested since its size
-is so large for each font-family spec, and emacs will using much
-more time to loading and caching it while redisplay even for more
-gc time."
+2) In old platform without high perfomance ssd and cpu supporting,
+   using `sarasa' fonts is not suggested since its size is so large
+   for each font-family spec, and emacs will using much more time to
+   loading and caching it while redisplay even for more gc time.
+
+Extra valid values:
+
+1. `maple': a gothic font family like `sarasa-gothic' but just support
+   latin and chinese charsets, so we can not expect it can display all
+   of CJK binding with latin font width as 2:1 as what `sarasa-gothic'
+   did, but its glyph visual style is greater than latter as though if
+   you are less than using the korea and japan scripts but with CJK
+   demands then it's suggested to use this as preferred than
+   `sarasa-gothic'.
+"
   :type '(choice
           (const :tag "Disable" nil)
           (const :tag "Default" t)
           (const :tag "Google font family" google)
           (const :tag "Sarasa font family" sarasa)
+          (const :tag "Maple Mono font family" maple)
           (const :tag "Fira code based" fira-code))
   :group 'entropy/emacs-customize-group-for-eemacs-font-spec)
 
@@ -821,10 +832,11 @@ may download from
 ;; ***** eemacs fonts
 
 (defvar entropy/emacs-ext-eemacs-fonts-archive-url
-  "https://sourceforge.net/projects/entropy-emacs-cabinet/files/Font/entropy-emacs-fonts/v1.0.1/eemacs-fonts_v1.0.1.tar.xz/download"
+  "https://github.com/c0001/entropy-emacs-fonts/releases/download/\
+v1.1.0/eemacs-fonts_v1.1.0.tar.xz"
   )
 (defvar entropy/emacs-ext-eemacs-fonts-archive-sha256sum
-  "0c95ab8acc67e5e98755eda5ea2b1ccefcbcc4a0fa876c07d0c599effd47f028")
+  "df9b316c08864862d5709acba9823e20c07e89bd10d3b24126a05510a9dac7be")
 
 ;; **** extra customized load path
 

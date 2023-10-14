@@ -509,8 +509,7 @@ faild with hash '%s' which must match '%s'"
     (entropy/emacs-message-do-message
      "%s"
      (green "Install eemacs-fonts  ..."))
-    (let ((repo-path (car (entropy/emacs-list-dir-subdirs
-                           dec-host))))
+    (let ((repo-path dec-host))
       (if (file-directory-p repo-path)
           (entropy/emacs-message-do-message
            "%s"
@@ -524,7 +523,7 @@ faild with hash '%s' which must match '%s'"
          " *install eemacs-fonts* "
          :synchronously t
          :buffer (get-buffer-create " *install eemacs-fonts process buffer* ")
-         :command '("sh" "-c" "./install.sh")
+         :command '("sh" "./install.sh")
          :default-directory ,(entropy/emacs-return-as-default-directory repo-path)
          :after
          (with-current-buffer $sentinel/destination
