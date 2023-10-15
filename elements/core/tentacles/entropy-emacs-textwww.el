@@ -258,16 +258,15 @@
     "Use exist bookmark visiting file buffer so that we can use user
 spec `buffer-file-coding-system' where `w3m' oftenly throw the
 error like \"Specified title includes unsafe character(s): %s\"."
-    (let ((bbuffn " *w3m bookmark*"))
-      (if (and (get-buffer bbuffn)
-               (file-equal-p
-                (buffer-file-name bbuffn)
-                w3m-bookmark-file))
+    (let* ((buff-name " *w3m bookmark*") (buff (get-buffer buff-name))
+           (buff-file-name (and buff (buffer-file-name buff))))
+      (if (and buff-file-name
+               (file-equal-p buff-file-name w3m-bookmark-file))
           ;; defaulty resuse the buffer for perfomance issue.
           nil
         ;; NOTE: Fistly we need to close the origin bookmark buffer using
         ;; `w3m' internal API which is used to update its internal status.
-        (w3m-kill-buffer bbuffn)
+        (w3m-kill-buffer buff)
         (let ((large-file-warning-threshold
                most-positive-fixnum))
           (with-current-buffer (find-file-noselect w3m-bookmark-file)
