@@ -203,6 +203,18 @@ subdirectory.")
       "Open project root with external if available")))
 
 ;; ***** patches
+;; ****** Bug workarounds
+
+  (defun __ya/projectile-expand-file-name-wildcard (fn &rest args)
+    "Around advice for `projectile-expand-file-name-wildcard' since
+its lag wildcard detection mechanism."
+    (let ((name-pattern (car args)) (dir (cdr args)))
+      (or (condition-case _ (apply fn args)
+            (invalid-regexp nil))
+          (expand-file-name name-pattern dir))))
+  (advice-add 'projectile-expand-file-name-wildcard
+              :around #'__ya/projectile-expand-file-name-wildcard)
+
 ;; ****** Make projetile candi predicates persisted
   (defun entropy/emacs-projectile--gen-candi-persist-rule (adv-for &optional remove)
     "Make projetile candi predicates persisted in the completion
