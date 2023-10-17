@@ -602,8 +602,7 @@ and writeable!")))
                      (message "entropy-open-with <%s> open sucessfully"
                               proc-name)
                      (when (buffer-live-p proc-buffer)
-                       (let ((kill-buffer-hook nil))
-                         (kill-buffer proc-buffer)))))))))
+                       (kill-buffer proc-buffer))))))))
     (cond
      ;; ==================== plist assoc ====================
      ((and file-plistp

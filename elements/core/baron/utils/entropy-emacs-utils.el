@@ -72,7 +72,7 @@
       (when-let* ((fb (ignore-errors
                         (find-function-noselect (car args) 'lisp-only)))
                   (buff (car fb)))
-        (let (kill-buffer-hook)
+        (entropy/emacs-dynamic-let* (kill-buffer-hook)
           (kill-buffer buff)))))
   (advice-add 'advice-patch
               :around

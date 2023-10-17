@@ -3267,7 +3267,6 @@ list return t i.e. inidcate to unjudge for as.")
 (setq entropy/emacs-unreadable-file-judge-function
       (lambda (filename)
         (let* ((inhibit-read-only t)
-               (kill-buffer-hook nil)
                (f-readp (file-readable-p filename))
                (f-existp (file-exists-p filename))
                (fsize-max (entropy/emacs-large-file-warning-threshold-get))
@@ -3369,7 +3368,7 @@ origin config file."
        (format "pinentry-program %s"
                pinentry-emacs-binary-path))
       (save-buffer)
-      (let ((kill-buffer-hook))
+      (entropy/emacs-dynamic-let* ((kill-buffer-hook))
         (kill-buffer)))
     (with-current-buffer proc-buff
       (erase-buffer))

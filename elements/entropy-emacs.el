@@ -294,6 +294,45 @@ BODY or FORMS requested context by `,@' in `backquote' forms.
 See also `entropy/emacs-macroexp-progn'."
   (or args (list nil)))
 
+(defmacro entropy/emacs-dynamic-let* (varlist &rest body)
+  "Same as `let*' but binds `boundp' bindings
+dynamicly in `lexical-binding' env of `main-thread' (which termed
+as LDB i.e. lexical dynamic binding).
+
+If LDB occurred and If `current-thread' is not `main-thread' then
+error, since we can not handle collision of concurrency with
+dynamic binding while `lexical-binding' enabled.
+
+NOTE: All variables recognized as `boundp' are which
+already specialized before the context compiled/defined since
+this is a macro."
+  (declare (indent 1))
+  (if (not lexical-binding) `(let* ,varlist ,@body)
+    (let (binds
+          cache-binds
+          (cache-binds-sym (make-symbol "var-val-cache"))
+          var val)
+      (dolist (el varlist)
+        (if (not (listp el)) (setq var el val nil)
+          (setq var (car el) val (cadr el)))
+        (if (not (boundp var)) (push (list var val) binds)
+          (push `(cons ',var (symbol-value ',var)) cache-binds)
+          (push (list var `(set ',var ,val)) binds))
+        (unless (symbolp var)
+          (error "[entropy/emacs-dynamic-let*]: var `%s' is not symbolp"
+                 var)))
+      `(let ((,cache-binds-sym
+              (list ,@(if cache-binds (nreverse cache-binds) (list nil)))))
+         (when (and ,cache-binds-sym (bound-and-true-p main-thread)
+                    (not (eq (current-thread) main-thread)))
+           (error "[entropy/emacs-dynamic-let*] not in mainthread"))
+         (unwind-protect
+             (let* ,(nreverse binds) ,(entropy/emacs-macroexp-progn body))
+           (when ,cache-binds-sym
+             (dolist (el ,cache-binds-sym)
+               (when (boundp (car el))
+                 (set (car el) (cdr el))))))))))
+
 (defmacro entropy/emacs-when-let*-first (spec &rest body)
   "Like `when-let*' but just check the `car' of SPEC whether is
 nil and handled that.

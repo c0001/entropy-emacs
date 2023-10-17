@@ -10209,7 +10209,7 @@ When SILENT is non-nil, then inhbit any inner reports via `message'."
       (condition-case error
           (with-current-buffer
               (funcall native-func url timeout)
-            (let ((kill-buffer-hook nil))
+            (entropy/emacs-dynamic-let* ((kill-buffer-hook nil))
               (kill-buffer)
               t))
         (error
@@ -11040,7 +11040,7 @@ object which can be used for `eval'."
                  (entropy/emacs-macroexp-progn forms)))
             (prog1
                 (read (current-buffer))
-              (let ((kill-buffer-hook nil))
+              (entropy/emacs-dynamic-let* ((kill-buffer-hook nil))
                 (kill-buffer (current-buffer))))))
          ;; -------------------- final eval form --------------------
          (proc-eval-form
@@ -11084,7 +11084,7 @@ object which can be used for `eval'."
                     (t
                      (unless (entropy/emacs-process-is-running-p proc)
                        (when (buffer-live-p ,proc-buffer)
-                         (let ((kill-buffer-hook nil))
+                         (entropy/emacs-dynamic-let* ((kill-buffer-hook nil))
                            (kill-buffer ,proc-buffer)))
                        (message
                         "eemacs viginal emacs test proc '%s' exit with successfully!"

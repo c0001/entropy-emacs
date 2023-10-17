@@ -1195,7 +1195,7 @@ prompting user to wait for some large filtering occasion."
   (defun __adv/after/newsticker-treeview-quit/stop-all (&rest _)
     "Stop newsticker tickers and all lived related buffers and windows."
     (dolist (buff newsticker--treeview-buffers)
-      (let ((kill-buffer-hook nil))
+      (entropy/emacs-dynamic-let* ((kill-buffer-hook nil))
         (kill-buffer buff)))
     (dolist (win newsticker--treeview-windows)
       (let (_)

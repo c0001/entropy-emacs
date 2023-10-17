@@ -136,7 +136,7 @@ external COMMAND with ARGLIST."
                       ((and (eq 'exit proc-status)
                             (= 0 (process-exit-status proc)))
                        (when (buffer-live-p proc-buffer)
-                         (let ((kill-buffer-hook nil))
+                         (entropy/emacs-dynamic-let* ((kill-buffer-hook nil))
                            (kill-buffer proc-buffer)))
                        (message "openwith file handler for process <%s> open sucessfully"
                                 proc-name)))))))
@@ -212,7 +212,7 @@ with ARGLIST."
                         (__ya/openwith-open-windows (cadr oa) params)
                       (openwith-open-unix (cadr oa) params))
                     ;; kill buffer without hooks
-                    (let (kill-buffer-hook) (kill-buffer))
+                    (entropy/emacs-dynamic-let* (kill-buffer-hook) (kill-buffer))
                     ;; TODO: more as common `find-file'
                     (and (bound-and-true-p recentf-mode) (recentf-add-file file))
                     ;; quit procedure while matched rules
@@ -343,7 +343,7 @@ Version 2017-10-09"
                     (message "eemacs-linux-terminal-popup <%s> open sucessfully"
                              proc-name)
                     (when (buffer-live-p proc-buffer)
-                      (let ((kill-buffer-hook nil))
+                      (entropy/emacs-dynamic-let* ((kill-buffer-hook nil))
                         (kill-buffer proc-buffer))))))))
         proc-obj)
     (when (or arg (null entropy/emacs-tools-open-in-terminal--use-term))

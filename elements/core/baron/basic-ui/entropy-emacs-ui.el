@@ -736,7 +736,7 @@ window removed since we just need one welcom buffer."
     ;; FIXME:
     ;; kill dashboard org pre load opened buffers for let them
     ;; encounter rest org specification in `entropy-emacs-org.el'
-    (let (kill-buffer-hook)
+    (entropy/emacs-dynamic-let* (kill-buffer-hook)
       (mapc
        (lambda (buffer)
          (with-current-buffer buffer
