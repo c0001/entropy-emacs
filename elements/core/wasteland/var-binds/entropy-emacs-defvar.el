@@ -2826,22 +2826,22 @@ any of them return non-nil.")
                                (string-match-p "\\(ts\\|TS\\)\\'" (or bfffnm bffnm ""))
                                (setq tsm-nm 'typescript-ts-mode))))
                   (entropy/emacs-message-simple-progress-message
-                   "%s `%s' %s `%s' %s %s"
-                   :with-message-color-args
-                   `((green  "Enable tree-sitter variant mode")
-                     (yellow ',tsm-nm)
-                     (green "for")
-                     (yellow ,pnm-str)
-                     (green  "in buffer")
-                     (white  ,(buffer-name curbuff)))
-                   ;; TODO&&FIXME: the traditon mode args may not proper
-                   ;; for its ts-mode function, so we should find a
-                   ;; comprehensive way to solve this problem.
-                   (entropy/emacs-eval-with-lexical
-                    `(let ((,adv-avar-name t))
-                       (prog1 (apply ',tsm-nm ',args)
-                         (unless ,adv-rvar-name (setq ,adv-rvar-name t))
-                         ))))))))))
+                      "%s `%s' %s `%s' %s %s"
+                    :with-message-color-args
+                    `((green  "Enable tree-sitter variant mode")
+                      (yellow ',tsm-nm)
+                      (green "for")
+                      (yellow ,pnm-str)
+                      (green  "in buffer")
+                      (white  ,(buffer-name curbuff)))
+                    ;; TODO&&FIXME: the traditon mode args may not proper
+                    ;; for its ts-mode function, so we should find a
+                    ;; comprehensive way to solve this problem.
+                    (entropy/emacs-eval-with-lexical
+                     `(let ((,adv-avar-name t))
+                        (prog1 (apply ',tsm-nm ',args)
+                          (unless ,adv-rvar-name (setq ,adv-rvar-name t))
+                          ))))))))))
       (format "The eemacs treesit variant for mode `%s'." prog-mode-name))
     (add-to-list 'entropy/emacs--treesit-mode-map-alist
                  (cons prog-mode-name adv-func-name))
