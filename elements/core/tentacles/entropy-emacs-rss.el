@@ -679,14 +679,13 @@ space separator within it before adding to `elfeed-db'."
 
 ;; *** udpate search buffer
 
-  (defun entropy/emacs-rss-elfeed-update-search-list-inct (&optional prefix)
+  (defun entropy/emacs-rss-elfeed-update-search-list-inct-1 (&optional prefix)
     "Interactively format feedtitle which has space.
 
 Optional arg PREFIX when non-nil will call `elfeed-unjam', since
 some times the elfeed has messy with procedure like
 `header-line-format' indicator be stuck when `elfeed' spawns
 sentinels fatal etc. and do it no need care for as."
-    (interactive "P" elfeed-search-mode)
     (if (equal major-mode 'elfeed-search-mode)
         (entropy/emacs-rss--elfeed-search-update)
       (error "You are not in the 'elfeed-search-mode'!"))
@@ -694,6 +693,12 @@ sentinels fatal etc. and do it no need care for as."
       (entropy/emacs-rss--elfeed-update/cancel-all-timer)
       (elfeed-unjam)
       (entropy/emacs-rss--elfeed-process-stop-all)))
+
+  (defun entropy/emacs-rss-elfeed-update-search-list-inct (&optional prefix)
+    (interactive "P" elfeed-search-mode)
+    (entropy/emacs-message-simple-progress-message
+        "Updating elfeed search list"
+      (entropy/emacs-rss-elfeed-update-search-list-inct-1 prefix)))
 
 ;; *** query prompting filter function
 
