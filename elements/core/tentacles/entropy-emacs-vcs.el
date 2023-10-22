@@ -65,11 +65,13 @@
         ;; to `entropy/grom-quick-readonly-global' globally
         (define-key magit-mode-map (kbd "M-1") nil)
         (define-key magit-mode-map (kbd "M-0")
-          #'magit-section-show-level-1-all)
-        (define-key magit-mode-map (kbd "<M-up>")
-          #'magit-section-backward-sibling)
-        (define-key magit-mode-map (kbd "<M-down>")
-          #'magit-section-forward-sibling))))
+                    #'magit-section-show-level-1-all)
+        (define-key magit-mode-map (kbd "M-<up>")
+                    #'magit-section-backward-sibling)
+        (define-key magit-mode-map (kbd "C-<up>")
+                    #'magit-section-up)
+        (define-key magit-mode-map (kbd "M-<down>")
+                    #'magit-section-forward-sibling))))
 
   :init
   (entropy/emacs-lazy-with-load-trail 'magit-init
