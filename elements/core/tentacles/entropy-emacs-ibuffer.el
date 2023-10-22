@@ -121,7 +121,7 @@
           "Project: ")))
 
 ;; ** common ibuffer display
-(defun entropy/emacs-ibuffer--init-common ()
+(defun entropy/emacs-ibuffer--init-common-1 ()
   (let ((set-basic-format? (and (not (bound-and-true-p all-the-icons-ibuffer-mode))
                                 (not entropy/emacs-enable-ibuffer-projectitle))))
 
@@ -153,6 +153,11 @@
                     (mode 16 16 :left :elide)
                     " "
                     filename-and-process))))))
+
+(defun entropy/emacs-ibuffer--init-common ()
+  (entropy/emacs-message-simple-progress-message
+      "Preparing eemacs ibuffer specs"
+    (entropy/emacs-ibuffer--init-common-1)))
 
 (add-hook 'ibuffer-hook #'entropy/emacs-ibuffer--init-common
           ;; NOTE: should be at very first
