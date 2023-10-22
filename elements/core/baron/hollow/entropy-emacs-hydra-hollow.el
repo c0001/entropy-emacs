@@ -1151,10 +1151,12 @@ the internally subroutines of this macro, they are:
                    command 'just-prefix)))
             (entropy/emacs-nconc-with-setvar-use-rest entropy/emacs-hydra-hollow-union-form
               (list
-               `(entropy/emacs-hydra-hollow-category-with-category
-                 ',it-ctg-name-prefix nil
-                 (setq $internally/pretty-hydra-category-baron-name->new
-                       ',pretty-hydra-category-baron-name))))))))))
+               `(funcall
+                 ,(lambda ()
+                    (entropy/emacs-hydra-hollow-category-with-category
+                     it-ctg-name-prefix nil
+                     (setq $internally/pretty-hydra-category-baron-name->new
+                           pretty-hydra-category-baron-name))))))))))))
 
 ;; ******** category interactive advice
 
