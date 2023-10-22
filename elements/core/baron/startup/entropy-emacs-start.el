@@ -92,17 +92,6 @@
 (entropy/emacs-start--require-with-duration-log 'entropy-emacs-defface)
 (entropy/emacs-start--require-with-duration-log 'entropy-emacs-defvar)
 
-;; forbidden `entropy/emacs-custom-enable-lazy-load' at special
-;; session.
-(progn
-  (when (and entropy/emacs-custom-enable-lazy-load
-             (or entropy/emacs-fall-love-with-pdumper
-                 ;; NOTE: We should not enable lazy load for a systemd
-                 ;; service session both for running and compiling
-                 (entropy/emacs-getenv "EEMACS_SYSTEMD_DAEMON_SERVICE")
-                 (daemonp)))
-    (setq entropy/emacs-custom-enable-lazy-load nil)))
-
 ;; **** func binds
 (entropy/emacs-start--require-with-duration-log 'entropy-emacs-message)
 (entropy/emacs-start--require-with-duration-log 'entropy-emacs-defun)

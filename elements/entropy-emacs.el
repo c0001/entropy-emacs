@@ -1380,6 +1380,17 @@ unless use byte-compile with macroexpand hack.")
 (add-hook 'entropy/emacs-pdumper-load-hook #'__set_eemacs_top_env_indicator)
 
 ;; ** Start Eemacs
+
+;; forbidden `entropy/emacs-custom-enable-lazy-load' at special
+;; session.
+(when (and entropy/emacs-custom-enable-lazy-load
+           (or entropy/emacs-fall-love-with-pdumper
+               ;; NOTE: We should not enable lazy load for a systemd
+               ;; service session both for running and compiling
+               (entropy/emacs-getenv "EEMACS_SYSTEMD_DAEMON_SERVICE")
+               (daemonp)))
+  (setq entropy/emacs-custom-enable-lazy-load nil))
+
 (cond
  ((entropy/emacs-is-make-session)
   (!eemacs-require 'entropy-emacs-batch))
