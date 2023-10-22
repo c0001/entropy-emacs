@@ -1128,6 +1128,7 @@ the internally subroutines of this macro, they are:
             ',$internally/pretty-hydra-category-baron-name->new))))
      )))
 
+(eval-and-compile
 (defmacro entropy/emacs-hydra-hollow-category-with-category (&rest args)
   "This macro is the lexical ignorable variant of
 `entropy/emacs-hydra-hollow-category-with-category-1'.
@@ -1136,6 +1137,7 @@ the internally subroutines of this macro, they are:
   (entropy/emacs-make-letform-lexical-ignorable
    (macroexpand-1
     (cons 'entropy/emacs-hydra-hollow-category-with-category-1 args))))
+)
 
 (defun entropy/emacs-hydra-hollow-category-try-bind-rate-to-baron
     (pretty-hydra-category-baron-name pretty-hydra-cabinet)
@@ -1757,6 +1759,7 @@ enabled =pretty-hydra-head= or any pure empty
                rtn))))
     rtn))
 
+(eval-and-compile
 (defmacro entropy/emacs-hydra-hollow-with-normalized-pretty-hydra-caskets-list
     (pretty-hydra-cabinet &rest body)
   "With all normalized =pretty-hydra-head= in PRETTY-HYDRA-CABINET do
@@ -1773,6 +1776,7 @@ The normalizing procedure provided by
           (entropy/emacs-hydra-hollow-normalize-pretty-hydra-cabinet
            ,pretty-hydra-cabinet t)))
      ,(entropy/emacs-macroexp-progn body)))
+)
 
 ;; ***** heads predicate
 
@@ -2282,6 +2286,7 @@ Each function must just has one argumentm, a
      'entropy/emacs-hydra-hollow-pretty-hydra-cabinet-external-normalize-hook
      pretty-hydra-cabinet-name)))
 
+(eval-and-compile
 (defmacro entropy/emacs-hydra-hollow-customize-pretty-hydra-cabinet/lexical
     (pretty-hydra-cabinet-name/lexical)
   "Normalize an lexical-binding =pretty-hydra-cabinet-name= same as
@@ -2300,6 +2305,7 @@ handle its value and replace the new value to the lexical one.
         ,dysym-name)
        (setq ,pretty-hydra-cabinet-name/lexical
              (symbol-value ,dysym-name)))))
+)
 
 ;; ***** hydra builder for individual
 
@@ -2448,6 +2454,7 @@ HYDRA-INJECTOR, they are used as the same meaning as for
 
 ;; ***** Recursive cabinet
 
+(eval-and-compile
 (defmacro entropy/emacs-hydra-holow-recursive-expand-pretty-hydra-cabinet/lexical
     (pretty-hydra-cabinet-name/lexical)
   "Same as
@@ -2468,6 +2475,7 @@ handle its value and replace the new value to the lexical one.
        (setq ,pretty-hydra-cabinet-name/lexical
              (symbol-value ,dysym-name))
        ,pretty-hydra-cabinet-name/lexical)))
+)
 
 (defun entropy/emacs-hydra-holow-recursive-expand-pretty-hydra-cabinet
     (pretty-hydra-cabinet-name)
