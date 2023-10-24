@@ -795,10 +795,14 @@ shutdown since it is managed by the customize variable
   :init
 
   (dolist (el entropy/emacs-ide-for-them)
-    (when (eq (entropy/emacs-get-use-ide-type el) 'lsp)
-      (add-hook
-       (intern (format "%s-hook" el))
-       #'lsp-deferred)))
+    (add-hook
+     (intern (format "%s-hook" el))
+     (let ((mode el))
+       (entropy/emacs-with-lambda
+         (cons t (intern (format "__eemacs/maybe-enable-lspmode-for/%s__" mode)))
+         nil
+         (when (eq (entropy/emacs-get-use-ide-type mode) 'lsp)
+           (lsp-deferred))))))
 
   (entropy/emacs-lazy-initial-advice-before
    '(lsp)
@@ -1599,14 +1603,19 @@ to enable the lsp server for this major-mode supported by `lsp-mode'.
 
   ;; prog mode hook injection to start eglot
   (dolist (el entropy/emacs-ide-for-them)
-    (let ((hook (intern (format "%s-hook" el))))
-    (when (eq (entropy/emacs-get-use-ide-type el) 'eglot)
-      ;; TODO: bellow modes are not support with eglog
-      ;; yet, add supports for them in plan.
-      (if (member el '(java-mode powershell-mode nxml-mode go-mode))
-          (add-hook hook #'entropy/emacs-codeserver--eglot-non-support-prompt)
-        (add-hook
-         hook #'eglot-ensure)))))
+    (add-hook
+     (intern (format "%s-hook" el))
+     (let ((mode el))
+       (entropy/emacs-with-lambda
+         (cons t (intern (format "__eemacs/maybe-enable-eglot-for/%s__" mode)))
+         nil
+         (when (eq (entropy/emacs-get-use-ide-type mode) 'eglot)
+           ;; TODO: bellow modes are not support with eglog
+           ;; yet, add supports for them in plan.
+           (if (member mode '(java-mode powershell-mode nxml-mode go-mode))
+               (entropy/emacs-codeserver--eglot-non-support-prompt)
+             (eglot-ensure)))))))
+
   (advice-add 'eglot-ensure
               :around
               #'entropy/emacs-codeserver--codeserver-union-startjudge-filter-advice-form)
