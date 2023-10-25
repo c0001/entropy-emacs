@@ -652,6 +652,22 @@ NOTE: poporg is obsolete as an legacy option."
   :type 'string
   :group 'entropy/emacs-customize-group-for-editor-comments)
 
+;; **** performance hack
+
+(defgroup entropy/emacs-customize-group-for-editor-performance-hack nil
+  "Eemacs editor performance hacking configuration customizable group."
+  :group 'entropy/emacs-customize-group-for-editor-common)
+
+(defcustom entropy/emacs-disable-bidi_etc-for-proper-cases t
+  "Disable bidi etc builtin feature for some proper cases for
+improving daily editing long-ling/large-buffer performance.
+
+See: https://emacs-china.org/t/topic/25811/9
+Inspired by: https://emacs-china.org/t/topic/25811/9
+"
+  :type  'boolean
+  :group 'entropy/emacs-customize-group-for-editor-performance-hack)
+
 ;; *** Emacs Extension
 (defgroup entropy/emacs-customize-group-for-emacs-extensions nil
   "Eemacs emacs extensions management configuration customizable group."

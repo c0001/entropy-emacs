@@ -166,6 +166,26 @@ With prefix argument binds, jump to the previous mark place."
   (advice-add 'y-or-n-p :override #'entropy/emacs-basic-y-or-n-p))
 
 ;; ** Basic major-modes spec
+;; *** Prog modes
+;; **** disable bidi etc. long-line/large-buffer lag causer
+
+(defun entropy/emacs-basic--disable-bidi-etc-long-line_large-buffer_lag_causer
+    nil
+  "See: https://emacs-china.org/t/topic/25811/9"
+  (when entropy/emacs-disable-bidi_etc-for-proper-cases
+    (setq-local
+     bidi-display-reordering nil
+     bidi-inhibit-bpa        t
+     long-line-threshold     1000
+     large-hscroll-threshold 1000
+     syntax-wholeline-max    1000)))
+
+(dolist (hook (list 'prog-mode-hook 'org-mode-hook 'markdown-mode-hook
+                    'conf-mode-hook))
+  (add-hook
+   hook
+   #'entropy/emacs-basic--disable-bidi-etc-long-line_large-buffer_lag_causer))
+
 ;; *** Dired config
 ;; **** dired basic
 (use-package dired

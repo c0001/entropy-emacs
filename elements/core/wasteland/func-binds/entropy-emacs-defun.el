@@ -13032,7 +13032,7 @@ clipboard with native operation system."
       judger)))
 
 ;; Inspired by
-;; https://emacs-china.org/t/wsl-emacs-windows/17375/3?u=angelaneia
+;; https://emacs-china.org/t/wsl-emacs-windows/17375/3
 (defun entropy/emacs-windows-env/copy-to-clipboard-core
     (str)
   "Push string STR into WINDOWS system clipboard.
