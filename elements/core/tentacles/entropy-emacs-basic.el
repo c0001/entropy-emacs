@@ -2486,6 +2486,13 @@ overwrited.
       :enable t :map-inject t :exit t))
     ))
 
+  :init
+
+  ;; Prefer use xdg-desktop standard thumbnails location for cross
+  ;; apps usage for that prevent dups generation.
+  (when (version<= "29.1" emacs-version)
+    (setq image-dired-thumbnail-storage 'standard-large))
+
   :config
 
   (defun entropy/emacs-basic-image-gif-warn (&rest _)
