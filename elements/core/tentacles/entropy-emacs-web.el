@@ -420,6 +420,24 @@ set of `entropy/emacs-browse-url-function-get-for-web-preview'."
   :init (add-hook 'js2-mode-hook #'js2-refactor-mode)
   :config (js2r-add-keybindings-with-prefix "C-c C-m"))
 
+;; **** Patch
+;; ***** [[https://lists.gnu.org/archive/html/bug-gnu-emacs/2023-08/msg00471.html][bug#65134]]
+
+(when (and
+       (bound-and-true-p
+        entropy/emacs-ide-is-treesit-generally-adapted-p)
+       (version= emacs-version "29.1"))
+  (entropy/emacs-lazy-load-simple 'js
+    (let* ((oval (copy-tree (car js--treesit-indent-rules))) rtn)
+      (dolist (el oval)
+        (if (not (and (listp el) (entropy/emacs-lonely-listp el)
+                      (eq (car el) 'js-jsx--treesit-indent-compatibility-bb1f97b)
+                      ))
+            (push el rtn)
+          (dolist (pv (js-jsx--treesit-indent-compatibility-bb1f97b))
+            (push pv rtn))))
+      (setcar js--treesit-indent-rules (nreverse rtn)))))
+
 ;; *** tools
 ;; **** Live browser JavaScript, CSS, and HTML interaction
 ;; ***** skewer-mode
