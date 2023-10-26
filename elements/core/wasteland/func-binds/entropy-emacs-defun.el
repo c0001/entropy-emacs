@@ -7287,17 +7287,22 @@ newline."
 key's meaning as same, but all key's value is an lisp expression
 ran within the code context."
   (entropy/emacs-with-lexical-binding-check t
-    (let (($sentinel/proc             (or with-sentinel-proc-sym '$sentinel/proc))
-          ($sentinel/event            (or with-sentinel-event-sym '$sentinel/event))
-          ($sentinel/destination      (or with-sentinel-destination-sym '$sentinel/destination))
-          ($sentinel/stderr           (or with-sentinel-stderr-sym '$sentinel/stderr))
-          ($sentinel/proc-exit-status (or with-sentinel-proc-exit-status-sym
-                                          '$sentinel/proc-exit-status))
-          ($this-after-form   (or after   '(progn nil)))
-          ($this-error-form   (or error   '(progn nil)))
-          ($this-cleanup-form (or cleanup '(progn nil)))
-          ;; prepare form defaults to t even when it's ommited since its optional
-          ($this-prepare-form (or prepare '(progn t))))
+    (let* (($sentinel/proc             (or with-sentinel-proc-sym '$sentinel/proc))
+           ($sentinel/event            (or with-sentinel-event-sym '$sentinel/event))
+           ($sentinel/destination      (or with-sentinel-destination-sym '$sentinel/destination))
+           ($sentinel/stderr           (or with-sentinel-stderr-sym '$sentinel/stderr))
+           ($sentinel/proc-exit-status (or with-sentinel-proc-exit-status-sym
+                                           '$sentinel/proc-exit-status))
+           (ignore-form
+            ;; skip bytecomp warnings
+            `(ignore ,$sentinel/proc ,$sentinel/event
+                     ,$sentinel/destination ,$sentinel/proc-exit-status
+                     ,$sentinel/stderr))
+           ($this-after-form   `(progn ,ignore-form ,after))
+           ($this-error-form   `(progn ,ignore-form ,error))
+           ($this-cleanup-form `(progn ,ignore-form ,cleanup))
+           ;; prepare form defaults to t even when it's ommited since its optional
+           ($this-prepare-form `(progn ,ignore-form ,(or prepare 't))))
       (macroexp-let2* ignore
           (($synchronously synchronously)
            ($default-directory with-default-directory)
@@ -7347,10 +7352,6 @@ ran within the code context."
                 (,$sentinel/stderr                 nil)
                 (,$sentinel/proc-exit-status       nil)
                 )
-           ;; skip bytecomp warnings
-           (ignore ,$sentinel/proc ,$sentinel/event
-                   ,$sentinel/destination ,$sentinel/proc-exit-status
-                   ,$sentinel/stderr)
 
            ;; Bind omitted `call-process' arguments
            (unless ,$call_proc_command
@@ -7388,14 +7389,10 @@ ran within the code context."
                   :file-handler    ,$make_proc_file-handler
                   :sentinel
                   (lambda (,$sentinel/proc         ,$sentinel/event)
-                    ;; skip bytecomp warnings
-                    (ignore ,$sentinel/proc ,$sentinel/event)
                     (let* ((,$sentinel/destination (process-buffer ,$sentinel/proc))
                            (,$sentinel/stderr      (entropy/emacs-process-stderr-object
                                                     ,$sentinel/proc))
                            (,$ran-out-p nil))
-                      ;; skip bytecomp warnings
-                      (ignore ,$sentinel/destination ,$sentinel/stderr)
                       (unwind-protect
                           (unwind-protect
                               ;; run user spec sentinel when pure async run
@@ -11479,6 +11476,83 @@ operation or nil indicate no idle exists for."
    (t
     (error "wrong type of eemacs auto-completion type '%s'"
            entropy/emacs-auto-completion-use-backend-as))))
+
+;; ** System utils integration
+
+(defun entropy/emacs-get-file-checksum (file type &optional use-native)
+  "Get file checksum with TYPE supported by `secure-hash', return
+the checksum sig string.
+
+Using spawn system caller defautly while USE-NATIVE is omitted,
+otherwise use `secure-hash' instead (NOTE: do not use native
+method while large file, since `secure-hash' use emacs buffer to
+store file content in which case system memory will not be enough
+to handle the operation.)
+
+Thus, we defaulty use system checksum command when they are found
+even when USE-NATIVE is non-nil unless it's `eq' to `force' or
+FILE is seen as remotely by `file-remote-p' in which cases we
+forcely use the emacs builtin method `secure-hash'."
+  (unless (file-exists-p file)
+    (error "Error: file <%s> is not existed!" file))
+  (and (file-remote-p file) (setq use-native 'force))
+  (let* (native-method sys-method sys-exec sys-exec-p rtn)
+    (entropy/emacs-setf-by-body sys-exec
+      (cl-case type
+        (md5    "md5sum")
+        (sha1   "sha1sum")
+        (sha224 "sha224sum")
+        (sha256 "sha256sum")
+        (sha384 "sha384sum")
+        (sha512 "sha512sum")
+        (t (error "wrong type of securehash type: `%s'" type))))
+    (entropy/emacs-setf-by-body native-method
+      (lambda (f tp)
+        (condition-case err
+            (let* ((inhibit-read-only t))
+              (with-temp-buffer
+                (insert-file-contents-literally f)
+                (setq rtn (secure-hash tp (current-buffer)))))
+          (error
+           (error "[native] Get `%s' checksum of file `%s' with fatal: %S"
+                  tp f err)))))
+    (setq sys-exec-p (executable-find sys-exec))
+    (when (and sys-exec-p (not (eq use-native 'force)))
+      (setq use-native nil))
+    (unless (or use-native sys-exec-p)
+      (error "[sys] Get `%s' checksum of file `%s' with fatal: \
+command not found `%s'"
+             type file sys-exec))
+
+    (entropy/emacs-setf-by-body sys-method
+      (lambda (f tp)
+        (let ((exec sys-exec)
+              stdout-buff)
+          ;; we must expand the filename to expand ~ like shell magick
+          ;; char which will cause messy in which case spwarn process
+          ;; will get the wrong(unexpanded) file path.
+          (setq f (expand-file-name f))
+          (entropy/emacs-with-make-process
+           :name (format "__eemacs_checksum_%s_%s" f (random))
+           :buffer (setq stdout-buff
+                         (entropy/emacs-generate-new-buffer
+                          (format " *__eemacs_checksum_%s_%s*" f (random)) tp))
+           :synchronously t
+           :command (list exec "-b" f)
+           :after
+           (let (buffstr)
+             (with-current-buffer stdout-buff
+               (setq buffstr (buffer-substring (point-min) (point-max))))
+             (setq rtn (car (split-string buffstr " " tp))))
+           :error
+           (error "[sys] Get `%s' checksum of file `%s' with fatal" tp f)
+           :cleanup
+           (when (buffer-live-p stdout-buff)
+             (kill-buffer stdout-buff))))))
+    (cond
+     (use-native (funcall native-method file type))
+     (t          (funcall sys-method file type)))
+    rtn))
 
 ;; ** eemacs specifications
 ;; *** Individuals

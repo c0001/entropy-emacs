@@ -2486,13 +2486,6 @@ overwrited.
       :enable t :map-inject t :exit t))
     ))
 
-  :init
-
-  ;; Prefer use xdg-desktop standard thumbnails location for cross
-  ;; apps usage for that prevent dups generation.
-  (when (version<= "29.1" emacs-version)
-    (setq image-dired-thumbnail-storage 'standard-large))
-
   :config
 
   (defun entropy/emacs-basic-image-gif-warn (&rest _)
@@ -2583,6 +2576,14 @@ mechanism."
   :commands (image-dired entropy/emacs-image-dired-init)
 ;; ****** preface
   ;; :preface
+;; ****** init
+  :init
+
+  ;; Prefer use xdg-desktop standard thumbnails location for cross
+  ;; apps usage for that prevent dups generation.
+  (when (version<= "29.1" emacs-version)
+    (setq image-dired-thumbnail-storage 'standard-large))
+
 ;; ****** config
   :config
 
@@ -3148,6 +3149,203 @@ emacs 29 and higher default to singal error when such size is not
       (apply orig-func orig-args)))
   (when (fboundp '__ya/image-transform-check-size)
     (advice-add 'image-transform-check-size :around #'__ya/image-transform-check-size))
+
+  (defvar image-dired-thumbnail-storage)
+  (defvar image-dired--thumbnail-standard-sizes)
+  (defvar image-dired-cmd-pngcrush-options)
+  (defvar image-dired-cmd-pngnq-options)
+  (defvar image-dired-cmd-optipng-program)
+  (defvar image-dired--generate-thumbs-start)
+  (entropy/emacs-when-defun __ya/image-dired-thumb-name (file)
+    "Return absolute file name for thumbnail FILE.
+Depending on the value of `image-dired-thumbnail-storage', the
+file name of the thumbnail will vary:
+- For `use-image-dired-dir', make a SHA1-hash of the image file's
+  directory name and add that to make the thumbnail file name
+  unique.
+- For `per-directory' storage, just add a subdirectory.
+- For `standard' storage, produce the file name according to the
+  Thumbnail Managing Standard.  Among other things, an MD5-hash
+  of the image file's directory name will be added to the
+  filename.
+See also `image-dired-thumbnail-storage'.
+
+NOTE: This is a patch for `image-dired-thumb-name' for which case
+reuse the thumbs while we made by
+`__ya/image-dired-create-thumb-1' since xdg-desktop
+standard (https://specifications.freedesktop.org/thumbnail-spec/thumbnail-spec-latest.html#CREATION)
+just reuse thumbs with same checksum of the file uri which is
+seems not adapting for our daily re-usage aims i.e. file with
+same checksum should has re-use same thumb."
+    :when (version<= "29.1" emacs-version)
+    (let ((file (expand-file-name file)))
+      (cond ((memq image-dired-thumbnail-storage
+                   image-dired--thumbnail-standard-sizes)
+             (let* ((thumbdir (cl-case image-dired-thumbnail-storage
+                                (standard "thumbnails/normal")
+                                (standard-large "thumbnails/large")
+                                (standard-x-large "thumbnails/x-large")
+                                (standard-xx-large "thumbnails/xx-large")))
+                    (thumbdir-abs (expand-file-name thumbdir (xdg-cache-home)))
+                    (thumbnail-file-1
+                     (expand-file-name
+                      ;; MD5 is mandated by the Thumbnail Managing Standard.
+                      (concat (md5 (concat "file://" file)) ".png")
+                      thumbdir-abs))
+                    (thumbnail-file-1-exist-p (file-exists-p thumbnail-file-1))
+                    (thumbnail-file-2
+                     (unless thumbnail-file-1-exist-p
+                       (expand-file-name
+                        (concat (md5 (concat "file://" (file-truename file))) ".png")
+                        thumbdir-abs)))
+                    (thumbnail-file-2-exist-p
+                     (and thumbnail-file-2 (file-exists-p thumbnail-file-2)))
+                    (thumbnail-file-3
+                     (unless (or thumbnail-file-1-exist-p thumbnail-file-2-exist-p)
+                       (expand-file-name
+                        (concat (md5 (concat "file://" (expand-file-name file))) ".png")
+                        thumbdir-abs)))
+                    (thumbnail-file-3-exist-p
+                     (and thumbnail-file-3 (file-exists-p thumbnail-file-3)))
+                    (thumbnail-file-4
+                     (unless (or thumbnail-file-1-exist-p thumbnail-file-2-exist-p
+                                 thumbnail-file-3-exist-p)
+                       (expand-file-name
+                        (concat (entropy/emacs-get-file-checksum file 'md5) ".png")
+                        thumbdir-abs)))
+                    (thumbnail-file-4-exist-p
+                     (and thumbnail-file-4 (file-exists-p thumbnail-file-4))))
+               (or (and thumbnail-file-1-exist-p thumbnail-file-1)
+                   (and thumbnail-file-2-exist-p thumbnail-file-2)
+                   (and thumbnail-file-3-exist-p thumbnail-file-3)
+                   (and thumbnail-file-4-exist-p thumbnail-file-4)
+                   thumbnail-file-1)))
+            ((or (eq 'image-dired image-dired-thumbnail-storage)
+                 ;; Maintained for backwards compatibility:
+                 (eq 'use-image-dired-dir image-dired-thumbnail-storage))
+             (expand-file-name (format "%s.jpg" (sha1 file))
+                               (image-dired-dir)))
+            ((eq 'per-directory image-dired-thumbnail-storage)
+             (let ((dir
+                    (expand-file-name
+                     ".image-dired"
+                     (file-name-directory file))))
+               (unless (file-directory-p dir)
+                 (with-file-modes #o700 (make-directory dir t)))
+               (expand-file-name
+                (format "%s.thumb.jpg"
+                        (file-name-nondirectory file))
+                dir))))))
+  (when (fboundp '__ya/image-dired-thumb-name)
+    (advice-add 'image-dired-thumb-name
+                :override #'__ya/image-dired-thumb-name))
+
+  (entropy/emacs-when-defun __ya/image-dired-create-thumb-1
+    (original-file thumbnail-file)
+    "For ORIGINAL-FILE, create thumbnail image named THUMBNAIL-FILE.
+
+NOTE: this is a patch for `image-dired-create-thumb-1' to make a
+copy of thumbnail for its uri variant we can find for taking
+prevention of re-generation."
+    :when (version<= "29.1" emacs-version)
+    (image-dired--check-executable-exists
+     'image-dired-cmd-create-thumbnail-program)
+    (let* ((size (number-to-string (image-dired--thumb-size)))
+           (modif-time (format-time-string
+                        "%s" (file-attribute-modification-time
+                              (file-attributes original-file))))
+           (thumbnail-nq8-file (replace-regexp-in-string ".png\\'" "-nq8.png"
+                                                         thumbnail-file))
+           (spec `((?s . ,size) (?w . ,size) (?h . ,size)
+                   (?m . ,modif-time)
+                   (?f . ,original-file)
+                   (?q . ,thumbnail-nq8-file)
+                   (?t . ,thumbnail-file)))
+           (thumbnail-dir (file-name-directory thumbnail-file))
+           process)
+      (when (not (file-exists-p thumbnail-dir))
+        (with-file-modes #o700
+          (make-directory thumbnail-dir t))
+        (message "Thumbnail directory created: %s" thumbnail-dir))
+
+      ;; Thumbnail file creation processes begin here and are marshaled
+      ;; in a queue by `image-dired-create-thumb'.
+      (let ((cmd image-dired-cmd-create-thumbnail-program)
+            (args (mapcar
+                   (lambda (arg) (format-spec arg spec))
+                   (if (memq image-dired-thumbnail-storage
+                             image-dired--thumbnail-standard-sizes)
+                       image-dired-cmd-create-standard-thumbnail-options
+                     image-dired-cmd-create-thumbnail-options))))
+        (image-dired-debug "Running %s %s" cmd (string-join args " "))
+        (setq process
+              (apply #'start-process "image-dired-create-thumbnail" nil
+                     cmd args)))
+
+      (setf (process-sentinel process)
+            (lambda (process status)
+              ;; Trigger next in queue once a thumbnail has been created
+              (cl-decf image-dired-queue-active-jobs)
+              (image-dired-thumb-queue-run)
+              (when (= image-dired-queue-active-jobs 0)
+                (image-dired-debug
+                 (format-time-string
+                  "Generated thumbnails in %s.%3N seconds"
+                  (time-subtract nil
+                                 image-dired--generate-thumbs-start))))
+              (if (not (and (eq (process-status process) 'exit)
+                            (zerop (process-exit-status process))))
+                  (message "Thumb could not be created for %s: %s"
+                           (abbreviate-file-name original-file)
+                           (string-replace "\n" "" status))
+                (set-file-modes thumbnail-file #o600)
+                (clear-image-cache thumbnail-file)
+                ;; PNG thumbnail has been created since we are
+                ;; following the XDG thumbnail spec, so try to optimize
+                (when (memq image-dired-thumbnail-storage
+                            image-dired--thumbnail-standard-sizes)
+                  (cond
+                   ((and image-dired-cmd-pngnq-program
+                         (executable-find image-dired-cmd-pngnq-program))
+                    (image-dired-pngnq-thumb spec))
+                   ((and image-dired-cmd-pngcrush-program
+                         (executable-find image-dired-cmd-pngcrush-program))
+                    (image-dired-pngcrush-thumb spec))
+                   ((and image-dired-cmd-optipng-program
+                         (executable-find image-dired-cmd-optipng-program))
+                    (image-dired-optipng-thumb spec))))
+                ;; Finally if `original-file' is a symlink we should
+                ;; also create its target's thumbnail as copying to
+                ;; prevent re-generation.
+                (let*
+                    ((of (let ((f (file-truename original-file)))
+                           (and (not (equal f original-file))
+                                f)))
+                     (ofmd5 (and of (md5 (concat "file://" of))))
+                     (of2 (let ((f (expand-file-name original-file)))
+                            (and (not (equal f original-file))
+                                 f)))
+                     (of2md5 (and of2 (md5 (concat "file://" of2))))
+                     (of3 of)
+                     (of3md5 (and of3 (entropy/emacs-get-file-checksum of3 'md5)))
+                     (cpfunc
+                      (lambda (f)
+                        (unless (file-exists-p f)
+                          ;; broken link detected
+                          (when (entropy/emacs-filesystem-node-is-symlink-p f)
+                            (delete-file f))
+                          (make-symbolic-link
+                           (file-name-nondirectory thumbnail-file) f)))))
+                  (dolist (el (list ofmd5 of2md5 of3md5))
+                    (when el
+                      (funcall
+                       cpfunc (expand-file-name (concat el ".png")
+                                                thumbnail-dir))))))))
+      process))
+  (when (fboundp '__ya/image-dired-create-thumb-1)
+    (advice-add 'image-dired-create-thumb-1
+                :override
+                #'__ya/image-dired-create-thumb-1))
 
 ;; ******* eemacs spec commands
 ;; ******** open with external app
