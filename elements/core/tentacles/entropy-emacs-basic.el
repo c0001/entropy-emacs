@@ -2579,6 +2579,7 @@ mechanism."
 ;; ****** init
   :init
 
+  (defvar image-dired-thumbnail-storage)
   ;; Prefer use xdg-desktop standard thumbnails location for cross
   ;; apps usage for that prevent dups generation.
   (when (version<= "29.1" emacs-version)
@@ -3152,8 +3153,8 @@ emacs 29 and higher default to singal error when such size is not
 
   (defvar image-dired-thumbnail-storage)
   (defvar image-dired--thumbnail-standard-sizes)
-  (defvar image-dired-cmd-pngcrush-options)
-  (defvar image-dired-cmd-pngnq-options)
+  (defvar image-dired-cmd-pngcrush-program)
+  (defvar image-dired-cmd-pngnq-program)
   (defvar image-dired-cmd-optipng-program)
   (defvar image-dired--generate-thumbs-start)
   (entropy/emacs-when-defun __ya/image-dired-thumb-name (file)
