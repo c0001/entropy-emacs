@@ -3157,6 +3157,47 @@ emacs 29 and higher default to singal error when such size is not
   (defvar image-dired-cmd-pngnq-program)
   (defvar image-dired-cmd-optipng-program)
   (defvar image-dired--generate-thumbs-start)
+
+  (defun entropy/emacs-basic--image-dired-get-thumb-name
+      (file dir sha protocol suffix)
+    (setq protocol (or protocol "")
+          suffix (or suffix ""))
+    (let* ((fename (expand-file-name file))
+           (ftname (file-truename fename))
+           (thumbnail-file-1
+            (expand-file-name
+             ;; MD5 is mandated by the Thumbnail Managing Standard.
+             (concat (funcall sha (concat protocol file)) suffix)
+             dir))
+           (thumbnail-file-1-exist-p (file-exists-p thumbnail-file-1))
+           (thumbnail-file-2
+            (unless thumbnail-file-1-exist-p
+              (expand-file-name
+               (concat (funcall sha (concat protocol fename)) suffix)
+               dir)))
+           (thumbnail-file-2-exist-p
+            (and thumbnail-file-2 (file-exists-p thumbnail-file-2)))
+           (thumbnail-file-3
+            (unless (or thumbnail-file-1-exist-p thumbnail-file-2-exist-p)
+              (expand-file-name
+               (concat (funcall sha (concat protocol ftname)) suffix)
+               dir)))
+           (thumbnail-file-3-exist-p
+            (and thumbnail-file-3 (file-exists-p thumbnail-file-3)))
+           (thumbnail-file-4
+            (unless (or thumbnail-file-1-exist-p thumbnail-file-2-exist-p
+                        thumbnail-file-3-exist-p)
+              (expand-file-name
+               (concat (entropy/emacs-get-file-checksum ftname 'md5) suffix)
+               dir)))
+           (thumbnail-file-4-exist-p
+            (and thumbnail-file-4 (file-exists-p thumbnail-file-4))))
+      (or (and thumbnail-file-1-exist-p thumbnail-file-1)
+          (and thumbnail-file-2-exist-p thumbnail-file-2)
+          (and thumbnail-file-3-exist-p thumbnail-file-3)
+          (and thumbnail-file-4-exist-p thumbnail-file-4)
+          thumbnail-file-1)))
+
   (entropy/emacs-when-defun __ya/image-dired-thumb-name (file)
     "Return absolute file name for thumbnail FILE.
 Depending on the value of `image-dired-thumbnail-storage', the
@@ -3187,45 +3228,14 @@ same checksum should has re-use same thumb."
                                 (standard-large "thumbnails/large")
                                 (standard-x-large "thumbnails/x-large")
                                 (standard-xx-large "thumbnails/xx-large")))
-                    (thumbdir-abs (expand-file-name thumbdir (xdg-cache-home)))
-                    (thumbnail-file-1
-                     (expand-file-name
-                      ;; MD5 is mandated by the Thumbnail Managing Standard.
-                      (concat (md5 (concat "file://" file)) ".png")
-                      thumbdir-abs))
-                    (thumbnail-file-1-exist-p (file-exists-p thumbnail-file-1))
-                    (thumbnail-file-2
-                     (unless thumbnail-file-1-exist-p
-                       (expand-file-name
-                        (concat (md5 (concat "file://" (file-truename file))) ".png")
-                        thumbdir-abs)))
-                    (thumbnail-file-2-exist-p
-                     (and thumbnail-file-2 (file-exists-p thumbnail-file-2)))
-                    (thumbnail-file-3
-                     (unless (or thumbnail-file-1-exist-p thumbnail-file-2-exist-p)
-                       (expand-file-name
-                        (concat (md5 (concat "file://" (expand-file-name file))) ".png")
-                        thumbdir-abs)))
-                    (thumbnail-file-3-exist-p
-                     (and thumbnail-file-3 (file-exists-p thumbnail-file-3)))
-                    (thumbnail-file-4
-                     (unless (or thumbnail-file-1-exist-p thumbnail-file-2-exist-p
-                                 thumbnail-file-3-exist-p)
-                       (expand-file-name
-                        (concat (entropy/emacs-get-file-checksum file 'md5) ".png")
-                        thumbdir-abs)))
-                    (thumbnail-file-4-exist-p
-                     (and thumbnail-file-4 (file-exists-p thumbnail-file-4))))
-               (or (and thumbnail-file-1-exist-p thumbnail-file-1)
-                   (and thumbnail-file-2-exist-p thumbnail-file-2)
-                   (and thumbnail-file-3-exist-p thumbnail-file-3)
-                   (and thumbnail-file-4-exist-p thumbnail-file-4)
-                   thumbnail-file-1)))
+                    (thumbdir-abs (expand-file-name thumbdir (xdg-cache-home))))
+               (entropy/emacs-basic--image-dired-get-thumb-name
+                file thumbdir-abs 'md5 "file://" ".png")))
             ((or (eq 'image-dired image-dired-thumbnail-storage)
                  ;; Maintained for backwards compatibility:
                  (eq 'use-image-dired-dir image-dired-thumbnail-storage))
-             (expand-file-name (format "%s.jpg" (sha1 file))
-                               (image-dired-dir)))
+             (entropy/emacs-basic--image-dired-get-thumb-name
+              file (image-dired-dir) 'sha1 "" ".jpg"))
             ((eq 'per-directory image-dired-thumbnail-storage)
              (let ((dir
                     (expand-file-name
@@ -3319,14 +3329,20 @@ prevention of re-generation."
                 ;; also create its target's thumbnail as copying to
                 ;; prevent re-generation.
                 (let*
-                    ((of (let ((f (file-truename original-file)))
+                    ((xdgp (memq image-dired-thumbnail-storage
+                                 image-dired--thumbnail-standard-sizes))
+                     (get-uri-checksum-func
+                      (lambda (f)
+                        (if xdgp (md5 (concat "file://" f))
+                          (sha1 f))))
+                     (of (let ((f (file-truename original-file)))
                            (and (not (equal f original-file))
                                 f)))
-                     (ofmd5 (and of (md5 (concat "file://" of))))
+                     (ofmd5 (and of (funcall get-uri-checksum-func of)))
                      (of2 (let ((f (expand-file-name original-file)))
                             (and (not (equal f original-file))
                                  f)))
-                     (of2md5 (and of2 (md5 (concat "file://" of2))))
+                     (of2md5 (and of2 (funcall get-uri-checksum-func of2)))
                      (of3 of)
                      (of3md5 (and of3 (entropy/emacs-get-file-checksum of3 'md5)))
                      (cpfunc
@@ -3340,8 +3356,9 @@ prevention of re-generation."
                   (dolist (el (list ofmd5 of2md5 of3md5))
                     (when el
                       (funcall
-                       cpfunc (expand-file-name (concat el ".png")
-                                                thumbnail-dir))))))))
+                       cpfunc (expand-file-name
+                               (concat el (if xdgp ".png" ".jpg"))
+                               thumbnail-dir))))))))
       process))
   (when (fboundp '__ya/image-dired-create-thumb-1)
     (advice-add 'image-dired-create-thumb-1
