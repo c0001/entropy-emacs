@@ -48,6 +48,10 @@
 ;; * Code
 ;; ** Require
 
+(defvar long-line-threshold)
+(defvar large-hscroll-threshold)
+(defvar syntax-wholeline-max)
+
 (when (and entropy/emacs-indicate-sshd-session
            (display-graphic-p))
   (setq entropy/emacs-indicate-sshd-session nil))

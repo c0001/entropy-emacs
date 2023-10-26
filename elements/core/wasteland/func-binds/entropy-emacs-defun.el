@@ -42,6 +42,7 @@
 (entropy/emacs-common-require-feature 'entropy-emacs-defface)
 (entropy/emacs-common-require-feature 'entropy-emacs-message)
 (eval-when-compile (require 'rx))
+(eval-and-compile  (require 'format-spec))
 
 (defvar shr-color-html-colors-alist)
 (defvar ivy--prompt)

@@ -36,6 +36,7 @@
 ;;; Code:
 
 (require 'eww)
+(defvar url-allow-non-local-files)
 
 (defgroup entropy/cndt-customize-top-group nil
   "Customize group for `entropy-cn-dict'."

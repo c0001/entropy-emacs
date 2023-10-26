@@ -716,6 +716,216 @@ such NO-ADD is happened)."
    (entropy/emacs-profiler-is-running-p)
    ))
 
+(when (< emacs-major-version 28)
+  (defface ansi-color-bold
+    '((t :inherit bold))
+    "Face used to render bold text."
+    :group 'ansi-colors
+    :version "28.1")
+
+  (defface ansi-color-faint
+    '((t :weight light))
+    "Face used to render faint text."
+    :group 'ansi-colors
+    :version "28.1")
+
+  (defface ansi-color-italic
+    '((t :inherit italic))
+    "Face used to render italic text."
+    :group 'ansi-colors
+    :version "28.1")
+
+  (defface ansi-color-underline
+    '((t :inherit underline))
+    "Face used to render underlined text."
+    :group 'ansi-colors
+    :version "28.1")
+
+  (defface ansi-color-slow-blink
+    '((t :box (:line-width -1)))
+    "Face used to render slowly blinking text."
+    :group 'ansi-colors
+    :version "28.1")
+
+  (defface ansi-color-fast-blink
+    '((t :box (:line-width -1)))
+    "Face used to render rapidly blinking text."
+    :group 'ansi-colors
+    :version "28.1")
+
+  (defface ansi-color-inverse
+    '((t :inverse-video t))
+    "Face used to render inverted video text."
+    :group 'ansi-colors
+    :version "28.1")
+
+  (defface ansi-color-black
+    '((t :foreground "black" :background "black"))
+    "Face used to render black color code."
+    :group 'ansi-colors
+    :version "28.1")
+
+  (defface ansi-color-red
+    '((t :foreground "red3" :background "red3"))
+    "Face used to render red color code."
+    :group 'ansi-colors
+    :version "28.1")
+
+  (defface ansi-color-green
+    '((t :foreground "green3" :background "green3"))
+    "Face used to render green color code."
+    :group 'ansi-colors
+    :version "28.1")
+
+  (defface ansi-color-yellow
+    '((t :foreground "yellow3" :background "yellow3"))
+    "Face used to render yellow color code."
+    :group 'ansi-colors
+    :version "28.1")
+
+  (defface ansi-color-blue
+    '((t :foreground "blue2" :background "blue2"))
+    "Face used to render blue color code."
+    :group 'ansi-colors
+    :version "28.1")
+
+  (defface ansi-color-magenta
+    '((t :foreground "magenta3" :background "magenta3"))
+    "Face used to render magenta color code."
+    :group 'ansi-colors
+    :version "28.1")
+
+  (defface ansi-color-cyan
+    '((t :foreground "cyan3" :background "cyan3"))
+    "Face used to render cyan color code."
+    :group 'ansi-colors
+    :version "28.1")
+
+  (defface ansi-color-white
+    '((t :foreground "grey90" :background "gray90"))
+    "Face used to render white color code."
+    :group 'ansi-colors
+    :version "28.1")
+
+  (defface ansi-color-bright-black
+    '((t :foreground "gray30" :background "gray30"))
+    "Face used to render bright black color code."
+    :group 'ansi-colors
+    :version "28.1")
+
+  (defface ansi-color-bright-red
+    '((t :foreground "red2" :background "red2"))
+    "Face used to render bright red color code."
+    :group 'ansi-colors
+    :version "28.1")
+
+  (defface ansi-color-bright-green
+    '((t :foreground "green2" :background "green2"))
+    "Face used to render bright green color code."
+    :group 'ansi-colors
+    :version "28.1")
+
+  (defface ansi-color-bright-yellow
+    '((t :foreground "yellow2" :background "yellow2"))
+    "Face used to render bright yellow color code."
+    :group 'ansi-colors)
+
+  (defface ansi-color-bright-blue
+    '((t :foreground "blue1" :background "blue1"))
+    "Face used to render bright blue color code."
+    :group 'ansi-colors
+    :version "28.1")
+
+  (defface ansi-color-bright-magenta
+    '((t :foreground "magenta2" :background "magenta2"))
+    "Face used to render bright magenta color code."
+    :group 'ansi-colors
+    :version "28.1")
+
+  (defface ansi-color-bright-cyan
+    '((t :foreground "cyan2" :background "cyan2"))
+    "Face used to render bright cyan color code."
+    :group 'ansi-colors
+    :version "28.1")
+
+  (defface ansi-color-bright-white
+    '((t :foreground "white" :background "white"))
+    "Face used to render bright white color code."
+    :group 'ansi-colors
+    :version "28.1")
+
+  (defvar ansi-color-basic-faces-vector
+    [nil
+     ansi-color-bold
+     ansi-color-faint
+     ansi-color-italic
+     ansi-color-underline
+     ansi-color-slow-blink
+     ansi-color-fast-blink
+     ansi-color-inverse]
+    "Faces used for SGR control sequences determining a face.
+This vector holds the faces used for SGR control sequence parameters 0
+to 7.
+
+Parameter  Description
+  0        default
+  1        bold
+  2        faint
+  3        italic
+  4        underlined
+  5        slowly blinking
+  6        rapidly blinking
+  7        negative image")
+
+  (defvar ansi-color-normal-colors-vector
+    [ansi-color-black
+     ansi-color-red
+     ansi-color-green
+     ansi-color-yellow
+     ansi-color-blue
+     ansi-color-magenta
+     ansi-color-cyan
+     ansi-color-white]
+    "Faces used for SGR control sequences determining a color.
+This vector holds the faces used for SGR control sequence parameters
+30 to 37 (foreground colors) and 40 to 47 (background colors).
+
+Parameter  Color
+  30  40   black
+  31  41   red
+  32  42   green
+  33  43   yellow
+  34  44   blue
+  35  45   magenta
+  36  46   cyan
+  37  47   white")
+
+  (defvar ansi-color-bright-colors-vector
+    [ansi-color-bright-black
+     ansi-color-bright-red
+     ansi-color-bright-green
+     ansi-color-bright-yellow
+     ansi-color-bright-blue
+     ansi-color-bright-magenta
+     ansi-color-bright-cyan
+     ansi-color-bright-white]
+    "Faces used for SGR control sequences determining a \"bright\" color.
+This vector holds the faces used for SGR control sequence parameters
+90 to 97 (bright foreground colors) and 100 to 107 (bright background
+colors).
+
+Parameter   Color
+  90  100   bright black
+  91  101   bright red
+  92  102   bright green
+  93  103   bright yellow
+  94  104   bright blue
+  95  105   bright magenta
+  96  106   bright cyan
+  97  107   bright white")
+
+  )
+
 (defun entropy/emacs-ansi-apply-string (string &optional no-properties)
   "Strip string STRING's ansi control/escape characters by replacing
 them as encoding the plain string with emacs text properties.

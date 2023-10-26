@@ -54,6 +54,8 @@
 (defvar company-candidates-cache)
 (defvar company-candidates-length)
 (defvar company-search-string)
+(defvar isearch-wrap-pause)
+(defvar set-message-functions)
 
 ;; ** isearch
 (defvar __eemacs/isearch_prefix_added_p__ nil)
