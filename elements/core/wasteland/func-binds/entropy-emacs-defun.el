@@ -3409,7 +3409,9 @@ to the pixel width of times of ELLIPSIS of SPACE chars)."
        (str (substring string from to)))
     (if (string-empty-p str) (if with-rest-string-return (cons nil str) nil)
       (let*
-          ((use-pixel-p (and (not without-pixel) (display-graphic-p)))
+          ((use-pixel-p (and (not without-pixel)
+                             (fboundp 'string-pixel-width)
+                             (display-graphic-p)))
            (swd (string-width str)) (elnp nil) (swlp nil)
            (ewd (when ellipsis
                   (or (and (stringp ellipsis) (string-width ellipsis))
@@ -10537,7 +10539,7 @@ This function exist since many malware keys like C-g should also
 consider as is to prevent user from mishandling those keys in
 mistaking stroke."
   (dolist (key (list "C-g" "A-C-g" "C-s-g" "C-M-g" "C-M-s-g"))
-    (define-key keymap (kbd key) def remove)))
+    (entropy/emacs-define-key keymap (kbd key) def remove)))
 
 (defun entropy/emacs-swap-keymap-two-keydefs (keymap key1 key2)
   "Swap two KEYs' (KEY1 and KEY2) definations in KEYMAP only when

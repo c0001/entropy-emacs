@@ -244,6 +244,17 @@ BUFFER-OR-NAME if nil or omitted, defaults to `current-buffer'."
   (with-current-buffer (or buffer-or-name (current-buffer))
     (if whole-buffer (buffer-size) (- (point-max) (point-min)))))
 
+(if (< emacs-major-version 29)
+    (defun entropy/emacs-define-key
+        (&rest args)
+      "emacs 28 and higher `define-key' backport for 28 and
+lower where the REMOVE is ignored since lower emacs version
+doesn't has such feature.
+
+\(fn KEYMAP KEY DEF &optional REMOVE)"
+      (define-key (car args) (cadr args) (caddr args)))
+  (defalias 'entropy/emacs-define-key #'define-key))
+
 ;; *** subr*
 
 (cl-defun entropy/emacs--get-def-body (list-var &optional with-safe)

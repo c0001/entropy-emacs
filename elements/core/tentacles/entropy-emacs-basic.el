@@ -2581,9 +2581,9 @@ mechanism."
 
   (defvar image-dired-thumbnail-storage)
   ;; Prefer use xdg-desktop standard thumbnails location for cross
-  ;; apps usage for that prevent dups generation.
-  (when (version<= "29.1" emacs-version)
-    (setq image-dired-thumbnail-storage 'standard-large))
+  ;; apps usage for that prevent dups generation. (although its
+  ;; emacs-29 spec but we backported to lowser emacs ver.)
+  (setq image-dired-thumbnail-storage 'standard-large)
 
 ;; ****** config
   :config
@@ -3151,12 +3151,20 @@ emacs 29 and higher default to singal error when such size is not
   (when (fboundp '__ya/image-transform-check-size)
     (advice-add 'image-transform-check-size :around #'__ya/image-transform-check-size))
 
-  (defvar image-dired-thumbnail-storage)
   (defvar image-dired--thumbnail-standard-sizes)
   (defvar image-dired-cmd-pngcrush-program)
   (defvar image-dired-cmd-pngnq-program)
   (defvar image-dired-cmd-optipng-program)
   (defvar image-dired--generate-thumbs-start)
+
+  (defvar __ya/image-dired-thumbnail-standard-sizes
+    (or (bound-and-true-p image-dired--thumbnail-standard-sizes)
+        '(standard standard-large standard-x-large standard-xx-large)))
+
+  (defun __ya/image-dired-debug (&rest args)
+    "Display debug message ARGS when `image-dired-debug' is non-nil."
+    (when (bound-and-true-p image-dired-debug)
+      (apply #'message args)))
 
   (defun entropy/emacs-basic--image-dired-get-thumb-name
       (file dir sha protocol suffix)
@@ -3198,7 +3206,7 @@ emacs 29 and higher default to singal error when such size is not
           (and thumbnail-file-4-exist-p thumbnail-file-4)
           thumbnail-file-1)))
 
-  (entropy/emacs-when-defun __ya/image-dired-thumb-name (file)
+  (defun __ya/image-dired-thumb-name (file)
     "Return absolute file name for thumbnail FILE.
 Depending on the value of `image-dired-thumbnail-storage', the
 file name of the thumbnail will vary:
@@ -3219,10 +3227,9 @@ standard (https://specifications.freedesktop.org/thumbnail-spec/thumbnail-spec-l
 just reuse thumbs with same checksum of the file uri which is
 seems not adapting for our daily re-usage aims i.e. file with
 same checksum should has re-use same thumb."
-    :when (version<= "29.1" emacs-version)
     (let ((file (expand-file-name file)))
       (cond ((memq image-dired-thumbnail-storage
-                   image-dired--thumbnail-standard-sizes)
+                   __ya/image-dired-thumbnail-standard-sizes)
              (let* ((thumbdir (cl-case image-dired-thumbnail-storage
                                 (standard "thumbnails/normal")
                                 (standard-large "thumbnails/large")
@@ -3251,14 +3258,13 @@ same checksum should has re-use same thumb."
     (advice-add 'image-dired-thumb-name
                 :override #'__ya/image-dired-thumb-name))
 
-  (entropy/emacs-when-defun __ya/image-dired-create-thumb-1
+  (defun __ya/image-dired-create-thumb-1
     (original-file thumbnail-file)
     "For ORIGINAL-FILE, create thumbnail image named THUMBNAIL-FILE.
 
 NOTE: this is a patch for `image-dired-create-thumb-1' to make a
 copy of thumbnail for its uri variant we can find for taking
 prevention of re-generation."
-    :when (version<= "29.1" emacs-version)
     (image-dired--check-executable-exists
      'image-dired-cmd-create-thumbnail-program)
     (let* ((size (number-to-string (image-dired--thumb-size)))
@@ -3285,10 +3291,10 @@ prevention of re-generation."
             (args (mapcar
                    (lambda (arg) (format-spec arg spec))
                    (if (memq image-dired-thumbnail-storage
-                             image-dired--thumbnail-standard-sizes)
+                             __ya/image-dired-thumbnail-standard-sizes)
                        image-dired-cmd-create-standard-thumbnail-options
                      image-dired-cmd-create-thumbnail-options))))
-        (image-dired-debug "Running %s %s" cmd (string-join args " "))
+        (__ya/image-dired-debug "Running %s %s" cmd (string-join args " "))
         (setq process
               (apply #'start-process "image-dired-create-thumbnail" nil
                      cmd args)))
@@ -3299,7 +3305,7 @@ prevention of re-generation."
               (cl-decf image-dired-queue-active-jobs)
               (image-dired-thumb-queue-run)
               (when (= image-dired-queue-active-jobs 0)
-                (image-dired-debug
+                (__ya/image-dired-debug
                  (format-time-string
                   "Generated thumbnails in %s.%3N seconds"
                   (time-subtract nil
@@ -3314,15 +3320,18 @@ prevention of re-generation."
                 ;; PNG thumbnail has been created since we are
                 ;; following the XDG thumbnail spec, so try to optimize
                 (when (memq image-dired-thumbnail-storage
-                            image-dired--thumbnail-standard-sizes)
+                            __ya/image-dired-thumbnail-standard-sizes)
                   (cond
-                   ((and image-dired-cmd-pngnq-program
+                   ((and (bound-and-true-p image-dired-cmd-pngnq-program)
+                         (fboundp 'image-dired-pngnq-thumb)
                          (executable-find image-dired-cmd-pngnq-program))
                     (image-dired-pngnq-thumb spec))
-                   ((and image-dired-cmd-pngcrush-program
+                   ((and (bound-and-true-p image-dired-cmd-pngcrush-program)
+                         (fboundp 'image-dired-pngcrush-thumb)
                          (executable-find image-dired-cmd-pngcrush-program))
                     (image-dired-pngcrush-thumb spec))
-                   ((and image-dired-cmd-optipng-program
+                   ((and (bound-and-true-p image-dired-cmd-optipng-program)
+                         (fboundp 'image-dired-optipng-thumb)
                          (executable-find image-dired-cmd-optipng-program))
                     (image-dired-optipng-thumb spec))))
                 ;; Finally if `original-file' is a symlink we should
@@ -3330,7 +3339,7 @@ prevention of re-generation."
                 ;; prevent re-generation.
                 (let*
                     ((xdgp (memq image-dired-thumbnail-storage
-                                 image-dired--thumbnail-standard-sizes))
+                                 __ya/image-dired-thumbnail-standard-sizes))
                      (get-uri-checksum-func
                       (lambda (f)
                         (if xdgp (md5 (concat "file://" f))

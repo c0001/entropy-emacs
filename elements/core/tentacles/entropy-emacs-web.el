@@ -422,7 +422,7 @@ set of `entropy/emacs-browse-url-function-get-for-web-preview'."
 
 ;; **** Patch
 ;; ***** [[https://lists.gnu.org/archive/html/bug-gnu-emacs/2023-08/msg00471.html][bug#65134]]
-
+(defvar js--treesit-indent-rules)
 (when (and
        (bound-and-true-p
         entropy/emacs-ide-is-treesit-generally-adapted-p)
