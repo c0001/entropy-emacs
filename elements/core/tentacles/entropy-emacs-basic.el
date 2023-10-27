@@ -3480,13 +3480,13 @@ ARROW is valid in 'up' 'down' 'left' 'right'."
           (setq entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer/redraw-timer
                 (run-with-timer
                  0.01 nil
-                 `(lambda ()
-                    (let ((frame (window-frame ',buffer-win)))
-                      (unwind-protect
-                          (when (frame-live-p frame)
-                            (redraw-frame frame))
-                        (setq entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer/redraw-timer
-                              nil)))))))
+                 (lambda ()
+                   (let ((frame (window-frame buffer-win)))
+                     (unwind-protect
+                         (when (frame-live-p frame)
+                           (redraw-frame frame))
+                       (setq entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer/redraw-timer
+                             nil)))))))
         )))
   (defun entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer/up
       (&optional n)
@@ -5924,8 +5924,7 @@ from."
               (insert-button
                "..."
                'action
-               `(lambda (&rest _)
-                  (print ,over-contents))
+               (lambda (&rest _) (print over-contents))
                'help-echo
                (concat "mouse-2, RET: "
                        "Follow this link")
