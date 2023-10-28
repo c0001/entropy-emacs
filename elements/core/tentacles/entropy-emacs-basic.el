@@ -3525,12 +3525,12 @@ ARROW is valid in 'up' 'down' 'left' 'right'."
 
   (entropy/emacs-make-command-continuous-smoothing-with-common-style
       image-dired-display-next-thumbnail-original)
-  (when (foundp 'image-dired-display-next)
+  (when (fboundp 'image-dired-display-next)
     (entropy/emacs-make-command-continuous-smoothing-with-common-style
         image-dired-display-next))
   (entropy/emacs-make-command-continuous-smoothing-with-common-style
       image-dired-display-previous-thumbnail-original)
-  (when (foundp 'image-dired-display-previous)
+  (when (fboundp 'image-dired-display-previous)
     (entropy/emacs-make-command-continuous-smoothing-with-common-style
         image-dired-display-previous))
 
