@@ -4154,6 +4154,7 @@ NOTE: this is a advice wrapper for any function."
 ;; Force smooth mouse scroll experience
 
 (use-package pixel-scroll
+  :ensure nil
   :config
   (when (fboundp 'pixel-scroll-precision-mode)
     (entropy/emacs-make-command-continuous-smoothing-with-common-style
