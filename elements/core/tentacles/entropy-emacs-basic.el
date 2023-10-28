@@ -2609,6 +2609,7 @@ an error."
     (unless (eq major-mode 'dired-mode)
       (user-error "Not in an dired buffer"))
     (let ((cur-buffer (current-buffer))
+          (img-dired-buff (image-dired-create-thumbnail-buffer))
           (img-fmarked (or
                         (and arg (dired-get-marked-files))
                         (let (effective-marked-files)
@@ -2652,15 +2653,18 @@ an error."
                   ;; `image-dired-queue-active-limit'.
                   (setq image-dired-queue-active-jobs 0
                         image-dired-queue nil)
-                  (image-dired-display-thumbs)
-                  (with-current-buffer image-dired-thumbnail-buffer
+                  (pop-to-buffer img-dired-buff)
+                  (entropy/emacs-message-simple-progress-message
+                      (format "generating/Getting thumbs cache from storage type `%s'"
+                              image-dired-thumbnail-storage)
+                    (image-dired-display-thumbs))
+                  (with-current-buffer img-dired-buff
                     (when (bound-and-true-p hl-line-mode)
                       ;; display `hl-line-mode' since its cover the
                       ;; mark highliting face for thumbnails and will
                       ;; drag the image dired origin file track
                       ;; performance.
-                      (hl-line-mode -1)))
-                  (pop-to-buffer image-dired-thumbnail-buffer))
+                      (hl-line-mode -1))))
               (message "Canceled.")))
         (with-current-buffer cur-buffer
           (dired-unmark-all-marks)))))
