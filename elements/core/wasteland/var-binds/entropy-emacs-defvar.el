@@ -211,7 +211,8 @@ See also `entropy/emacs-current-commands-continuous-p'.")
 ;; `pre-command-hook' bind if
 ;; `entropy/emacs-current-commands-ring--put-new-use-locus-p' enabled
 ;; by eemacs maintainer, where this can prevent double insert for same
-;; command in per-command stroked.
+;; command in per-command stroked both in locus and global
+;; `pre-command-hook'.
 (defun entropy/emacs-current-commands-ring--put-new
     (&optional cur-time)
   (if (and

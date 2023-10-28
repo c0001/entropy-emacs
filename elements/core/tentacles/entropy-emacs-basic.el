@@ -3519,7 +3519,8 @@ ARROW is valid in 'up' 'down' 'left' 'right'."
 
 ;; ******** basic navigation
 
-  (defun entropy/emacs-image-dired-forward-image (&optional arg)
+  (entropy/emacs-define-smooth-continuous-command
+      entropy/emacs-image-dired-forward-image (&optional arg)
     "Like `image-dired-forward-image' but using
 `entropy/emacs-image-dired-idle-track-orig-file' as subroutine."
     (declare (interactive-only t))
@@ -3540,7 +3541,8 @@ ARROW is valid in 'up' 'down' 'left' 'right'."
       (entropy/emacs-image-dired-idle-track-orig-file))
     (image-dired-display-thumb-properties))
 
-  (defun entropy/emacs-image-dired-backward-image (&optional arg)
+  (entropy/emacs-define-smooth-continuous-command
+      entropy/emacs-image-dired-backward-image (&optional arg)
     "Like `image-dired-backward-image' but using
 `entropy/emacs-image-dired-idle-track-orig-file' as subroutine."
     (declare (interactive-only t))
@@ -3561,7 +3563,8 @@ ARROW is valid in 'up' 'down' 'left' 'right'."
       (entropy/emacs-image-dired-idle-track-orig-file))
     (image-dired-display-thumb-properties))
 
-  (defun entropy/emacs-image-dired-next-line ()
+  (entropy/emacs-define-smooth-continuous-command
+      entropy/emacs-image-dired-next-line ()
     "Like `image-dired-next-line' but using
 `entropy/emacs-image-dired-idle-track-orig-file' as subroutine."
     (declare (interactive-only t))
@@ -3576,7 +3579,8 @@ ARROW is valid in 'up' 'down' 'left' 'right'."
         (entropy/emacs-image-dired-idle-track-orig-file))
     (image-dired-display-thumb-properties))
 
-  (defun entropy/emacs-image-dired-previous-line ()
+  (entropy/emacs-define-smooth-continuous-command
+      entropy/emacs-image-dired-previous-line ()
     "Like `image-dired-previous-line' but using
 `entropy/emacs-image-dired-idle-track-orig-file' as subroutine."
     (declare (interactive-only t))
@@ -4148,6 +4152,23 @@ NOTE: this is a advice wrapper for any function."
 
 ;; ***** Smooth scrolling
 ;; Force smooth mouse scroll experience
+
+(use-package pixel-scroll
+  :config
+  (when (fboundp 'pixel-scroll-precision-mode)
+    (entropy/emacs-make-command-continuous-smoothing-with-common-style
+        pixel-scroll-interpolate-up)
+    (entropy/emacs-make-command-continuous-smoothing-with-common-style
+        pixel-scroll-interpolate-down)
+    (entropy/emacs-make-command-continuous-smoothing-with-common-style
+        pixel-scroll-up)
+    (entropy/emacs-make-command-continuous-smoothing-with-common-style
+        pixel-scroll-down)))
+
+(entropy/emacs-make-command-continuous-smoothing-with-common-style
+    scroll-up-command)
+(entropy/emacs-make-command-continuous-smoothing-with-common-style
+    scroll-down-command)
 
 (defun entropy/emacs-basic--smooth-scroll-basic-set nil
   "The basic smooth scroll specs handler for entropy-emacs."

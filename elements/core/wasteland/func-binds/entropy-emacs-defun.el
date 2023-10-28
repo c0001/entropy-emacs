@@ -13916,5 +13916,176 @@ including the match data defaulty.
            'stop-iterate))))
     rtn))
 
+;; ** Common commands
+;; *** continuation smooth command defination
+
+(cl-defmacro entropy/emacs-define-smooth-continuous-command
+    (&rest args)
+  "Define a smooth continuous command as `cl-defun' a `interactive'
+only command.
+
+A smooth-continous command (termed as SCM) is a command which has
+a break interval WITH-BREAK-INTERVAL seconds when its
+sequentially invoked in a time without breaking which may cause
+emacs computing heavily for such sequence of commands in a short
+period.
+
+The sequentially non-breaking invocation is trapped via how many
+times (i.e. WITH-ADJACENT-LEN) `this-command' was invoked without
+breaking in a period WITH-ADJACENT-INTERVAL seconds.
+
+All of the interval spec args can be positive float numbers.
+
+When WITH-SELF-DEAL is non-nil, it should be a symbol who is
+explicitly set before this macro expanded, which used to bind a
+indicator whose non-nil value indicates that the BODY could ran
+obey the SCM condition, nil for not, but without any mandatory
+order to do as this i.e made decision by user-end . Otherwise,
+BODY is just ran when SCM is supplied, as on tick-tock tune.
+
+\(fn NAME ARGLIST [DOCSTRING] [DECL] [INTERACTIVE] &key \
+WITH-ADJACENT-INTERVAL WITH-ADJACENT-LEN WITH-BREAK-INTERVAL \
+WITH-SELF-DEAL \
+&rest BODY...)"
+  (declare (doc-string 3) (indent 2))
+  (let*
+      ((fsym (car args))
+       (lvsym
+        (intern
+         (format "__eemacs/smooth-continous-define/%s/lock-time-var"
+                 fsym)))
+       (wadi-sym
+        (intern
+         (format
+          "__eemacs/smooth-continous-define/%s/adjacent-interval-custom-var"
+          fsym)))
+       (wadl-sym
+        (intern
+         (format "__eemacs/smooth-continous-define/%s/adjacent-len-custom-var"
+                 fsym)))
+       (wbri-sym
+        (intern
+         (format "__eemacs/smooth-continous-define/%s/break-interval-custom-var"
+                 fsym)))
+       (lambda-args-plist (entropy/emacs-parse-lambda-args-plus (cdr args)))
+       (lambda-head-plist (plist-get lambda-args-plist :body-plist))
+       (with-adjacent-interval
+        (or (plist-get lambda-head-plist :with-adjacent-interval)
+            0.05))
+       (with-adjacent-len
+        (or (plist-get lambda-head-plist :with-adjacent-len)
+            2))
+       (with-break-interval
+        (or (plist-get lambda-head-plist :with-break-interval)
+            0.02))
+       (with-self-deal (plist-get lambda-head-plist :with-self-deal))
+       (lambda-args-form (plist-get lambda-args-plist :arglist))
+       (lambda-doc-form
+        (let ((val (or (plist-get lambda-args-plist :docstring) "")))
+          (list (concat val "
+
+This function is optimized with eemacs smooth-continuous
+spec. (see `entropy/emacs-define-smooth-continuous-command' for
+details)."
+                        ))))
+       (lambda-declare-form
+        (let ((val (plist-get lambda-args-plist :declare)))
+          (if val (list val) ;; (list '(declare (interactive-only t)))
+            )))
+       (lambda-inct-form
+        (let ((val (plist-get lambda-args-plist :interactive)))
+          (if val (list val) ;; (list '(interactive))
+            )))
+       (lambda-body (plist-get lambda-args-plist :body)))
+    (macroexp-let2* ignore ((ranp-sym nil))
+      `(let ()
+         (defvar ,wadi-sym ,with-adjacent-interval)
+         (defvar ,wadl-sym ,with-adjacent-len)
+         (defvar ,wbri-sym ,with-break-interval)
+         (defvar-local ,lvsym nil)
+         (cl-defun ,fsym ,lambda-args-form
+           ,@lambda-doc-form
+           ,@lambda-declare-form
+           ,@lambda-inct-form
+           (let ((,ranp-sym nil))
+             (if (bound-and-true-p ,lvsym)
+                 (when (> (entropy/emacs-time-subtract ,lvsym nil 'use-float)
+                          ,wbri-sym)
+                   (setq ,ranp-sym t ,lvsym nil))
+               (if (entropy/emacs-current-commands-continuous-p
+                    this-command ,wadl-sym ,wadi-sym)
+                   (setq ,lvsym (current-time))
+                 (setq ,ranp-sym t)))
+             ,(if (not with-self-deal) `(when ,ranp-sym ,@lambda-body)
+                `(let ((,with-self-deal ,ranp-sym))
+                   ,@lambda-body))))))))
+
+(cl-defmacro entropy/emacs-make-command-continuous-smoothing
+    (&rest args)
+  "Make eemacs smooth-continous around advice for command `%s', used
+as `cl-defun'.
+
+See `entropy/emacs-define-smooth-continuous-command' for details
+of usage of optional keys.
+
+Since it's a around advice, the ARGLIST should be specified
+correctly or the invocation will be failed and error with fatal.
+
+(See also
+`entropy/emacs-make-command-continuous-smoothing-with-common-style'.)
+
+\(fn COMMAND-NAME ARGLIST [DOCSTRING] [DECL] [INTERACTIVE] &key \
+WITH-ADJACENT-INTERVAL WITH-ADJACENT-LEN WITH-BREAK-INTERVAL \
+WITH-SELF-DEAL \ &rest BODY...)"
+  (declare (doc-string 3) (indent 2))
+  (let ((fsym
+         (intern
+          (format "__eemacs/smooth-continous-variant/%s/around-advice__"
+                  (car args)))))
+    `(progn
+       (entropy/emacs-define-smooth-continuous-command
+           ,fsym ,@(cdr args))
+       (advice-add ',(car args) :around #',fsym))))
+
+
+(cl-defmacro entropy/emacs-make-command-continuous-smoothing-with-common-style
+    (command-name
+     &key
+     with-adjacent-interval with-adjacent-len with-break-interval
+     &allow-other-keys)
+  "Make eemacs smooth-continous around advice for command `%s', with
+common style.
+
+The common style is that the patch just ran only when
+`called-interactively-p' is `interactive'.
+
+See `entropy/emacs-define-smooth-continuous-command' for details
+of usage of optional keys.
+
+(See also `entropy/emacs-make-command-continuous-smoothing'.)
+
+\(fn COMMAND-NAME &key \
+WITH-ADJACENT-INTERVAL WITH-ADJACENT-LEN WITH-BREAK-INTERVAL)"
+  (declare (indent 1))
+  (let ((fsym
+         (intern
+          (format "__eemacs/smooth-continous-variant/%s/around-advice__"
+                  command-name))))
+    `(progn
+       (entropy/emacs-define-smooth-continuous-command
+           ,fsym (fn &rest args)
+         ,(format "Common eemacs smooth-continuous around advice for command `%s'.
+
+See `entropy/emacs-define-smooth-continuous-command' for details."
+                  command-name)
+         :with-adjacent-interval ,with-adjacent-interval
+         :with-adjacent-len ,with-adjacent-len
+         :with-break-interval ,with-break-interval
+         :with-self-deal ranp
+         (if (called-interactively-p 'interactive)
+             (when ranp (apply fn args))
+           (apply fn args)))
+       (advice-add ',command-name :around #',fsym))))
+
 ;; * provide
 (provide 'entropy-emacs-defun)
