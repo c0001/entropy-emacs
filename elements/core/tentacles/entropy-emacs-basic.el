@@ -3488,28 +3488,32 @@ ARROW is valid in 'up' 'down' 'left' 'right'."
                        (setq entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer/redraw-timer
                              nil)))))))
         )))
-  (defun entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer/up
+  (entropy/emacs-define-smooth-continuous-command
+      entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer/up
       (&optional n)
     "Use `entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer' with 'up'."
     (declare (interactive-only t))
     (interactive "p" image-dired-thumbnail-mode)
     (entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer
      'up n))
-  (defun entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer/down
+  (entropy/emacs-define-smooth-continuous-command
+      entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer/down
       (&optional n)
     "Use `entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer' with 'down'."
     (declare (interactive-only t))
     (interactive "p" image-dired-thumbnail-mode)
     (entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer
      'down n))
-  (defun entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer/left
+  (entropy/emacs-define-smooth-continuous-command
+      entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer/left
       (&optional n)
     "Use `entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer' with 'left'."
     (declare (interactive-only t))
     (interactive "p" image-dired-thumbnail-mode)
     (entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer
      'left n))
-  (defun entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer/right
+  (entropy/emacs-define-smooth-continuous-command
+      entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer/right
       (&optional n)
     "Use `entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer' with 'right'."
     (declare (interactive-only t))
@@ -3518,6 +3522,17 @@ ARROW is valid in 'up' 'down' 'left' 'right'."
      'right n))
 
 ;; ******** basic navigation
+
+  (entropy/emacs-make-command-continuous-smoothing-with-common-style
+      image-dired-display-next-thumbnail-original)
+  (when (foundp 'image-dired-display-next)
+    (entropy/emacs-make-command-continuous-smoothing-with-common-style
+        image-dired-display-next))
+  (entropy/emacs-make-command-continuous-smoothing-with-common-style
+      image-dired-display-previous-thumbnail-original)
+  (when (foundp 'image-dired-display-previous)
+    (entropy/emacs-make-command-continuous-smoothing-with-common-style
+        image-dired-display-previous))
 
   (entropy/emacs-define-smooth-continuous-command
       entropy/emacs-image-dired-forward-image (&optional arg)
@@ -4164,7 +4179,12 @@ NOTE: this is a advice wrapper for any function."
     (entropy/emacs-make-command-continuous-smoothing-with-common-style
         pixel-scroll-up)
     (entropy/emacs-make-command-continuous-smoothing-with-common-style
-        pixel-scroll-down)))
+        pixel-scroll-down)
+    (when (fboundp 'pixel-scroll-precision-mode)
+      (entropy/emacs-make-command-continuous-smoothing-with-common-style
+          pixel-scroll-precision)
+      (entropy/emacs-make-command-continuous-smoothing-with-common-style
+          pixel-scroll-start-momentum))))
 
 (entropy/emacs-make-command-continuous-smoothing-with-common-style
     scroll-up-command)
