@@ -3523,16 +3523,18 @@ ARROW is valid in 'up' 'down' 'left' 'right'."
 
 ;; ******** basic navigation
 
-  (entropy/emacs-make-command-continuous-smoothing-with-common-style
-      image-dired-display-next-thumbnail-original)
-  (when (fboundp 'image-dired-display-next)
+  ;; nodups since obsolete as alias to thus
+  (if (fboundp 'image-dired-display-next)
+      (entropy/emacs-make-command-continuous-smoothing-with-common-style
+          image-dired-display-next)
     (entropy/emacs-make-command-continuous-smoothing-with-common-style
-        image-dired-display-next))
-  (entropy/emacs-make-command-continuous-smoothing-with-common-style
-      image-dired-display-previous-thumbnail-original)
-  (when (fboundp 'image-dired-display-previous)
+        image-dired-display-next-thumbnail-original))
+  ;; nodups since obsolete as alias to thus
+  (if (fboundp 'image-dired-display-previous)
+      (entropy/emacs-make-command-continuous-smoothing-with-common-style
+          image-dired-display-previous)
     (entropy/emacs-make-command-continuous-smoothing-with-common-style
-        image-dired-display-previous))
+        image-dired-display-previous-thumbnail-original))
 
   (entropy/emacs-define-smooth-continuous-command
       entropy/emacs-image-dired-forward-image (&optional arg)
