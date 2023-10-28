@@ -2610,6 +2610,7 @@ an error."
       (user-error "Not in an dired buffer"))
     (let ((cur-buffer (current-buffer))
           (img-dired-buff (image-dired-create-thumbnail-buffer))
+          (img-dired-win nil)
           (img-fmarked (or
                         (and arg (dired-get-marked-files))
                         (let (effective-marked-files)
@@ -2653,7 +2654,9 @@ an error."
                   ;; `image-dired-queue-active-limit'.
                   (setq image-dired-queue-active-jobs 0
                         image-dired-queue nil)
-                  (pop-to-buffer img-dired-buff)
+                  (save-selected-window
+                    (pop-to-buffer img-dired-buff))
+                  (redisplay t)
                   (entropy/emacs-message-simple-progress-message
                       (format "generating/Getting thumbs cache from storage type `%s'"
                               image-dired-thumbnail-storage)
@@ -2667,7 +2670,9 @@ an error."
                       (hl-line-mode -1))))
               (message "Canceled.")))
         (with-current-buffer cur-buffer
-          (dired-unmark-all-marks)))))
+          (dired-unmark-all-marks))
+        (when (setq img-dired-win (get-buffer-window img-dired-buff))
+          (select-window img-dired-win)))))
 
   (setq image-dired-cmd-create-thumbnail-program
         (if (executable-find "gm") "gm" "convert"))
