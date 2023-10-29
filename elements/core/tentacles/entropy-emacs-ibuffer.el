@@ -56,15 +56,24 @@
       (defun entropy/emacs-ibuffer-find-file ()
         (interactive)
         (let ((default-directory
-                (let ((buf (ibuffer-current-buffer)))
-                  (if (buffer-live-p buf)
-                      (with-current-buffer buf
-                        default-directory)
-                    default-directory))))
+               (let ((buf (ibuffer-current-buffer)))
+                 (if (buffer-live-p buf)
+                     (buffer-local-value 'default-directory buf)
+                   default-directory))))
           (counsel-find-file default-directory)))
       (advice-add #'ibuffer-find-file
                   :override
-                  #'entropy/emacs-ibuffer-find-file))))
+                  #'entropy/emacs-ibuffer-find-file)))
+
+  ;; Reduce nervous for redisplay rendering for huge of lines generating
+  (advice-patch
+   'ibuffer-insert-buffer-line
+   '(entropy/emacs-message-simple-progress-message
+        "Generating ibuffer line"
+      (funcall format buffer mark))
+   '(funcall format buffer mark))
+
+  )
 
 
 ;; ** ibuffer all the icons feature
