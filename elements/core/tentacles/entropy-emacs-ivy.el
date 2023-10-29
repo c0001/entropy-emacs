@@ -705,7 +705,10 @@ large buffer."
                    (and (not (string-match-p "[ \n\t\r]" str))
                         (not (> (length str) 100))))))
            (let (rtn)
-             (prog1 (setq rtn (apply orig-func orig-args))
+             (prog1 (entropy/emacs-setf-by-body rtn
+                      (entropy/emacs-message-simple-progress-message
+                          "[ivy-thing-at-pt] grabbing"
+                        (apply orig-func orig-args)))
                (unless (string-empty-p rtn)
                  (message "ivy-thing-at-pt: invoke by command <%s> at thing '%s'"
                           this-command rtn)))))
