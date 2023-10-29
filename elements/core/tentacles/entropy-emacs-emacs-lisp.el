@@ -114,6 +114,7 @@ For lisp coding aim, always return the transfered buffer.
        entropy/emacs-funcall-with-lambda
        entropy/emacs-add-hook-with-lambda
        entropy/emacs-define-idle-function
+       entropy/emacs-when-defun
        )
     "List of eemacs's lambda wrapper cars used for as those specified
 form indicator.")
