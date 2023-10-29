@@ -623,6 +623,12 @@ certain eemacs-spec conditions."
 ;; ****** lsp-mode core
 (use-package lsp-mode
   :diminish lsp-mode
+  :defer
+  (or
+   ;; pdump can not dump mutex and condvar made by
+   ;; `make-condition-variable'
+   entropy/emacs-fall-love-with-pdumper
+   entropy/emacs-custom-enable-lazy-load)
   :defines (lsp-typescript-tsserver-log lsp-clients-typescript-log-verbosity)
   :commands (lsp lsp-mode lsp-deferred
 
@@ -1167,6 +1173,13 @@ https://emacs.stackexchange.com/questions/3821/a-faster-method-to-obtain-line-nu
 
 ;; ****** lsp-mode UI
 (use-package lsp-ui
+  :defer
+  (or
+   ;; pdump can not dump mutex and condvar made by
+   ;; `make-condition-variable'
+   entropy/emacs-fall-love-with-pdumper
+   entropy/emacs-custom-enable-lazy-load)
+
 ;; ******* preface
 
   :preface
@@ -1407,6 +1420,12 @@ updating."
 
 (use-package lsp-ui-peek
   :ensure nil
+  :defer
+  (or
+   ;; pdump can not dump mutex and condvar made by
+   ;; `make-condition-variable'
+   entropy/emacs-fall-love-with-pdumper
+   entropy/emacs-custom-enable-lazy-load)
   :after lsp-ui
   :config
   (defvar-local __ya/lsp-ui-peek--win-start nil)
@@ -1475,6 +1494,12 @@ NOTE: related to the display char height?"
 ;; Microsoft python-language-server support
 (use-package lsp-python-ms
   :if (eq entropy/emacs-codeserver-prefer-pyls-type 'mspyls)
+  :defer
+  (or
+   ;; pdump can not dump mutex and condvar made by
+   ;; `make-condition-variable'
+   entropy/emacs-fall-love-with-pdumper
+   entropy/emacs-custom-enable-lazy-load)
   :defines (lsp-python-ms-python-executable-cmd)
   :init
 
@@ -1491,6 +1516,12 @@ NOTE: related to the display char height?"
 ;; ******* lsp python pyright
 (use-package lsp-pyright
   :if (eq entropy/emacs-codeserver-prefer-pyls-type 'pyright)
+  :defer
+  (or
+   ;; pdump can not dump mutex and condvar made by
+   ;; `make-condition-variable'
+   entropy/emacs-fall-love-with-pdumper
+   entropy/emacs-custom-enable-lazy-load)
   :init
   ;; disable multi-root for a single pyright server connection since
   ;; python commonly use virtualenv for each project.
@@ -1507,6 +1538,12 @@ NOTE: related to the display char height?"
   ;; we use eemacs spec simple lsp-java so that do not ensure it since
   ;; we purchasing it under eemacs itself yet.
   :ensure nil
+  :defer
+  (or
+   ;; pdump can not dump mutex and condvar made by
+   ;; `make-condition-variable'
+   entropy/emacs-fall-love-with-pdumper
+   entropy/emacs-custom-enable-lazy-load)
   :defines (lsp-java-boot-enabled)
   :init
   ;; EEMACS_BUG:

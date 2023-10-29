@@ -1598,14 +1598,25 @@ unless use byte-compile with macroexpand hack.")
     entropy/emacs-run-startup-defcustom-load-done-timestamp
     entropy/emacs-run-startup-top-init-timestamp)))
 
+(defun entropy/emacs--inner-setenv (&rest args)
+  "eemacs internal `setenv' variant to maintain assigned env cross
+session like for `entropy/emacs-pdumper-load-hook'.
+
+NOTE: do not use this unless for eemacs inner facilities
+developments."
+  (prog1 (apply 'setenv args)
+    (if (bound-and-true-p entropy/emacs-fall-love-with-pdumper)
+        (if (bound-and-true-p entropy/emacs-pdumper-load-hook)
+            (setq entropy/emacs-pdumper-load-hook
+                  (nconc entropy/emacs-pdumper-load-hook
+                         (list (lambda nil (apply 'setenv args)))))
+          (setq entropy/emacs-pdumper-load-hook
+                (list (lambda nil (apply 'setenv args))))))))
+
 ;; The eemacs specified envrionment to indicated all subprocess are
 ;; ran in an eemacs session, in which case all subprocess can detected
 ;; this variable to do some extra operations or something else.
-(defun __set_eemacs_top_env_indicator ()
-  (setenv "EEMACS_ENV" "TRUE"))
-(__set_eemacs_top_env_indicator)
-;; we should also guaranteed the pdumper reload session has this too.
-(add-hook 'entropy/emacs-pdumper-load-hook #'__set_eemacs_top_env_indicator)
+(entropy/emacs--inner-setenv "EEMACS_ENV" "TRUE")
 
 ;; ** Start Eemacs
 

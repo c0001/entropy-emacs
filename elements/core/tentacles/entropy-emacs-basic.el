@@ -2538,6 +2538,17 @@ mechanism."
       `(entropy/emacs-usepackage-with-no-require
          ,@body)))))
 
+(entropy/emacs-when-defun image-dired--thumb-size (&optional _)
+  "Return thumb size depending on `image-dired-thumbnail-storage'."
+  (declare (advertised-calling-convention () "29.1"))
+  :when (< emacs-major-version 28)
+  (pcase image-dired-thumbnail-storage
+    ('standard 128)
+    ('standard-large 256)
+    ('standard-x-large 512)
+    ('standard-xx-large 1024)
+    (_ image-dired-thumb-size)))
+
 ;; ***** core
 (entropy/emacs-defvar-local-with-pml
   ;; make this var permanently buffer local so that it will not
@@ -3317,7 +3328,8 @@ prevention of re-generation."
               ;; Trigger next in queue once a thumbnail has been created
               (cl-decf image-dired-queue-active-jobs)
               (image-dired-thumb-queue-run)
-              (when (= image-dired-queue-active-jobs 0)
+              (when (and (= image-dired-queue-active-jobs 0)
+                         (bound-and-true-p image-dired--generate-thumbs-start))
                 (__ya/image-dired-debug
                  (format-time-string
                   "Generated thumbnails in %s.%3N seconds"

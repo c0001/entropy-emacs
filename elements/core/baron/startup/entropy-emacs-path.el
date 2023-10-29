@@ -266,7 +266,7 @@
                   (concat env-neg-concat ";" (symbol-value el))
                 (symbol-value el)))))
 
-    (setenv "PATH"
+    (entropy/emacs--inner-setenv "PATH"
             (cond
              ((and (null env-pos-concat)
                    (null env-neg-concat))

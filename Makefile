@@ -37,8 +37,8 @@ EEMACS_SERVICE_HOST := $(XDG_CONFIG_HOME)/systemd/user
 EEMACS_SERVICE_FILE = $(EEMACS_SERVICE_HOST)/eemacs-daemon.$(EEMACS_SESSION).service
 EMACS := emacs
 EMACS_MAJOR_VERSION := 28
-EMACS_RUN = $(EMACS) -Q -l init.el
-EMACS_MAKE = $(EMACS) -Q --batch -l init.el
+EMACS_RUN = $(EMACS) -Q --eval '(setenv "EEMACS_DEBUG" DEBUG )' -l init.el
+EMACS_MAKE = $(EMACS) -Q --batch --eval '(setenv "EEMACS_MAKE" MAKE_TYPE )' -l init.el
 TERMINATE_WARN = $(EMACS) --batch -q --eval '(or (yes-or-no-p "Remember terminate by kill -9 this make process instead of Ctrl-c since curl do not capture SIGINT") (error "force abort!"))'
 
 DEBUG_FORM = '(progn\
@@ -57,56 +57,50 @@ endif
 
 .PHONY:help install compile compile-clean install-coworkers install-eemacs-ext-build install-eemacs-fonts update dump native-comp liberime all debug
 
-help: export EEMACS_MAKE=Help
 help:
 	@$(EchoEmpty)
-	@$(EMACS_MAKE)
+	@$(EMACS_MAKE:MAKE_TYPE="Help")
 
-install: export EEMACS_MAKE=Install
 install:
 	@$(EchoEmpty)
-	@$(EMACS_MAKE)
+	@$(EMACS_MAKE:MAKE_TYPE="Install")
 
-compile: export EEMACS_MAKE=Compile
 compile:
 	@$(EchoEmpty)
-	@$(EMACS_MAKE)
+	@$(EMACS_MAKE:MAKE_TYPE="Compile")
 
-compile-clean: export EEMACS_MAKE=Compile-Clean
+compile-dump:
+	@$(EchoEmpty)
+	@$(EMACS_MAKE:MAKE_TYPE="Compile-Dump")
+
 compile-clean:
 	@$(EchoEmpty)
-	@$(EMACS_MAKE)
+	@$(EMACS_MAKE:MAKE_TYPE="Compile-Clean")
 
-install-coworkers: export EEMACS_MAKE=Install-Coworkers
 install-coworkers:
 	@$(EchoEmpty)
-	@$(EMACS_MAKE)
+	@$(EMACS_MAKE:MAKE_TYPE="Install-Coworkers")
 
-install-eemacs-ext-build: export EEMACS_MAKE=Install-Eemacs-Ext-Build
 install-eemacs-ext-build:
 	@$(EchoEmpty)
-	@$(EMACS_MAKE)
+	@$(EMACS_MAKE:MAKE_TYPE="Install-Eemacs-Ext-Build")
 
-install-eemacs-fonts: export EEMACS_MAKE=Install-Eemacs-Fonts
 install-eemacs-fonts:
 	@$(EchoEmpty)
 	@$(TERMINATE_WARN)
-	@$(EMACS_MAKE)
+	@$(EMACS_MAKE:MAKE_TYPE="Install-Eemacs-Fonts")
 
-update: export EEMACS_MAKE=Update
 update:
 	@$(EchoEmpty)
-	@$(EMACS_MAKE)
+	@$(EMACS_MAKE:MAKE_TYPE="Update")
 
-dump: export EEMACS_MAKE=Dump
-dump:
+dump: compile-dump
 	@$(EchoEmpty)
-	@$(EMACS_MAKE)
+	@$(EMACS_MAKE:MAKE_TYPE="Dump")
 
-native-comp: export EEMACS_MAKE=Native-Comp
 native-comp:
 	@$(EchoEmpty)
-	@$(EMACS_MAKE)
+	@$(EMACS_MAKE:MAKE_TYPE="Native-Comp")
 
 liberime: export EEMACS_MAKE=Liberime
 liberime:
@@ -133,7 +127,6 @@ install-systemd-service:
 	systemctl --user daemon-reload
 	@echo "Install to $(EEMACS_SERVICE_FILE) done"
 
-debug: export EEMACS_DEBUG=1
 debug:
 	@$(EchoEmpty)
-	@$(EMACS_RUN) --debug-init
+	@$(EMACS_RUN:DEBUG="1") --debug-init

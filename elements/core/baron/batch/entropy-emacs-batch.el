@@ -254,7 +254,8 @@ In used emacs version is: %s
        "Section for byte-compile eemacs internal"
      (when (or (entropy/emacs-is-make-all-session)
                (entropy/emacs-is-make-with-all-yes-session)
-               (yes-or-no-p "Compile? "))
+               (or (bound-and-true-p entropy/emacs-fall-love-with-pdumper)
+                   (yes-or-no-p "Compile? ")))
        ,@body)))
 
 (defmacro entropy/emacs-batch--prompts-for-byte-compile-clean-eemacs-internal
@@ -821,7 +822,9 @@ since we solved deps broken")))))
      ((equal type "Install")
       (entropy/emacs-batch--prompts-for-ext-install-section
        (entropy/emacs-package-common-start 'use-full)))
-     ((equal type "Compile")
+     ((member type (list "Compile" "Compile-Dump"))
+      (and (equal type "Compile-Dump")
+           (setq entropy/emacs-fall-love-with-pdumper t))
       ;; we must check all depedencies firstly while compile
       (entropy/emacs-batch--check-packages)
       (entropy/emacs-batch--prompts-for-byte-compile-eemacs-internal

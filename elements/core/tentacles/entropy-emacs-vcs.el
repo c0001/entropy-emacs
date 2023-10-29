@@ -208,7 +208,7 @@ user expected to known about."
   (entropy/emacs-lazy-load-simple 'magit
     (add-hook 'magit-credential-hook 'ssh-agency-ensure))
   :config
-  (setenv "SSH_ASKPASS" "git-gui--askpass"))
+  (entropy/emacs--inner-setenv "SSH_ASKPASS" "git-gui--askpass"))
 
 ;; **** Git-Svn extension for Magit
 (use-package magit-svn

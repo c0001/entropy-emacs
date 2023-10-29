@@ -143,6 +143,14 @@ configuration.")
                                 ;; still scratch of studying
                                 (seq line-start "maple-preview")
 
+                                ;; Since `lsp-mode' 20230812.1018
+                                ;; ver. multi-thread is used so that
+                                ;; the mutex can not be dump, so we do
+                                ;; not dump `lsp-*' related packages
+                                ;; anymore, see
+                                ;; https://lists.gnu.org/archive/html/emacs-devel/2020-02/msg00147.html
+                                (seq line-start "lsp") (seq line-start "dap-mode")
+
                                 ))))
         (inc-filters `(,(rx (seq (or "ivy" "org" "magit" "transient" "counsel"
                                      "dired" "all-the-icon" "cal-china"
@@ -150,7 +158,7 @@ configuration.")
                                      "doom" "company" "entropy"
                                      "rg" "wgrep" "dashboard"
                                      "youdao" "google" "bing"
-                                     "projectile" "flycheck" "lsp" "dap" "company"
+                                     "projectile" "flycheck" "company"
                                      (seq line-start "slime"))
                                  (? "-")
                                  (* any)
@@ -264,75 +272,89 @@ configuration.")
       (entropy/emacs-run-startup-end-hook))))
 
 ;; ** load-files
-(defmacro entropy/emacs-pdumper--load-files-core (top-dir files)
-  `(entropy/emacs-pdumper--with-load-path
-    ,top-dir
-    (dolist (file ,files)
-      ;; file can be a string or a plist formed as
-      ;;
-      ;; ``` elisp
-      ;; (:file file :load-method load-method :load-path load-path)
-      ;; ````
-      ;;
-      ;; where =file= is a string, =load-method= is a function take
-      ;; one arg i.e. the file to load the file into emacs lisp
-      ;; runtime (default use `require' to the file basename so the
-      ;; feature do not load twice, if you want to explicit load the
-      ;; file use `load' instead) and the =load-path= can be a local
-      ;; dir path string or a list of them which where be add to the
-      ;; top of the current `load-path'.
-      (let* ((file-loadpath nil)
-             (file-loadmethod nil)
-             (file (cond
-                    ((entropy/emacs-common-plistp file)
-                     (setq file-loadpath
-                           (plist-get file :load-path)
-                           file-loadmethod
-                           (plist-get file :load-method))
-                     (or (plist-get file :file)
-                         (error "[pdumper] wrong type of load file plist obj")))
-                    (t
-                     file)))
-             (feature-name (file-name-base file))
-             (feature (intern feature-name)))
-        (let ((inhibit-read-only t)
-              (backup-inhibited t))
-          (if (not (file-exists-p entropy/emacs-pdumper--loads-log-file))
-              (with-temp-buffer
-                (erase-buffer)
-                (goto-char (point-min))
-                (insert (format ":file '%s' :file-loadmethod '%s' :file-loadpath '%s'"
-                                file file-loadmethod file-loadpath))
-                (entropy/emacs-write-file
-                 entropy/emacs-pdumper--loads-log-file))
-            (with-current-buffer (find-file-noselect entropy/emacs-pdumper--loads-log-file)
-              (goto-char (point-max))
-              (when (looking-back "^.+" (line-beginning-position))
-                (insert "\n"))
-              (insert (format ":file '%s' :file-loadmethod '%s' :file-loadpath '%s'"
-                              file file-loadmethod file-loadpath))
-              (save-buffer))))
-        (entropy/emacs-message-do-message
-         "%s %s"
-         (blue "🠶 [Pdumper] load-file:")
-         (yellow feature-name))
-        (let ((inhibit-message t))
-          (condition-case error
-              (let ((load-path
-                     (if file-loadpath
-                         (if (listp file-loadpath)
-                             (append
-                              file-loadpath
-                              load-path)
-                           (cons file-loadpath load-path))
-                       load-path)))
-                (cond
-                 (file-loadmethod
-                  (funcall file-loadmethod file))
-                 (t (require feature))))
-            (error
-             (let ((inhibit-message nil))
-               (message "error: %s" error)))))))))
+(defun entropy/emacs-pdumper--load-files-core (top-dir files)
+  (entropy/emacs-pdumper--with-load-path
+   top-dir
+   (let (fails)
+     (dolist (file files)
+       ;; file can be a string or a plist formed as
+       ;;
+       ;; ``` elisp
+       ;; (:file file :load-method load-method :load-path load-path)
+       ;; ````
+       ;;
+       ;; where =file= is a string, =load-method= is a function take
+       ;; one arg i.e. the file to load the file into emacs lisp
+       ;; runtime (default use `require' to the file basename so the
+       ;; feature do not load twice, if you want to explicit load the
+       ;; file use `load' instead) and the =load-path= can be a local
+       ;; dir path string or a list of them which where be add to the
+       ;; top of the current `load-path'.
+       (let* ((file-loadpath nil)
+              (file-loadmethod nil)
+              (file
+               (cond
+                ((entropy/emacs-common-plistp file)
+                 (setq file-loadpath
+                       (plist-get file :load-path)
+                       file-loadmethod
+                       (plist-get file :load-method))
+                 (or (plist-get file :file)
+                     (entropy/emacs-error-without-debugger
+                      "[pdumper] wrong type of load file plist obj")))
+                (t file)))
+              (feature-name (file-name-base file))
+              (feature (intern feature-name))
+              (msg
+               (format ":file '%s' :file-loadmethod '%s' :file-loadpath '%s'"
+                       file file-loadmethod file-loadpath)))
+         (let ((inhibit-read-only t) (backup-inhibited t))
+           (if (not (file-exists-p entropy/emacs-pdumper--loads-log-file))
+               (with-temp-buffer
+                 (erase-buffer)
+                 (goto-char (point-min))
+                 (insert msg)
+                 (entropy/emacs-write-file
+                  entropy/emacs-pdumper--loads-log-file))
+             (with-current-buffer (find-file-noselect entropy/emacs-pdumper--loads-log-file)
+               (goto-char (point-max))
+               (when (looking-back "^.+" (line-beginning-position))
+                 (insert "\n"))
+               (insert msg)
+               (save-buffer))))
+         (entropy/emacs-message-do-message
+          "%s %s"
+          (blue "🠶 [Pdumper] load-file:")
+          (yellow feature-name))
+         (let ((inhibit-message t))
+           (condition-case error
+               (let ((load-path
+                      (if file-loadpath
+                          (if (listp file-loadpath)
+                              (append
+                               file-loadpath
+                               load-path)
+                            (cons file-loadpath load-path))
+                        load-path)))
+                 (cond
+                  (file-loadmethod
+                   (funcall file-loadmethod file))
+                  (t (require feature))))
+             (error
+              (let ((inhibit-message nil))
+                (message "error: %s" error)
+                (push (cons file msg) fails)))))))
+     (entropy/emacs-when-let*-first
+         ((fails) file msg (cnt 0))
+       (dolist (el fails)
+         (setq file (car el) msg (cdr el))
+         (cl-incf cnt)
+         (entropy/emacs-message-do-message
+          "%s%s"
+          (red (format "[%d] `%s': " cnt file))
+          (yellow msg)))
+       (entropy/emacs-error-without-debugger
+        "Pdumper procedure preloads some files with fatal, Abort!")))))
 
 (defun entropy/emacs-pdumper--load-files (arg-list)
   (cl-loop for (load-dir . load-files) in arg-list
@@ -349,7 +371,8 @@ configuration.")
      . ,(entropy/emacs-pdumper--extract-eemacs-deps-packages))
     (nil
      .
-     ,(entropy/emacs-pdumper--extract-eemacs-repack-builtin-packages))))
+     ,(entropy/emacs-pdumper--extract-eemacs-repack-builtin-packages))
+    ))
 
 (entropy/emacs-pdumper--load-files entropy/emacs-pdumper--load-alist)
 

@@ -1754,7 +1754,12 @@ completion when calling: 'execute-extended-command' or
   )
 
 ;; ** company-lsp
+
 (entropy/emacs-lazy-load-simple 'lsp-mode
+  :always-lazy-load
+  ;; pdump can not dump mutex and condvar made by
+  ;; `make-condition-variable'
+  (bound-and-true-p entropy/emacs-fall-love-with-pdumper)
   (advice-add 'lsp
               :after
               #'entropy/emacs-company-add-lsp-backend))

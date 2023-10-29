@@ -3057,9 +3057,6 @@ advice wrapper, do not calling it in the normal way"
 (defvar entropy/emacs-init-X-hook '()
   "Hooks of entropy-emacs X init.")
 
-(defvar entropy/emacs-pdumper-load-hook nil
-  "Hook for run with pdumper session startup.")
-
 (defun entropy/emacs-select-trail-hook (&optional pdumper-no-end)
   "Automatically selects a hook specified meaning of a
 =entropy-emacs-startup-trail-hook=. Return for

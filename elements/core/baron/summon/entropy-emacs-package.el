@@ -536,21 +536,28 @@ building procedure while invoking INSTALL-COMMANDS."
 ;; *** use-package extended
 
 (defmacro entropy/emacs-usepackage-with-permanently-defer
-    (&rest use-package-name-and-body)
+    (use-package-name &rest use-package-body)
   "Like `use-package' but always defer the package loading."
   (declare (indent defun))
-  (let* ((old-use-package-defaults use-package-defaults))
-    (unwind-protect
-        (progn
-          (setq use-package-defaults
-                '(;; this '(t) has special meaning; see `use-package-handler/:config'
-                  (:config '(t) t)
-                  (:init nil t)
-                  (:catch t t)
-                  (:defer t t)
-                  (:demand nil t)))
-          (macroexpand-1 `(use-package ,@use-package-name-and-body)))
-      (setq use-package-defaults old-use-package-defaults))))
+  (let* ((old-use-package-defaults use-package-defaults)
+         (pl (entropy/emacs-defun--get-body-without-keys
+              use-package-body nil :eemacs-without-permanently-defer))
+         (keep-orig
+          (eval (plist-get (car pl) :eemacs-without-permanently-defer)
+                lexical-binding)))
+    (setq use-package-body (cdr pl))
+    (if keep-orig `(use-package ,use-package-name ,@use-package-body)
+      (unwind-protect
+          (progn
+            (setq use-package-defaults
+                  '(;; this '(t) has special meaning; see `use-package-handler/:config'
+                    (:config '(t) t)
+                    (:init nil t)
+                    (:catch t t)
+                    (:defer t t)
+                    (:demand nil t)))
+            (macroexpand-1 `(use-package ,use-package-name ,@use-package-body)))
+        (setq use-package-defaults old-use-package-defaults)))))
 
 (cl-defmacro entropy/emacs-usepackage-with-no-require
     (use-package-name &rest use-package-body)

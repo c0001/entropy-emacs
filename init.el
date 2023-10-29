@@ -224,6 +224,8 @@ renderred after init this.)"
 (defvar entropy/emacs-fall-love-with-pdumper
   (equal (getenv "EEMACS_MAKE") "Dump")
   "The emacs running type indication for pdumper.")
+(defvar entropy/emacs-pdumper-load-hook nil
+  "Hook for run with pdumper session startup.")
 (defun entropy/emacs-suggest-startup-with-elisp-source-load-p nil
   (or
    (and noninteractive

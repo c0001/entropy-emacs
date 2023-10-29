@@ -40,8 +40,8 @@
 
 ;; ** prepare
 
-(setenv "MPD_HOST" entropy/emacs-mpd-host-url)
-(setenv "MPD_PORT" entropy/emacs-mpd-host-port)
+(entropy/emacs--inner-setenv "MPD_HOST" entropy/emacs-mpd-host-url)
+(entropy/emacs--inner-setenv "MPD_PORT" entropy/emacs-mpd-host-port)
 
 ;; ** mpc
 
