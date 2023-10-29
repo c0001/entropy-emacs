@@ -775,6 +775,19 @@ with `shackle'."
               :override
               #'__ya/company-show-doc-buffer)
 
+;; ***** smooth continuous patch
+
+  (entropy/emacs-make-command-continuous-smoothing-with-common-style
+      company-select-previous)
+  (entropy/emacs-make-command-continuous-smoothing-with-common-style
+      company-select-next)
+  (entropy/emacs-make-command-continuous-smoothing-with-common-style
+      company-previous-page)
+  (entropy/emacs-make-command-continuous-smoothing-with-common-style
+      company-next-page)
+  (entropy/emacs-make-command-continuous-smoothing-with-common-style
+      company-search-delete-char)
+
 ;; *** __end__
   )
 
