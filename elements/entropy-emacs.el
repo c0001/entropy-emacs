@@ -608,10 +608,17 @@ nil otherwise."
 `nadvice' patched."
   (let* ((advised
           (and (symbolp func)
-               (advice--p (advice--symbol-function func)))))
-    (or (and advised
-             (advice--cd*r (advice--symbol-function func)))
-        func)))
+               (advice--p (advice--symbol-function func))))
+         fval)
+    (setq fval
+          (or (and advised
+                   (advice--cd*r (advice--symbol-function func)))
+              func))
+    (if (not (symbolp fval)) fval
+      (symbol-function fval))))
+
+(defalias 'entropy/emacs-get-func-documentation
+  'documentation)
 
 ;; `compiled-function-p' is new with emacs-29, thus we should backport
 ;; it to lower emacs version.
