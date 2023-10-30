@@ -94,6 +94,7 @@ update:
 	@$(EchoEmpty)
 	@$(EMACS_MAKE:MAKE_TYPE="Update")
 
+dump: export EEMACS_MAKE_WITH_ALL_YES=1
 dump: compile-dump
 	@$(EchoEmpty)
 	@$(EMACS_MAKE:MAKE_TYPE="Dump")
