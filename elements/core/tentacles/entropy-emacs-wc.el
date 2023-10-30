@@ -1596,10 +1596,10 @@ used for `entropy/emacs-window-center-mode' internally only.")
 
 ;; *** Using olivetti
 (defvar olivetti-body-width)            ;escape byte-comp warning
-(use-package olivetti
+(entropy/emacs--inner-use-package olivetti
   :if (eq entropy/emacs-window-center-mode-use-backend 'olivetti)
   ;; compatible for nox session where no `mwheel' preloaded.
-  :no-require t
+  :eemacs-with-no-require t
   :defines (olivetti-minimum-body-width)
   :commands
   (olivetti-mode

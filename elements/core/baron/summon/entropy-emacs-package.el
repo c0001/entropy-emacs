@@ -535,18 +535,43 @@ building procedure while invoking INSTALL-COMMANDS."
 
 ;; *** use-package extended
 
-(defmacro entropy/emacs-usepackage-with-permanently-defer
-    (use-package-name &rest use-package-body)
-  "Like `use-package' but always defer the package loading."
+(defmacro entropy/emacs--inner-use-package (use-package-name &rest use-package-body)
+  "eemacs *inner only* used `use-pacakge' compatible variant to add more
+keys:
+
+- `:eemacs-with-no-require': same as `:no-require' but with pattern
+  evaluation. This key exists since the `:no-require' keywords of
+  `use-package' is normalized as a predicate rather than a symlist so
+  that the any usual condition assignment to this keywords are always
+  true for `use-package' macro expansion. (see
+  `use-package-normalize-keywords' implementation, it's normally a
+  Commentary confusion by `use-package's upstream for \"decades\").
+
+- `:eemacs-with-permanently-defer': always defer if non-nil but still
+  respect `:defer' if presented."
   (declare (indent defun))
-  (let* ((old-use-package-defaults use-package-defaults)
+  (let* ((old-use-package-defaults (copy-tree use-package-defaults))
          (pl (entropy/emacs-defun--get-body-without-keys
-              use-package-body nil :eemacs-without-permanently-defer))
-         (keep-orig
-          (eval (plist-get (car pl) :eemacs-without-permanently-defer)
-                lexical-binding)))
-    (setq use-package-body (cdr pl))
-    (if keep-orig `(use-package ,use-package-name ,@use-package-body)
+              use-package-body nil
+              :no-require :defer
+              :eemacs-with-permanently-defer
+              :eemacs-with-no-require))
+         (kpl (car pl))
+         (no-require-p
+          (if (plist-member kpl :no-require) t
+            (eval (plist-get kpl :eemacs-with-no-require)
+                  lexical-binding)))
+         (perm-defer-p
+          (if (plist-member kpl :defer)
+              (eval (plist-get kpl :defer)
+                    lexical-binding)
+            (eval (plist-get kpl :eemacs-with-permanently-defer)
+                  lexical-binding)))
+         form)
+    (setq form `(,@(cdr pl)))
+    (if no-require-p
+        (setq form `(:no-require t ,@form)))
+    (if (not perm-defer-p) `(use-package ,use-package-name ,@form)
       (unwind-protect
           (progn
             (setq use-package-defaults
@@ -556,34 +581,8 @@ building procedure while invoking INSTALL-COMMANDS."
                     (:catch t t)
                     (:defer t t)
                     (:demand nil t)))
-            (macroexpand-1 `(use-package ,use-package-name ,@use-package-body)))
+            (macroexpand-1 `(use-package ,use-package-name ,@form)))
         (setq use-package-defaults old-use-package-defaults)))))
-
-(cl-defmacro entropy/emacs-usepackage-with-no-require
-    (use-package-name &rest use-package-body)
-  "Like `use-package' but apply USE-PACKAGE-BODY with `:no-require'
-enabled only when NO-REQUIRE return non-nil.
-
-This macro exists since the `:no-require' keywords of
-`use-package' is normalized as a predicate rather than a symlist
-so that the any usual condition assignment to this keywords are
-always true for `use-package' macro expansion. (see
-`use-package-normalize-keywords' implementation, it's normally a
-Commentary confusion by `use-package's upstream for \"decades\").
-
-NOTE: NO-REQUIRE's non-nil state is ignored when
-`entropy/emacs-custom-enable-lazy-load' is disable since a
-non-lazy loading eemacs session demand that requirements loaded
-immediately."
-  (declare (indent defun))
-  (let* ((pl (entropy/emacs-defun--get-body-without-keys
-              use-package-body nil :no-require))
-         (no-require (and entropy/emacs-custom-enable-lazy-load
-                          (eval (plist-get (car pl) :no-require) lexical-binding))))
-    (setq use-package-body (cdr pl))
-    (if no-require
-        `(use-package ,use-package-name :no-require t ,@use-package-body)
-      `(use-package ,use-package-name ,@use-package-body))))
 
 ;; *** extra `use-package' keywords definition
 ;; **** :eemacs-functions

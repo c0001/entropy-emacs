@@ -188,7 +188,8 @@ name show function."
 ;; *** modeline type defined
 ;; **** powerline group
 ;; ***** powerline
-(entropy/emacs-usepackage-with-permanently-defer powerline
+(entropy/emacs--inner-use-package powerline
+  :eemacs-with-permanently-defer t
   :preface
   (defvar entropy/emacs-modeline--powerline-spec-done nil)
   (defvar entropy/emacs-modeline--powerline-enable-done nil)
@@ -255,11 +256,13 @@ name show function."
   (setq entropy/emacs-modeline--spaceline-enable-done nil
         entropy/emacs-modeline--spaceline-spec-done nil))
 
-(entropy/emacs-usepackage-with-permanently-defer spaceline-config
+(entropy/emacs--inner-use-package spaceline-config
+  :eemacs-with-permanently-defer t
   :ensure nil
   :commands (spaceline-spacemacs-theme))
 
-(entropy/emacs-usepackage-with-permanently-defer spaceline
+(entropy/emacs--inner-use-package spaceline
+  :eemacs-with-permanently-defer t
   :eemacs-functions (entropy/emacs-modeline--spaceline-defsegment-for-workspace)
   :init
   (entropy/emacs-lazy-load-simple 'spaceline-segments
@@ -479,7 +482,8 @@ eemacs origin type which reduce performance issue."
                     'face 'error))))))
 
 ;; **** doom modeline
-(entropy/emacs-usepackage-with-permanently-defer doom-modeline
+(entropy/emacs--inner-use-package doom-modeline
+  :eemacs-with-permanently-defer t
   ;; We indicate to let doom modeline always not be fully required
   ;; unless user start it since its messy of its dirty hacking
   :commands (doom-modeline-mode

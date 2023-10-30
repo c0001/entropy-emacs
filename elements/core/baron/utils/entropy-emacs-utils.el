@@ -118,11 +118,12 @@
 
 ;; ** trie
 
-(entropy/emacs-usepackage-with-no-require trie
+(entropy/emacs--inner-use-package trie
   ;; inhibit require when byte-compile since it relying on an old
   ;; compat package `tNFA' which use obsolete cl-* functions, while
   ;; many obsolete warnings will popup when in compilation.
-  :no-require t
+  :eemacs-with-no-require t
+  :eemacs-with-permanently-defer t
   :eemacs-functions
   (make-trie
    ;; FIXME: we need to auto load `trie--create' since it's not edited

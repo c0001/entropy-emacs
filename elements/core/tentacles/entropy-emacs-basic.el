@@ -2533,9 +2533,9 @@ mechanism."
                            (cons :load-path
                                  (cons path (cdr body))))))
     (if (= emacs-major-version 28)
-        `(entropy/emacs-usepackage-with-no-require
+        `(entropy/emacs--inner-use-package
            ,@body-patch)
-      `(entropy/emacs-usepackage-with-no-require
+      `(entropy/emacs--inner-use-package
          ,@body)))))
 
 (entropy/emacs-when-defun image-dired--thumb-size (&optional _)
@@ -2587,7 +2587,7 @@ mechanism."
   ;; NOTE: emacs 29's `image-dired' has lots of obsolte declarations,
   ;; so we should escape the requirement of it for escaping
   ;; byte-compile warnings
-  :no-require (>= emacs-major-version 29)
+  :eemacs-with-no-require (>= emacs-major-version 29)
   :commands (image-dired entropy/emacs-image-dired-init)
 ;; ****** preface
   ;; :preface
@@ -2737,7 +2737,7 @@ an error."
   ;; NOTE: emacs 29's `image-dired' has lots of obsolte declarations,
   ;; so we should escape the requirement of it for escaping
   ;; byte-compile warnings
-  :no-require (>= emacs-major-version 29)
+  :eemacs-with-no-require (>= emacs-major-version 29)
   :defines
   (
    image-dired-show-all-from-dir-max-files
@@ -3717,7 +3717,7 @@ dired buffer."
   ;; NOTE: emacs 29's `image-dired' has lots of obsolte declarations,
   ;; so we should escape the requirement of it for escaping
   ;; byte-compile warnings
-  :no-require (>= emacs-major-version 29)
+  :eemacs-with-no-require (>= emacs-major-version 29)
 ;; ****** eemacs hydra hollow instance
   :eemacs-mmphc
   (((:enable t :defer t)
