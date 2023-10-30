@@ -2335,6 +2335,8 @@ window point not shown in nice place e.g. at window bottom."
 
 ;; *** Image-mode
 
+(defvar image-dired-thumbnail-storage)
+(defvar image-dired-thumb-size)
 (defvar image-dired-thumbnail-buffer)
 (defvar image-dired-display-image-buffer)
 
@@ -2594,7 +2596,6 @@ mechanism."
 ;; ****** init
   :init
 
-  (defvar image-dired-thumbnail-storage)
   ;; Prefer use xdg-desktop standard thumbnails location for cross
   ;; apps usage for that prevent dups generation. (although its
   ;; emacs-29 spec but we backported to lowser emacs ver.)
