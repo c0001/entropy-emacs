@@ -2543,7 +2543,7 @@ mechanism."
 (entropy/emacs-when-defun image-dired--thumb-size (&optional _)
   "Return thumb size depending on `image-dired-thumbnail-storage'."
   (declare (advertised-calling-convention () "29.1"))
-  :when (< emacs-major-version 28)
+  :when (< emacs-major-version 29)
   (pcase image-dired-thumbnail-storage
     ('standard 128)
     ('standard-large 256)
