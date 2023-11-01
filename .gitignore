@@ -6,6 +6,7 @@
 !/init.el
 !/early-init.el
 !/.gitignore
+!/.github
 !/custom-example.el
 !/README.org
 !/LICENSE

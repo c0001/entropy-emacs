@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+      - dev
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    continue-on-error: ${{ matrix.experimental }}
+    strategy:
+      fail-fast: false
+      matrix:
+        emacs-version: [27.2, 28.2, 29.1]
+        experimental: [false]
+        include:
+          - emacs-version: snapshot
+            experimental: true
+
+    steps:
+      - name: setenv
+        run: echo "ACTIONS_ALLOW_UNSECURE_COMMANDS=true" >> $GITHUB_ENV
+
+      - name: install libs
+        run: sudo apt install -y librime-dev
+
+      - uses: actions/checkout@v3
+
+      - uses: purcell/setup-emacs@master
+        with:
+          version: ${{ matrix.emacs-version }}
+
+      - name: test
+        run: |
+          echo "(setq entropy/emacs-ext-elpkg-customized-get-type 'entropy-emacs-extenisons-project)" > custom.el
+          echo "(setq entropy/emacs-ide-use-for-all 'lsp)" >> custom.el
+          make install-eemacs-ext-build
+          make all
+          emacs -Q -l init.el --fg-daemon
+          make dump
