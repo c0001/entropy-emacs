@@ -400,7 +400,7 @@ EXIT /b
                               (when (file-directory-p (expand-file-name sub dir))
                                 (throw :exit (setq dir (expand-file-name sub dir)))))
                             (setq dir nil)))
-                        (or (and (stringp dir) (file-directory-p dir))
+                        (or (and (stringp dir) (file-directory-p dir) dir)
                             (entropy/emacs-error-without-debugger
                              "on `%s': python lib dir `%s' not found in `%s':\n%s"
                              system-type dir
