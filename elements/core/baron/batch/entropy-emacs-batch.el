@@ -777,7 +777,14 @@ faild with hash '%s' which must match '%s'"
               penv (nth 2 spec) defdir (nth 3 spec))
         (entropy/emacs-package-compile-dynamic-module
          pkg cmds penv defdir)))
-    (dolist (item entropy/emacs-batch--bytecompile-item-register)
+    (dolist (item
+             (let ((val entropy/emacs-batch--bytecompile-item-register)
+                   (extra-cleans
+                    (list '(eemacs-baron-utils
+                            "baron/batch"
+                            nil))))
+               (if (not clean) val
+                 (append extra-cleans val))))
       (apply 'entropy/emacs-batch--bytecompile-eemacs-core-utils-frameworks
              (if clean (append item '(t)) item)))
     (unless clean
