@@ -416,7 +416,7 @@ EXIT /b
                         maybe-it-1))))
                  (w32-pyexecs-dir
                   (expand-file-name "Scripts" ,this-pip-prefix)))
-             (unless (and (stringp site-package-path) (file-exists-p site-packages-path))
+             (unless (and (stringp site-packages-path) (file-exists-p site-packages-path))
                (entropy/emacs-error-without-debugger
                 "[%s] pypi site-pakcages dir %s not exited, this may an eemacs insternal bug!"
                 ,server-name-string site-packages-path))
