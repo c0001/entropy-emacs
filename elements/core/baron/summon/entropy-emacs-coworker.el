@@ -120,9 +120,11 @@
 (defun entropy/emacs-coworker--patch-python-bin-for-pythonpath (pyfile site-packages-path)
   "Patch python file PYFILE for add =sys.path= for SITE-PACKAGES-PATH"
   (unless (and (stringp pyfile) (file-exists-p pyfile))
-    (error "Pyfile '%s' not existed!" pyfile))
+    (entropy/emacs-error-without-debugger
+     "Pyfile '%s' not existed!" pyfile))
   (unless (and (stringp site-packages-path) (file-exists-p site-packages-path))
-    (error "Py site-package dir '%s' not existed!" site-packages-path))
+    (entropy/emacs-error-without-debugger
+     "Py site-package dir '%s' not existed!" site-packages-path))
   (with-current-buffer (find-file-noselect pyfile)
     (let ((inhibit-read-only t)
           (inst-str (format "sys.path.insert(0,\"%s\")"
@@ -378,44 +380,49 @@ EXIT /b
                  "eemacs coworker init task for '%s' did with fatal for mkdir: %s"
                  ,server-name-string error))))
            :after
-           (let ((site-packages-path
-                  (if (not sys/win32p)
-                      (let ((dir
-                             (or
-                              (car (file-expand-wildcards
-                                    (concat
-                                     (file-name-as-directory
-                                      (expand-file-name ,this-pip-prefix))
-                                     "lib/python[0-9].*")
-                                    'full))
-                              (car (file-expand-wildcards
-                                    (concat
-                                     (file-name-as-directory
-                                      (expand-file-name ,this-pip-prefix))
-                                     "local/lib/python[0-9].*")
-                                    'full)))))
-                        (when dir
-                          (catch :exit
-                            (dolist (sub (list "site-packages" "dist-packages"))
-                              (when (file-directory-p (expand-file-name sub dir))
-                                (throw :exit (setq dir (expand-file-name sub dir)))))
-                            (setq dir nil)))
-                        (or (and (stringp dir) (file-directory-p dir) dir)
-                            (entropy/emacs-error-without-debugger
-                             "on `%s': python lib dir `%s' not found in `%s':\n%s"
-                             system-type dir
-                             ,this-pip-prefix
-                             (mapconcat
-                              (lambda (x) (if (stringp x) x (format "%s" x)))
-                              (directory-files-recursively ,this-pip-prefix ".*")
-                              "\n"))))
-                    (let ((maybe-it-0 (expand-file-name "lib/site-packages" ,this-pip-prefix))
-                          (maybe-it-1 (expand-file-name "Lib/site-packages" ,this-pip-prefix)))
-                      (if (file-exists-p maybe-it-0)
-                          maybe-it-0
-                        maybe-it-1))))
-                 (w32-pyexecs-dir
-                  (expand-file-name "Scripts" ,this-pip-prefix)))
+           (let*
+               ((local-prefix "")
+                (site-packages-path
+                 (if sys/win32p
+                     (let ((maybe-it-0 (expand-file-name "lib/site-packages" ,this-pip-prefix))
+                           (maybe-it-1 (expand-file-name "Lib/site-packages" ,this-pip-prefix)))
+                       (if (file-exists-p maybe-it-0)
+                           maybe-it-0
+                         maybe-it-1))
+                   (let ((dir
+                          (or
+                           (car (file-expand-wildcards
+                                 (concat
+                                  (file-name-as-directory
+                                   (expand-file-name ,this-pip-prefix))
+                                  "lib/python[0-9].*")
+                                 'full))
+                           (let ((val
+                                  (car (file-expand-wildcards
+                                        (concat
+                                         (file-name-as-directory
+                                          (expand-file-name ,this-pip-prefix))
+                                         "local/lib/python[0-9].*")
+                                        'full))))
+                             (and val (setq local-prefix "local/")
+                                  val)))))
+                     (when dir
+                       (catch :exit
+                         (dolist (sub (list "site-packages" "dist-packages"))
+                           (when (file-directory-p (expand-file-name sub dir))
+                             (throw :exit (setq dir (expand-file-name sub dir)))))
+                         (setq dir nil)))
+                     (or (and (stringp dir) (file-directory-p dir) dir)
+                         (entropy/emacs-error-without-debugger
+                          "on `%s': python lib dir `%s' not found in `%s':\n%s"
+                          system-type dir
+                          ,this-pip-prefix
+                          (mapconcat
+                           (lambda (x) (if (stringp x) x (format "%s" x)))
+                           (directory-files-recursively ,this-pip-prefix ".*")
+                           "\n"))))))
+                (w32-pyexecs-dir
+                 (expand-file-name "Scripts" ,this-pip-prefix)))
              (unless (and (stringp site-packages-path) (file-exists-p site-packages-path))
                (entropy/emacs-error-without-debugger
                 "[%s] pypi site-pakcages dir %s not exited, this may an eemacs insternal bug!"
@@ -432,9 +439,11 @@ EXIT /b
                        entropy/emacs-coworker-bin-host-path))
                      (native-bin-path
                       (expand-file-name
-                       (format (if sys/win32p "Scripts/%s"
-                                 "bin/%s")
-                               el)
+                       (format
+                        "%s/%s"
+                        (if sys/win32p "Scripts"
+                          (concat local-prefix "bin"))
+                        el)
                        ,this-pip-prefix)))
                  (cond
                   ((not sys/win32p)
@@ -447,7 +456,8 @@ EXIT /b
                      (entropy/emacs-coworker--gen-python-w32-cmd-bin
                       (concat bin-path ".cmd")
                       w32-pyexec-path site-packages-path)))))))
-           (entropy/emacs-coworker--coworker-message-install-success ,server-name-string)
+           (entropy/emacs-coworker--coworker-message-install-success
+            ,server-name-string)
            :error
            (with-current-buffer $sentinel/destination
              (let ((msg (buffer-substring (point-min) (point-max))))
