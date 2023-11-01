@@ -650,6 +650,24 @@ bug of (EEMACS_BUG: h-17036bdc-c6e9-4ac2-bac8-1c55bd8ecda4)."
 
 ;; **** fix lag on `ivy-thing-at-point'
 
+  (defvar __eemacs-ivy-thing-at-pt-manual-cmds
+    '(
+      __eemacs/ivy-minibuffer-common-thing-at-point
+      ;; TODO: may add ivy original builtin cmds, not our hacks
+      ))
+  (dolist (cmd __eemacs-ivy-thing-at-pt-manual-cmds)
+    (put cmd '__eemacs-ivy-thing-at-pt-manual-cmd-p t))
+
+  (defvar __eemacs-ivy-thing-at-pt-ignore-mmodes
+    '(
+      ;; image's mode has non-need to do so and or made
+      ;; lag on huge size image.
+      image-mode
+      image-dired-thumbnail-mode
+      image-dired-image-mode))
+  (dolist (mode __eemacs-ivy-thing-at-pt-ignore-mmodes)
+    (put mode '__eemacs-ivy-thing-at-pt-ignore-mmode-p t))
+
   (defvar __eemacs-ivy-thing-at-pt-nignore-cmds
     '(
       ;; let `swiper' like function using origin since its
@@ -672,8 +690,8 @@ bug of (EEMACS_BUG: h-17036bdc-c6e9-4ac2-bac8-1c55bd8ecda4)."
       lisp-interaction-mode
       lisp-data-mode
       help-mode))
-  (dolist (cmd __eemacs-ivy-thing-at-pt-nignore-mmodes)
-    (put cmd '__eemacs-ivy-thing-at-pt-nignore-mmode-p t))
+  (dolist (mode __eemacs-ivy-thing-at-pt-nignore-mmodes)
+    (put mode '__eemacs-ivy-thing-at-pt-nignore-mmode-p t))
 
   (defvar __eemacs-ivy-thing-at-pt-nignore-mmodes-cmds
     '(counsel-describe-variable
@@ -686,7 +704,14 @@ bug of (EEMACS_BUG: h-17036bdc-c6e9-4ac2-bac8-1c55bd8ecda4)."
     "Ignore `ivy-thing-at-point' to return emtpy string but with some
 occasions since the internal `thing-at-point' is so laggy with
 large buffer."
-    (cond ((or
+    (cond ((and (not (entropy/emacs-get-symbol-prop
+                      real-this-command '__eemacs-ivy-thing-at-pt-manual-cmd-p))
+                (or
+                 ;; TODO: force disable occasions
+                 (entropy/emacs-get-symbol-prop
+                  major-mode '__eemacs-ivy-thing-at-pt-ignore-mmode-p)))
+           "")
+          ((or
             ;; TODO: could we use this: `current-prefix-arg' ?
 
             ;; FIXME: shall we need to use `with-ivy-window' to
