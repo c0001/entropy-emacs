@@ -114,7 +114,7 @@ liberime:
 	make EMACS='' EMACS_MAJOR_VERSION=$(EMACS_MAJOR_VERSION) -C elements/site-lisp/emacs-rime/ lib
 
 all: export EEMACS_MAKE_ALL=1
-all: install install-coworkers liberime compile-clean compile
+all: install install-coworkers compile-clean compile
 
 install-systemd-service:
 	awk "{gsub(\"<<<<INIT>>>>\",  \"$(EEMACS_TOP_DIR)/init.el\")}1"   \
