@@ -549,8 +549,10 @@ hang thus (i.e. focus missed in)"
   ;; https://github.com/abo-abo/hydra/issues/365#issue-574484394
   ;;
   ;; This will remove when update hydra package.
-  (setq hydra-key-regex
-        "[][\\[:alnum:] ~.,;:/|?<>={}*+#%@!&^↑↓←→⌫⌦⏎'`()\"$-]+?")
+  ;;
+  ;; (setq hydra-key-regex
+  ;;       "[][\\[:alnum:] ~.,;:/|?<>={}*+#%@!&^↑↓←→⌫⌦⏎'`()\"$-]+?")
+
   :config
 ;; **** core patch
 ;; ***** display/delete indicator
