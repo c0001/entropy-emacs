@@ -381,17 +381,29 @@ EXIT /b
            (let ((site-packages-path
                   (if (not sys/win32p)
                       (let ((dir
-                             (car (file-expand-wildcards
-                                   (concat
-                                    (file-name-as-directory
-                                     (expand-file-name ,this-pip-prefix))
-                                    "lib/python[0-9]+.*/\\(site-packages\\|dist-packages\\)"
-                                    )
-                                   'full 'regex))))
+                             (or
+                              (car (file-expand-wildcards
+                                    (concat
+                                     (file-name-as-directory
+                                      (expand-file-name ,this-pip-prefix))
+                                     "lib/python[0-9].*")
+                                    'full))
+                              (car (file-expand-wildcards
+                                    (concat
+                                     (file-name-as-directory
+                                      (expand-file-name ,this-pip-prefix))
+                                     "local/lib/python[0-9].*")
+                                    'full)))))
+                        (when dir
+                          (catch :exit
+                            (dolist (sub (list "site-packages" "dist-packages"))
+                              (when (file-directory-p (expand-file-name sub dir))
+                                (throw :exit (setq dir (expand-file-name sub dir)))))
+                            (setq dir nil)))
                         (or (and (stringp dir) (file-directory-p dir))
                             (entropy/emacs-error-without-debugger
-                             "on `%s': python lib dir not found in `%s':\n%s"
-                             system-type
+                             "on `%s': python lib dir `%s' not found in `%s':\n%s"
+                             system-type dir
                              ,this-pip-prefix
                              (mapconcat
                               (lambda (x) (if (stringp x) x (format "%s" x)))
@@ -905,7 +917,9 @@ lsp-java-v3.1_jdtls_release/%s"))
                             :enable (EEMACS-DT-IDENTITY t))
                      (:name "clangd-lsp"
                             :pred entropy/emacs-coworker-check-clangd-lsp
-                            :enable (EEMACS-DT-IDENTITY t))
+                            :enable (EEMACS-DT-FORM
+                                     (if (entropy/emacs-getenv "EEMACS_CI_TEST")
+                                         (executable-find "clangd") t)))
                      (:name "rust-analyzer"
                             :pred entropy/emacs-coworker-check-rust-analyzer
                             :enable (EEMACS-DT-IDENTITY t))
