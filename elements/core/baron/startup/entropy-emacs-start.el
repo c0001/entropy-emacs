@@ -36,8 +36,6 @@
   (string-match-p "\\.elc$" load-file-name))
 
 ;; ** Require
-(when entropy/emacs-startup-debug-on-error
-  (setq debug-on-error t))
 (when entropy/emacs-startup-jit-lock-debug-mode
   (jit-lock-debug-mode t))
 

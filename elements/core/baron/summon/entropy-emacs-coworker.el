@@ -119,8 +119,10 @@
 ;; ****** patch python installed bins for import portable "sys.path"
 (defun entropy/emacs-coworker--patch-python-bin-for-pythonpath (pyfile site-packages-path)
   "Patch python file PYFILE for add =sys.path= for SITE-PACKAGES-PATH"
-  (unless (file-exists-p pyfile)
+  (unless (and (stringp pyfile) (file-exists-p pyfile))
     (error "Pyfile '%s' not existed!" pyfile))
+  (unless (and (stringp site-packages-path) (file-exists-p site-packages-path))
+    (error "Py site-package dir '%s' not existed!" site-packages-path))
   (with-current-buffer (find-file-noselect pyfile)
     (let ((inhibit-read-only t)
           (inst-str (format "sys.path.insert(0,\"%s\")"
@@ -319,9 +321,10 @@ EXIT /b
                   (expand-file-name
                    "pip.exe"
                    entropy/emacs-win-portable-pip-host-path)))
-      (entropy/emacs-error-without-debugger "You must using 'pip' of \
+      (entropy/emacs-error-without-debugger
+       "You must using 'pip' of \
 `entropy/emacs-win-portable-python-enable' to install coworker <%s>"
-             server-name-string)))
+       server-name-string)))
   (let* (
          ;; NOTE: We should use independently prefix for each pypi
          ;; pacakge since each pacakge should has their own
@@ -377,10 +380,23 @@ EXIT /b
            :after
            (let ((site-packages-path
                   (if (not sys/win32p)
-                      (expand-file-name
-                       (car (file-expand-wildcards
-                             (expand-file-name "lib/python[0-9]*/site-packages"
-                                               ,this-pip-prefix))))
+                      (let ((dir
+                             (car (file-expand-wildcards
+                                   (concat
+                                    (file-name-as-directory
+                                     (expand-file-name ,this-pip-prefix))
+                                    "lib/python[0-9]+.*/\\(site-packages\\|dist-packages\\)"
+                                    )
+                                   'full 'regex))))
+                        (or (and (stringp dir) (file-directory-p dir))
+                            (entropy/emacs-error-without-debugger
+                             "on `%s': python lib dir not found in `%s':\n%s"
+                             system-type
+                             ,this-pip-prefix
+                             (mapconcat
+                              (lambda (x) (if (stringp x) x (format "%s" x)))
+                              (directory-files-recursively ,this-pip-prefix ".*")
+                              "\n"))))
                     (let ((maybe-it-0 (expand-file-name "lib/site-packages" ,this-pip-prefix))
                           (maybe-it-1 (expand-file-name "Lib/site-packages" ,this-pip-prefix)))
                       (if (file-exists-p maybe-it-0)
@@ -388,15 +404,15 @@ EXIT /b
                         maybe-it-1))))
                  (w32-pyexecs-dir
                   (expand-file-name "Scripts" ,this-pip-prefix)))
-             (unless (file-exists-p site-packages-path)
+             (unless (and (stringp site-package-path) (file-exists-p site-packages-path))
                (entropy/emacs-error-without-debugger
                 "[%s] pypi site-pakcages dir %s not exited, this may an eemacs insternal bug!"
                 ,server-name-string site-packages-path))
-             (when sys/win32p
-               (unless (file-exists-p site-packages-path)
-                 (entropy/emacs-error-without-debugger
-                  "[%s] win32 pypi bin dir %s not exited, this may an eemacs insternal bug!"
-                  ,server-name-string w32-pyexecs-dir)))
+             (when (and sys/win32p
+                        (not (file-directory-p w32-pyexecs-dir)))
+               (entropy/emacs-error-without-debugger
+                "[%s] win32 pypi bin dir %s not exited, this may an eemacs insternal bug!"
+                ,server-name-string w32-pyexecs-dir))
              (dolist (el ',server-bins)
                (let ((bin-path
                       (expand-file-name
@@ -914,7 +930,7 @@ lsp-java-v3.1_jdtls_release/%s"))
            (cyan (format ">> %s: " count))
            (yellow (format "'%s'" (plist-get el :name)))
            (green "installing ..."))
-          (condition-case err
+          (condition-case-unless-debug err
               (funcall (plist-get el :pred))
             (error (push (cons (plist-get el :name) err) fail-list)
                    (entropy/emacs-message-do-message

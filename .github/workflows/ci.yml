@@ -41,7 +41,7 @@ jobs:
         run: |
           echo "(setq entropy/emacs-ext-elpkg-customized-get-type 'entropy-emacs-extenisons-project)" > custom.el
           echo "(setq entropy/emacs-ide-use-for-all 'lsp)" >> custom.el
-          env EEMACS_MAKE_ALL=1 make install-eemacs-ext-build
-          env EEMACS_MAKE_ALL=1 make all
+          env EEMACS_MAKE_ALL=1 EEMACS_DEBUG=1 make install-eemacs-ext-build
+          env EEMACS_MAKE_ALL=1 EEMACS_DEBUG=1 make all
           env EEMACS_MAKE_ALL=1 emacs -Q -l init.el --fg-daemon
           env EEMACS_MAKE_ALL=1 make dump

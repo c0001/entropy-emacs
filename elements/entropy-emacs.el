@@ -1651,6 +1651,9 @@ developments."
             entropy/emacs-do-pdumping-with-lazy-load-p)
        (setq entropy/emacs-custom-enable-lazy-load t)))
 
+(when entropy/emacs-startup-debug-on-error
+  (setq debug-on-error t))
+
 (cond
  ((entropy/emacs-is-make-session)
   (!eemacs-require 'entropy-emacs-batch))

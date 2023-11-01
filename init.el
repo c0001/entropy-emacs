@@ -184,7 +184,8 @@ empty string predicated by `string-empty-p'."
   "entropy-emacs debug configurations"
   :group 'entropy-emacs-customize-top-group)
 
-(defcustom entropy/emacs-startup-with-Debug-p (getenv "EEMACS_DEBUG")
+(defcustom entropy/emacs-startup-with-Debug-p
+  (entropy/emacs-getenv "EEMACS_DEBUG")
   "Does eemacs start with debug mode?"
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-DEBUG)
