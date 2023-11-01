@@ -87,11 +87,11 @@ configuration.")
 
 ;; *** libs
 
-(let (_initp)
+(let ((this-initp nil))
   (defun entropy/emacs-pdumper--recover-load-path ()
-    (unless _initp
+    (unless this-initp
       (setq load-path entropy/emacs-pdumper-pre-lpth
-            _initp t))))
+            this-initp t))))
 
 (defun entropy/emacs-pdumper--recover-font-lock ()
   (unless (bound-and-true-p global-font-lock-mode)
