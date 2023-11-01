@@ -224,6 +224,20 @@ renderred after init this.)"
 (defvar entropy/emacs-fall-love-with-pdumper
   (equal (getenv "EEMACS_MAKE") "Dump")
   "The emacs running type indication for pdumper.")
+
+(defvar entropy/emacs-do-pdumping-with-lazy-load-p nil
+  "Whether dump emacs with eemacs-core only i.e. all facilities will
+loading after the dump file loaded.
+
+This default value of `emacs-major-version' upper/equal than 29
+is forced be non-nil since in which emacs versions the pdump
+regression phenomenon is issued from
+`https://lists.nongnu.org/archive/html/emacs-devel/2023-02/msg00603.html',
+TLDR, for those emacs versions many more objects can not be
+dumped as well as older vers any more.")
+(setq entropy/emacs-do-pdumping-with-lazy-load-p
+      (> emacs-major-version 28))
+
 (defvar entropy/emacs-pdumper-load-hook nil
   "Hook for run with pdumper session startup.")
 (defun entropy/emacs-suggest-startup-with-elisp-source-load-p nil

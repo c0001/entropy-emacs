@@ -126,13 +126,16 @@ at some proper time.")
                 (copy-sequence
                  entropy/emacs-hydra-hollow-union-form-const)))))))
 
+(defvar entropy/emacs-hydra-hollow-is-calling-union-form nil)
 (defun entropy/emacs-hydra-hollow-call-union-form (&rest _)
   "Call `entropy/emacs-hydra-hollow-union-form' recursively til
 it becoming one empty form."
-  (entropy/emacs-message-simple-progress-message
-      "Dispatch hydra hollow union form"
-    :with-temp-message t
-    (entropy/emacs-hydra-hollow-call-union-form-1)))
+  (unless entropy/emacs-hydra-hollow-is-calling-union-form
+    (let ((entropy/emacs-hydra-hollow-is-calling-union-form t))
+      (entropy/emacs-message-simple-progress-message
+          "Dispatch hydra hollow union form"
+        :with-temp-message t
+        (entropy/emacs-hydra-hollow-call-union-form-1)))))
 
 (defvar entropy/emacs-hydra-hollow-call-union-form-adviced-list nil
   "A list of functions who has been adviced by

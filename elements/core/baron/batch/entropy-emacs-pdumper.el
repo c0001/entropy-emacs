@@ -85,33 +85,42 @@ configuration.")
              entropy/emacs-origin-load-path))))
      ,(entropy/emacs-macroexp-progn body)))
 
+;; *** libs
+
+(let (_initp)
+  (defun entropy/emacs-pdumper--recover-load-path ()
+    (unless _initp
+      (setq load-path entropy/emacs-pdumper-pre-lpth
+            _initp t))))
+
+(defun entropy/emacs-pdumper--recover-font-lock ()
+  (unless (bound-and-true-p global-font-lock-mode)
+    (entropy/emacs-message-do-message (green "Enabling fontlocks ..."))
+    (global-font-lock-mode +1))
+  (unless (bound-and-true-p transient-mark-mode)
+    (entropy/emacs-message-do-message (green "Enabling transient ..."))
+    (transient-mark-mode +1)))
+
 ;; *** extract files
 
-(defmacro entropy/emacs-pdumper--extract-files-with-dir
+(defun entropy/emacs-pdumper--extract-files-with-dir
     (top-dir exc-filters inc-filters &optional full-path)
-  `(let* ((files (entropy/emacs-list-dir-subfiles-recursively-for-list ,top-dir))
-          rtn)
-     (dolist (file files)
-       (let ((file-name (if ,full-path file (file-name-nondirectory file)))
-             exc-passed inc-passed)
-
-         (dolist (exc-rx ,exc-filters)
-           (if (string-match-p exc-rx file-name)
-               (push t exc-passed)
-             (push nil exc-passed)))
-         ;; we do not allow any exclution detected
-         (setq exc-passed (not (member t exc-passed)))
-
-         (dolist (inc-rx ,inc-filters)
-           (if (string-match-p inc-rx file-name)
-               (push t inc-passed)
-             (push nil inc-passed)))
-         ;; vise versa, we allow any inclusion detected
-         (setq inc-passed (member t inc-passed))
-
-         (when (and exc-passed inc-passed)
-           (push file rtn))))
-     rtn))
+  (let* ((files (entropy/emacs-list-dir-subfiles-recursively-for-list top-dir))
+         file-name exc-passed inc-passed
+         rtn)
+    (dolist (file files)
+      (setq file-name (if full-path file (file-name-nondirectory file))
+            exc-passed t inc-passed nil)
+      (catch :break
+        (dolist (exc-rx exc-filters)
+          (and (string-match-p exc-rx file-name)
+               (throw :break (setq exc-passed nil)))))
+      (catch :break
+        (dolist (inc-rx inc-filters)
+          (and (string-match-p inc-rx file-name)
+               (throw :break (setq inc-passed t)))))
+      (and exc-passed inc-passed (push file rtn)))
+    (nreverse rtn)))
 
 (defun entropy/emacs-pdumper--extract-upstream-packages ()
   (let ((exc-filters `(,(rx (or (seq "autoloads.el" line-end)
@@ -238,7 +247,7 @@ configuration.")
 
       ;; FIXME: restore the saved `load-path' sicne pdumper session
       ;; will lost the `load-path' within the dump procedure
-      (setq load-path entropy/emacs-pdumper-pre-lpth)
+      (entropy/emacs-pdumper--recover-load-path)
 
       ;; disable bar ui features before any procedur
       (entropy/emacs-ui-disable-emacs-bar-refer-uifeature)
@@ -249,10 +258,7 @@ configuration.")
       ;; fast up bootstrap
       (setq gc-cons-threshold most-positive-fixnum)
       (entropy/emacs-themes-init-setup-user-theme)
-      (entropy/emacs-message-do-message (green "Enabling fontlocks ..."))
-      (global-font-lock-mode +1)
-      (transient-mark-mode +1)
-      (entropy/emacs-message-do-message (green "Enable fontlocks done"))
+      (entropy/emacs-pdumper--recover-font-lock)
 
       (message "****** Run intial hooks *****")
       ;; the pdumper session procedure
@@ -374,7 +380,8 @@ configuration.")
      ,(entropy/emacs-pdumper--extract-eemacs-repack-builtin-packages))
     ))
 
-(entropy/emacs-pdumper--load-files entropy/emacs-pdumper--load-alist)
+(unless (bound-and-true-p entropy/emacs-do-pdumping-with-lazy-load-p)
+  (entropy/emacs-pdumper--load-files entropy/emacs-pdumper--load-alist))
 
 ;; *** idle recovery
 (setq
@@ -388,6 +395,9 @@ configuration.")
   ;; the current interaction.
   nil
   #'entropy/emacs-pdumper--recovery))
+(when (boundp 'after-pdump-load-hook)
+  (add-hook 'after-pdump-load-hook
+            #'entropy/emacs-pdumper--recover-load-path))
 
 ;; * provide
 (provide 'entropy-emacs-pdumper)

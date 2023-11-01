@@ -80,7 +80,8 @@
 
 ;; initialize trie for entropy-emacs pdumper loading or daemon or
 ;; eemacs non-lazy loading when detected
-(when (or (bound-and-true-p entropy/emacs-fall-love-with-pdumper)
+(when (or (and (bound-and-true-p entropy/emacs-fall-love-with-pdumper)
+               (not (bound-and-true-p entropy/emacs-do-pdumping-with-lazy-load-p)))
           (daemonp)
           (and (boundp 'entropy/emacs-custom-enable-lazy-load)
                (boundp 'entropy/emacs-session-in-byte-compile-emacs-core-p)

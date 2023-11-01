@@ -3064,13 +3064,19 @@ advice wrapper, do not calling it in the normal way"
 `entropy/emacs-fall-love-with-pdumper' is nil or optional arg
 PDUMPER-NO-END is non-nil.
 
+For a pdumper session and PDUMPER-NO-END is `nil' or
+`entropy/emacs-do-pdumping-with-lazy-load-p' is non-nil, then the trail
+hook is `entropy/emacs-pdumper-load-hook'.
+
 At any time, only one of those hook is recongnized as
 =entropy-emacs-startup-trail-hook=, and it is a hook for trigger
 configration enable when all the preparations have done.
 
 See `entropy/emacs-startup-end-hook' either."
   (if entropy/emacs-fall-love-with-pdumper
-      (if (null pdumper-no-end)
+      (if (or (null pdumper-no-end)
+              (bound-and-true-p
+               entropy/emacs-do-pdumping-with-lazy-load-p))
           'entropy/emacs-pdumper-load-hook
         (if entropy/emacs-minimal-start
             'entropy/emacs-init-mini-hook
@@ -3562,12 +3568,9 @@ to forcely judge as a displayable status.
 This also affects `display-multi-font-p' because it's an alias of
 that."
   (cond
-   ((and (or entropy/emacs-fall-love-with-pdumper
-             (equal (entropy/emacs-is-make-session) "Dump"))
-         entropy/emacs-do-pdumper-in-X)
-    t)
-   (t
-    (apply orig-func orig-args))))
+   ((and entropy/emacs-fall-love-with-pdumper
+         entropy/emacs-do-pdumper-in-X) t)
+   (t (apply orig-func orig-args))))
 
 (advice-add 'display-graphic-p
             :around

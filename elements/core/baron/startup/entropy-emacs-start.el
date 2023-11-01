@@ -418,7 +418,9 @@ notation.
        :force-message-while-eemacs-init t)
       (setq entropy/emacs-run-startup-trail-hooks-init-timestamp
             (current-time))
-      (run-hooks (entropy/emacs-select-trail-hook t))
+      (unless (and entropy/emacs-fall-love-with-pdumper
+                   entropy/emacs-do-pdumping-with-lazy-load-p)
+        (run-hooks (entropy/emacs-select-trail-hook t)))
       (setq entropy/emacs-run-startup-trail-hooks-init-done-timestamp
             (current-time))
       (entropy/emacs-message-do-message

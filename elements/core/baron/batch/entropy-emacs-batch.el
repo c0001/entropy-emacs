@@ -273,7 +273,6 @@ In used emacs version is: %s
   (let ((dump-file (expand-file-name
                     (format "eemacs_%s.pdmp" (format-time-string "%Y%m%d%H%M%S"))
                     entropy/emacs-user-emacs-directory)))
-    (setq entropy/emacs-fall-love-with-pdumper t)
     (entropy/emacs-batch-require-prefer-use-source
      'entropy-emacs-start)
     (dump-emacs-portable dump-file)))

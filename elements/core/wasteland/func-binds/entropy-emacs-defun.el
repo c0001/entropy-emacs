@@ -12209,8 +12209,10 @@ automatically self-unbound when loaded done."
              (let (_)
                (dolist (item ,list-var-sym)
                  (if (not (null ,adder-flag-sym))
-                     (funcall ,adder-type-sym item ,adder-flag-sym ,func-sym)
-                   (funcall ,adder-type-sym item ,func-sym)))))))))))
+                     (funcall 'advice-add item ,adder-flag-sym ,func-sym)
+                   (funcall 'add-hook item ,func-sym
+                            ;; NOTE: obey define order
+                            100)))))))))))
 
 (cl-defmacro entropy/emacs-lazy-initial-for-hook
     (hooks initial-func-suffix-name initial-var-suffix-name

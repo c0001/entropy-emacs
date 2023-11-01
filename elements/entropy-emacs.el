@@ -933,7 +933,24 @@ Parameter   Color
 
   )
 
-(defun entropy/emacs-ansi-apply-string (string &optional no-properties)
+(defun entropy/emacs-ansi-apply-string (&rest args)
+  "Use `entropy/emacs-ansi-apply-string-1' as normal but for some
+case we just strip out ansi control chars for preventing error of
+invalid ansi-* face bounding such as in pdumper load procedure
+uppon emacs-29.
+
+\(fn STRING &optional NO-PROPERTIES)"
+  (if (and (bound-and-true-p entropy/emacs-fall-love-with-pdumper)
+           (not noninteractive)
+           (not (bound-and-true-p global-font-lock-mode)))
+      (replace-regexp-in-string
+       ;; inspired by `ansi-color-control-seq-regexp' and
+       ;; `ansi-color-parameter-regexp'.
+       "\\(\e\\[[\x30-\x3F]*[\x20-\x2F]*\\|\e\\)\\(\\([0-9]*\\)[m;]\\)?"
+       "" (car args))
+    (apply 'entropy/emacs-ansi-apply-string-1 args)))
+
+(defun entropy/emacs-ansi-apply-string-1 (string &optional no-properties)
   "Strip string STRING's ansi control/escape characters by replacing
 them as encoding the plain string with emacs text properties.
 Return thus of plain string encoded with thus text properties or
@@ -1622,13 +1639,17 @@ developments."
 
 ;; forbidden `entropy/emacs-custom-enable-lazy-load' at special
 ;; session.
-(when (and entropy/emacs-custom-enable-lazy-load
-           (or entropy/emacs-fall-love-with-pdumper
-               ;; NOTE: We should not enable lazy load for a systemd
-               ;; service session both for running and compiling
-               (entropy/emacs-getenv "EEMACS_SYSTEMD_DAEMON_SERVICE")
-               (daemonp)))
-  (setq entropy/emacs-custom-enable-lazy-load nil))
+(cond ((and entropy/emacs-custom-enable-lazy-load
+            (or (and entropy/emacs-fall-love-with-pdumper
+                     (not entropy/emacs-do-pdumping-with-lazy-load-p))
+                ;; NOTE: We should not enable lazy load for a systemd
+                ;; service session both for running and compiling
+                (entropy/emacs-getenv "EEMACS_SYSTEMD_DAEMON_SERVICE")
+                (daemonp)))
+       (setq entropy/emacs-custom-enable-lazy-load nil))
+      ((and entropy/emacs-fall-love-with-pdumper
+            entropy/emacs-do-pdumping-with-lazy-load-p)
+       (setq entropy/emacs-custom-enable-lazy-load t)))
 
 (cond
  ((entropy/emacs-is-make-session)

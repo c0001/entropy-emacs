@@ -3887,10 +3887,18 @@ and `entropy/emacs-window-center-auto-mode-enable-p'."
               #'__ya/Man-fit-to-window/with-pre-promptings)
   )
 
-(use-package woman
+(entropy/emacs--inner-use-package woman
   :ensure nil
-  :defer entropy/emacs-fall-love-with-pdumper
+  ;; always defer&no-require since its need X display
+  :eemacs-with-permanently-defer t
+  :eemacs-with-no-require t
   :commands woman
+  :preface
+  (defvar woman-fill-column)
+  (defvar woman-dired-keys)
+  (defvar WoMan-current-file)
+  (defvar woman-use-own-frame)
+  (defvar woman-frame)
   :init
   (setq woman-fill-column 100
         woman-dired-keys nil)
@@ -5753,7 +5761,7 @@ successfully both of situation of read persisit of create an new."
      :defer
      (:data
       (:adfors
-       (after-change-major-mode-hook)
+       (entropy/emacs-after-startup-idle-hook)
        :adtype hook
        :pdumper-no-end t)))
     (describe-help-fns))
@@ -5781,7 +5789,7 @@ successfully both of situation of read persisit of create an new."
      :defer
      (:data
       (:adfors
-       (after-change-major-mode-hook)
+       (entropy/emacs-after-startup-idle-hook)
        :adtype hook
        :pdumper-no-end t))))
    ("Basic"
