@@ -183,40 +183,41 @@ Return %s when %s is a CL-X of %o or nil (error when WITH-ERROR is non-nil)."
                 ,with-obj-name)))
            )))))
 
-(entropy/emacs/generic//macro/cl-defstruct
-    (entropy/emacs/generic//obj/generic-function
-     (:constructor nil)
-     (:constructor entropy/emacs/generic//obj/generic-function/pred/make)
-     (:predicate   entropy/emacs/generic//obj/generic-function/pred/typep)
-     (:copier      entropy/emacs/generic//obj/generic-function/pred/copy)
-     (:conc-name   entropy/emacs/generic//obj/generic-function/slot/))
-    "eemacs generic function object"
-  :with-obj-name obj/generic-function
-  :with-judge-macro-name
-  entropy/emacs/generic//obj/generic-function/pred/with-judge
-  :with-judge-return-func-name
-  entropy/emacs/generic//obj/generic-function/pred/with-judge-return
-  ;; slots
-  name doc require-define
-  adv-before adv-after adv-around
-  )
+(eval-and-compile
+  (entropy/emacs/generic//macro/cl-defstruct
+      (entropy/emacs/generic//obj/generic-function
+       (:constructor nil)
+       (:constructor entropy/emacs/generic//obj/generic-function/pred/make)
+       (:predicate   entropy/emacs/generic//obj/generic-function/pred/typep)
+       (:copier      entropy/emacs/generic//obj/generic-function/pred/copy)
+       (:conc-name   entropy/emacs/generic//obj/generic-function/slot/))
+      "eemacs generic function object"
+    :with-obj-name obj/generic-function
+    :with-judge-macro-name
+    entropy/emacs/generic//obj/generic-function/pred/with-judge
+    :with-judge-return-func-name
+    entropy/emacs/generic//obj/generic-function/pred/with-judge-return
+    ;; slots
+    name doc require-define
+    adv-before adv-after adv-around
+    )
 
-(entropy/emacs/generic//macro/cl-defstruct
-    (entropy/emacs/generic//obj/generic-function-group
-     (:constructor nil)
-     (:constructor entropy/emacs/generic//obj/generic-function-group/pred/make)
-     (:predicate   entropy/emacs/generic//obj/generic-function-group/pred/typep)
-     (:copier      entropy/emacs/generic//obj/generic-function-group/pred/copy)
-     (:conc-name   entropy/emacs/generic//obj/generic-function-group/slot/))
-    "eemacs generic function group object"
-  :with-obj-name obj/generic-function-group
-  :with-judge-macro-name
-  entropy/emacs/generic//obj/generic-function-group/pred/with-judge
-  :with-judge-return-func-name
-  entropy/emacs/generic//obj/generic-function-group/pred/with-judge-return
-  ;; slots
-  name doc
-  (ring::obj/generic-function (make-ring 10)))
+  (entropy/emacs/generic//macro/cl-defstruct
+      (entropy/emacs/generic//obj/generic-function-group
+       (:constructor nil)
+       (:constructor entropy/emacs/generic//obj/generic-function-group/pred/make)
+       (:predicate   entropy/emacs/generic//obj/generic-function-group/pred/typep)
+       (:copier      entropy/emacs/generic//obj/generic-function-group/pred/copy)
+       (:conc-name   entropy/emacs/generic//obj/generic-function-group/slot/))
+      "eemacs generic function group object"
+    :with-obj-name obj/generic-function-group
+    :with-judge-macro-name
+    entropy/emacs/generic//obj/generic-function-group/pred/with-judge
+    :with-judge-return-func-name
+    entropy/emacs/generic//obj/generic-function-group/pred/with-judge-return
+    ;; slots
+    name doc
+    (ring::obj/generic-function (make-ring 10))))
 
 (defun entropy/emacs/generic//func/gen/generic-function-sym
     (generic-function-group/name generic-function/name)

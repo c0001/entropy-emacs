@@ -134,6 +134,12 @@
       :under 29
       :name 'eglot
       :pkg-desc (lambda () (__entropy/emacs-requirements/pkgs_desc_get_statble 'eglot)))
+    ,(entropy/emacs-pkgreq-make-pkgreqptr
+      :under 29
+      :name 'external-completion
+      :pkg-desc (lambda ()
+                  (__entropy/emacs-requirements/pkgs_desc_get_statble
+                   'external-completion)))
     ;; force use new version of `eldoc' for new version of `eglot'
     ,(entropy/emacs-pkgreq-make-pkgreqptr
       :under 29
