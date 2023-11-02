@@ -7368,7 +7368,9 @@ if `current-prefix-arg' is non-nil or directly modify the region
 of `current-buffer' without saving."
                 method-cname)
        (declare (interactive-only t))
-       (interactive "r")
+       (interactive)
+       (when (region-active-p)
+         (setq beg (region-beginning) end (region-end)))
        (let* ((obuff (current-buffer))
               (beg (or beg (point-min))) (end (or end (point-max)))
               (msg
