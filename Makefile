@@ -103,18 +103,12 @@ native-comp:
 	@$(EchoEmpty)
 	@$(EMACS_MAKE:MAKE_TYPE="Native-Comp")
 
-liberime: export EEMACS_MAKE=Liberime
 liberime:
 	@$(EchoEmpty)
-# liberime
-	make EMACS='' EMACS_MAJOR_VERSION=$(EMACS_MAJOR_VERSION) -C elements/site-lisp/liberime/ clean
-	make EMACS='' EMACS_MAJOR_VERSION=$(EMACS_MAJOR_VERSION) -C elements/site-lisp/liberime/ all
-# emacs-rime
-	make EMACS='' EMACS_MAJOR_VERSION=$(EMACS_MAJOR_VERSION) -C elements/site-lisp/emacs-rime/ clean
-	make EMACS='' EMACS_MAJOR_VERSION=$(EMACS_MAJOR_VERSION) -C elements/site-lisp/emacs-rime/ lib
+	@$(EMACS_MAKE:MAKE_TYPE="Liberime")
 
 all: export EEMACS_MAKE_ALL=1
-all: install install-coworkers compile-clean compile
+all: install compile-clean compile liberime install-coworkers
 
 install-systemd-service:
 	awk "{gsub(\"<<<<INIT>>>>\",  \"$(EEMACS_TOP_DIR)/init.el\")}1"   \

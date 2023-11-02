@@ -801,6 +801,80 @@ faild with hash '%s' which must match '%s'"
           (insert (format "(setq %S %S)\n" el (symbol-value el))))
         (save-buffer)))))
 
+;; **** compile extra facilities
+
+(defun entropy/emacs-batch--make-extra-utils-wrapper
+    (name path command-list)
+  (let ((cmdstr (mapconcat 'identity command-list " ")))
+    (entropy/emacs-with-make-process
+     :name name
+     :synchronously t
+     :command command-list
+     :buffer (entropy/emacs-generate-new-buffer
+              (format " *eemacs/batch--make-extra-utils/%s*" name))
+     :default-directory path
+     :after
+     (entropy/emacs-message-do-message
+      "[%s]: %s%s%s%s%s%s"
+      (green  "OK")
+      (green "Make ")
+      (yellow name)
+      (green " successfully with cmd ")
+      (yellow "`%s' " cmdstr)
+      (green "in path: ")
+      (yellow path))
+     :error
+     (entropy/emacs-message-do-error
+      "[%s]: %s%s%s%s%s%s\n"
+      (red  "ERR")
+      (red "Make ")
+      (yellow name)
+      (red " fatal with cmd ")
+      (yellow "`%s' " cmdstr)
+      (red "in path: ")
+      (yellow path)
+      (red (with-current-buffer $sentinel/destination
+             (buffer-substring-no-properties
+              (point-min) (point-max)))))
+     :cleanup
+     (when (buffer-live-p $sentinel/destination)
+       (kill-buffer $sentinel/destination)))))
+
+;; ***** liberime
+
+(defun entropy/emacs-batch--make-dylib/liberime ()
+  (let ((emver (format "EMACS_MAJOR_VERSION=%s" emacs-major-version))
+        (path  (expand-file-name "liberime"
+                                 entropy/emacs-site-lisp-path)))
+    (entropy/emacs-message-simple-progress-message
+        "Making eemacs liberime"
+      (entropy/emacs-batch--make-extra-utils-wrapper
+       "liberime:clean" path
+       (list "make" emver "clean"))
+      (entropy/emacs-batch--make-extra-utils-wrapper
+       "liberime:all" path
+       (list "make" emver "all")))))
+
+;; ***** emacs-rime
+
+(defun entropy/emacs-batch--make-dylib/emacs-rime ()
+  (let ((emhroot (format "EMACS_MODULE_HEADER_ROOT=%s"
+                         (expand-file-name
+                          (number-to-string emacs-major-version)
+                          (expand-file-name
+                           "annex/emacs-module"
+                           entropy/emacs-user-emacs-directory))))
+        (path  (expand-file-name "emacs-rime"
+                                 entropy/emacs-site-lisp-path)))
+    (entropy/emacs-message-simple-progress-message
+        "Making eemacs emacs-rime"
+      (entropy/emacs-batch--make-extra-utils-wrapper
+       "emacs-rime:clean" path
+       (list "make" emhroot "clean"))
+      (entropy/emacs-batch--make-extra-utils-wrapper
+       "emacs-rime:lib" path
+       (list "make" emhroot "lib")))))
+
 ;; ** interactive
 
 (defvar entropy/emacs-batch--check-packages-done-p nil)
@@ -868,6 +942,11 @@ since we solved deps broken")))))
        ;; we should take eemacs eln path as top to store the generations
        (entropy/emacs-native-comp-eln-load-path-set 'reset)
        (entropy/emacs-batch--native-compile-package-dir)))
+     ((equal type "Liberime")
+      (entropy/emacs-batch--with-prompts-msg
+          "Section for compiling emacs rime facilities"
+        (entropy/emacs-batch--make-dylib/emacs-rime)
+        (entropy/emacs-batch--make-dylib/liberime)))
      (t
       (entropy/emacs-message-do-error
        (red (format "Unknown making type '%s'" type)))))))
