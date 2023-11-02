@@ -825,7 +825,7 @@ faild with hash '%s' which must match '%s'"
       (yellow path))
      :error
      (entropy/emacs-message-do-error
-      "[%s]: %s%s%s%s%s%s\n"
+      "[%s]: %s%s%s%s%s%s\n%s"
       (red  "ERR")
       (red "Make ")
       (yellow name)
