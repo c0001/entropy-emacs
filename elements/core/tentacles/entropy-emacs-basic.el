@@ -5303,6 +5303,9 @@ successfully both of situation of read persisit of create an new."
                  (progn (delete-file entropy/emacs-basic-kill-ring-persist-lock-file)
                         t))
         (entropy/emacs-basic-read-kill-ring-from-persist))
+    (let ((dir (file-name-directory entropy/emacs-kill-ring-persist-file)))
+      (unless (file-directory-p dir)
+        (make-directory dir 'parents)))
     (let* ((file entropy/emacs-kill-ring-persist-file)
            (find-file-suppress-same-file-warnings t) ;suppress the noisy same file warning
            (buffer (let ((large-file-warning-threshold most-positive-fixnum)
@@ -5829,7 +5832,11 @@ backtrace:
                   '<= "29.1" 'noerror))
   :signal (entropy/emacs-do-error-for-emacs-version-incompatible
            '<= "29.1")
-  (when (or (not (display-graphic-p)) (daemonp))
+  (when (and
+         ;; emacs 27 and lower has no problem
+         (not (< emacs-major-version 28))
+         (or (not (display-graphic-p))
+             (daemonp)))
     (entropy/emacs-lazy-initial-advice-before
      ;; we must inject before any command really ran since the patch
      ;; must take effective before the that describe procedure run.

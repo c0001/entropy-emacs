@@ -57,4 +57,4 @@ jobs:
       - name: test eemacs daemon initialization
         run: |
           env EEMACS_CI_TEST=1 EEMACS_MAKE_ALL=1 EEMACS_SYSTEMD_DAEMON_SERVICE=CI make compile
-          env EEMACS_CI_TEST=1 EEMACS_MAKE_ALL=1 emacs -Q -l init.el --bg-daemon
+          env EEMACS_CI_TEST=1 EEMACS_MAKE_ALL=1 emacs -Q -l init.el --fg-daemon
