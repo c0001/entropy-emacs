@@ -314,6 +314,81 @@ based on `isearch-regexp' as filter."
     (entropy/emacs-define-key-for-C-g-and-its-malwares
      map #'eemacs/isearch--exit-minibuffer))
 
+  (defvar isearch-forward-thing-at-point)
+  ;; backport to emacs-27
+  (unless (bound-and-true-p isearch-forward-thing-at-point)
+    (setq isearch-forward-thing-at-point
+          (list 'region 'url 'symbol 'sexp)))
+  ;; EEMACS_MAINTENANCE: this is the hack on
+  ;; `isearch-forward-thing-at-point' so we should follow the
+  ;; upstream.
+  (defun eemacs/isearch-forward-thing-at-point (&optional arg)
+    "Do incremental search forward for the \"thing\" found near point.
+Like ordinary incremental search except that the \"thing\" found at point
+is added to the search string initially.  The \"thing\" is defined by
+`bounds-of-thing-at-point'.  You can customize the variable
+`isearch-forward-thing-at-point' to define a list of symbols to try
+to find a \"thing\" at point.  For example, when the list contains
+the symbol `region' and the region is active, then text from the
+active region is added to the search string.
+
+If `current-prefix-arg' is non-nil, then use boundary constructs
+\\_< and \\_> to surround the search pattern that make same as
+`isearch-forward-symbol-at-point' but with literally pattern
+exhibition."
+    (interactive "P")
+    (if (bound-and-true-p isearch-suspended)
+        (progn
+          (run-with-idle-timer
+           0.01 nil
+           (lambda nil
+             (when (bound-and-true-p isearch-mode)
+               (eemacs/isearch-forward-thing-at-point arg))))
+          (when (minibufferp)
+            (delete-region (minibuffer-prompt-end) (point-max)))
+          (exit-minibuffer))
+      (isearch-forward (not (null isearch-regexp)) 1)
+      (let ((bounds (seq-some (lambda (thing)
+                                (bounds-of-thing-at-point thing))
+                              isearch-forward-thing-at-point))
+            search-str search-str-bd-p)
+        (cond
+         (bounds
+          ;; NOTE: boundary search just supplied in regexp mode
+          (when (and arg (not isearch-regexp))
+            (isearch-toggle-regexp))
+          (when (use-region-p)
+            (deactivate-mark))
+          (when (< (car bounds) (point))
+            (goto-char (car bounds)))
+          (setq search-str
+                (buffer-substring-no-properties (car bounds) (cdr bounds)))
+          (when isearch-regexp
+            (if (not arg)
+                (message "With `C-u' prefix to wrap thing-at-point with boundary")
+              (setq search-str-bd-p t)))
+          (if (or (not search-str-bd-p)
+                  (not isearch-regexp))
+              (isearch-yank-string search-str)
+            (unwind-protect
+                (progn
+                  ;; NOTE: should disable regexp search since the
+                  ;; boundary pattern will be quoted before yank while
+                  ;; thus but we dont't want.
+                  (isearch-toggle-regexp)
+                  (isearch-yank-string
+                   (if search-str-bd-p (format "\\_<%s\\_>" search-str)
+                     search-str)))
+              (isearch-toggle-regexp))))
+         (t
+          (setq isearch-error "No thing at point")
+          (isearch-push-state)
+          (isearch-update))))))
+  (define-key isearch-mode-map
+              (kbd "M-n") #'eemacs/isearch-forward-thing-at-point)
+  (define-key minibuffer-local-isearch-map
+              (kbd "M-n") #'eemacs/isearch-forward-thing-at-point)
+
   )
 
 ;; ** ivy
