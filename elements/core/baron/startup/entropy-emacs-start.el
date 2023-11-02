@@ -749,4 +749,14 @@ Currently detected env variables:")
     #'entropy/emacs-start--sort-duration-log)))
 
 ;; * provide
+
+(when (and (entropy/emacs-getenv "EEMACS_CI_TEST") (daemonp))
+  (condition-case-unless-debug err
+      (kill-emacs)
+    (error
+     (entropy/emacs-message-do-error
+      "[%s] %s"
+      (red "ERR")
+      (red "kill emacs with fatal: %s" err)))))
+
 (provide 'entropy-emacs-start)

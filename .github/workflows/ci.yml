@@ -43,6 +43,7 @@ jobs:
         run: |
           echo "(setq entropy/emacs-ext-elpkg-customized-get-type 'entropy-emacs-extenisons-project)" > custom.el
           echo "(setq entropy/emacs-ide-use-for-all 'lsp)" >> custom.el
+          echo "(setq entropy/emacs-do-pdumper-in-X nil)"  >> custom.el
 
       - name: test eemacs elisp-deps install
         run: |
