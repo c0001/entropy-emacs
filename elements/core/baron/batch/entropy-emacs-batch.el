@@ -850,10 +850,13 @@ faild with hash '%s' which must match '%s'"
         "Making eemacs liberime"
       (entropy/emacs-batch--make-extra-utils-wrapper
        "liberime:clean" path
-       (list "make" emver "clean"))
+       (list "make" emver "EMACS=" "clean"))
       (entropy/emacs-batch--make-extra-utils-wrapper
        "liberime:all" path
-       (list "make" emver "all")))))
+       ;; we should disable EMACS macro since if set the makefile of
+       ;; liberime will not use the self-maintained `emacs-module.h'
+       ;; headers.
+       (list "make" emver "EMACS=" "all")))))
 
 ;; ***** emacs-rime
 
