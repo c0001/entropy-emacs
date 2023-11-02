@@ -7306,7 +7306,7 @@ occasion or do not use this guard in you way."
   (entropy/emacs-basic-safe-terminal-bracketed-paste))
 
 ;; ** Basic Misc. commands
-
+;; *** Ansi apply
 (defun entropy/emacs-ansi-apply-buffer-region (_)
   "Use `ansi-color-apply-on-region' for a region of `current-buffer'.
 
@@ -7323,6 +7323,73 @@ respectively. Otherwise `current-buffer's `point-min' and
       (setq beg (region-beginning)
             end (region-end)))
     (ansi-color-apply-on-region beg end)))
+
+;; *** Base64
+(defun entropy/emacs--inct-base64-decode/encode-region/lib-core
+    (method &optional start end new-buff)
+  (let* ((beg (or start (point-min)))
+         (end (or end (point-max)))
+         (orig-buff (current-buffer))
+         (buff (or new-buff orig-buff))
+         (base-str
+          (with-current-buffer orig-buff
+            (buffer-substring-no-properties
+             beg end))) new-str)
+    (entropy/emacs-setf-by-body new-str
+      (cl-case method
+        (decode
+         (base64-decode-string base-str))
+        (encode
+         (base64-encode-string base-str))
+        (t (error "wrong type of method: `%S'" method))))
+    (let ((inhibit-read-only t) omark)
+      (with-current-buffer buff
+        (when (eq buff orig-buff)
+          (setq omark (set-marker (make-marker) beg buff))
+          (delete-region beg end)
+          (goto-char (marker-position omark)))
+        (insert new-str)
+        (if omark (goto-char (marker-position omark))
+          (goto-char (point-min))
+          (setq buffer-read-only t))))
+    (display-buffer buff)))
+
+(defvar-local entropy/emacs--inct-base64-decode/encode-region/orig-buffer nil)
+(defmacro entropy/emacs--inct-base64-decode/encode-region/define-method (method-symbol)
+  (declare (indent defun))
+  (let* ((method-name (symbol-name method-symbol))
+         (method-cname (capitalize method-name)))
+    `(defun ,(intern (format "entropy/emacs-basic-inct-base64-%s-region"
+                             method-name))
+         (&optional beg end)
+       ,(format "\
+%s region or entire content of `current-buffer' to a new buffer
+if `current-prefix-arg' is non-nil or directly modify the region
+of `current-buffer' without saving."
+                method-cname)
+       (declare (interactive-only t))
+       (interactive "r")
+       (let* ((obuff (current-buffer))
+              (beg (or beg (point-min))) (end (or end (point-max)))
+              (msg
+               (format "Base64 %s region (%d %d) on buffer `%S'"
+                       ,method-name beg end obuff))
+              (buff
+               (if (not (bound-and-true-p current-prefix-arg))
+                   (current-buffer)
+                 (with-current-buffer
+                     (entropy/emacs-generate-new-buffer
+                      (format " *eemacs-base64-%s/%s*"
+                              ,method-name (buffer-name obuff)))
+                   (setq entropy/emacs--inct-base64-decode/encode-region/orig-buffer
+                         (current-buffer))
+                   (current-buffer)))))
+         (entropy/emacs-message-simple-progress-message msg
+           (entropy/emacs--inct-base64-decode/encode-region/lib-core
+            ',method-symbol beg end buff))))))
+
+(entropy/emacs--inct-base64-decode/encode-region/define-method decode)
+(entropy/emacs--inct-base64-decode/encode-region/define-method encode)
 
 ;; ** Eemacs basic hydra-hollow instances
 
