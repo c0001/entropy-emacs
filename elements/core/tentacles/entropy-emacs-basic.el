@@ -5297,6 +5297,7 @@ successfully both of situation of read persisit of create an new."
   (interactive)
   (if (file-exists-p entropy/emacs-basic-kill-ring-persist-lock-file)
       (when (and (not (entropy/emacs-getenv "EEMACS_SYSTEMD_DAEMON_SERVICE"))
+                 (not (entropy/emacs-getenv "EEMACS_CI_TEST"))
                  (yes-or-no-p "It seems kill ring persist file is locked by another emacs session\
 , unlock it?(NOTE: it may cover the another emacs session's kill-ring persistence!)")
                  (progn (delete-file entropy/emacs-basic-kill-ring-persist-lock-file)

@@ -28,24 +28,32 @@ jobs:
 
     steps:
       - name: setenv
-        run: echo "ACTIONS_ALLOW_UNSECURE_COMMANDS=true" >> $GITHUB_ENV
+        run: |
+          echo "ACTIONS_ALLOW_UNSECURE_COMMANDS=true" >> $GITHUB_ENV
 
       - name: install libs
         run: sudo apt install -y librime-dev
 
       - uses: actions/checkout@v3
-
       - uses: purcell/setup-emacs@master
         with:
           version: ${{ matrix.emacs-version }}
 
-      - name: test
-        run: |
+      - name: init eemacs custom file
+        run:
           echo "(setq entropy/emacs-ext-elpkg-customized-get-type 'entropy-emacs-extenisons-project)" > custom.el
           echo "(setq entropy/emacs-ide-use-for-all 'lsp)" >> custom.el
+
+      - name: test eemacs elisp-deps install
+        run: |
           env EEMACS_CI_TEST=1 EEMACS_MAKE_ALL=1 EEMACS_DEBUG=1 make install-eemacs-ext-build
+      - name: test eemacs compilation
+        run: |
           env EEMACS_CI_TEST=1 EEMACS_MAKE_ALL=1 EEMACS_DEBUG=1 make all
-          echo '----------> Test daemon init ...'
-          env EEMACS_CI_TEST=1 EEMACS_MAKE_ALL=1 emacs -Q -l init.el --bg-daemon
-          echo '----------> Test pdump ...'
+      - name: test eemacs pdump
+        run: |
           env EEMACS_CI_TEST=1 EEMACS_MAKE_ALL=1 make dump
+      - name: test eemacs daemon initialization
+        run: |
+          env EEMACS_CI_TEST=1 EEMACS_MAKE_ALL=1 EEMACS_SYSTEMD_DAEMON_SERVICE=CI make compile
+          env EEMACS_CI_TEST=1 EEMACS_MAKE_ALL=1 emacs -Q -l init.el --bg-daemon
