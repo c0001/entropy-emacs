@@ -539,6 +539,18 @@ building procedure while invoking INSTALL-COMMANDS."
   "eemacs *inner only* used `use-pacakge' compatible variant to add more
 keys:
 
+- `:eemacs-if': same as `:if' but without do any futher body
+  extraction and compile, accurately said that if it specified
+  and return non-nil then the whole `use-package' body is ignored
+  as expanded as `ignore'.
+
+  This key exists since the original `:if' keyword just a `when'
+  wrapper in which case it always preload the package while
+  compiling which is not what we want to purely ignoring for as.
+
+  This key is take precedence over all other keys spec include
+  builtins.
+
 - `:eemacs-with-no-require': same as `:no-require' but with pattern
   evaluation. This key exists since the `:no-require' keywords of
   `use-package' is normalized as a predicate rather than a symlist so
@@ -555,34 +567,42 @@ keys:
               use-package-body nil
               :no-require :defer
               :eemacs-with-permanently-defer
-              :eemacs-with-no-require))
+              :eemacs-with-no-require
+              :eemacs-if))
          (kpl (car pl))
+         (should-use-p
+          (if (not (plist-member kpl :eemacs-if)) t
+            (eval (plist-get kpl :eemacs-if)
+                  lexical-binding)))
          (no-require-p
-          (if (plist-member kpl :no-require) t
-            (eval (plist-get kpl :eemacs-with-no-require)
-                  lexical-binding)))
+          (and should-use-p
+               (if (plist-member kpl :no-require) t
+                 (eval (plist-get kpl :eemacs-with-no-require)
+                       lexical-binding))))
          (perm-defer-p
-          (if (plist-member kpl :defer)
-              (eval (plist-get kpl :defer)
-                    lexical-binding)
-            (eval (plist-get kpl :eemacs-with-permanently-defer)
-                  lexical-binding)))
+          (and should-use-p
+               (if (plist-member kpl :defer)
+                   (eval (plist-get kpl :defer)
+                         lexical-binding)
+                 (eval (plist-get kpl :eemacs-with-permanently-defer)
+                       lexical-binding))))
          form)
-    (setq form `(,@(cdr pl)))
-    (if no-require-p
-        (setq form `(:no-require t ,@form)))
-    (if (not perm-defer-p) `(use-package ,use-package-name ,@form)
-      (unwind-protect
-          (progn
-            (setq use-package-defaults
-                  '(;; this '(t) has special meaning; see `use-package-handler/:config'
-                    (:config '(t) t)
-                    (:init nil t)
-                    (:catch t t)
-                    (:defer t t)
-                    (:demand nil t)))
-            (macroexpand-1 `(use-package ,use-package-name ,@form)))
-        (setq use-package-defaults old-use-package-defaults)))))
+    (if (not should-use-p) '(ignore)
+      (setq form `(,@(cdr pl)))
+      (if no-require-p
+          (setq form `(:no-require t ,@form)))
+      (if (not perm-defer-p) `(use-package ,use-package-name ,@form)
+        (unwind-protect
+            (progn
+              (setq use-package-defaults
+                    '(;; this '(t) has special meaning; see `use-package-handler/:config'
+                      (:config '(t) t)
+                      (:init nil t)
+                      (:catch t t)
+                      (:defer t t)
+                      (:demand nil t)))
+              (macroexpand-1 `(use-package ,use-package-name ,@form)))
+          (setq use-package-defaults old-use-package-defaults))))))
 
 ;; *** extra `use-package' keywords definition
 ;; **** :eemacs-functions

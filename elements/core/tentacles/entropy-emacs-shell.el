@@ -230,8 +230,8 @@ was found."
 
 ;; ** vterm config
 
-(use-package vterm
-  :if (entropy/emacs-vterm-support-p)
+(entropy/emacs--inner-use-package vterm
+  :eemacs-if (entropy/emacs-vterm-support-p)
   :defer (or entropy/emacs-fall-love-with-pdumper entropy/emacs-custom-enable-lazy-load)
   :commands (vterm vterm-mode)
   :eemacs-functions
