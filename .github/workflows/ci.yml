@@ -40,7 +40,7 @@ jobs:
           version: ${{ matrix.emacs-version }}
 
       - name: init eemacs custom file
-        run:
+        run: |
           echo "(setq entropy/emacs-ext-elpkg-customized-get-type 'entropy-emacs-extenisons-project)" > custom.el
           echo "(setq entropy/emacs-ide-use-for-all 'lsp)" >> custom.el
 
