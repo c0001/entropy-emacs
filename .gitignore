@@ -8,6 +8,6 @@
 !/.gitignore
 !/.github
 !/custom-example.el
-!/README.org
+!/README.md
 !/LICENSE
 !/make-help.txt

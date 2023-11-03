@@ -2,9 +2,12 @@ name: CI
 
 on:
   push:
-    branches:
-      - master
-      - dev
+    branches: ['master', 'dev']
+    pathes:
+      - 'init.el'
+      - 'elements/**'
+    paths-ignore:
+      - 'elements/site-lisp/entropy-emacs-doc/**'
   pull_request:
 
 concurrency:
@@ -12,7 +15,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test:
+  make:
     runs-on: ubuntu-latest
     continue-on-error: ${{ matrix.experimental }}
     strategy:
