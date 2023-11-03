@@ -7580,7 +7580,7 @@ be used into your form:
    * limitation: both async and sync process calling type
    * Slots support: `:after', `:cleanup', `:sentinel', `:error'
 
-4) =$sentinel/destination=
+4) =$sentinel/stderr=
    * description: it's a process stderr object both for the
      `make-process's `:stderr' slot or the `cadr' of `call-process's
      destination set via =$sentinel/destination=.
