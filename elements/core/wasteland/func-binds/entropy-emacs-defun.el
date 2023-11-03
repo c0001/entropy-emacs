@@ -10126,13 +10126,13 @@ feature. Instead it using a `while' procedure with time stamp duration
 judgement as:
 
 #+begin_src emacs-lisp
-  (catch 'done
+  (catch \\='done
     (while (not data-buffer)
       (when (and timeout (time-less-p timeout
                                       (time-since start-time)))
-        (url-debug 'retrieval \"Timed out %s (after %ss)\" url
+        (url-debug \\='retrieval \"Timed out %s (after %ss)\" url
                    (float-time (time-since start-time)))
-        (throw 'done 'timeout))
+        (throw \\='done \\='timeout))
         .......
 #+end_src
 
@@ -10191,18 +10191,25 @@ When SILENT is non-nil, then inhbit any inner reports via `message'."
             )))
     (if use-curl
         (progn
-          (entropy/emacs-make-process
-           `(:name
-             ,(format "eemacs network url canbe connected test for '%s'" url)
-             :synchronously t
-             :command (list ,@cmd-args)
-             :buffer nil
-             :error
-             (unless ,silent
+          (entropy/emacs-with-make-process
+           :name
+           (format "eemacs network url canbe connected test for '%s'" url)
+           :synchronously t
+           :command cmd-args
+           :buffer nil
+           :error
+           (if (equal $sentinel/proc-exit-status 52)
+               ;; Some remote server not response any header responce
+               ;; but the connection is still worked such as live
+               ;; stream's url of DouyuTV.
+               ;;
+               ;; FIXME: how we ensure that indeeded is connectable.
+               (set cbksym t)
+             (unless silent
                (message "error: (exit status: %s) can not conntecting to `%s'"
                         $sentinel/proc-exit-status
-                        ,url))
-             :after (setq ,cbksym t)))
+                        url)))
+           :after (set cbksym t))
           (and (symbol-value cbksym) t))
       (message "Use `url-http-head' to test url '%s' (warn: it may stuck emacs while GFW.) ..."
                url)
