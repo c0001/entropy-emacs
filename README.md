@@ -1,15 +1,12 @@
-<h1 style="text-align: center;">
-entropy-emacs
+<br>
+<h1 align="center">
+    <a href="https://github.com/c0001/entropy-emacs/tree/dev">
+        <img src="elements/core/logo/logo.png" alt="drawing" width="200" />
+    </a>
+    <br>entropy-emacs<br>
 </h1>
-<br>
-<br>
-<a href="https://github.com/c0001/entropy-emacs/tree/dev">
-    <img src="elements/core/logo/logo.png" alt="drawing" width="30%"
-         style="display: block; margin-left: auto; margin-right: auto;"
-    />
-</a>
 <p style="text-align: center;">A self-maintained simple GnuEmacs configuration<p>
-<div style="margin: auto; width: 70%;">
+<p align="center">
     <a href="https://github.com/c0001/entropy-emacs/actions?query=branch%3Adev">
         <img src="https://github.com/c0001/entropy-emacs/actions/workflows/ci.yml/badge.svg?branch=dev"
              title="Build Status" alt="drawing">
@@ -34,7 +31,7 @@ entropy-emacs
         <img src="https://img.shields.io/badge/-macOS-lightgrey?logo=apple&style=flat&logoColor=white"
              title="Platform:macos" alt="drawing">
     </a>
-</div>
+</p>
 
 > **Terms convention:** We call **eemacs** as the abbreviation of `entropy-emacs`.
 This personal emacs distribution can be used in:
