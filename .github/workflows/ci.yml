@@ -6,6 +6,7 @@ on:
     # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#onpushpull_requestpull_request_targetpathspaths-ignore
     paths:
       - 'init.el'
+      - 'Makefile'
       - 'elements/**'
       - '!elements/site-lisp/entropy-emacs-doc/**'
 
