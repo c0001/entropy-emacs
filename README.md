@@ -5,31 +5,31 @@
     </a>
     <br>entropy-emacs<br>
 </h1>
-<p style="text-align: center;">A self-maintained simple GnuEmacs configuration<p>
+<h4 align="center">A self-maintained simple GnuEmacs configuration</h4>
 <p align="center">
     <a href="https://github.com/c0001/entropy-emacs/actions?query=branch%3Adev">
         <img src="https://github.com/c0001/entropy-emacs/actions/workflows/ci.yml/badge.svg?branch=dev"
-             title="Build Status" alt="drawing">
+             title="Build Status" alt="drawing" />
     </a>
     <a href="https://github.com/c0001/entropy-emacs/releases">
         <img src="https://img.shields.io/github/tag/c0001/entropy-emacs.svg?label=Release"
-             title="Release Tag" alt="drawing">
+             title="Release Tag" alt="drawing" />
     </a>
     <a href="https://www.gnu.org/licenses/gpl-3.0.html">
         <img src="http://img.shields.io/:License-GPL3-blue.svg"
-             title="Liscense" alt="drawing">
+             title="Liscense" alt="drawing" />
     </a>
     <a href="https://www.gnu.org/distros/distros.html">
         <img src="https://img.shields.io/badge/-Linux-fcc624?logo=linux&style=flat&logoColor=black"
-             title="Platform:linux" alt="drawing">
+             title="Platform:linux" alt="drawing" />
     </a>
     <a href="https://www.microsoft.com/en-US/windows">
         <img src="https://img.shields.io/badge/-Windows-lightblue?logo=windows&style=flat&logoColor=blue"
-             title="Platform:windows" alt="drawing">
+             title="Platform:windows" alt="drawing" />
     </a>
     <a href="https://www.apple.com/macos">
         <img src="https://img.shields.io/badge/-macOS-lightgrey?logo=apple&style=flat&logoColor=white"
-             title="Platform:macos" alt="drawing">
+             title="Platform:macos" alt="drawing" />
     </a>
 </p>
 
