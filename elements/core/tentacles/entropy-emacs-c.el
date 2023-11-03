@@ -125,7 +125,7 @@
   :eemacs-if
   (bound-and-true-p entropy/emacs-ide-is-treesit-generally-adapted-p)
   ;; escape byte-compile warning
-  :eemacs-with-no-require (not (treesit-ready-p 'cpp))
+  :eemacs-with-no-require (not (treesit-ready-p 'cpp t))
   :preface
   (defvar c-ts-mode-indent-offset)
   :init
