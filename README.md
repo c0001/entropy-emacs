@@ -51,7 +51,7 @@ Support emacs version:
 
 -   GNU Emacs 27.1 and higher
 
-For see full documents of the introduction of `entropy-emacs` please see [here](elements/site-lisp/entropy-emacs-doc/org/entropy-emacs_introduction.md).
+For see full documents of the introduction of `entropy-emacs` please see [here](elements/site-lisp/entropy-emacs-doc/org/entropy-emacs_introduction.org).
 
 **Extensions:**
 
