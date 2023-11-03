@@ -3,11 +3,12 @@ name: CI
 on:
   push:
     branches: ['master', 'dev']
-    pathes:
+    # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#onpushpull_requestpull_request_targetpathspaths-ignore
+    paths:
       - 'init.el'
       - 'elements/**'
-    paths-ignore:
-      - 'elements/site-lisp/entropy-emacs-doc/**'
+      - '!elements/site-lisp/entropy-emacs-doc/**'
+
   pull_request:
 
 concurrency:
