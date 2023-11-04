@@ -535,6 +535,36 @@ building procedure while invoking INSTALL-COMMANDS."
 
 ;; *** use-package extended
 
+(eval-and-compile
+  (entropy/emacs-!cl-defun entropy/emacs--inner-use-pacakge-parse-keys
+      (body &rest keys)
+    (let ((stack nil)
+          (kpl   nil)
+          (nbody nil)
+          i k)
+      (while (consp body)
+        (setq stack nil k (car body))
+        (cond ((memq k keys)
+               (when (setq body (cdr body))
+                 (while (and body
+                             (not (or (memq (setq i (car body)) keys)
+                                      (memq i use-package-keywords))))
+                   (push i stack) (setq body (cdr body)))
+                 (and stack (push k kpl) (push (nreverse stack) kpl))))
+              ((memq k use-package-keywords)
+               (when (setq body (cdr body))
+                 (push k nbody)
+                 (while (and body
+                             (not (or (memq (setq i (car body)) keys)
+                                      (memq i use-package-keywords))))
+                   (push i nbody) (setq body (cdr body)))))
+              (t (entropy/emacs-!error
+                  "inner key parser: no match item `%s'"
+                  k))))
+      (when kpl   (setq kpl   (nreverse kpl)))
+      (when nbody (setq nbody (nreverse nbody)))
+      (cons kpl nbody))))
+
 (defmacro entropy/emacs--inner-use-package (use-package-name &rest use-package-body)
   "eemacs *inner only* used `use-pacakge' compatible variant to add more
 keys:
@@ -560,37 +590,78 @@ keys:
   Commentary confusion by `use-package's upstream for \"decades\").
 
 - `:eemacs-with-permanently-defer': always defer if non-nil but still
-  respect `:defer' if presented."
+  respect `:defer' if presented.
+
+*Exception*
+
+With this macaro, when the `:no-requrie' is indeed token effectively,
+the `:config' part of `use-package' will be injectd form of forcely
+`require' the feature only when `:demand' or
+`use-package-always-demand' is non-nil, this exception exists since
+the no-require state with demand specifed non-nil will cause the
+entire `use-package' taken without care about the feature we specifed
+by, this is a `use-package' internal primitive mechanism but we think
+that's not proper for eemacs maintainability. By the way, specifed a
+internal key `:eemacs-with-permanently-noload' to escape this
+exception."
   (declare (indent defun))
-  (let* ((old-use-package-defaults (copy-tree use-package-defaults))
-         (pl (entropy/emacs-defun--get-body-without-keys
-              use-package-body nil
+  (let* (form
+         (old-use-package-defaults (copy-tree use-package-defaults))
+         (pl (entropy/emacs--inner-use-pacakge-parse-keys
+              use-package-body
               :no-require :defer
               :eemacs-with-permanently-defer
               :eemacs-with-no-require
               :eemacs-if))
          (kpl (car pl))
+         (_ (setq form `(,@(cdr pl))))
          (should-use-p
           (if (not (plist-member kpl :eemacs-if)) t
-            (eval (plist-get kpl :eemacs-if)
+            (eval (entropy/emacs-macroexp-progn
+                   (plist-get kpl :eemacs-if))
                   lexical-binding)))
          (no-require-p
           (and should-use-p
                (if (plist-member kpl :no-require) t
-                 (eval (plist-get kpl :eemacs-with-no-require)
+                 (eval (entropy/emacs-macroexp-progn
+                        (plist-get kpl :eemacs-with-no-require))
                        lexical-binding))))
          (perm-defer-p
           (and should-use-p
                (if (plist-member kpl :defer)
-                   (eval (plist-get kpl :defer)
+                   (eval (entropy/emacs-macroexp-progn
+                          (plist-get kpl :defer))
                          lexical-binding)
-                 (eval (plist-get kpl :eemacs-with-permanently-defer)
+                 (eval (entropy/emacs-macroexp-progn
+                        (plist-get kpl :eemacs-with-permanently-defer))
                        lexical-binding))))
-         form)
+         (eemacs-afl-form
+          (and should-use-p
+               (entropy/emacs-get-plist-form
+                form :config 'list 'no-error)
+               (not
+                (eval (entropy/emacs-macroexp-progn
+                       (plist-get kpl :eemacs-with-permanently-noload))
+                      lexical-binding)))))
     (if (not should-use-p) '(ignore)
-      (setq form `(,@(cdr pl)))
       (if no-require-p
           (setq form `(:no-require t ,@form)))
+      ;; processing `:config'
+      (entropy/emacs-when-let*-firstn 2
+          ((afl eemacs-afl-form)
+           ((and no-require-p
+                 (or use-package-always-demand
+                     (entropy/emacs-get-plist-form
+                      form :demand 'car 'no-error))))
+           (pos (cl-position :config form))
+           (rfm `(require ',use-package-name)))
+        (if (not pos)
+            (entropy/emacs-nconc-with-setvar-use-rest form
+              `(:config ,rfm ,@afl))
+          (entropy/emacs-list-add-cadr
+           (nthcdr pos form) rfm
+           :with-error t)))
+      ;; processing other eemacs spec keys
       (if (not perm-defer-p) `(use-package ,use-package-name ,@form)
         (unwind-protect
             (progn

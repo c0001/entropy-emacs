@@ -2951,17 +2951,17 @@ list."
 FORM-PLIST must be an list and no other restriction announced be, but
 the key must be an `keywordp' symbol, thus all, any colon prefixed
 symbol involved in is treated as an key, so as, if the rest args of an
-key whose has an member of colon prefixed symbol will not be got which
-must be noticed about.
+key whose name is an member of colon prefixed symbol will not be got
+included to the result which must be noticed about.
 
-Do as the same as `plist-get' when TYPE was `eq' to 't' or 'car'.
+Do as the same as `plist-get' when TYPE was `eq' to `t' or `car'.
 
-Return a `progn' form when TYPE was nil or omitted or `eq' to 'progn',
+Return a `progn' form when TYPE was nil or omitted or `eq' to `progn',
 In this case the return form will be nil if the slot's rest forms are
-omitted or just presented as a single 'nil', in which case we treat
+omitted or just presented as a single `nil', in which case we treat
 this key has no rest forms.
 
-Return a list when TYPE was `eq' to 'list'. In this case the return
+Return a list when TYPE was `eq' to `list'. In this case the return
 list will be nil if the slot's rest form are omitted.
 
 If NO-ERROR was non-nil, press all the error asserts, and return
