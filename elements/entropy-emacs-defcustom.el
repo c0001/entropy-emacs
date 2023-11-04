@@ -176,15 +176,6 @@ for entropy-emacs."
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-fundametal-configuration)
 
-(defcustom entropy/emacs-custom-enable-lazy-load t
-  "Enable lazy load for entropy-emacs when non-nil.
-
-Notice: when `entropy/emacs-fall-love-with-pdumper' is non-nil or
-in daemon session, this variable will be pressed whatever init
-value assignments into."
-  :type 'boolean
-  :group 'entropy/emacs-customize-group-for-fundametal-configuration)
-
 (defcustom entropy/emacs-use-recentf t
   "Whether use recentf-mode after emacs init."
   :type 'boolean

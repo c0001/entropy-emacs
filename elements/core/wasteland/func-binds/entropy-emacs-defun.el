@@ -11853,7 +11853,7 @@ pollute eemacs internal lazy load optimization."
                      :body ',body)
                entropy/emacs-lazy-load-simple-log-var))
        (cond
-        ((or entropy/emacs-custom-enable-lazy-load
+        ((or (entropy/emacs-custom-enable-lazy-load/val)
              ,always-lazy-load)
          (when (not (null ,feature-sym))
            (cond
@@ -11886,7 +11886,7 @@ pollute eemacs internal lazy load optimization."
                :with-lexical-bindins
                (list (cons ',body-lambda-exp-sym ,body-lambda-exp-sym))
                (funcall ,body-lambda-exp-sym))))))
-        ((null entropy/emacs-custom-enable-lazy-load)
+        ((null (entropy/emacs-custom-enable-lazy-load/val))
          (when (not (null ,feature-sym))
            (unless ,no-msg-sym
              (entropy/emacs-message-do-message
@@ -12135,7 +12135,7 @@ invoked after."
                               ;; but in pdumper dump session we want it to run
                               entropy/emacs-fall-love-with-pdumper
                               ;; but in non-lazy enable mode we want it run
-                              (not (bound-and-true-p entropy/emacs-custom-enable-lazy-load))
+                              (not (entropy/emacs-custom-enable-lazy-load/val))
                               ;; but in daemon load session we want it run
                               (daemonp)))))
               (let* ((inhibit-quit t)
@@ -12208,7 +12208,7 @@ automatically self-unbound when loaded done."
          ;; injection
          (let (_)
            (cond
-            ((and (not ,always-lzl-p-sym) (not entropy/emacs-custom-enable-lazy-load))
+            ((and (not ,always-lzl-p-sym) (not (entropy/emacs-custom-enable-lazy-load/val)))
              (let ((hook (entropy/emacs-select-trail-hook
                           ,pdumper-no-end)))
                (set hook (append (symbol-value hook) (list ,func-sym)))))

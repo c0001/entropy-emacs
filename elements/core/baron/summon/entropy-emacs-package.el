@@ -508,11 +508,11 @@ building procedure while invoking INSTALL-COMMANDS."
   (if entropy/emacs-fall-love-with-pdumper
       (setq use-package-always-ensure nil)
     (setq use-package-always-ensure t))
-  (setq use-package-always-defer entropy/emacs-custom-enable-lazy-load
+  (setq use-package-always-defer (entropy/emacs-custom-enable-lazy-load/val)
         use-package-always-demand
-        (not entropy/emacs-custom-enable-lazy-load))
+        (not (entropy/emacs-custom-enable-lazy-load/val)))
   (unless (or entropy/emacs-fall-love-with-pdumper
-              (not entropy/emacs-custom-enable-lazy-load))
+              (not (entropy/emacs-custom-enable-lazy-load/val)))
     (setq use-package-expand-minimally t))
   (setq use-package-enable-imenu-support t)
   (run-hooks 'entropy/emacs-package-init-use-packge-after-hook)

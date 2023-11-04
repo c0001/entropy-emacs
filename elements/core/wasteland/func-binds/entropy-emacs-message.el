@@ -368,7 +368,7 @@ without respect `entropy/emacs-message-non-popup'.
              ;;    since we should see the long terms of init.
              (not
               (and (null noninteractive)
-                   (not (bound-and-true-p entropy/emacs-custom-enable-lazy-load))))
+                   (not (entropy/emacs-custom-enable-lazy-load/val))))
              ;; -- not in daemon init type
              (not
               (and (not (bound-and-true-p entropy/emacs-daemon-server-init-done))
@@ -404,7 +404,7 @@ without respect `entropy/emacs-message-non-popup'.
                        entropy/emacs-startup-with-Debug-p)
                   ;; allow popup when non-lazy interative init session
                   (and (null noninteractive)
-                       (not (bound-and-true-p entropy/emacs-custom-enable-lazy-load))
+                       (not (entropy/emacs-custom-enable-lazy-load/val))
                        (not (bound-and-true-p entropy/emacs-startup-done)))
                   ;; allow popup when key :popup-while-eemacs-init-with-interactive is set
                   ;; while eemacs init time

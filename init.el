@@ -178,6 +178,15 @@ empty string predicated by `string-empty-p'."
   "Eemacs customizable variables top group."
   :group 'extensions)
 
+(defcustom entropy/emacs-custom-enable-lazy-load t
+  "Enable lazy load for entropy-emacs when non-nil.
+
+Notice: when `entropy/emacs-fall-love-with-pdumper' is non-nil or
+in daemon session, this variable will be pressed whatever init
+value assignments into."
+  :type 'boolean
+  :group 'entropy-emacs-customize-top-group)
+
 ;; *** Debug
 
 (defgroup entropy/emacs-customize-group-for-DEBUG nil

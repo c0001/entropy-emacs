@@ -628,7 +628,7 @@ certain eemacs-spec conditions."
    ;; pdump can not dump mutex and condvar made by
    ;; `make-condition-variable'
    entropy/emacs-fall-love-with-pdumper
-   entropy/emacs-custom-enable-lazy-load)
+   (entropy/emacs-custom-enable-lazy-load/val))
   :defines (lsp-typescript-tsserver-log lsp-clients-typescript-log-verbosity)
   :commands (lsp lsp-mode lsp-deferred
 
@@ -1178,7 +1178,7 @@ https://emacs.stackexchange.com/questions/3821/a-faster-method-to-obtain-line-nu
    ;; pdump can not dump mutex and condvar made by
    ;; `make-condition-variable'
    entropy/emacs-fall-love-with-pdumper
-   entropy/emacs-custom-enable-lazy-load)
+   (entropy/emacs-custom-enable-lazy-load/val))
 
 ;; ******* preface
 
@@ -1425,7 +1425,7 @@ updating."
    ;; pdump can not dump mutex and condvar made by
    ;; `make-condition-variable'
    entropy/emacs-fall-love-with-pdumper
-   entropy/emacs-custom-enable-lazy-load)
+   (entropy/emacs-custom-enable-lazy-load/val))
   :after lsp-ui
   :config
   (defvar-local __ya/lsp-ui-peek--win-start nil)
@@ -1499,7 +1499,7 @@ NOTE: related to the display char height?"
    ;; pdump can not dump mutex and condvar made by
    ;; `make-condition-variable'
    entropy/emacs-fall-love-with-pdumper
-   entropy/emacs-custom-enable-lazy-load)
+   (entropy/emacs-custom-enable-lazy-load/val))
   :defines (lsp-python-ms-python-executable-cmd)
   :init
 
@@ -1521,7 +1521,7 @@ NOTE: related to the display char height?"
    ;; pdump can not dump mutex and condvar made by
    ;; `make-condition-variable'
    entropy/emacs-fall-love-with-pdumper
-   entropy/emacs-custom-enable-lazy-load)
+   (entropy/emacs-custom-enable-lazy-load/val))
   :init
   ;; disable multi-root for a single pyright server connection since
   ;; python commonly use virtualenv for each project.
@@ -1543,7 +1543,7 @@ NOTE: related to the display char height?"
    ;; pdump can not dump mutex and condvar made by
    ;; `make-condition-variable'
    entropy/emacs-fall-love-with-pdumper
-   entropy/emacs-custom-enable-lazy-load)
+   (entropy/emacs-custom-enable-lazy-load/val))
   :defines (lsp-java-boot-enabled)
   :init
   ;; EEMACS_BUG:

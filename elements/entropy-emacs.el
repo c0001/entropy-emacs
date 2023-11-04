@@ -1651,6 +1651,20 @@ developments."
             entropy/emacs-do-pdumping-with-lazy-load-p)
        (setq entropy/emacs-custom-enable-lazy-load t)))
 
+(defmacro entropy/emacs-custom-enable-lazy-load/val nil
+  "The inner usage of `entropy/emacs-custom-enable-lazy-load' while
+byte-comp.
+
+NOTE&EEMACS_MAINTENANCE:
+
+Any code outside this file should only use this macro to grab
+value of `entropy/emacs-custom-enable-lazy-load' since the
+`init.el' always load the custom file in normal session's startup
+in which case inner eemacs context of already byte-comped session
+should respect the value of when the byte-comp happened, or the
+eemacs loading mechanism logical messy will occurred."
+  `(quote ,entropy/emacs-custom-enable-lazy-load))
+
 (cond
  ((entropy/emacs-is-make-session)
   (!eemacs-require 'entropy-emacs-batch))

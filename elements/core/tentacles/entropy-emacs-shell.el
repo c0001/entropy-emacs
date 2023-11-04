@@ -232,7 +232,7 @@ was found."
 
 (entropy/emacs--inner-use-package vterm
   :eemacs-if (entropy/emacs-vterm-support-p)
-  :defer (or entropy/emacs-fall-love-with-pdumper entropy/emacs-custom-enable-lazy-load)
+  :defer (or entropy/emacs-fall-love-with-pdumper (entropy/emacs-custom-enable-lazy-load/val))
   :commands (vterm vterm-mode)
   :eemacs-functions
   (vterm-mode

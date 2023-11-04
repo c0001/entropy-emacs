@@ -372,7 +372,7 @@ of `eldoc-idle-delay' after excute the ORIG-FUNC."
       (cadr (assq 'eldoc (package--alist)))))
     "The elisp file of the new `eldoc' version")
   (defvar __ya/eldoc-newpkg-load-p nil)
-  (cond ((and (bound-and-true-p entropy/emacs-custom-enable-lazy-load)
+  (cond ((and (entropy/emacs-custom-enable-lazy-load/val)
               t)
          (entropy/emacs-lazy-initial-for-hook
           '(entropy/emacs-after-startup-hook)

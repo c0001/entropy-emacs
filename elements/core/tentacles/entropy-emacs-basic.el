@@ -6324,7 +6324,7 @@ In =:chinese= slot, is an plist only specifed for chinese input methodg:
 (use-package liberime
   :if (not sys/is-win-group)
   :ensure nil
-  :defer (or entropy/emacs-fall-love-with-pdumper entropy/emacs-custom-enable-lazy-load)
+  :defer (or entropy/emacs-fall-love-with-pdumper (entropy/emacs-custom-enable-lazy-load/val))
   :preface
 
   (defun entropy/emacs-basic--pyim-set-rime-schema ()

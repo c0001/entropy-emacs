@@ -224,7 +224,7 @@ delay seconds SECS."
 ;; --------------------------------------------------
 ;; init gc set
 (cond ((or entropy/emacs-fall-love-with-pdumper
-           (not entropy/emacs-custom-enable-lazy-load)
+           (not (entropy/emacs-custom-enable-lazy-load/val))
            (daemonp))
        ;; restrict gc threshold for pdumper progress and daemon init
        ;; progress even for non lazy init mode.
