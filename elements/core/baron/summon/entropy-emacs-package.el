@@ -637,12 +637,12 @@ exception."
                        lexical-binding))))
          (eemacs-afl-form
           (and should-use-p
-               (entropy/emacs-get-plist-form
-                form :config 'list 'no-error)
                (not
                 (eval (entropy/emacs-macroexp-progn
                        (plist-get kpl :eemacs-with-permanently-noload))
-                      lexical-binding)))))
+                      lexical-binding))
+               (entropy/emacs-get-plist-form
+                form :config 'list 'no-error))))
     (if (not should-use-p) '(ignore)
       (if no-require-p
           (setq form `(:no-require t ,@form)))
