@@ -200,6 +200,9 @@ empty string predicated by `string-empty-p'."
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-DEBUG)
 
+(when entropy/emacs-startup-debug-on-error
+  (setq debug-on-error t))
+
 (defcustom entropy/emacs-startup-jit-lock-debug-mode nil
   "Enable `jit-lock-debug-mode' at eemacs startup time?
 
