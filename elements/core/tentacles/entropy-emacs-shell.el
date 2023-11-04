@@ -251,6 +251,7 @@ see vterm's README."
     (when-let*
         ((system-valid-p
           (not (eq system-type 'windows-nt)))
+         (supported-shell-file-names '("bash" "zsh" "fish"))
          (falist  '(("bash" . "emacs-vterm-bash.sh")
                     ("zsh"  . "emacs-vterm-zsh.sh")
                     ("fish" . "emacs-vterm.fish")))
@@ -260,7 +261,8 @@ see vterm's README."
          (quried-flag (expand-file-name
                        "vterm-hack-bashrc-confirmed"
                        entropy/emacs-stuffs-topdir))
-         (curshell (entropy/emacs-shell-script-get-shell-type))
+         (curshell (and shell-file-name (file-name-nondirectory shell-file-name)))
+         ((member curshell supported-shell-file-names))
          (hkf      (alist-get curshell falist nil nil 'string=))
          ((if (not (file-exists-p quried-flag)) t
             (entropy/emacs-with-file-buffer quried-flag
@@ -275,7 +277,7 @@ see vterm's README."
           (expand-file-name
            "etc"
            (file-name-directory (locate-library "vterm"))))
-         ((file-exists-p vterm-etc-host))
+         ((file-directory-p vterm-etc-host))
          (hkfpath        (expand-file-name hkf vterm-etc-host))
          ((file-exists-p hkfpath))
          (hack_inject?
