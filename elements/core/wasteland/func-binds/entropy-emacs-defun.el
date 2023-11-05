@@ -7325,13 +7325,15 @@ ran within the code context."
 
            ;; call-process arg
            ($call_proc_destination           destination)
-           ($call_proc_stdrr                 `(car-safe (cdr-safe ,$call_proc_destination)))
+           ($call_proc_stdrr `(let ((val ,$call_proc_destination))
+                                (and (consp val) (= 2 (length val))
+                                     (stringp (car val)) (cadr val))))
            ($call_proc_infile                infile)
            ($call_proc_display               display)
            ($call_proc_command               nil)
            ($call_proc_args                  nil)
-           ($use_call_proc_p                 `(or ,$call_proc_infile
-                                                  ,$call_proc_display))
+           ($use_call_proc_p `(or ,$call_proc_infile ,$call_proc_display
+                                  ,$call_proc_destination))
            ;; internal vars
            ($thiscur_sync_sym                nil)
            ($thiscur_proc                    nil)
@@ -7356,22 +7358,27 @@ ran within the code context."
                 (,$sentinel/proc-exit-status       nil)
                 )
 
+           (when (and (not ,$synchronously) ,$use_call_proc_p)
+             (entropy/emacs-!error
+              "could not use `call-process' for a async proc"))
+
            ;; Bind omitted `call-process' arguments
-           (unless ,$call_proc_command
-             (setq ,$call_proc_command (car ,$make_proc_command)))
-           (unless ,$call_proc_args
-             (setq ,$call_proc_args    (cdr ,$make_proc_command)))
-           (if ,$call_proc_destination (setq ,$use_call_proc_p t)
-             (setq ,$call_proc_destination ,$make_proc_buffer))
+           (when ,$use_call_proc_p
+             (unless ,$call_proc_command
+               (setq ,$call_proc_command (car ,$make_proc_command)))
+             (unless ,$call_proc_args
+               (setq ,$call_proc_args    (cdr ,$make_proc_command)))
+             (unless ,$call_proc_destination
+               (setq ,$call_proc_destination ,$make_proc_buffer)))
 
            ;; firstly judge the synchronization type
            (setq ,$thiscur_sync_sym
-                 (when (and ,$synchronously
+                 (when (and (not ,$use_call_proc_p)
                             ;; NOTE & FIXME: sleep waiting for async in
-                            ;; interaction session may freeze emacs why? and thus
-                            ;; we just used this in noninteraction session.
-                            noninteractive
-                            (not ,$use_call_proc_p))
+                            ;; interaction session may freeze emacs why?
+                            ;;
+                            ;; noninteractive
+                            ,$synchronously)
                    (make-symbol "sync-status")))
            (and ,$thiscur_sync_sym (set ,$thiscur_sync_sym nil))
 
@@ -7511,7 +7518,9 @@ Factored `call-process' args as:
   requests
 
 We called any key of `:display' `infile' `destination' is termed under
-CKEY.
+CKEY. And unless CKEY is detected, use `make-process' preferred both
+for synchronization or async process. If CKEY is detected but async
+process wished for , lisp error occurred.
 
 All keys value can be one of below type:
 1) a value (term as KVAL): a value of a key which will be directly
@@ -7546,13 +7555,13 @@ key slot of `:default-directory' or defaults to use current `default-directory'.
 Further more key `:synchronously' indicate whether call with
 synchronously, the place's value is used as result to indicate
 turn/off handler as that a non-nil result to turn on. If it's non-nil
-and current emacs-session is `noninteractive' without any CKEY
-specified, then the synchronously method using `make-process' with
-spawn watchdog mechanism to emulate synchronization , otherwise using
-`call-process' to did the synchronization, this be presented since the
-`call-process' have the bug of termination without kill its spawns
-problem in emacs `noninteractive' session like '--batch' mode (see its
-doc for details refer the SIGINT and SIGKILL).
+then we use `make-process' with spawn watchdog mechanism to emulate
+synchronization as default as said above but use synchronization
+natively variant `call-process' due to the `call-process' have the bug
+of its termination is without kill its spawns problem in emacs
+`noninteractive' session like '--batch' mode (see its doc for details
+refer the SIGINT and SIGKILL), otherwise using `call-process' to did
+the synchronization when CKEY detected said as above.
 
 If you wish to do sth both for finished or errored status with
 `unwind-protect', inject the KLFORM to `:cleanup' slot.
