@@ -484,6 +484,9 @@ EXIT /b
   ;;
   ;; SERVER-ARCHIVE-NAME can also be a non-prefix relative pathname of
   ;; `entropy/emacs-coworker-archive-host-root' (e.g. "lsp/sub*/**")
+  ;;
+  ;; Return `t' for full success, `exist' for exists without download
+  ;; and install.
   (let* (download-cbk
          (tmp-download-host
           (expand-file-name
@@ -587,7 +590,11 @@ EXIT /b
      ;; TODO: not yet published via upstream
      ;; "vscode-markdown-language-server"
      )
-   "vscode-langservers-extracted"))
+   "vscode-langservers-extracted")
+  ;; abbreviation expansion for html editing:
+  ;; https://github.com/emmetio/emmet
+  (entropy/emacs-coworker--coworker-isolate-bins-install-by-npm
+   "emmet-lsp" '("emmet-ls") "emmet-ls"))
 
 ;; **** js
 (defun entropy/emacs-coworker-check-js-lsp (&rest _)
@@ -646,6 +653,14 @@ EXIT /b
    '("vscode-json-languageserver")
    "vscode-json-languageserver"))
 
+;; **** yaml
+(defun entropy/emacs-coworker-check-yaml-lsp (&rest _)
+  (interactive)
+  (entropy/emacs-coworker--coworker-isolate-bins-install-by-npm
+   "yaml-lsp"
+   '("yaml-language-server")
+   "yaml-language-server"))
+
 ;; **** xml
 
 (defun entropy/emacs-coworker-check-xml-lsp (&rest _)
@@ -676,7 +691,7 @@ EXIT /b
 (unless entropy/emacs-ext-use-eemacs-lsparc
   (setq lsp-pwsh-dir
         (expand-file-name
-         "pwsh-lsp/PowerShellEditorServices"
+         "pwsh-lsp/"
          entropy/emacs-coworker-archive-host-root)))
 
 ;; **** rust-analyzer
@@ -872,7 +887,38 @@ lsp-java-v3.1_jdtls_release/%s"))
      "java lsp (vscode-extension)"
      "jdtls/vscode-extension"
      (format base-url-fmt "Pivotal.vscode-spring-boot-1.6.0.vsix")
-     'zip)))
+     'zip)
+    (let* ((ktname "kotlin-language-server")
+           (ktdir
+            (expand-file-name ktname entropy/emacs-coworker-archive-host-root))
+           (ktnbin
+            (expand-file-name
+             (format "server/bin/%s"
+                     (if sys/win32p "kotlin-language-server.bat"
+                       "kotlin-language-server"))
+             ktdir))
+           (ktbin
+            (expand-file-name "kotlin-language-server"
+                              entropy/emacs-coworker-bin-host-path))
+           (symlink-func
+            (lambda nil
+              (entropy/emacs-message-simple-progress-message
+                  (format "mklink for `%s' to `%s'" ktnbin ktbin)
+                (entropy/emacs-make-filesystem-node-symbolic-link
+                 ktnbin ktbin)))))
+      (when
+          (entropy/emacs-coworker--coworker-install-by-archive-get
+           "kotlin-lsp" "kotlin-language-server"
+           "https://github.com/fwcd/kotlin-language-server/releases/latest/download/server.zip"
+           'zip)
+        (if (entropy/emacs-filesystem-node-exists-p ktbin)
+            (unless (and (file-symlink-p ktbin)
+                         (file-exists-p ktbin)
+                         (entropy/emacs-existed-filesystem-nodes-equal-p
+                          (file-truename ktbin) (file-truename ktnbin)))
+              (delete-file ktbin)
+              (funcall symlink-func))
+          (funcall symlink-func))))))
 
 ;; *** exra tools
 ;; **** wsl-open
@@ -906,6 +952,9 @@ lsp-java-v3.1_jdtls_release/%s"))
                             :enable (EEMACS-DT-IDENTITY t))
                      (:name "xml-lsp"
                             :pred entropy/emacs-coworker-check-xml-lsp
+                            :enable (EEMACS-DT-IDENTITY t))
+                     (:name "yaml-lsp"
+                            :pred entropy/emacs-coworker-check-yaml-lsp
                             :enable (EEMACS-DT-IDENTITY t))
                      (:name "php-lsp"
                             :pred entropy/emacs-coworker-check-php-lsp
