@@ -2905,7 +2905,7 @@ Valid TYPE are 'mark' 'flag' and 'unmark' and 'toggle'."
                          (entropy/emacs-image-dired-thumb-set-mark-properties-at-point
                           'unmark)
                        (entropy/emacs-image-dired-thumb-set-mark-properties-at-point
-                          'mark)))
+                        'mark)))
                     (t
                      (user-error "wrong type of mark property set type: %s"
                                  type)))))))))
@@ -2940,27 +2940,36 @@ point."
             (entropy/emacs-image-dired-thumb-set-mark-properties-at-point
              command))))))
 
-  (defvar entropy/emacs-image-dired-idle-track-orig-file-timer nil)
   (defun entropy/emacs-image-dired-idle-track-orig-file--core (&rest _)
-    (when (and (eq (current-buffer)
-                   (get-buffer image-dired-thumbnail-buffer))
-               t)
-      (image-dired-track-original-file)))
+    (when-let ((buff (get-buffer image-dired-thumbnail-buffer))
+               ((buffer-live-p buff)))
+      (with-current-buffer buff
+        (condition-case err
+            (image-dired-track-original-file)
+          (error
+           (let ((msg (car-safe (cdr err)))
+                 (ignore-msg-regexp
+                  "^Cannot find associated Dired buffer for image: "))
+             (unless (stringp msg) (setq msg nil))
+             (unless (and msg (string-match-p ignore-msg-regexp msg))
+               (signal (car err) (cdr err)))))))))
+  (entropy/emacs-define-idle-function
+    entropy/emacs-image-dired-idle-track-orig-file--core-with-idle
+    ;; using one second is proper since any lower idle delay
+    ;; may hint the key repeat frequency which will not show
+    ;; the idle delay effects.
+    1
+    "Idle variant for `image-dired-track-original-file' \
+to reduce navigation lag."
+    (entropy/emacs-image-dired-idle-track-orig-file--core))
+
   (defun entropy/emacs-image-dired-idle-track-orig-file ()
     "Like `image-dired-track-original-file' but run with idle timer."
     (when image-dired-track-movement
-      (when (timerp entropy/emacs-image-dired-idle-track-orig-file-timer)
-        (cancel-timer entropy/emacs-image-dired-idle-track-orig-file-timer)
-        (setq entropy/emacs-image-dired-idle-track-orig-file-timer
-              nil))
-      (setq entropy/emacs-image-dired-idle-track-orig-file-timer
-            (run-with-idle-timer
-             ;; using one second is proper since any lower idle delay
-             ;; may hint the key repeat frequency which will not show
-             ;; the idle delay effects.
-             1
-             nil
-             #'entropy/emacs-image-dired-idle-track-orig-file--core))))
+      (if (eq this-command
+              'entropy/emacs-image-dired-thumbnail-mode-pop-assoc-dired)
+          (entropy/emacs-image-dired-idle-track-orig-file--core)
+        (funcall entropy/emacs-image-dired-idle-track-orig-file--core-with-idle))))
 
 ;; ******* patch
 ;; ******** core

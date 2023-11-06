@@ -12081,8 +12081,11 @@ various lazy load feature BODY wrapper can be belong to one
 ABBREV-NAME but not for the INITIAL-FUNC-SUFFIX-NAME and
 INITIAL-VAR-SUFFIX-NAME since they are unique for the current one, if
 so the whole lazy load case will be replaced by the latter one who
-invoked after."
+invoked after.
 
+The GENED-FUNCTION will reject to run in any case when
+`entropy/emacs-lazy-initial-form-no-run' is bind non-nil in both
+of dynamic or lexical context."
   (let ((list-var-sym (make-symbol "list-var"))
         (func-body (entropy/emacs-defun--get-real-body body 'with-safe))
         (func-lambda-sym (make-symbol "func-lambda-var"))
@@ -12135,6 +12138,7 @@ invoked after."
              (cons ',prompt-type-sym ,prompt-type)
              (cons ',initial-func-suffix-name-sym ,initial-func-suffix-name-sym))
             (when (and (not (symbol-value ,var-sym))
+                       (not entropy/emacs-lazy-initial-form-no-run)
                        ;; we just run intialform after eemacs startup
                        ;; done to speedup eemacs startup.
                        (or
@@ -12160,35 +12164,38 @@ invoked after."
                 (when entropy/emacs-startup-with-Debug-p
                   (setq head-time (time-to-seconds)))
                 (entropy/emacs-message-simple-progress-message
-                 "%s '%s'"
-                 :with-message-color-args
-                 (list '(blue "Loading and enable feature")
-                       (list 'yellow ,initial-func-suffix-name))
-                 (entropy/emacs-general-run-with-protect-and-gc-strict
-                  :when-use-gc-restrict (and entropy/emacs-startup-done
-                                             entropy/emacs-current-session-is-idle-p)
-                  (setq func-body-rtn
-                        (unwind-protect
-                            (progn
-                              (apply ,func-body-lambda-sym ad-rest-args))
-                          ;; finally we remove the initial injection
-                          (cond ((eq ,adder-type-sym 'advice-add)
-                                 (dolist (adfor-it ,list-var-sym)
-                                   (advice-remove adfor-it ,func-sym)))
-                                ((eq ,adder-type-sym 'add-hook)
-                                 (dolist (adhfor-it ,list-var-sym)
-                                   (unless (memq adhfor-it
-                                                 ;; we should not
-                                                 ;; remove hooks for
-                                                 ;; eemacs spec startup
-                                                 ;; hooks since we need
-                                                 ;; logs.
-                                                 '(entropy/emacs-startup-end-hook
-                                                   entropy/emacs-after-startup-hook))
-                                     (remove-hook adhfor-it ,func-sym)))))
-                          ;; fake the function after evaluated it.
-                          (fmakunbound ,func-sym)
-                          (defalias ,func-sym #'ignore)))))
+                    "%s '%s'"
+                  :with-message-color-args
+                  (list '(blue "Loading and enable feature")
+                        (list 'yellow ,initial-func-suffix-name))
+                  (entropy/emacs-general-run-with-protect-and-gc-strict
+                   :when-use-gc-restrict (and entropy/emacs-startup-done
+                                              entropy/emacs-current-session-is-idle-p)
+                   (entropy/emacs-setf-by-body func-body-rtn
+                     (unwind-protect
+                         (progn
+                           (apply ,func-body-lambda-sym ad-rest-args))
+                       ;; finally we remove the initial injection
+                       (cond ((eq ,adder-type-sym 'advice-add)
+                              (dolist (adfor-it ,list-var-sym)
+                                (advice-remove adfor-it ,func-sym)))
+                             ((eq ,adder-type-sym 'add-hook)
+                              (dolist (adhfor-it ,list-var-sym)
+                                (unless
+                                    (and (not (bound-and-true-p
+                                               entropy/emacs-startup-with-Debug-p))
+                                         (memq adhfor-it
+                                               ;; we should not
+                                               ;; remove hooks for
+                                               ;; eemacs spec startup
+                                               ;; hooks since we need
+                                               ;; logs.
+                                               '(entropy/emacs-startup-end-hook
+                                                 entropy/emacs-after-startup-hook)))
+                                  (remove-hook adhfor-it ,func-sym)))))
+                       ;; fake the function after evaluated it.
+                       (fmakunbound ,func-sym)
+                       (defalias ,func-sym #'ignore)))))
                 (if (not entropy/emacs-startup-with-Debug-p)
                     (message "Load done for '%s' , (Maybe running rest tasks ...)"
                              ,initial-func-suffix-name-sym)
@@ -13952,7 +13959,9 @@ The sequentially non-breaking invocation is trapped via how many
 times (i.e. WITH-ADJACENT-LEN) `this-command' was invoked without
 breaking in a period WITH-ADJACENT-INTERVAL seconds.
 
-All of the interval spec args can be positive float numbers.
+All of the interval spec args can be positive float numbers but
+the WITH-ADJACENT-LEN is strict by the value of
+`entropy/emacs-current-commands-ring-size'.
 
 When WITH-SELF-DEAL is non-nil, it should be a symbol who is
 explicitly set before this macro expanded, which used to bind a
@@ -13961,9 +13970,22 @@ obey the SCM condition, nil for not, but without any mandatory
 order to do as this i.e made decision by user-end . Otherwise,
 BODY is just ran when SCM is supplied, as on tick-tock tune.
 
+Be aware that the `this-command' consideration is not as is of the
+command of NAME only but also for any command contained NAME as a
+subroutine unless WITH-THIS-COMMAND is specified and non-nil,
+it has valid value type of below:
+1) `t': just when `this-command' named as same as NAME.
+2) a symbol: just when `this-command' is `eq' to this symbol.
+3) a list of symbol: as for 2) but the predication is worked when any
+   of those symbols is predicated.
+4) a function: just when function which return the command willing to
+   be predicated is predicated. We don't pass any arg to this
+   function, since any context it needed, include the value of
+   `this-command', all of them can be seen in its body.
+
 \(fn NAME ARGLIST [DOCSTRING] [DECL] [INTERACTIVE] &key \
 WITH-ADJACENT-INTERVAL WITH-ADJACENT-LEN WITH-BREAK-INTERVAL \
-WITH-SELF-DEAL \
+WITH-SELF-DEAL WITH-THIS-COMMAND \
 &rest BODY...)"
   (declare (doc-string 3) (indent 2))
   (let*
@@ -13996,6 +14018,8 @@ WITH-SELF-DEAL \
        (with-break-interval
         (or (plist-get lambda-head-plist :with-break-interval)
             0.02))
+       (with-this-command
+        (plist-get lambda-head-plist :with-this-command))
        (with-self-deal (plist-get lambda-head-plist :with-self-deal))
        (lambda-args-form (plist-get lambda-args-plist :arglist))
        (lambda-doc-form
@@ -14015,7 +14039,9 @@ details)."
           (if val (list val) ;; (list '(interactive))
             )))
        (lambda-body (plist-get lambda-args-plist :body)))
-    (macroexp-let2* ignore ((ranp-sym nil))
+    (macroexp-let2* ignore
+        ((ranp-sym nil) (condp-sym nil)
+         (use-this-command-sym with-this-command))
       `(let ()
          (defvar ,wadi-sym ,with-adjacent-interval)
          (defvar ,wadl-sym ,with-adjacent-len)
@@ -14025,13 +14051,35 @@ details)."
            ,@lambda-doc-form
            ,@lambda-declare-form
            ,@lambda-inct-form
-           (let ((,ranp-sym nil))
+           (let ((,ranp-sym nil) (,condp-sym nil))
              (if (bound-and-true-p ,lvsym)
                  (when (> (entropy/emacs-time-subtract ,lvsym nil 'use-float)
                           ,wbri-sym)
                    (setq ,ranp-sym t ,lvsym nil))
-               (if (entropy/emacs-current-commands-continuous-p
-                    this-command ,wadl-sym ,wadi-sym)
+               (entropy/emacs-setf-by-body ,condp-sym
+                 (cond ((null ,use-this-command-sym)
+                        (entropy/emacs-current-commands-continuous-p
+                         this-command ,wadl-sym ,wadi-sym))
+                       ((eq ,use-this-command-sym t)
+                        (when (eq this-command ',fsym)
+                          (entropy/emacs-current-commands-continuous-p
+                           this-command ,wadl-sym ,wadi-sym)))
+                       ((functionp ,use-this-command-sym)
+                        (entropy/emacs-current-commands-continuous-p
+                         (funcall ,use-this-command-sym)
+                         ,wadl-sym ,wadi-sym))
+                       ((symbolp ,use-this-command-sym)
+                        (entropy/emacs-current-commands-continuous-p
+                         ,use-this-command-sym ,wadl-sym ,wadi-sym))
+                       ((proper-list-p ,use-this-command-sym)
+                        (catch :break
+                          (dolist (el ,use-this-command-sym)
+                            (when (entropy/emacs-current-commands-continuous-p
+                                   el ,wadl-sym ,wadi-sym)
+                              (throw :break t)))))
+                       (t (error "wrong type of `this-command' predication: %s"
+                                 ,use-this-command-sym))))
+               (if ,condp-sym
                    (setq ,lvsym (current-time))
                  (setq ,ranp-sym t)))
              ,(if (not with-self-deal) `(when ,ranp-sym ,@lambda-body)
@@ -14054,7 +14102,7 @@ correctly or the invocation will be failed and error with fatal.
 
 \(fn COMMAND-NAME ARGLIST [DOCSTRING] [DECL] [INTERACTIVE] &key \
 WITH-ADJACENT-INTERVAL WITH-ADJACENT-LEN WITH-BREAK-INTERVAL \
-WITH-SELF-DEAL \ &rest BODY...)"
+WITH-SELF-DEAL WITH-THIS-COMMAND &rest BODY...)"
   (declare (doc-string 3) (indent 2))
   (let ((fsym
          (intern
@@ -14083,7 +14131,8 @@ of usage of optional keys.
 (See also `entropy/emacs-make-command-continuous-smoothing'.)
 
 \(fn COMMAND-NAME &key \
-WITH-ADJACENT-INTERVAL WITH-ADJACENT-LEN WITH-BREAK-INTERVAL)"
+WITH-ADJACENT-INTERVAL WITH-ADJACENT-LEN WITH-BREAK-INTERVAL \
+WITH-THIS-COMMAND)"
   (declare (indent 1))
   (let ((fsym
          (intern

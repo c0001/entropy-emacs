@@ -144,6 +144,13 @@ Should always set as dynamically since it used as a indicator for
 `post-command-hook' where we will auto reset it without influence
 next command.")
 
+(entropy/emacs-defconst/only-allow/local
+  entropy/emacs-lazy-initial-form-no-run nil
+  "Whether any eemacs lazy initial form defined (or indirectly
+defined) by `entropy/emacs-lazy-initial-form' should not ran.
+
+EEMACS_MAINTENANCE: eemacs internal used only.")
+
 ;; ** env
 
 (entropy/emacs--inner-setenv
@@ -1167,10 +1174,11 @@ initialize the default non-lazy configs.
            msgstr)))))
   ;; ========== Debug facilities
   (when entropy/emacs-startup-benchmark-init
-    (benchmark-init/show-durations-tree)
-    (split-window-below)
-    (benchmark-init/show-durations-tabulated)
-    (benchmark-init/deactivate)))
+    (let ((entropy/emacs-lazy-initial-form-no-run t))
+      (benchmark-init/show-durations-tree)
+      (split-window-below)
+      (benchmark-init/show-durations-tabulated)
+      (benchmark-init/deactivate))))
 
 (defvar entropy/emacs-IME-specs-initialized nil
   "Variable indicate that eemacs IME specified features has started

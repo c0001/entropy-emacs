@@ -78,6 +78,13 @@
               :around
               #'__ya/advice-patch/kill-def-buffer-after-patched))
 
+;; ** treesit
+
+(entropy/emacs--inner-use-package treesit
+  :eemacs-if entropy/emacs-ide-is-treesit-generally-adapted-p
+  :ensure nil
+  :eemacs-functions (treesit-ready-p))
+
 ;; ** async
 
 (use-package async

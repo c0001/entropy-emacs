@@ -263,9 +263,7 @@ dumped as well as older vers any more.")
         ;; session invoked by make env, since that's clear to
         ;; show that this indeed is. In other words, we allow
         ;; debug on byte-compiled eemacs core.
-        (let ((env-p (getenv "EEMACS_DEBUG")))
-          (cond ((or (null env-p) (string-empty-p env-p)) nil)
-                (t env-p))))
+        (entropy/emacs-getenv "EEMACS_DEBUG"))
    (entropy/emacs-env-init-with-pure-eemacs-env-p)))
 
 (defvar __inited-p? nil)
