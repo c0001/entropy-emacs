@@ -343,7 +343,7 @@ Use `entropy/emacs-do-error-for-emacs-version-incompatible' to
 signal an error of this type with its internally emacs version
 comparation mechanism.")
 (define-error entropy/emacs-emacs-version-incompatible-error-symbol
-  "Eemacs emacs version incompatible" entropy/emacs-top-error-symbol)
+              "Eemacs emacs version incompatible" entropy/emacs-top-error-symbol)
 (defun entropy/emacs-do-error-for-emacs-version-incompatible
     (op request-emacs-version &optional noerror)
   "Signal a `entropy/emacs-emacs-version-incompatible-error-symbol' type
@@ -367,6 +367,52 @@ nil otherwise."
          (list
           (format "emacs version '%s' '%s' is requested but current stands on '%s'"
                   op request-emacs-version emacs-version)))))))
+
+(defun entropy/emacs-do-error-for-emacs-version-incompatible-plus
+    (spec &optional noerror)
+  "Same as `entropy/emacs-do-error-for-emacs-version-incompatible'
+but use SPEC to do compares.
+
+SPEC should be fomed as one of follow types:
+1. a emacs version sring to be `version=' with current
+   `emacs-version'.
+2. a two elements list formed as `(OP VER)' where OP is either of `='
+   `<' `>' `<=' `>=' to compare current `emacs-version' with a emacs
+   version string VER.
+3. a list of `(OP VER)' which all of them should matched or
+   incompatible is detected."
+  (let* ((vs spec) (vslp (proper-list-p vs))
+         (elmfunc
+          (lambda (x)
+            (and (= (length x) 2) (stringp (cadr x))
+                 (memq (car x) '(= < > <= >=)))))
+         op ver invp)
+    (cond
+     ((stringp vs) (setq vs `((= ,vs))))
+     ((and vslp (funcall elmfunc vs))
+      (setq vs (list vs)))
+     ((and vslp
+           (catch :exit
+             (dolist (el vs)
+               (unless (funcall elmfunc el)
+                 (throw :exit nil)))
+             'valid)))
+     (t (error "wrong type emacs versions specification: %S"
+               vs)))
+    (catch :break
+      (dolist (el vs)
+        (setq op (car el) ver (cadr el))
+        (unless (entropy/emacs-version-compare op emacs-version ver)
+          (throw :break (setq invp t))))
+      ;; compatible no problem
+      (setq invp nil))
+    (if noerror (not invp)
+      (when invp
+        (signal
+         entropy/emacs-emacs-version-incompatible-error-symbol
+         (list
+          (format "emacs version `%S' is requested but current stands on '%S'"
+                  vs emacs-version)))))))
 
 ;; **** eemacs package version incompatible error
 (defconst entropy/emacs-package-version-incompatible-error-symbol

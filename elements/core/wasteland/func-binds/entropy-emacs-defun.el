@@ -789,6 +789,49 @@ evaluated return non-nil, or run BODY like `progn'."
        (if (and ,use-when-p ,when) (and (widen) nil))
        ,@body)))
 
+(defmacro entropy/emacs-defun-with-emacs-version-restriction
+    (&rest args)
+  "Same as `defun' but can be built with api restriction wrapper
+ via `entropy/emacs--api-restriction-uniform'.
+
+Where WITH-EMACS-VERSIONS is a emacs version restriction spec
+used with
+`entropy/emacs-do-error-for-emacs-version-incompatible-plus', if
+not specfied or nil then this macro did `defun' only.
+
+Key WITH-DO-ERROR-WHEN-INCOMPATIBLE when non-nil and
+WITH-EMACS-VERSIONS is specified and detected as incompatible,
+`error' occurred before NAME defined, otherwise in same case,
+just warning the incompatible notice.
+
+\(fn NAME ARGLIST [DOCSTRING] [DECL] [INTERACTIVE] \
+&key  WITH-EMACS-VERSIONS WITH-DO-ERROR-WHEN-INCOMPATIBLE \
+&rest BODY...)"
+  (declare (doc-string 3) (indent 2))
+  (let* ((name (car args))
+         (pl (entropy/emacs-parse-lambda-args-plus (cdr args)))
+         (bdpl (plist-get pl :body-plist))
+         (body (plist-get pl :body)))
+    (macroexp-let2* ignore
+        ((vlist (plist-get bdpl :with-emacs-versions))
+         (doerr (plist-get bdpl :with-do-error-when-incompatible)))
+      `(entropy/emacs--api-restriction-uniform
+           (format "entropy/emacs-defun-with-emacs-version-restriction/for/%s"
+                   ',name)
+           'emacs-version-incompatible
+         :detector
+         (and ,vlist
+              (entropy/emacs-do-error-for-emacs-version-incompatible-plus
+               ,vlist 'no-error))
+         :signal
+         (and ,vlist
+              (entropy/emacs-do-error-for-emacs-version-incompatible-plus
+               ,vlist))
+         :do-error ,doerr
+         (defun ,name
+             ,@(entropy/emacs-merge-lambda-args
+                pl 'without-body-plist))))))
+
 ;; **** defmacro with ignorable lexical vars
 
 (defun entropy/emacs-make-letform-lexical-ignorable (let-form)
