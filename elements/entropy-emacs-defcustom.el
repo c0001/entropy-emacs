@@ -1565,58 +1565,94 @@ in generally meaning range which says that basically can did so.")
 
 ;; EEMACS_MAINTENANCE: all lang name should respect
 ;; `treesit-language-available-p' invocation via every `prog-mode's'
-;; treesit variant `major-mode'.
+;; treesit variant `major-mode'. The most used convention can be
+;; grabbed from `lsp-language-id-configuration'.
 (defvar entropy/emacs-ide--lang-mode-info-alist
-  `((js-mode            :lang javascript
-                        :treesit-mode-p nil
-                        :treesit-variant-mode js-ts-mode)
-    (js-ts-mode         :lang javascript
-                        :treesit-mode-p t
-                        :traditional-mode (list js-mode js2-mode))
-    (typescript-ts-mode :lang typescript
-                        :treesit-mode-p t
-                        :traditional-mode js2-mode)
-    (js2-mode           :lang javascript
-                        :treesit-mode-p nil
-                        :treesit-variant-mode
-                        (function
-                         .
-                         ,(lambda (&optional buffer)
-                            (setq buffer (or buffer (current-buffer)))
-                            (with-current-buffer buffer
-                              (let ((bfn (buffer-file-name)))
-                                (if (and bfn
-                                         (string-match-p bfn "\\(ts\\|TS\\)\\'"))
-                                    'typescript-ts-mode
-                                  'js-ts-mode))))))
-    (sh-mode            :lang
-                        (function
-                         .
-                         ,(lambda (&optional buffer)
-                            (setq buffer (or buffer (current-buffer)))
-                            (with-current-buffer buffer
-                              (intern (entropy/emacs-shell-script-get-shell-type)))))
-                        :treesit-mode-p nil
-                        :treesit-variant-mode
-                        (function
-                         .
-                         ,(lambda (&optional buffer)
-                            (setq buffer (or buffer (current-buffer)))
-                            (with-current-buffer buffer
-                              (when (member (entropy/emacs-shell-script-get-shell-type)
-                                            '("sh" "bash"))
-                                'bash-ts-mode)))))
-    (bash-ts-mode       :lang bash
-                        :treesit-mode-p t
-                        :traditional-mode sh-mode)
-    (c++-mode           :lang cpp
-                        :treesit-mode-p nil
-                        :treesit-variant-mode c++-ts-mode)
-    (web-mode           :lang html)
-    ))
+  (let ((buff-base-name-func
+         (lambda (&optional x)
+           (with-current-buffer (or x (current-buffer))
+             (or
+              (and (fboundp 'uniquify-buffer-base-name)
+                   (uniquify-buffer-base-name))
+              (buffer-name x))))))
+    `((js-mode
+       :lang
+       (function
+        .
+        ,(lambda (&optional buffer)
+           (setq buffer (or buffer (current-buffer)))
+           (with-current-buffer buffer
+             (let ((bfn (funcall buff-base-name-func))
+                   (case-fold-search t))
+               (cond ((string-match-p "ts\\'"  bfn)
+                      '(typescript javascript))
+                     ((string-match-p "tsx\\'" bfn)
+                      '(typescriptreact javascript))
+                     ((string-match-p "jsx\\'" bfn)
+                      '(javascriptreact javascript))
+                     (t 'javascript))))))
+       :treesit-mode-p nil
+       :treesit-variant-mode
+       (function
+        .
+        ,(lambda (&optional buffer)
+           (setq buffer (or buffer (current-buffer)))
+           (with-current-buffer buffer
+             (let ((bfn (funcall buff-base-name-func))
+                   (case-fold-search t))
+               (cond ((string-match-p "ts\\'"  bfn) 'typescript-ts-mode)
+                     ((string-match-p "tsx\\'" bfn) 'tsx-ts-mode)
+                     (t 'js-ts-mode)))))))
+      (js-ts-mode
+       :lang javascript
+       :treesit-mode-p t
+       :traditional-mode (list js-mode js2-mode))
+      (tsx-ts-mode
+       :lang typescriptreact
+       :treesit-mode-p t
+       :traditional-mode (list js-mode js2-mode))
+      (typescript-ts-mode
+       :lang typescript
+       :treesit-mode-p t
+       :traditional-mode js2-mode)
+      (js2-mode . js-mode)
+      (sh-mode
+       :lang
+       (function
+        .
+        ,(lambda (&optional buffer)
+           (setq buffer (or buffer (current-buffer)))
+           (with-current-buffer buffer
+             (intern (entropy/emacs-shell-script-get-shell-type)))))
+       :treesit-mode-p nil
+       :treesit-variant-mode
+       (function
+        .
+        ,(lambda (&optional buffer)
+           (setq buffer (or buffer (current-buffer)))
+           (with-current-buffer buffer
+             (when (member (entropy/emacs-shell-script-get-shell-type)
+                           '("sh" "bash"))
+               'bash-ts-mode)))))
+      (bash-ts-mode
+       :lang bash
+       :treesit-mode-p t
+       :traditional-mode sh-mode)
+      (c++-mode
+       :lang cpp
+       :treesit-mode-p nil
+       :treesit-variant-mode c++-ts-mode)
+      (web-mode
+       :lang html)
+      )))
 
 (defun entropy/emacs-ide-get-lang-mode-info (mode)
-  (or (alist-get mode entropy/emacs-ide--lang-mode-info-alist)
+  (or (when-let* ((raw (alist-get mode entropy/emacs-ide--lang-mode-info-alist))
+                  (pl (cdr raw)))
+        (while (symbolp pl)
+          (setq raw (alist-get pl entropy/emacs-ide--lang-mode-info-alist)
+                pl (cdr raw)))
+        raw)
       (let* ((nm-str (symbol-name mode))
              (tsp (string-match-p "-ts-mode$" nm-str))
              lnm-str ts-fnm tr-fnm)
@@ -1636,9 +1672,26 @@ in generally meaning range which says that basically can did so.")
               (when tsp
                 (setq tr-fnm (intern (format "%s-mode" lnm-str)))
                 (and (fboundp tr-fnm) (cons 'list tr-fnm)))))))
-;; memoize to speedup query since this is a frequently invoked function
-(with-eval-after-load 'memoize
-  (memoize 'entropy/emacs-ide-get-lang-mode-info))
+
+(defun entropy/emacs-treesit-ready-p (language &optional quiet)
+  "Same as `treesit-ready-p' but LANGUAGE can be a list of thus.
+
+If LANGUAGE is a list, its `car' is considerred as the prefer
+LANGUAGE and the rest is the fallback for such language id, and
+return non-nil either when any of them is detectable.
+
+This function exists for made compatible for languages name
+returned by `entropy/emacs-ide-get-lang-mode-info-plist-attr'."
+  (entropy/emacs-when-let*-firstn 2
+      ((lnms language) ((fboundp 'treesit-ready-p))
+       lnm-prefer)
+    (unless (consp lnms) (setq lnms (list lnms)))
+    (setq lnm-prefer (car lnms))
+    (catch :rtn
+      (dolist (el lnms)
+        (when (treesit-ready-p el t)
+          (throw :rtn t)))
+      (treesit-ready-p lnm-prefer quiet))))
 
 (entropy/emacs-!cl-defun entropy/emacs-ide-get-lang-mode-info-plist-attr
     (attr &optional mode buffer)
@@ -1666,7 +1719,7 @@ in generally meaning range which says that basically can did so.")
     (list 'c-ts-mode 'c++-ts-mode 'java-ts-mode
           'cmake-ts-mode
           'go-ts-mode 'rust-ts-mode
-          'python-ts-mode 'js-ts-mode 'typescript-ts-mode
+          'python-ts-mode 'js-ts-mode 'typescript-ts-mode 'tsx-ts-mode
           'json-ts-mode 'css-ts-mode
           'bash-ts-mode 'yaml-ts-mode
           )))

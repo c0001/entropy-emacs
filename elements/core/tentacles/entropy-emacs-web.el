@@ -340,12 +340,16 @@ set of `entropy/emacs-browse-url-function-get-for-web-preview'."
 
 ;; *** js-mode
 
+
+(defvar entropy/emacs-web--js-suffix-regexp
+  "\\.\\(tsx?\\|m?jsx?\\)\\'")
+
 ;; emacs builtin `js-mode'
 (use-package js
   :ensure nil
   :init
   (unless entropy/emacs-prog/javascript/use-major-mode/js2-mode/p
-    (add-to-list 'auto-mode-alist '("\\.\\(ts\\|m?js\\)\\'" . js-mode)))
+    (add-to-list 'auto-mode-alist `(,entropy/emacs-web--js-suffix-regexp . js-mode)))
   :config
   ;; using union xref specs
   (dolist (k (list "M-." "M-,"))
@@ -400,10 +404,11 @@ set of `entropy/emacs-browse-url-function-get-for-web-preview'."
       (js2-imenu-extras-mode 1)))
 
   (if entropy/emacs-prog/javascript/use-major-mode/js2-mode/p
-      (add-to-list 'auto-mode-alist '("\\.\\(ts\\|m?js\\)\\'" . js2-mode))
-    ;; enable js2 facilities for mordern javascript major-modes which
+      (add-to-list 'auto-mode-alist
+                   `(,entropy/emacs-web--js-suffix-regexp . js2-mode))
+    ;; Enable js2 facilities for mordern javascript major-modes which
     ;; for some utilities which rely on `js2-mode' such as
-    ;; `skewer-mode'.
+    ;; `skewer-mode', or react jsx/tsx syntax parser.
     (dolist (hook '(js-mode-hook js-ts-mode-hook))
       (add-hook hook #'js2-minor-mode)))
 

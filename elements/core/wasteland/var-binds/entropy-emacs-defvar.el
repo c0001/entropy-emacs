@@ -2804,15 +2804,16 @@ any of them return non-nil.")
                    (warn "treesit variant for major-mode `%s' of lang `%s' is not find"
                          prog-mode-name lnm)
                    nil))))
+          ;; main
           (if (or
                (not tsm-nm)
                (not (entropy/emacs-ide-prefer-use-treesit-p prog-mode-name))
-               (not (treesit-language-available-p lnm))
                ;; NOTE: prevent nested invocation from `tsm-nm'
                ;; function like what `bash-ts-mode' did which has
                ;; an advice for fallbacking to `sh-mode' for some
                ;; cases.
                (entropy/emacs-bound-and-true-p adv-avar-name)
+               (not (entropy/emacs-treesit-ready-p lnm 'message))
                ;; fore more justify
                (and (bound-and-true-p entropy/emacs-prefer-use-traditional-prog-mode-filters)
                     (let ((major-mode prog-mode-name))
@@ -2828,20 +2829,13 @@ any of them return non-nil.")
 
             (let ((inhibit-quit t))
               (with-current-buffer curbuff
-                (let* ((bffnm (buffer-name))
-                       (_ (when-let (((fboundp 'uniquify-buffer-base-name))
-                                     (bfunm (uniquify-buffer-base-name)))
-                            (setq bffnm bfunm)))
-                       (bfffnm (buffer-file-name))
-                       (_ (and (fboundp 'typescript-ts-mode)
-                               (string-match-p "\\(ts\\|TS\\)\\'" (or bfffnm bffnm ""))
-                               (setq tsm-nm 'typescript-ts-mode))))
+                (let* (_)
                   (entropy/emacs-message-simple-progress-message
                       "%s `%s' %s `%s' %s %s"
                     :with-message-color-args
                     `((green  "Enable tree-sitter variant mode")
                       (yellow ',tsm-nm)
-                      (green "for")
+                      (green  "for")
                       (yellow ,pnm-str)
                       (green  "in buffer")
                       (white  ,(buffer-name curbuff)))
@@ -2853,7 +2847,9 @@ any of them return non-nil.")
                         (prog1 (apply ',tsm-nm ',args)
                           (unless ,adv-rvar-name (setq ,adv-rvar-name t))
                           ))))))))))
-      (format "The eemacs treesit variant for mode `%s'." prog-mode-name))
+      (format "The eemacs treesit variant `major-mode' \
+for the traditional `major-mode': `%s'."
+              prog-mode-name))
     (add-to-list 'entropy/emacs--treesit-mode-map-alist
                  (cons prog-mode-name adv-func-name))
     ;; ensure return the adv funcname
@@ -2902,8 +2898,9 @@ any of them return non-nil.")
 ;; *** js-mode
 
 (defconst entropy/emacs-prog/javascript/use-major-mode/js2-mode/p
-  ;; default use js2-mode for emacs lower than 28 since the emacs
-  ;; builtin js utils seems weak in older emacs ver.?
+  ;; default use `js2-mode' for emacs lower than 28 since the emacs
+  ;; builtin js utils seems weak in older emacs ver.? and that's
+  ;; suggested by `js2-mode' either.
   (< emacs-major-version 28)
   "Const indicator that eemacs should enable `js2-mode' as default
 `major-mode' for javascript edition.")
