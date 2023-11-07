@@ -740,7 +740,9 @@ VAR should be a variable name or a place used by `setf'."
 the value of VAR but also set VAR to nil after the canceling
 succeed.
 
-Value should be a variable name or a `setf' place."
+Value should be a variable name or a `setf' place.
+
+If VAR is not a timer, do nothing."
   `(when (and ,var (timerp ,var)) (cancel-timer ,var) (setf ,var nil)))
 
 ;; **** Apis with when wrapper

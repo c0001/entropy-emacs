@@ -2604,6 +2604,26 @@ mechanism."
 ;; ****** config
   :config
 
+  (defvar __ya/image-dired-create-thumb--idle-timer nil)
+  (defun __ya/image-dired-create-thumb (original-file thumbnail-file)
+    "Same as `image-dired-create-thumb' but use a single idle timer to
+notice the queue run instead of populating a immediately timer in
+each creation occurred since the queue guard
+`image-dired-thumb-queue-run' will also ran in the process
+sentinel of `image-dired-create-thumb-1'."
+    (setq image-dired-queue
+          (nconc image-dired-queue
+                 (list (list original-file thumbnail-file))))
+    (entropy/emacs-cancel-timer-var
+     __ya/image-dired-create-thumb--idle-timer)
+    (entropy/emacs-setf-by-body
+      __ya/image-dired-create-thumb--idle-timer
+      (run-with-idle-timer
+       0.01 nil #'image-dired-thumb-queue-run)))
+  (advice-add 'image-dired-create-thumb
+              :override
+              #'__ya/image-dired-create-thumb)
+
   (defun entropy/emacs-image-dired-init (&optional arg)
     "Initial `image-dired' automatically when proper.
 
@@ -3214,7 +3234,11 @@ emacs 29 and higher default to singal error when such size is not
             (unless (or thumbnail-file-1-exist-p thumbnail-file-2-exist-p
                         thumbnail-file-3-exist-p)
               (expand-file-name
-               (concat (entropy/emacs-get-file-checksum ftname 'md5) suffix)
+               (concat
+                (entropy/emacs-message-simple-progress-message
+                    (format "gen image file md5 thumb name: %s " ftname)
+                  (entropy/emacs-get-file-checksum ftname 'md5))
+                suffix)
                dir)))
            (thumbnail-file-4-exist-p
             (and thumbnail-file-4 (file-exists-p thumbnail-file-4))))
@@ -3277,7 +3301,7 @@ same checksum should has re-use same thumb."
                 :override #'__ya/image-dired-thumb-name))
 
   (defun __ya/image-dired-create-thumb-1
-    (original-file thumbnail-file)
+      (original-file thumbnail-file)
     "For ORIGINAL-FILE, create thumbnail image named THUMBNAIL-FILE.
 
 NOTE: this is a patch for `image-dired-create-thumb-1' to make a
@@ -3372,7 +3396,10 @@ prevention of re-generation."
                                  f)))
                      (of2md5 (and of2 (funcall get-uri-checksum-func of2)))
                      (of3 of)
-                     (of3md5 (and of3 (entropy/emacs-get-file-checksum of3 'md5)))
+                     (of3md5 (when of3
+                               (entropy/emacs-message-simple-progress-message
+                                   (format "gen image file md5 thumb file: %s " of3)
+                                 (entropy/emacs-get-file-checksum of3 'md5))))
                      (cpfunc
                       (lambda (f)
                         (unless (file-exists-p f)
