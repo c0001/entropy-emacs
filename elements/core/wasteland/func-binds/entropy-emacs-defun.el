@@ -754,6 +754,9 @@ is rejecting the defination.
 Arbitrarily, any optional keys supported by
 `entropy/emacs-with-lambda' is permitted.
 
+Return nil when the WHEN is not predicated, otherwise return
+function name symbol NAME.
+
 \(fn NAME ARGLIST [DOCSTRING] [DECL] [INCT] &key WHEN ... &rest BODY)"
   (declare (indent defun) (doc-string 3))
   (let* ((name (car args)) (args (cdr args))
@@ -766,7 +769,8 @@ Arbitrarily, any optional keys supported by
                       (plist-put args-parse :body-plist (cdr bp-parse)))))
     `(when ,bp-when
        ,(macroexpand-1
-         `(entropy/emacs-with-lambda '(t . ,name) ,@new-args)))))
+         `(entropy/emacs-with-lambda '(t . ,name) ,@new-args))
+       ',name)))
 
 (cl-defmacro entropy/emacs-save-excursion-when
     (&rest body &key when &allow-other-keys)

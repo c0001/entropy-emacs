@@ -219,6 +219,8 @@ byte-code into a popup buffer.
                        (lambda nil
                          (setq ,msg-core-sym
                                (cond
+                                ((null eval-form)
+                                 (format "byte-compile -> meaningless null form"))
                                 ((symbolp eval-form)
                                  (format "byte-compile -> symbol's function '%S'" eval-form))
                                 ((or (functionp eval-form)
@@ -247,7 +249,8 @@ byte-code into a popup buffer.
                          (let ((print-level nil)
                                (print-length nil)
                                (print-escape-nonascii t)
-                               (print-circle t))
+                               (print-circle t)
+                               (inhibit-read-only t))
                            (prin1 eval-form buff)
                            (lisp-data-mode)
                            ;; FIXME: please add hook for that to disable as instead of this.
@@ -260,8 +263,12 @@ byte-code into a popup buffer.
                            ;; lexical or dynamic interpretation.
                            (with-current-buffer orig-buff
                              (if (and (memq (setq defun-sym (car eval-form))
-                                            '(defun cl-defun entropy/emacs-define-idle-function
-                                               entropy/emacs-!cl-defun))
+                                            (list
+                                             'defun 'cl-defun
+                                             'entropy/emacs-define-idle-function
+                                             'entropy/emacs-!cl-defun
+                                             'entropy/emacs-when-defun
+                                             'entropy/emacs-defun-with-emacs-version-restriction))
                                       (setq pre-byte-func-sym (cadr eval-form))
                                       (yes-or-no-p
                                        (format "It's seemes like a function defination form \
@@ -272,6 +279,9 @@ for function '%s', eval and compile its defination instead?"
                                    (setq eval-form (eval eval-form lexical-binding)
                                          double-bytecmp-p pre-byte-func-sym
                                          confirm-p t))
+                                  ((eq defun-sym 'entropy/emacs-when-defun)
+                                   (setq eval-form (eval eval-form lexical-binding)
+                                         confirm-p t))
                                   (t
                                    ;; we must obey the
                                    ;; `lexical-binding' as in origin
@@ -281,7 +291,8 @@ for function '%s', eval and compile its defination instead?"
                                          confirm-p t)
                                    (unless (and (symbolp eval-form)
                                                 (eq eval-form pre-byte-func-sym))
-                                     (error "[internal error] emacs `defun' api changed."))))
+                                     (error "[internal error] eemacs `%s' api changed."
+                                            defun-sym))))
                                (setq confirm-p
                                      (yes-or-no-p "Really byte-compile above form?")
                                      defun-sym nil))))
@@ -291,41 +302,43 @@ for function '%s', eval and compile its defination instead?"
                          (error "Abort!"))))
                    (funcall msg-core-get-func)
                    (entropy/emacs-message-simple-progress-message
-                    (format "%s" ,msg-core-sym)
-                    (with-current-buffer orig-buff
-                      (setq bytecmp-result (byte-compile eval-form))
-                      (if double-bytecmp-p
-                          (setq bytecmp-result
-                                (list
-                                 'multi
-                                 (format ";; 1st:%s"
-                                         (if (symbolp eval-form) (format " `%S'" eval-form) ""))
-                                 bytecmp-result
-                                 (format ";; 2nd:%s"
-                                         (if (symbolp eval-form) (format " `%S'" double-bytecmp-p)
-                                           ""))
-                                 (byte-compile double-bytecmp-p)))
-                        (setq bytecmp-result (list 'single bytecmp-result))))
-                    (with-current-buffer buff
-                      (let ((inhibit-read-only t)
-                            (print-level nil)
-                            (print-length nil)
-                            (print-escape-nonascii t)
-                            (print-circle t))
-                        (erase-buffer)
-                        (cl-case (car bytecmp-result)
-                          (single (prin1 (cadr bytecmp-result) buff))
-                          (multi
-                           (dolist (el (cdr bytecmp-result))
-                             (if (stringp el) (insert el) (prin1 el buff))
-                             (insert "\n\n")))
-                          (t (error "eemacs byte compile form internal error")))
-                        (let ((inhibit-message t))
-                          ;; remove truncate echo message since we
-                          ;; want see the original byte-comp message
-                          (toggle-truncate-lines -1))
-                        (entropy/emacs-local-set-key (kbd "q") #'kill-buffer-and-window)
-                        (goto-char (point-min))))))))
+                       (format "%s" ,msg-core-sym)
+                     (with-current-buffer orig-buff
+                       (setq bytecmp-result
+                             ;; `nil' should not be byte-comped
+                             (when eval-form (byte-compile eval-form)))
+                       (if double-bytecmp-p
+                           (setq bytecmp-result
+                                 (list
+                                  'multi
+                                  (format ";; 1st:%s"
+                                          (if (symbolp eval-form) (format " `%S'" eval-form) ""))
+                                  bytecmp-result
+                                  (format ";; 2nd:%s"
+                                          (if (symbolp eval-form) (format " `%S'" double-bytecmp-p)
+                                            ""))
+                                  (and double-bytecmp-p (byte-compile double-bytecmp-p))))
+                         (setq bytecmp-result (list 'single bytecmp-result))))
+                     (with-current-buffer buff
+                       (let ((inhibit-read-only t)
+                             (print-level nil)
+                             (print-length nil)
+                             (print-escape-nonascii t)
+                             (print-circle t))
+                         (erase-buffer)
+                         (cl-case (car bytecmp-result)
+                           (single (prin1 (cadr bytecmp-result) buff))
+                           (multi
+                            (dolist (el (cdr bytecmp-result))
+                              (if (stringp el) (insert el) (prin1 el buff))
+                              (insert "\n\n")))
+                           (t (error "eemacs byte compile form internal error")))
+                         (let ((inhibit-message t))
+                           ;; remove truncate echo message since we
+                           ;; want see the original byte-comp message
+                           (toggle-truncate-lines -1))
+                         (entropy/emacs-local-set-key (kbd "q") #'kill-buffer-and-window)
+                         (goto-char (point-min))))))))
              ;; return
              ,rtn-sym)))))
 
@@ -379,15 +392,7 @@ byte-code."
     (interactive)
     (let ((region
            (entropy/emacs-syntax-get-top-list-region-around-buffer-point
-            t (lambda (reg)
-                (save-excursion
-                  (goto-char (car reg))
-                  (looking-at-p
-                   (rx (seq "(" (or "defun" "cl-defun"
-                                    "entropy/emacs-!cl-defun"
-                                    "entropy/emacs-defalias"
-                                    "entropy/emacs-!defalias"))))))
-            'nomove)))
+            t #'__eemacs-elisp-lambda-keywords-look-at-p 'nomove)))
       (unless region (error "No paired syntax list group found at point"))
       (entropy/emacs-lisp--elisp-inct-eval-safaty-wrap
        byte-compile
@@ -412,7 +417,7 @@ interaction) then normally wrapped to top-level form."
       (narrow-to-region (car region) (cdr region))))
 
   (define-key emacs-lisp-mode-map (kbd "C-x n d")
-    #'entropy/emacs-lisp-elisp-narrow-to-defun)
+              #'entropy/emacs-lisp-elisp-narrow-to-defun)
   )
 
 (use-package eldoc-eval
