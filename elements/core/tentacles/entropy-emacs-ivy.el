@@ -468,6 +468,14 @@ exhibition."
     (add-to-list 'entropy/emacs-garbage-collect-restrict-commands
                  el))
 
+  (when (eq entropy/emacs-command-completion-use-style 'ivy)
+    (entropy/emacs-lazy-initial-advice-before
+     '(completing-read)
+     "global-ivy-mode-initial" "global-ivy-mode-initial"
+     :pdumper-no-end t
+     :prompt-type 'prompt-echo
+     (ivy-mode 1)))
+
 ;; *** ivy config
   :config
 ;; **** more re-builders hack
