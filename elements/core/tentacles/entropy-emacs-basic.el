@@ -3838,10 +3838,13 @@ displayed image as same operated mechanism as
    '(search-forward-regexp (format "^%s" (regexp-quote file)) nil t)
    '(search-forward-regexp (format "^%s" file) nil t)))
 
-(cond ((< emacs-major-version 29)
+(cond (
+       ;; since we use self-maintained image-28 dired ver. which has
+       ;; patched yet.
+       (< emacs-major-version 28)
        (with-eval-after-load 'image-dired
          (entropy/emacs-basic--patch-image-dired-db-search-regexp)))
-      (t
+      ((> emacs-major-version 28)
        (with-eval-after-load 'image-dired-tags
          (entropy/emacs-basic--patch-image-dired-db-search-regexp))))
 
