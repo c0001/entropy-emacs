@@ -3405,6 +3405,7 @@ prevention of re-generation."
                                  __ya/image-dired-thumbnail-standard-sizes))
                      (fename (expand-file-name original-file))
                      (ftname (file-truename    original-file))
+                     (tfbasenm (file-name-nondirectory thumbnail-file))
                      (get-uri-checksum-func
                       (lambda (f)
                         (if xdgp (md5 (concat "file://" f))
@@ -3429,8 +3430,7 @@ prevention of re-generation."
                           ;; broken link detected
                           (when (entropy/emacs-filesystem-node-is-symlink-p f)
                             (delete-file f))
-                          (make-symbolic-link
-                           (file-name-nondirectory thumbnail-file) f)))))
+                          (make-symbolic-link tfbasenm f)))))
                   (dolist (el (list ofmd5 of2md5 of3md5))
                     (when el
                       (funcall
