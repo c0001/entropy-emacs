@@ -3403,19 +3403,22 @@ prevention of re-generation."
                 (let*
                     ((xdgp (memq image-dired-thumbnail-storage
                                  __ya/image-dired-thumbnail-standard-sizes))
+                     (fename (expand-file-name original-file))
+                     (ftname (file-truename    original-file))
                      (get-uri-checksum-func
                       (lambda (f)
                         (if xdgp (md5 (concat "file://" f))
                           (sha1 f))))
-                     (of (let ((f (file-truename original-file)))
+                     (of (let ((f ftname))
                            (and (not (equal f original-file))
                                 f)))
                      (ofmd5 (and of (funcall get-uri-checksum-func of)))
-                     (of2 (let ((f (expand-file-name original-file)))
+                     (of2 (let ((f fename))
                             (and (not (equal f original-file))
                                  f)))
                      (of2md5 (and of2 (funcall get-uri-checksum-func of2)))
-                     (of3 (and of (not (file-remote-p thumbnail-file))))
+                     (of3 (and (not (file-remote-p thumbnail-file))
+                               ftname))
                      (of3md5 (when of3
                                (entropy/emacs-message-simple-progress-message
                                    (format "gen image file md5 thumb file: %s " of3)
