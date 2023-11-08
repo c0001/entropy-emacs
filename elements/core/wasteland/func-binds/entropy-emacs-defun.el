@@ -12159,6 +12159,7 @@ of dynamic or lexical context."
         (func-sym (make-symbol "func"))
         (var-sym (make-symbol "var"))
         (always-lzl-p-sym (make-symbol "always-lazy-load-p"))
+        (should-not-use-lazy-p-sym (make-sym "should-not-use-lazy-p"))
         (adder-type-sym (make-symbol "the-adder-type"))
         (adder-flag-sym (make-symbol "the-adder-flag"))
         (initial-func-suffix-name-sym (make-symbol "the-initial-func-suffix-name"))
@@ -12176,6 +12177,9 @@ of dynamic or lexical context."
             (,prompt-type-sym ,prompt-type)
             (,func-body-lambda-sym (lambda (&rest _advice-orig-args) ,@func-body))
             (,always-lzl-p-sym ,always-lazy-load)
+            (,should-not-use-lazy-p-sym
+             (and (not ,always-lzl-p-sym)
+                  (not (entropy/emacs-custom-enable-lazy-load/val))))
             ,func-lambda-sym
             )
        (unless (member ,adder-type-sym '(add-hook advice-add))
@@ -12280,7 +12284,8 @@ of dynamic or lexical context."
 automatically self-unbound when loaded done."
                    ,initial-func-suffix-name-sym))
          ;; notify frequencies
-         (when ,adder-flag-sym
+         (when (and ,adder-flag-sym
+                    (not ,should-not-use-lazy-p-sym))
            (cond ((memq 'switch-to-buffer ,list-var-sym)
                   (add-to-list 'entropy/emacs-lazy--initial-form-adv/feq-list/switch-to-buffer
                                ,func-sym))
@@ -12290,7 +12295,7 @@ automatically self-unbound when loaded done."
          ;; injection
          (let (_)
            (cond
-            ((and (not ,always-lzl-p-sym) (not (entropy/emacs-custom-enable-lazy-load/val)))
+            (,should-not-use-lazy-p-sym
              (let ((hook (entropy/emacs-select-trail-hook
                           ,pdumper-no-end)))
                (set hook (append (symbol-value hook) (list ,func-sym)))))
