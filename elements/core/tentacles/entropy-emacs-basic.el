@@ -3826,6 +3826,25 @@ displayed image as same operated mechanism as
 ;; ****** __end__
   )
 
+;; ***** others
+;; ****** patch no safety image-dired db regexp search
+(defun entropy/emacs-basic--patch-image-dired-db-search-regexp nil
+  (advice-patch
+   'image-dired-list-tags
+   '(search-forward-regexp (format "^%s" (regexp-quote file)) nil t)
+   '(search-forward-regexp (format "^%s" file) nil t))
+  (advice-patch
+   'image-dired-get-comment
+   '(search-forward-regexp (format "^%s" (regexp-quote file)) nil t)
+   '(search-forward-regexp (format "^%s" file) nil t)))
+
+(cond ((< emacs-major-version 29)
+       (with-eval-after-load 'image-dired
+         (entropy/emacs-basic--patch-image-dired-db-search-regexp)))
+      (t
+       (with-eval-after-load 'image-dired-tags
+         (entropy/emacs-basic--patch-image-dired-db-search-regexp))))
+
 ;; *** Artist-mode
 (use-package artist
   :ensure nil
