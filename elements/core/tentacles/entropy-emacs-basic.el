@@ -7242,6 +7242,9 @@ otherwise returns nil."
 
 ;; **** xterm
 
+;; escape CI (no term/gui compiled) emacs session's byte-comp warn
+(defvar xterm-paste-ending-sequence)
+
 (entropy/emacs-with-daemon-make-frame-done
   'eemacs-enable-xterm-mouse-mode (&rest _)
   :when-tui (xterm-mouse-mode  1)
