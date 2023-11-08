@@ -266,7 +266,12 @@ error like \"Specified title includes unsafe character(s): %s\"."
           nil
         ;; NOTE: Fistly we need to close the origin bookmark buffer using
         ;; `w3m' internal API which is used to update its internal status.
-        (w3m-kill-buffer buff)
+        (when (buffer-live-p buff)      ;prevent kill `current-buffer'
+                                        ;when buff is nil since
+                                        ;`w3m-kill-buffer' kill the
+                                        ;`current-buffer' while in
+                                        ;such of case
+          (w3m-kill-buffer buff))
         (let ((large-file-warning-threshold
                most-positive-fixnum))
           (with-current-buffer (find-file-noselect w3m-bookmark-file)
