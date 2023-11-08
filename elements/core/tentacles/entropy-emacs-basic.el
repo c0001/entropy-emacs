@@ -3209,6 +3209,7 @@ emacs 29 and higher default to singal error when such size is not
     (setq protocol (or protocol "") suffix (or suffix ""))
     (let* ((fename (expand-file-name file))
            (ftname (file-truename fename))
+           (frmp (file-remote-p file))
            (thumbnail-file-1
             (expand-file-name
              ;; MD5 is mandated by the Thumbnail Managing Standard.
@@ -3224,7 +3225,7 @@ emacs 29 and higher default to singal error when such size is not
            (thumbnail-file-2-exist-p
             (and thumbnail-file-2 (file-exists-p thumbnail-file-2)))
            (thumbnail-file-3
-            (unless (or thumbnail-file-1-exist-p
+            (unless (or frmp thumbnail-file-1-exist-p
                         thumbnail-file-2-exist-p)
               (expand-file-name
                (concat
@@ -3414,7 +3415,7 @@ prevention of re-generation."
                             (and (not (equal f original-file))
                                  f)))
                      (of2md5 (and of2 (funcall get-uri-checksum-func of2)))
-                     (of3 of)
+                     (of3 (and of (not (file-remote-p thumbnail-file))))
                      (of3md5 (when of3
                                (entropy/emacs-message-simple-progress-message
                                    (format "gen image file md5 thumb file: %s " of3)
