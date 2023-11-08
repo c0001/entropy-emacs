@@ -12159,7 +12159,7 @@ of dynamic or lexical context."
         (func-sym (make-symbol "func"))
         (var-sym (make-symbol "var"))
         (always-lzl-p-sym (make-symbol "always-lazy-load-p"))
-        (should-not-use-lazy-p-sym (make-sym "should-not-use-lazy-p"))
+        (should-not-use-lazy-p-sym (make-symbol "should-not-use-lazy-p"))
         (adder-type-sym (make-symbol "the-adder-type"))
         (adder-flag-sym (make-symbol "the-adder-flag"))
         (initial-func-suffix-name-sym (make-symbol "the-initial-func-suffix-name"))
