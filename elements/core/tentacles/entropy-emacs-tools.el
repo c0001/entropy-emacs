@@ -232,41 +232,55 @@ with ARGLIST."
 
 ;; **** Function manually
 ;; ***** Open in desktop manager
-(when sys/is-graphic-support
-  (defun entropy/emacs-tools-show-in-desktop (&optional dpath)
-    "Show current file in desktop file manager.
- (Mac Finder, Windows Explorer, Linux file manager)
- This command be called when in a file or in `dired'.
+(entropy/emacs-when-defun entropy/emacs-tools-show-in-desktop-file-manager
+  (&optional with-path)
+  "Show current file in desktop file manager. (Mac Finder, Windows
+Explorer, Linux file manager) This command be called when in a
+file or in `dired'.
 
-URL `http://ergoemacs.org/emacs/emacs_dired_open_file_in_ext_apps.html'
+Inspired from
+`http://ergoemacs.org/emacs/emacs_dired_open_file_in_ext_apps.html'
 Version 2017-12-23"
-    (interactive)
-    (let (($path (if (not dpath)
-                     (if (buffer-file-name)
-                         (file-name-nondirectory (buffer-file-name))
-                       default-directory )
-                   dpath)))
-      (cond
-       (sys/is-wingroup-and-graphic-support-p
-        (w32-shell-execute "explore" (replace-regexp-in-string "/" "\\" default-directory t t)))
-       (sys/is-mac-and-graphic-support-p
-        (if (eq major-mode 'dired-mode)
-            (let (($files (dired-get-marked-files )))
-              (if (eq (length $files) 0)
-                  (shell-command
-                   (concat "open " default-directory ))
-                (shell-command
-                 (concat "open -R " (car (dired-get-marked-files))))))
-          (shell-command
-           (concat "open -R " $path))))
-       (sys/is-linux-and-graphic-support-p
-        (shell-command "gio open .")
-        ;; gio open was the suggested command for now [2018-01-03 Wed 04:23:17]
-        ;;
-        ;; 2013-02-10 (shell-command "xdg-open .")  sometimes froze
-        ;; emacs till the folder is closed. eg with nautilus
-        ))))
-  )
+  (interactive)
+  :when sys/is-graphic-support
+  (let* ((use-dir-path
+          (file-name-as-directory
+           (or with-path
+               (if (buffer-file-name)
+                   (file-name-nondirectory (buffer-file-name))
+                 default-directory))))
+         (proc-name " *eemacs-explore-default-directory* ")
+         (err-func
+          (lambda (type proc)
+            (user-error "[%s] open dir with fatal <%s>: exit code %s"
+                        type use-dir-path
+                        (process-exit-status proc)))))
+    (cond
+     (sys/is-wingroup-and-graphic-support-p
+      (w32-shell-execute
+       "explore"
+       (replace-regexp-in-string "/" "\\" default-directory t t)))
+     (sys/is-mac-and-graphic-support-p
+      (let (_)
+        (entropy/emacs-with-make-process
+         :name proc-name
+         :buffer nil
+         :command `("open" ,use-dir-path)
+         :error
+         (funcall err-func "open" $sentinel/proc))))
+     (sys/is-linux-and-graphic-support-p
+      (let (
+            ;; NOTE: if not of this, `xdg-open' failure.
+            (process-connection-type t))
+        (entropy/emacs-with-make-process
+         :name proc-name
+         :buffer nil
+         ;; FIXME: we always want to start `xdg-open' within
+         ;; `setsid' to fork a new process, otherwise no app
+         ;; started?
+         :command `("setsid" "-w" "xdg-open" ,use-dir-path)
+         :error
+         (funcall err-func "xdg-open" $sentinel/proc)))))))
 
 ;; ***** Open in terminal
 (defvar entropy/emacs-tools-open-in-terminal--use-term nil)
@@ -441,7 +455,7 @@ Version 2017-10-09"
  (entropy/emacs-hydra-hollow-add-to-major-mode-hydra
   'dired-mode '(dired dired-mode-map)
   '("Misc."
-    (("M-=" entropy/emacs-tools-show-in-desktop
+    (("M-=" entropy/emacs-tools-show-in-desktop-file-manager
       "Show current file in desktop file manager"
       :enable sys/is-graphic-support :exit t :map-inject t)))))
 
