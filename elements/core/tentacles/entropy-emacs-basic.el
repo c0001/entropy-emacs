@@ -3206,33 +3206,26 @@ emacs 29 and higher default to singal error when such size is not
 
   (defun entropy/emacs-basic--image-dired-get-thumb-name
       (file dir sha protocol suffix)
-    (setq protocol (or protocol "")
-          suffix (or suffix ""))
+    (setq protocol (or protocol "") suffix (or suffix ""))
     (let* ((fename (expand-file-name file))
            (ftname (file-truename fename))
            (thumbnail-file-1
             (expand-file-name
              ;; MD5 is mandated by the Thumbnail Managing Standard.
-             (concat (funcall sha (concat protocol file)) suffix)
+             (concat (funcall sha (concat protocol fename)) suffix)
              dir))
-           (thumbnail-file-1-exist-p (file-exists-p thumbnail-file-1))
+           (thumbnail-file-1-exist-p
+            (and thumbnail-file-1 (file-exists-p thumbnail-file-1)))
            (thumbnail-file-2
             (unless thumbnail-file-1-exist-p
               (expand-file-name
-               (concat (funcall sha (concat protocol fename)) suffix)
+               (concat (funcall sha (concat protocol ftname)) suffix)
                dir)))
            (thumbnail-file-2-exist-p
             (and thumbnail-file-2 (file-exists-p thumbnail-file-2)))
            (thumbnail-file-3
-            (unless (or thumbnail-file-1-exist-p thumbnail-file-2-exist-p)
-              (expand-file-name
-               (concat (funcall sha (concat protocol ftname)) suffix)
-               dir)))
-           (thumbnail-file-3-exist-p
-            (and thumbnail-file-3 (file-exists-p thumbnail-file-3)))
-           (thumbnail-file-4
-            (unless (or thumbnail-file-1-exist-p thumbnail-file-2-exist-p
-                        thumbnail-file-3-exist-p)
+            (unless (or thumbnail-file-1-exist-p
+                        thumbnail-file-2-exist-p)
               (expand-file-name
                (concat
                 (entropy/emacs-message-simple-progress-message
@@ -3240,13 +3233,39 @@ emacs 29 and higher default to singal error when such size is not
                   (entropy/emacs-get-file-checksum ftname 'md5))
                 suffix)
                dir)))
-           (thumbnail-file-4-exist-p
-            (and thumbnail-file-4 (file-exists-p thumbnail-file-4))))
-      (or (and thumbnail-file-1-exist-p thumbnail-file-1)
-          (and thumbnail-file-2-exist-p thumbnail-file-2)
-          (and thumbnail-file-3-exist-p thumbnail-file-3)
-          (and thumbnail-file-4-exist-p thumbnail-file-4)
-          thumbnail-file-1)))
+           (thumbnail-file-3-exist-p
+            (and thumbnail-file-3 (file-exists-p thumbnail-file-3)))
+           (thumbnail-file-3-base-name
+            (and thumbnail-file-3
+                 (file-name-nondirectory thumbnail-file-3))))
+      (if (and thumbnail-file-3-exist-p thumbnail-file-3
+               thumbnail-file-3-base-name)
+          ;; when the content md5 named thumbnail exists we should
+          ;; remake a softlink to all of the xdg-desktop thumbnail uri
+          ;; md5 named file to speedup next searching speed since we can
+          ;; not the disk I/O speed usually very slow.
+          (let ((fcache nil))
+            (dolist (el `((,thumbnail-file-1-exist-p . ,thumbnail-file-1)
+                          (,thumbnail-file-2-exist-p . ,thumbnail-file-2)))
+              (condition-case err
+                  (when (and (not (car el)) (cdr el)
+                             (not (member (cdr el) fcache)))
+                    (when (entropy/emacs-filesystem-node-exists-p (cdr el))
+                      (delete-file (cdr el)))
+                    (entropy/emacs-message-simple-progress-message
+                        (format "make link of image thumb `%s' to `%s'"
+                                thumbnail-file-3-base-name (cdr el))
+                      (make-symbolic-link thumbnail-file-3-base-name (cdr el)))
+                    (push (cdr el) fcache))
+                (error
+                 (message "make link of image thumb `%s' to `%s' with fatal: %S"
+                          thumbnail-file-3-base-name (cdr el) err))))
+            thumbnail-file-3)
+        (or
+         (and thumbnail-file-1-exist-p thumbnail-file-1)
+         (and thumbnail-file-2-exist-p thumbnail-file-2)
+         (and thumbnail-file-3-exist-p thumbnail-file-3)
+         thumbnail-file-1))))
 
   (defun __ya/image-dired-thumb-name (file)
     "Return absolute file name for thumbnail FILE.
