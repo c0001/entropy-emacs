@@ -12042,7 +12042,7 @@ automatically self-`fmakunbound' when loaded done."
                   (apply fn args)))))
 (add-hook 'minibuffer-setup-hook
           (entropy/emacs-with-lambda
-            (cons t 'entropy/emacs-lazy--initial-form-adv/feq-list/switch-to-buffer/run)
+            (cons t 'entropy/emacs-lazy--initial-form-adv/feq-list/run-all)
             nil
             "Run eemacs lazy advice for `switch-to-buffer' in
 `minibuffer-setup-hook' immediately when first time use
@@ -12069,13 +12069,16 @@ prompts."
                   (run-hooks 'entropy/emacs-lazy--initial-form-adv/feq-list/switch-to-buffer)
                   (setq entropy/emacs-lazy--initial-form-adv/feq-list/switch-to-buffer
                         nil)
+                  (run-hooks 'entropy/emacs-lazy--initial-form-adv/feq-list/find-file)
+                  (setq entropy/emacs-lazy--initial-form-adv/feq-list/find-file
+                        nil)
                   (advice-remove
                    'completing-read
                    'entropy/emacs-lazy--initial-form-adv/feq-list/adv/for/completing-read
                    )
                   (remove-hook
                    'minibuffer-setup-hook
-                   'entropy/emacs-lazy--initial-form-adv/feq-list/switch-to-buffer/run
+                   'entropy/emacs-lazy--initial-form-adv/feq-list/run-all
                    ))))))
 (cl-defmacro entropy/emacs-lazy-initial-form
     (list-var
