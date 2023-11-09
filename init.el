@@ -235,7 +235,8 @@ renderred after init this.)"
 ;; ** Startup entropy-emacs
 
 (defvar entropy/emacs-fall-love-with-pdumper
-  (equal (getenv "EEMACS_MAKE") "Dump")
+  (or (equal (getenv "EEMACS_MAKE") "Dump")
+      (equal (getenv "EEMACS_MAKE") "Compile-Dump"))
   "The emacs running type indication for pdumper.")
 
 (defvar entropy/emacs-do-pdumping-with-lazy-load-p nil
@@ -255,6 +256,7 @@ dumped as well as older vers any more.")
   "Hook for run with pdumper session startup.")
 (defun entropy/emacs-suggest-startup-with-elisp-source-load-p nil
   (or
+   (member (entropy/emacs-getenv "EEMACS_MAKE") '("Compile" "Compile-Dump"))
    (and noninteractive
         (not entropy/emacs-fall-love-with-pdumper)
         (not (daemonp)))

@@ -233,6 +233,8 @@ configuration.")
 ;; prevent internal error like "Defining as dynamic an already lexical
 ;; var"
 (defvar bookmark-watch-bookmark-file)
+
+(defvar entropy/emacs-pdumper--recovery-ending nil)
 (defun entropy/emacs-pdumper--recovery ()
   (setq entropy/emacs-run-startup-pdumper-hooks-init-timestamp
         (current-time))
@@ -275,7 +277,9 @@ configuration.")
       (defun entropy/emacs-pdumper--recovery ()
         nil)
       ;; finally run start-end hook
-      (entropy/emacs-run-startup-end-hook))))
+      (setq entropy/emacs-pdumper--recovery-ending t)
+      (entropy/emacs-run-startup-end-hook)
+      (setq entropy/emacs-pdumper--recovery-ending nil))))
 
 ;; ** load-files
 (defun entropy/emacs-pdumper--load-files-core (top-dir files)

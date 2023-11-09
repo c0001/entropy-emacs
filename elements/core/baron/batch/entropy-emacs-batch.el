@@ -906,12 +906,11 @@ since we solved deps broken")))))
       (entropy/emacs-batch--prompts-for-ext-install-section
        (entropy/emacs-package-common-start 'use-full)))
      ((member type (list "Compile" "Compile-Dump"))
-      (and (equal type "Compile-Dump")
-           (setq entropy/emacs-fall-love-with-pdumper t))
       ;; we must check all depedencies firstly while compile
       (entropy/emacs-batch--check-packages)
       (entropy/emacs-batch--prompts-for-byte-compile-eemacs-internal
-       (unless (entropy/emacs-getenv "EEMACS_MAKE_ALL")
+       (unless (and (entropy/emacs-getenv "EEMACS_MAKE_ALL")
+                    (not (equal type "Compile-Dump")))
          (entropy/emacs-batch--do-bytecompile-eemacs-core t))
        (entropy/emacs-batch--do-bytecompile-eemacs-core)))
      ((equal type "Compile-Clean")

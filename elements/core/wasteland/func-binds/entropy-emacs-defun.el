@@ -12263,6 +12263,12 @@ of dynamic or lexical context."
                                                '(entropy/emacs-startup-end-hook
                                                  entropy/emacs-after-startup-hook)))
                                   (remove-hook adhfor-it ,func-sym)))))
+                       (dolist (adhfor-it ,list-var-sym)
+                         (dolist
+                             (hook
+                              '(entropy/emacs-lazy--initial-form-adv/feq-list/switch-to-buffer
+                                entropy/emacs-lazy--initial-form-adv/feq-list/find-file))
+                           (remove-hook hook adhfor-it)))
                        ;; fake the function after evaluated it.
                        (fmakunbound ,func-sym)
                        (defalias ,func-sym #'ignore)))))

@@ -1021,24 +1021,29 @@ initialize the default non-lazy configs.
             (run-hooks 'entropy/emacs-after-startup-hook)
             (if (or entropy/emacs-fall-love-with-pdumper (daemonp))
                 (run-hooks 'entropy/emacs-after-startup-idle-hook)
-              (run-with-idle-timer
-               0.1 nil
-               (lambda nil
-                 (let (window-configuration-change-hook)
-                   (let ((inhibit-message
-                          (or entropy/emacs-package-init-with-quick-start-p
-                              (not entropy/emacs-startup-with-Debug-p))))
-                     (run-hooks 'entropy/emacs-after-startup-idle-hook))
-                   (entropy/emacs-message-do-message
-                    "%s --- %s %s"
-                    (bold base-str)
-                    (magenta "Happy hacking")
-                    "('C-h v entropy/emacs-run-startup-duration' see startup time)"
-                    )))))
-            (message
-             "%s"
-             "==================== eemacs after end hooks ran out ====================")
-            ))
+              (let ((initendmsgfunc
+                     (lambda nil
+                       (entropy/emacs-dynamic-let*
+                           (window-configuration-change-hook)
+                         (let (_)
+                           (run-hooks 'entropy/emacs-after-startup-idle-hook))
+                         (entropy/emacs-message-do-message
+                          "%s --- %s %s"
+                          (bold base-str)
+                          (magenta "Happy hacking")
+                          "('C-h v entropy/emacs-run-startup-duration' see startup time)"
+                          ))))
+                    (initendendmsgfunc
+                     (lambda nil
+                       (entropy/emacs-message-do-message
+                        "==================== eemacs after end hooks ran out ===================="
+                        ))))
+                (if (bound-and-true-p entropy/emacs-pdumper--recovery-ending)
+                    (progn
+                      (funcall initendendmsgfunc)
+                      (run-at-time 0.2 nil initendmsgfunc))
+                  (funcall initendendmsgfunc)
+                  (run-with-idle-timer 0.01 nil initendmsgfunc))))))
          (this-time-1 (current-time))
          ;; -----------------------
          (emacs-pre-time:before

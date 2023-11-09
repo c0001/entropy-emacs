@@ -2690,7 +2690,7 @@ an error."
                     (pop-to-buffer img-dired-buff))
                   (redisplay t)
                   (entropy/emacs-message-simple-progress-message
-                      (format "generating/Getting thumbs cache from storage type `%s'"
+                      (format "Generating/Getting thumbs cache from storage type `%s'"
                               image-dired-thumbnail-storage)
                     (image-dired-display-thumbs))
                   (with-current-buffer img-dired-buff

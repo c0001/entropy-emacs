@@ -80,15 +80,16 @@
 
 ;; initialize trie for entropy-emacs pdumper loading or daemon or
 ;; eemacs non-lazy loading when detected
-(when (or (and (bound-and-true-p entropy/emacs-fall-love-with-pdumper)
-               (not (bound-and-true-p entropy/emacs-do-pdumping-with-lazy-load-p)))
-          (daemonp)
-          (and (boundp 'entropy/emacs-custom-enable-lazy-load)
-               (boundp 'entropy/emacs-session-in-byte-compile-emacs-core-p)
-               (not (bound-and-true-p
-                     entropy/emacs-custom-enable-lazy-load))
-               (not (bound-and-true-p
-                     entropy/emacs-session-in-byte-compile-emacs-core-p))))
+(when (or
+       (daemonp)
+       (and
+        (if (bound-and-true-p entropy/emacs-fall-love-with-pdumper)
+            (not (bound-and-true-p entropy/emacs-do-pdumping-with-lazy-load-p))
+          t)
+        (not (bound-and-true-p
+              entropy/emacs-custom-enable-lazy-load))
+        (not (bound-and-true-p
+              entropy/emacs-session-in-byte-compile-emacs-core-p))))
   (company-en-words/lib--init-trie))
 
 (defun company-en-words/lib--query-candis-core (word maxnum)
