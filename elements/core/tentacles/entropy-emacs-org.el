@@ -1867,6 +1867,11 @@ Now just supply localization image file analyzing."
 ;; ** org html export extra themes
 (use-package entropy-org-export-theme-toggle
   :ensure nil
+  :preface
+  (defvar entropy/emacs-org-eemacs-spec-org-html-themes-repo-root
+    (expand-file-name
+     "entropy-org-export-html-theme/elements/themes"
+     entropy/emacs-site-lisp-path))
   :commands (entropy/org-exptth-set-head))
 
 ;; ** org-download

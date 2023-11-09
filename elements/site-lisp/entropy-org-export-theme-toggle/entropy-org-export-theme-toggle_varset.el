@@ -27,7 +27,7 @@
 ;;; Code:
 (defvar entropy/org-exptt-html-theme-plist)
 (setq entropy/org-exptt-html-theme-plist
-      '(("Worg"
+      `(("Worg"
          :theme_css  ("<link rel=\"stylesheet\" title=\"Standard\" href=\"https://orgmode.org/worg/style/worg.css\" type=\"text/css\" />"
                       "<link rel=\"alternate stylesheet\" title=\"Zenburn\" href=\"https://orgmode.org/worg/style/worg-zenburn.css\" type=\"text/css\" />"
                       "<link rel=\"alternate stylesheet\" title=\"Classic\" href=\"https://orgmode.org/worg/style/worg-classic.css\" type=\"text/css\" />"
@@ -110,14 +110,32 @@
                     "<script type=\"text/javascript\" src=\"https://www.pirilampo.org/styles/lib/js/jquery.stickytableheaders.min.js\"></script>")
          :theme_category ("index" "single-doc" "wiki"))
         ("redsnapper"
-         :theme_css ("<link rel=\"stylesheet\" style=\"text/css\"
-href=\"https://raw.githubusercontent.com/c0001/entropy-org-export-html-theme/master/elements/themes/redsnapper-theme/org-redsnapper-html.css\" />")
+         :theme_css
+         ,(if (bound-and-true-p entropy/emacs-org-eemacs-spec-org-html-themes-repo-root)
+              (list
+               (format "<link rel=\"stylesheet\" style=\"text/css\"
+href=\"file://%s\" />" (expand-file-name
+                        "redsnapper-theme/org-redsnapper-html.css"
+                        entropy/emacs-org-eemacs-spec-org-html-themes-repo-root)))
+            '("<link rel=\"stylesheet\" style=\"text/css\"
+href=\"https://raw.githubusercontent.com/c0001/\
+entropy-org-export-html-theme/master/\
+elements/themes/redsnapper-theme/org-redsnapper-html.css\" />"))
          :theme_js nil
          :theme_category ("single-doc" "wiki"))
         ("redsnapper-index"
          :theme_js nil
-         :theme_css ("<link rel=\"stylesheet\" style=\"text/css\"
-href=\"https://raw.githubusercontent.com/c0001/entropy-org-export-html-theme/master/elements/themes/redsnapper-theme/org-redsnapper-html-index.css\" />")
+         :theme_css
+         ,(if (bound-and-true-p entropy/emacs-org-eemacs-spec-org-html-themes-repo-root)
+              (list
+               (format "<link rel=\"stylesheet\" style=\"text/css\"
+href=\"file://%s\" />" (expand-file-name
+                        "redsnapper-theme/org-redsnapper-html-index.css"
+                        entropy/emacs-org-eemacs-spec-org-html-themes-repo-root)))
+            '("<link rel=\"stylesheet\" style=\"text/css\"
+href=\"https://raw.githubusercontent.com/c0001/\
+entropy-org-export-html-theme/master/\
+elements/themes/redsnapper-theme/org-redsnapper-html-index.css\" />"))
          :theme_category ("index"))))
 
 
