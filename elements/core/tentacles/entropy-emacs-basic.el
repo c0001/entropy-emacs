@@ -3299,6 +3299,7 @@ emacs 29 and higher default to singal error when such size is not
                (concat
                 (entropy/emacs-message-simple-progress-message
                     (format "gen image file md5 thumb name: %s " ftname)
+                  :with-rest-doing-msg t
                   (entropy/emacs-get-file-checksum ftname 'md5))
                 suffix)
                dir)))
@@ -3326,6 +3327,7 @@ emacs 29 and higher default to singal error when such size is not
                     (entropy/emacs-message-simple-progress-message
                         (format "make link of image thumb `%s' to `%s'"
                                 thumbnail-file-3-base-name (cdr el))
+                      :with-rest-doing-msg t
                       (make-symbolic-link thumbnail-file-3-base-name (cdr el)))
                     (push (cdr el) fcache))
                 (error
@@ -3497,6 +3499,7 @@ prevention of re-generation."
                      (of3md5 (when of3
                                (entropy/emacs-message-simple-progress-message
                                    (format "gen image file md5 thumb file: %s " of3)
+                                 :with-rest-doing-msg t
                                  (entropy/emacs-get-file-checksum of3 'md5))))
                      (cpfunc
                       (lambda (f)
