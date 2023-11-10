@@ -2371,9 +2371,8 @@ The IMAGE-FILE must match regexp of `image-file-name-regexp' or
 an error thrown out."
   (entropy/emacs-require-only-once 'entropy-open-with)
   (unless (string-match-p (image-file-name-regexp) image-file)
-    (user-error "'%s' is not an image file!"))
+    (user-error "'%s' is not an image file!" image-file))
   (entropy/open-with-port nil image-file))
-
 
 (defun entropy/emacs-image-mode-copy-image-as-jpeg
     (srcfname destfname &optional ok-if-exists)
@@ -2517,28 +2516,30 @@ buffer."
   )
 
 ;; **** image dired
+;; ***** union declare
+
 (eval-and-compile
-(defmacro entropy/emacs-basic-image-dired-use-package (&rest body)
-  "The use-packag patch for `image-dired' version related patches
+  (defmacro entropy/emacs-basic-image-dired-use-package (&rest body)
+    "The use-packag patch for `image-dired' version related patches
 ver. load.
 
 This macro existed because of that each version of image-dird has
 fatal bug of using filename as part of the regexp string. And
 hence further more enhancement we can add also via this
 mechanism."
-  (declare (indent 1))
-  (let* ((path
-          (expand-file-name
-           (format "image-dired/%s" emacs-major-version)
-           entropy/emacs-site-lisp-path))
-         (body-patch (cons (car body)
-                           (cons :load-path
-                                 (cons path (cdr body))))))
-    (if (= emacs-major-version 28)
+    (declare (indent 1))
+    (let* ((path
+            (expand-file-name
+             (format "image-dired/%s" emacs-major-version)
+             entropy/emacs-site-lisp-path))
+           (body-patch (cons (car body)
+                             (cons :load-path
+                                   (cons path (cdr body))))))
+      (if (= emacs-major-version 28)
+          `(entropy/emacs--inner-use-package
+             ,@body-patch)
         `(entropy/emacs--inner-use-package
-           ,@body-patch)
-      `(entropy/emacs--inner-use-package
-         ,@body)))))
+           ,@body)))))
 
 (entropy/emacs-when-defun image-dired--thumb-size (&optional _)
   "Return thumb size depending on `image-dired-thumbnail-storage'."
@@ -2551,7 +2552,8 @@ mechanism."
     ('standard-xx-large 1024)
     (_ image-dired-thumb-size)))
 
-;; ***** core
+(defvar entropy/emacs-basic--image-dired-scan-arbitrary-files-p nil)
+
 (entropy/emacs-defvar-local-with-pml
   ;; make this var permanently buffer local so that it will not
   ;; disappear after change `major-mode'
@@ -2565,6 +2567,7 @@ mechanism."
         (if (memq major-mode modes) t
           (user-error "Not in an dired image display spec buffer!")))))
 
+;; ***** core
 (entropy/emacs-basic-image-dired-use-package image-dired
   :ensure nil
   ;; NOTE: emacs 29's `image-dired' has lots of obsolte declarations,
@@ -2624,6 +2627,21 @@ sentinel of `image-dired-create-thumb-1'."
               :override
               #'__ya/image-dired-create-thumb)
 
+  ;; EEMACS_MAINTENANCE: emacs 29 and above only support image file
+  ;; with valid suffix name convention to be scaned to generate
+  ;; thumbnails which is not proper for daily usage.
+  (entropy/emacs-defun-with-emacs-version-restriction
+      __ya/image-dired/image-file-name-regexp (fn &rest args)
+    :with-emacs-versions '(<= "29.1")
+    :with-do-error-when-incompatible t
+    (if entropy/emacs-basic--image-dired-scan-arbitrary-files-p
+        "^.+$"
+      (apply fn args)))
+  (with-eval-after-load 'image-file
+    (advice-add 'image-file-name-regexp
+                :around
+                #'__ya/image-dired/image-file-name-regexp))
+
   (defun entropy/emacs-image-dired-init (&optional arg)
     "Initial `image-dired' automatically when proper.
 
@@ -2640,7 +2658,9 @@ an error."
     (interactive "P" dired-mode)
     (unless (eq major-mode 'dired-mode)
       (user-error "Not in an dired buffer"))
-    (let ((cur-buffer (current-buffer))
+    (let ((entropy/emacs-basic--image-dired-scan-arbitrary-files-p
+           (and arg t))
+          (cur-buffer (current-buffer))
           (img-dired-buff (image-dired-create-thumbnail-buffer))
           (img-dired-win nil)
           (img-fmarked (or
@@ -2703,6 +2723,10 @@ an error."
               (message "Canceled.")))
         (with-current-buffer cur-buffer
           (dired-unmark-all-marks))
+        (when (buffer-live-p img-dired-buff)
+          (with-current-buffer img-dired-buff
+            (setq-local entropy/emacs-basic--image-dired-scan-arbitrary-files-p
+                        entropy/emacs-basic--image-dired-scan-arbitrary-files-p)))
         (when (setq img-dired-win (get-buffer-window img-dired-buff))
           (select-window img-dired-win)))))
 
@@ -3104,7 +3128,11 @@ dwim memory and use both height and width fit display type."
             ;; why? (maybe since `image-next-line' and refer use
             ;; `setf' i.e. `gv' functionality and why this does?)
             (image-set-window-vscroll 0)
-            (image-set-window-hscroll 0))))))
+            (image-set-window-hscroll 0)))
+        ;; finally we should respect image name filter
+        (setq-local entropy/emacs-basic--image-dired-scan-arbitrary-files-p
+                    (with-current-buffer (image-dired-create-thumbnail-buffer)
+                      entropy/emacs-basic--image-dired-scan-arbitrary-files-p)))))
 
   (entropy/emacs-when-defun __ya/image-dired-display-image (file &optional original-size)
     "Like `image-dired-display-image' but expand the ORIGINAL-SIZE
@@ -3152,7 +3180,11 @@ dwim memory and use both height and width fit display type."
                      (when (equal original-size '(4))
                        1))
                    t)))
-          (image-dired-image-mode)))
+          (image-dired-image-mode)
+          ;; finally we should respect image name filter
+          (setq-local entropy/emacs-basic--image-dired-scan-arbitrary-files-p
+                      (with-current-buffer (image-dired-create-thumbnail-buffer)
+                        entropy/emacs-basic--image-dired-scan-arbitrary-files-p))))
       (select-window cur-win)))
 
   (defun entropy/emacs-basic--image-diared-display-image
@@ -3204,6 +3236,31 @@ emacs 29 and higher default to singal error when such size is not
     (when (bound-and-true-p image-dired-debug)
       (apply #'message args)))
 
+  (defun eemacs/basic/image-dired--thumb-file-validp (f)
+    (let* ((fexistp (entropy/emacs-filesystem-node-exists-p f 'return-attr))
+           (fhname nil)
+           (fhp (and fexistp (stringp (setq fhname (file-attribute-type fexistp)))))
+           (ftname (and fexistp (file-truename f)))
+           (fsize
+            (and ftname
+                 (file-attribute-size
+                  (file-attributes ftname))))
+           rtn)
+      (setq rtn (and fsize (not (zerop fsize))))
+      (condition-case err
+          (progn
+            (unless rtn
+              (and fexistp (delete-file f))
+              (and fhp fhname (entropy/emacs-filesystem-node-exists-p fhname)
+                   (delete-file fhname))
+              (and ftname (file-exists-p ftname)
+                   (delete-file ftname))) rtn)
+        (error
+         (messgage "remove invalid thumb file failed: %S"
+                   (list :size fsize :file (list f fhname ftname)
+                         :error err))
+         rtn))))
+
   (defun entropy/emacs-basic--image-dired-get-thumb-name
       (file dir sha protocol suffix)
     (setq protocol (or protocol "") suffix (or suffix ""))
@@ -3216,14 +3273,18 @@ emacs 29 and higher default to singal error when such size is not
              (concat (funcall sha (concat protocol fename)) suffix)
              dir))
            (thumbnail-file-1-exist-p
-            (and thumbnail-file-1 (file-exists-p thumbnail-file-1)))
+            (and thumbnail-file-1
+                 (eemacs/basic/image-dired--thumb-file-validp
+                  thumbnail-file-1)))
            (thumbnail-file-2
             (unless thumbnail-file-1-exist-p
               (expand-file-name
                (concat (funcall sha (concat protocol ftname)) suffix)
                dir)))
            (thumbnail-file-2-exist-p
-            (and thumbnail-file-2 (file-exists-p thumbnail-file-2)))
+            (and thumbnail-file-2
+                 (eemacs/basic/image-dired--thumb-file-validp
+                  thumbnail-file-2)))
            (thumbnail-file-3
             (unless (or frmp thumbnail-file-1-exist-p
                         thumbnail-file-2-exist-p)
@@ -3235,7 +3296,9 @@ emacs 29 and higher default to singal error when such size is not
                 suffix)
                dir)))
            (thumbnail-file-3-exist-p
-            (and thumbnail-file-3 (file-exists-p thumbnail-file-3)))
+            (and thumbnail-file-3
+                 (eemacs/basic/image-dired--thumb-file-validp
+                  thumbnail-file-3)))
            (thumbnail-file-3-base-name
             (and thumbnail-file-3
                  (file-name-nondirectory thumbnail-file-3))))
@@ -3320,6 +3383,7 @@ same checksum should has re-use same thumb."
     (advice-add 'image-dired-thumb-name
                 :override #'__ya/image-dired-thumb-name))
 
+  (defvar entropy/emacs-basic--image-dired-thumbnal-should-optimize-p nil)
   (defun __ya/image-dired-create-thumb-1
       (original-file thumbnail-file)
     "For ORIGINAL-FILE, create thumbnail image named THUMBNAIL-FILE.
@@ -3373,8 +3437,11 @@ prevention of re-generation."
                   "Generated thumbnails in %s.%3N seconds"
                   (time-subtract nil
                                  image-dired--generate-thumbs-start))))
-              (if (not (and (eq (process-status process) 'exit)
-                            (zerop (process-exit-status process))))
+              (if (or (not (entropy/emacs-process-exit-successfully-p
+                            process status))
+                      (not
+                       (eemacs/basic/image-dired--thumb-file-validp
+                        thumbnail-file)))
                   (message "Thumb could not be created for %s: %s"
                            (abbreviate-file-name original-file)
                            (string-replace "\n" "" status))
@@ -3382,8 +3449,9 @@ prevention of re-generation."
                 (clear-image-cache thumbnail-file)
                 ;; PNG thumbnail has been created since we are
                 ;; following the XDG thumbnail spec, so try to optimize
-                (when (memq image-dired-thumbnail-storage
-                            __ya/image-dired-thumbnail-standard-sizes)
+                (when (and (memq image-dired-thumbnail-storage
+                                 __ya/image-dired-thumbnail-standard-sizes)
+                           entropy/emacs-basic--image-dired-thumbnal-should-optimize-p)
                   (cond
                    ((and (bound-and-true-p image-dired-cmd-pngnq-program)
                          (fboundp 'image-dired-pngnq-thumb)

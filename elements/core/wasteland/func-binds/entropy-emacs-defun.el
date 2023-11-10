@@ -824,8 +824,9 @@ just warning the incompatible notice.
            'emacs-version-incompatible
          :detector
          (and ,vlist
-              (entropy/emacs-do-error-for-emacs-version-incompatible-plus
-               ,vlist 'no-error))
+              (not
+               (entropy/emacs-do-error-for-emacs-version-incompatible-plus
+                ,vlist 'no-error)))
          :signal
          (and ,vlist
               (entropy/emacs-do-error-for-emacs-version-incompatible-plus
