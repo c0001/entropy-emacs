@@ -7945,6 +7945,8 @@ lexical environment."
                entropy/emacs--eval-after-load-log)))))
 
 (defvar entropy/emacs-eval-after-load-only-once-register -1)
+(add-to-list 'entropy/emacs-inner-preload-vars
+             'entropy/emacs-eval-after-load-only-once-register)
 (defmacro entropy/emacs-eval-after-load-only-once (feature &rest body)
   "Like `entropy/emacs-eval-after-load' but BODY is not repeatedly
 immediately running while FEATURE is loaded agian or more times
@@ -12871,6 +12873,18 @@ corresponding stuffs."
       (entropy/emacs-set-face-attribute
        'outline-3 frame
        :foreground "LawnGreen")))
+   ((string= "doom-pine" theme-name-str)
+    (entropy/emacs-set-face-attribute
+     'mode-line-active frame
+     :foreground "LightGrey")
+    (entropy/emacs-set-face-attribute
+     'font-lock-doc-face frame
+     :foreground "yellow3")
+    (entropy/emacs-eval-after-load-only-once 'ivy
+      (entropy/emacs-set-face-attribute
+       'ivy-current-match frame
+       :background "DarkOliveGreen"
+       :distant-foreground "ForestGreen")))
    ((string= "doom-1337" theme-name-str)
     (entropy/emacs-eval-after-load-only-once 'ivy
       (entropy/emacs-set-face-attribute

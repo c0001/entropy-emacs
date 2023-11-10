@@ -102,6 +102,16 @@
 ;;
 ;; * Code:
 
+(defvar entropy/emacs-inner-preload-vars nil
+  "A list variable symbol to be saved on
+`entropy/emacs-inner-preload-vars-file'.
+
+EEMACS_MAINTENANCE:
+
+Each var of this list should be interned to default `obarray' since we
+can not write to file with different obarray distinguished symbols
+unless use byte-compile with macroexpand hack.")
+
 (defvar entropy/emacs-run-startup-top-init-timestamp (current-time)
   "Time-stamp eemacs top init prepare")
 
@@ -463,11 +473,17 @@ since it's implemented only on above of thus."
              (plist-put ,oval ,prop ,val)
            (plist-put ,oval ,prop ,val ,predicate))))))
 
+(defvar entropy/emacs-run-body-only-once-id-pool -1)
+(add-to-list 'entropy/emacs-inner-preload-vars
+             'entropy/emacs-run-body-only-once-id-pool)
 (defmacro entropy/emacs-run-body-only-once (&rest body)
   "Run BODY just once i.e. the first time invoke it, and return its
 value as that once and nil as for any other time."
   (when body
-    (let ((sym (make-symbol "__eemacs-temp-anchor")))
+    (let ((sym
+           (intern
+            (format "__eemacs-temp-anchor/%d__"
+                    (cl-incf entropy/emacs-run-body-only-once-id-pool)))))
       `(unless (bound-and-true-p ,sym)
          (defvar ,sym nil)
          (prog1 (progn ,@body) (setq ,sym t))))))
@@ -1551,16 +1567,6 @@ create this file intended to preserve some inner metadata that
 byte-compile generated but source loading undeeded.")
 (unless (entropy/emacs-suggest-startup-with-elisp-source-load-p)
   (load entropy/emacs-inner-preload-vars-file))
-
-(defvar entropy/emacs-inner-preload-vars nil
-  "A list variable symbol to be saved on
-`entropy/emacs-inner-preload-vars-file'.
-
-EEMACS_MAINTENANCE:
-
-Each var of this list should be interned to default `obarray' since we
-can not write to file with different obarray distinguished symbols
-unless use byte-compile with macroexpand hack.")
 
 ;; eemacs conventional top-level binding either NOTE emacs bind to
 ;; "M-ESC"
