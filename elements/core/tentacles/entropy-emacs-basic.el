@@ -2553,6 +2553,7 @@ mechanism."
     (_ image-dired-thumb-size)))
 
 (defvar entropy/emacs-basic--image-dired-scan-arbitrary-files-p nil)
+(defvar entropy/emacs-basic--image-dired-thumbnal-should-optimize-p nil)
 
 (entropy/emacs-defvar-local-with-pml
   ;; make this var permanently buffer local so that it will not
@@ -2660,6 +2661,11 @@ an error."
       (user-error "Not in an dired buffer"))
     (let ((entropy/emacs-basic--image-dired-scan-arbitrary-files-p
            (and arg t))
+          ;; FIXME: the png opmitization may cause the gened thumbnail
+          ;; be empty? (especially when original file is not named as
+          ;; ordinary image file name)
+          (_ (setq entropy/emacs-basic--image-dired-thumbnal-should-optimize-p
+                   (and (not arg) t)))
           (cur-buffer (current-buffer))
           (img-dired-buff (image-dired-create-thumbnail-buffer))
           (img-dired-win nil)
@@ -3383,7 +3389,6 @@ same checksum should has re-use same thumb."
     (advice-add 'image-dired-thumb-name
                 :override #'__ya/image-dired-thumb-name))
 
-  (defvar entropy/emacs-basic--image-dired-thumbnal-should-optimize-p nil)
   (defun __ya/image-dired-create-thumb-1
       (original-file thumbnail-file)
     "For ORIGINAL-FILE, create thumbnail image named THUMBNAIL-FILE.
