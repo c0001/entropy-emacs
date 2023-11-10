@@ -2132,6 +2132,21 @@ When key USE-PROXY is non-nil, we use
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-dired-mode)
 
+;; **** image-dired mode
+(defgroup entropy/emacs-customize-group-for-image-dired-mode nil
+  "Eemacs image-dired-*-mode configuration customizable group."
+  :group 'entropy/emacs-customize-group-for-major-modes)
+
+(defcustom entropy/emacs-image-dired-new-thumbnail-should-optimize-p nil
+  "Non-nil to optmize fresh new generated thumbnails when referred
+facilities are available.
+
+NOTE: since the external utils reliability is not checked while
+running, the generated thumb may be emptied up as empty file if
+the optimization is weak. That's why we defaulty set it to nil."
+  :type 'boolean
+  :group 'entropy/emacs-customize-group-for-image-dired-mode)
+
 ;; **** org mode config
 (defgroup entropy/emacs-customize-group-for-org-mode nil
   "Eemacs org-mode configuration customizable group."

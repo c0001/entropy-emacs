@@ -2665,7 +2665,8 @@ an error."
           ;; be empty? (especially when original file is not named as
           ;; ordinary image file name)
           (_ (setq entropy/emacs-basic--image-dired-thumbnal-should-optimize-p
-                   (and (not arg) t)))
+                   (unless arg
+                     entropy/emacs-image-dired-new-thumbnail-should-optimize-p)))
           (cur-buffer (current-buffer))
           (img-dired-buff (image-dired-create-thumbnail-buffer))
           (img-dired-win nil)
