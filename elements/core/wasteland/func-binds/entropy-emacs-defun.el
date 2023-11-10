@@ -11937,6 +11937,7 @@ pollute eemacs internal lazy load optimization."
                          "[gened-by: %s] with lazy loading configs for feature '%s'"
                          ,this-load-fname-sym
                          ,feature-sym))
+                      :with-rest-doing-msg t
                       (entropy/emacs-general-run-with-protect-and-gc-strict
                        :when-use-gc-restrict entropy/emacs-startup-done
                        ,@body))))

@@ -479,6 +479,7 @@ NOTE: Just use it in `noninteractive' session."
              with-fit-window-width
              with-either-popup
              with-message-color-args
+             with-rest-doing-msg
              &allow-other-keys)
   "Do BODY and return its result with progress prompt message MESSAGE
 using `make-progress-reporter'.
@@ -510,7 +511,13 @@ set as a format string. Used to build a colored MESSAGE.
 If WITH-EITHER-POPUP is set and return non-nil, then MESSAGE is also
 displayed via `entropy/emacs-message--do-message-popup'. (NOTE: for
 eemacs developer use `force' value to forced popup the display since
-eemacs may not use popup display obeyed the eemacs api modification)"
+eemacs may not use popup display obeyed the eemacs api modification)
+
+If WITH-REST-DOING-MSG is set and return non-nil, then at then end of
+progressing message done, a tail *ing* like msg will be rmained to
+show as the indicator when rest jobs is running for reduce waiting
+confusion of for what is waiting.
+"
   (declare (indent 1) (debug t))
   (let ((body (entropy/emacs-message--get-plist-body body))
         (with-tmpmsg-sym (make-symbol "with-temp-message-p"))
@@ -574,7 +581,9 @@ eemacs may not use popup display obeyed the eemacs api modification)"
          ;; any messages, if not, we should respect the BODY's
          ;; behaviour.
          (when (and ,progress-reporter-sym ,new-curmsg-np-sym)
-           (progress-reporter-done ,progress-reporter-sym))
+           (progress-reporter-done ,progress-reporter-sym)
+           (when ,with-rest-doing-msg
+             (let ((message-log-max nil)) (message "λ ... "))))
          (when (and ,message-sym ,curmsg-sym)
            (let (
                  ;; we has no reason to log the old msg again since we

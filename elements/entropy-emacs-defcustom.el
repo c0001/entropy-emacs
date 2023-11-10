@@ -3076,10 +3076,11 @@ advice wrapper, do not calling it in the normal way"
     (push (cons (format-time-string "[%Y-%m-%d %a %H:%M:%S]") orig-args)
           entropy/emacs--run-hooks-cache)
     (entropy/emacs-message-simple-progress-message
-     (if (symbolp indicator)
-         (format "Run hooks '%s'" indicator)
-       (format "%s" "Run hooks"))
-     (setq rtn (apply orig-func orig-args)))
+        (if (symbolp indicator)
+            (format "Run hooks '%s'" indicator)
+          (format "%s" "Run hooks"))
+      :with-rest-doing-msg t
+      (setq rtn (apply orig-func orig-args)))
     rtn))
 
 (defmacro entropy/emacs-run-hooks-with-prompt (&rest body)
