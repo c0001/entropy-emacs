@@ -3119,7 +3119,7 @@ to reduce navigation lag."
 
   (entropy/emacs-message-make-func-with-simple-progress-prompts
       'image-dired-line-up
-    "Rearranging image-dired thumbnail display layouts")
+    "Rearranging image-dired thumbnails display layout")
 
   (eval-and-compile
     (defmacro entropy/emacs-basic-image-dired--display-size-with-dwim-p (original-size)
