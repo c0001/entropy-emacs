@@ -2516,6 +2516,36 @@ buffer."
   )
 
 ;; **** image dired
+;; ***** _defines prevent byte-comp warns
+
+;; NOTE: emacs 29's `image-dired' has lots of obsolte declarations,
+;; so we should escape the requirement of it for escaping
+;; byte-compile warnings.
+
+;; And we use `advice-patch' for some inner modifications to
+;; `image-dired' which bytecomp the final advisor which may also throw
+;; out compile warn since some builtin deps lazy-loads.
+
+(defvar image-dired--thumbnail-standard-sizes)
+(defvar image-dired-cmd-pngcrush-program)
+(defvar image-dired-cmd-pngnq-program)
+(defvar image-dired-cmd-optipng-program)
+(defvar image-dired--generate-thumbs-start)
+(defvar image-dired-tags-db-file)
+(defvar image-dired-show-all-from-dir-max-files)
+(defvar image-dired-queue-active-jobs)
+(defvar image-dired-queue)
+(defvar image-dired-thumbnail-buffer)
+(defvar image-dired-cmd-create-thumbnail-program)
+(defvar image-dired-cmd-create-thumbnail-options)
+(defvar image-dired-cmd-create-standard-thumbnail-options)
+(defvar image-dired-cmd-create-temp-image-program)
+(defvar image-dired-cmd-create-temp-image-options)
+(defvar image-dired-thumb-visible-marks)
+(defvar image-dired-track-movement)
+(defvar image-dired-temp-image-file)
+(defvar image-dired-display-image-buffer)
+
 ;; ***** union declare
 
 (eval-and-compile
@@ -2571,25 +2601,6 @@ mechanism."
 ;; ***** core
 (entropy/emacs-basic-image-dired-use-package image-dired
   :ensure nil
-  ;; NOTE: emacs 29's `image-dired' has lots of obsolte declarations,
-  ;; so we should escape the requirement of it for escaping
-  ;; byte-compile warnings
-  :defines
-  (
-   image-dired-show-all-from-dir-max-files
-   image-dired-queue-active-jobs
-   image-dired-queue
-   image-dired-thumbnail-buffer
-   image-dired-cmd-create-thumbnail-program
-   image-dired-cmd-create-thumbnail-options
-   image-dired-cmd-create-standard-thumbnail-options
-   image-dired-cmd-create-temp-image-program
-   image-dired-cmd-create-temp-image-options
-   image-dired-thumb-visible-marks
-   image-dired-track-movement
-   image-dired-temp-image-file
-   image-dired-display-image-buffer
-   )
   ;; NOTE: emacs 29's `image-dired' has lots of obsolte declarations,
   ;; so we should escape the requirement of it for escaping
   ;; byte-compile warnings
@@ -3275,12 +3286,6 @@ emacs 29 and higher default to singal error when such size is not
       (apply orig-func orig-args)))
   (when (fboundp '__ya/image-transform-check-size)
     (advice-add 'image-transform-check-size :around #'__ya/image-transform-check-size))
-
-  (defvar image-dired--thumbnail-standard-sizes)
-  (defvar image-dired-cmd-pngcrush-program)
-  (defvar image-dired-cmd-pngnq-program)
-  (defvar image-dired-cmd-optipng-program)
-  (defvar image-dired--generate-thumbs-start)
 
   (defvar __ya/image-dired-thumbnail-standard-sizes
     (or (bound-and-true-p image-dired--thumbnail-standard-sizes)
