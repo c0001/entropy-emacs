@@ -352,9 +352,19 @@ This slot should obey the rules of:
       :enable t
       :exit t
       :eemacs-top-bind t)
+     ("C-0" eyebrowse-switch-to-window-config-0
+      "Switch to Work Space 0"
+      :enable (display-graphic-p)
+      :exit t
+      :eemacs-top-bind t)
      ("1" eyebrowse-switch-to-window-config-1
       "Switch to Work Space 1"
       :enable t
+      :exit t
+      :eemacs-top-bind t)
+     ("C-1" eyebrowse-switch-to-window-config-1
+      "Switch to Work Space 1"
+      :enable (display-graphic-p)
       :exit t
       :eemacs-top-bind t)
      ("2" eyebrowse-switch-to-window-config-2
@@ -362,9 +372,19 @@ This slot should obey the rules of:
       :enable t
       :exit t
       :eemacs-top-bind t)
+     ("C-2" eyebrowse-switch-to-window-config-2
+      "Switch to Work Space 2"
+      :enable (display-graphic-p)
+      :exit t
+      :eemacs-top-bind t)
      ("3" eyebrowse-switch-to-window-config-3
       "Switch to Work Space 3"
       :enable t
+      :exit t
+      :eemacs-top-bind t)
+     ("C-3" eyebrowse-switch-to-window-config-3
+      "Switch to Work Space 3"
+      :enable (display-graphic-p)
       :exit t
       :eemacs-top-bind t)
      ("4" eyebrowse-switch-to-window-config-4
@@ -372,9 +392,19 @@ This slot should obey the rules of:
       :enable t
       :exit t
       :eemacs-top-bind t)
+     ("C-4" eyebrowse-switch-to-window-config-4
+      "Switch to Work Space 4"
+      :enable (display-graphic-p)
+      :exit t
+      :eemacs-top-bind t)
      ("5" eyebrowse-switch-to-window-config-5
       "Switch to Work Space 5"
       :enable t
+      :exit t
+      :eemacs-top-bind t)
+     ("C-5" eyebrowse-switch-to-window-config-5
+      "Switch to Work Space 5"
+      :enable (display-graphic-p)
       :exit t
       :eemacs-top-bind t)
      ("6" eyebrowse-switch-to-window-config-6
@@ -382,9 +412,19 @@ This slot should obey the rules of:
       :enable t
       :exit t
       :eemacs-top-bind t)
+     ("C-6" eyebrowse-switch-to-window-config-6
+      "Switch to Work Space 6"
+      :enable (display-graphic-p)
+      :exit t
+      :eemacs-top-bind t)
      ("7" eyebrowse-switch-to-window-config-7
       "Switch to Work Space 7"
       :enable t
+      :exit t
+      :eemacs-top-bind t)
+     ("C-7" eyebrowse-switch-to-window-config-7
+      "Switch to Work Space 7"
+      :enable (display-graphic-p)
       :exit t
       :eemacs-top-bind t)
      ("8" eyebrowse-switch-to-window-config-8
@@ -392,12 +432,23 @@ This slot should obey the rules of:
       :enable t
       :exit t
       :eemacs-top-bind t)
+     ("C-8" eyebrowse-switch-to-window-config-8
+      "Switch to Work Space 8"
+      :enable (display-graphic-p)
+      :exit t
+      :eemacs-top-bind t)
      ("9" eyebrowse-switch-to-window-config-9
       "Switch to Work Space 9"
       :enable t
       :exit t
       :eemacs-top-bind t
-      ))))
+      )
+     ("C-9" eyebrowse-switch-to-window-config-9
+      "Switch to Work Space 9"
+      :enable (display-graphic-p)
+      :exit t
+      :eemacs-top-bind t)
+     )))
 
 ;; **** init
   :init

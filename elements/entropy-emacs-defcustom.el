@@ -873,15 +873,19 @@ designation."
 
 ;; **** search-web search-engines setting
 (defcustom entropy/emacs-search-web-engines-internal
-  '(("php-manual" "http://php.net/manual-lookup.php?pattern=%s" In-Emacs)
-    ("MOZILA MDN" "http://developer.mozilla.org/en-US/search?q=%s" In-Emacs)
-    ("ArchWiki" "http://wiki.archlinux.org/index.php?search=%s" In-Emacs)
-    ("baidu" "http://www.baidu.com/s?wd=%s" In-Emacs)
-    ("google" "http://www.google.com/search?q=%s" In-Emacs)
-    ("google ja" "http://www.google.com/search?hl=ja&q=%s&ie=utf-8&oe=utf-8&gbv=1" In-Emacs)
-    ("google en" "http://www.google.com/search?hl=en&q=%s&ie=utf-8&oe=utf-8&gbv=1" In-Emacs)
-    ("stackoveflow en" "http://stackoverflow.com/search?q=%s" In-Emacs)
-    ("stackoveflow ja" "http://ja.stackoverflow.com/search?q=%s" In-Emacs)
+  '(("php-manual" "https://php.net/manual-lookup.php?pattern=%s" In-Emacs)
+    ("MOZILA MDN" "https://developer.mozilla.org/en-US/search?q=%s" In-Emacs)
+    ("ArchWiki" "https://wiki.archlinux.org/index.php?search=%s" In-Emacs)
+    ("baidu" "https://www.baidu.com/s?wd=%s" In-Emacs)
+    ("google" "https://www.google.com/search?q=%s" In-Emacs)
+    ("google ja" "https://www.google.com/search?hl=ja&q=%s&ie=utf-8&oe=utf-8&gbv=1" In-Emacs)
+    ("google en" "https://www.google.com/search?hl=en&q=%s&ie=utf-8&oe=utf-8&gbv=1" In-Emacs)
+    ("stackoveflow en" "https://stackoverflow.com/search?q=%s" In-Emacs)
+    ("stackoveflow ja" "https://ja.stackoverflow.com/search?q=%s" In-Emacs)
+    ("wikipedia en" "https://www.wikipedia.org/search-redirect.php?search=%s&language=en"
+     In-Emacs)
+    ("wikipedia ja" "https://www.wikipedia.org/search-redirect.php?search=%s&language=ja"
+     In-Emacs)
     ("elpa" "https://elpa.gnu.org/packages/%s.html" In-Emacs)
     ("melpa" "https://melpa.org/#/?q=%s" In-Emacs))
   "Internal search-web engines."
