@@ -542,7 +542,7 @@ entropy/emacs-basic--dired-cmd-run-with-simple-progress-prompt/for/%s/"
     "Goto parent `dired' buffer of `dired-current-directory' or goto
 the parent subtree sibling using `dired-sutree-up'."
     (declare (interactive-only t))
-    (interactive)
+    (interactive nil dired-mode)
     (let ((in-dired-subtree-p
            (and (fboundp 'dired-subtree--get-ov)
                 (dired-subtree--get-ov))))
@@ -557,7 +557,7 @@ the parent subtree sibling using `dired-sutree-up'."
 `dired-current-directory' or goto the next upgrade level 1
 subtree sibling using `dired-subtree''s subroutine."
     (declare (interactive-only t))
-    (interactive)
+    (interactive nil dired-mode)
     (let ((in-dired-subtree-p
            (and (fboundp 'dired-subtree--get-ov)
                 (dired-subtree--get-ov)))
@@ -596,7 +596,7 @@ subtree sibling using `dired-subtree''s subroutine."
 adapting thus and just enable when `region-active-p' is
 predicated."
     (declare (interactive-only t))
-    (interactive)
+    (interactive nil dired-mode)
     (when (region-active-p)
       (let ((regbeg (region-beginning))
             (regend (region-end)))
@@ -896,7 +896,8 @@ For lisp code, optional args:
 - JUST-KILL-REFERS: just kill file referred file buffer or hosted
   dir's dired buffers.
 "
-    (interactive (list (dired-get-marked-files) (if current-prefix-arg t)))
+    (interactive (list (dired-get-marked-files) (if current-prefix-arg t))
+                 dired-mode)
     (unless (derived-mode-p 'dired-mode)
       (entropy/emacs-!user-error
        "current-buffer <%S> is not a dired buffer"
@@ -1148,7 +1149,7 @@ Optionally show the FILE's human readable size as message prefix.
 
 With prefix arg, also save the result to `kill-ring'
 respectively."
-    (interactive (list (dired-get-filename t)))
+    (interactive (list (dired-get-filename t)) dired-mode)
     (let (process-file-side-effects
           (kill-ring-save-p current-prefix-arg)
           (show-default-app-p
