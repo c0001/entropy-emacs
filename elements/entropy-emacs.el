@@ -272,7 +272,8 @@ doesn't has such feature.
 buffer-local (i.e. through `variable-binding-locus') infuence.
 
 VAL is either the global dynamic binding or from lexical context
-of VAR."
+of VAR. Where in elisp defination, the lexical context value is
+always take precedence."
   `(with-temp-buffer ,var))
 
 (cl-defun entropy/emacs--get-def-body (list-var &optional with-safe)
