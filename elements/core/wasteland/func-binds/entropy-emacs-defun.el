@@ -5429,27 +5429,38 @@ Optional argument NOT-ABS and optional keys are all related to
     (top-dir &optional not-abs
              &key
              with-level
-             with-filter)
+             with-filter
+             with-regexp)
   "List all sub-files under TOP-DIR as a list ordered by
 `string-lessp' use `entropy/emacs-list-dir-subdirs-recursively'.
 
 Optional argument NOT-ABS and optional keys are all related to
 `entropy/emacs-list-dir-subdirs-recursively' (see it for details).
+
+By conventionally as `directory-files-recursively', the optional
+key WITH-REGEXP if specified, should be a regexp string used
+against to with `string-match-p' for filtering out some unneeded
+files when the match failed.
 "
-  (let (rtn
-        map-func)
+  (let (rtn map-func)
     (setq map-func
           (lambda (x &optional end-call-p)
             (unless end-call-p
               (let ((dir-abs-path (plist-get x :dir-abspath))
-                    (dir-subfiles (plist-get x :dir-subfiles-names)))
+                    (dir-subfiles (plist-get x :dir-subfiles-names))
+                    file file-abs)
                 (when dir-subfiles
                   (dolist (el dir-subfiles)
-                    (if not-abs
-                        (push (entropy/emacs-make-relative-filename
-                               (expand-file-name el dir-abs-path) top-dir)
-                              rtn)
-                      (push (expand-file-name el dir-abs-path) rtn)))))
+                    (setq file-abs (expand-file-name el dir-abs-path))
+                    (entropy/emacs-setf-by-body file
+                      (if not-abs
+                          (entropy/emacs-make-relative-filename
+                           file-abs top-dir)
+                        file-abs))
+                    (when (and with-regexp
+                               (not (string-match-p with-regexp file-abs)))
+                      (setq file nil))
+                    (and file (push file rtn)))))
               ;; always return nil user-spec-attrs
               nil)))
     (entropy/emacs-list-dir-subdirs-recursively

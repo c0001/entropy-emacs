@@ -2594,7 +2594,10 @@ mechanism."
   ;; so we should escape the requirement of it for escaping
   ;; byte-compile warnings
   :eemacs-with-no-require (>= emacs-major-version 29)
-  :commands (image-dired entropy/emacs-image-dired-init)
+  :commands (image-dired
+             entropy/emacs-image-dired-init
+             entropy/emacs-image-dired-display-thumbs-recursively)
+
 ;; ****** preface
   ;; :preface
 ;; ****** init
@@ -2643,6 +2646,48 @@ sentinel of `image-dired-create-thumb-1'."
                 :around
                 #'__ya/image-dired/image-file-name-regexp))
 
+  (defvar entropy/emacs-image-dired--with-files nil)
+  (advice-patch
+   'image-dired-display-thumbs
+   '(or (setq files entropy/emacs-image-dired--with-files)
+        (if arg
+            (setq files (list (dired-get-filename)))
+          (setq files (dired-get-marked-files))))
+   '(if arg
+        (setq files (list (dired-get-filename)))
+      (setq files (dired-get-marked-files))))
+  (defun entropy/emacs-image-dired-display-thumbs-recursively
+      (&optional files)
+    "Like `entropy/emacs-image-dired-init' but without `dired' buffer
+bounding restriction.
+
+Instead it read all image FILES from a specified dir path
+recursively with `read-directory-name'.
+
+From elisp programming, non-interactively functional used when
+FILES specified already as list of image files' absolute
+pathname."
+    (interactive)
+    (let ((entropy/emacs-basic--image-dired-scan-arbitrary-files-p
+           t))
+      (entropy/emacs-setf-by-body files
+        (or files
+            (entropy/emacs-list-dir-subfiles-recursively-for-list
+             (read-directory-name
+              "Get image files from dir: "
+              nil nil t)
+             nil
+             :with-level
+             (when (yes-or-no-p "with recursive level restriction?")
+               (entropy/emacs-read-number-string-until-matched
+                "natnump&>=1"
+                (lambda (x) (and (natnump x) (>= x 1) x)) nil
+                "recursive level restriction(>=1)"))
+             :with-regexp (image-file-name-regexp))
+            (user-error "No image files found")))
+      (let ((entropy/emacs-image-dired--with-files files))
+        (entropy/emacs-image-dired-init))))
+
   (defun entropy/emacs-image-dired-init (&optional arg)
     "Initial `image-dired' automatically when proper.
 
@@ -2657,7 +2702,8 @@ can be found in this dired buffer, cancel the operation and throw
 an error."
     (declare (interactive-only t))
     (interactive "P" dired-mode)
-    (unless (eq major-mode 'dired-mode)
+    (unless (or entropy/emacs-image-dired--with-files
+                (eq major-mode 'dired-mode))
       (user-error "Not in an dired buffer"))
     (let ((entropy/emacs-basic--image-dired-scan-arbitrary-files-p
            (and arg t))
@@ -2665,12 +2711,14 @@ an error."
           ;; be empty? (especially when original file is not named as
           ;; ordinary image file name)
           (_ (setq entropy/emacs-basic--image-dired-thumbnal-should-optimize-p
-                   (unless arg
+                   (unless (or arg
+                               entropy/emacs-basic--image-dired-scan-arbitrary-files-p)
                      entropy/emacs-image-dired-new-thumbnail-should-optimize-p)))
           (cur-buffer (current-buffer))
           (img-dired-buff (image-dired-create-thumbnail-buffer))
           (img-dired-win nil)
           (img-fmarked (or
+                        entropy/emacs-image-dired--with-files
                         (and arg (dired-get-marked-files))
                         (let (effective-marked-files)
                           ;; we must unmark all items firstly since any marked item not an
