@@ -2743,7 +2743,8 @@ an error."
                 (eq major-mode 'dired-mode))
       (user-error "Not in an dired buffer"))
     (let ((entropy/emacs-basic--image-dired-scan-arbitrary-files-p
-           (and arg t))
+           (or entropy/emacs-basic--image-dired-scan-arbitrary-files-p
+               (and arg t)))
           ;; FIXME: the png opmitization may cause the gened thumbnail
           ;; be empty? (especially when original file is not named as
           ;; ordinary image file name)
