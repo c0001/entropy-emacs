@@ -3958,15 +3958,19 @@ displayed image as same operated mechanism as
 
 ;; ***** others
 ;; ****** patch no safety image-dired db regexp search
+
 (defun entropy/emacs-basic--patch-image-dired-db-search-regexp nil
-  (advice-patch
-   'image-dired-list-tags
-   '(search-forward-regexp (format "^%s" (regexp-quote file)) nil t)
-   '(search-forward-regexp (format "^%s" file) nil t))
-  (advice-patch
-   'image-dired-get-comment
-   '(search-forward-regexp (format "^%s" (regexp-quote file)) nil t)
-   '(search-forward-regexp (format "^%s" file) nil t)))
+  ;; FIXME: why the `image-dired-tags-db-file' still free-var even
+  ;; we've declared?
+  (let ((byte-compile-warnings '(not free-vars)))
+    (advice-patch
+     'image-dired-list-tags
+     '(search-forward-regexp (format "^%s" (regexp-quote file)) nil t)
+     '(search-forward-regexp (format "^%s" file) nil t))
+    (advice-patch
+     'image-dired-get-comment
+     '(search-forward-regexp (format "^%s" (regexp-quote file)) nil t)
+     '(search-forward-regexp (format "^%s" file) nil t))))
 
 (cond (
        ;; since we use self-maintained image-28 dired ver. which has
