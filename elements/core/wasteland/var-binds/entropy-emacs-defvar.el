@@ -2426,8 +2426,6 @@ not dynamically change their regexp builder from
     ;; filenames or CJK missed filenames.
     (ivy--regex-plus str)))
 
-;; ** coding sytle
-
 ;; ** operation refer
 ;; *** Read only suggestion
 

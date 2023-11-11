@@ -2674,6 +2674,7 @@ sentinel of `image-dired-create-thumb-1'."
    'image-dired-associated-dired-buffer
    :around
    #'__ya/image-dired-associated-dired-buffer)
+  (defvar entropy/emacs-image-dired-display-thumbs-recursively--log nil)
   (defun entropy/emacs-image-dired-display-thumbs-recursively
       (&optional files)
     "Like `entropy/emacs-image-dired-init' but without `dired' buffer
@@ -2686,7 +2687,12 @@ From elisp programming, non-interactively functional used when
 FILES specified already as list of image files' absolute
 pathname."
     (interactive)
-    (let ((entropy/emacs-basic--image-dired-scan-arbitrary-files-p
+    (let (
+          ;; we should grab image filename regex before binding below
+          ;; since the advice
+          ;; `__ya/image-dired/image-file-name-regexp'.
+          (rex (image-file-name-regexp))
+          (entropy/emacs-basic--image-dired-scan-arbitrary-files-p
            t))
       (entropy/emacs-setf-by-body files
         (or
@@ -2701,12 +2707,14 @@ pathname."
                    "natnump&>=1"
                    (lambda (x) (and (natnump x) (>= x 1) x)) nil
                    "Input recursive level restriction(>=1)"))))
+           (push (list level rex dir)
+                 entropy/emacs-image-dired-display-thumbs-recursively--log)
            (entropy/emacs-message-simple-progress-message
                (format "Find image files under [%s]" dir)
              (entropy/emacs-list-dir-subfiles-recursively-for-list
               dir nil
               :with-level level
-              :with-regexp (image-file-name-regexp))))
+              :with-regexp rex)))
          (user-error "No image files found")))
       (let ((entropy/emacs-basic--image-dired-with-manually-files files))
         (with-current-buffer
