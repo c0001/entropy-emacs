@@ -2583,6 +2583,7 @@ mechanism."
     (_ image-dired-thumb-size)))
 
 (defvar entropy/emacs-basic--image-dired-scan-arbitrary-files-p nil)
+(defvar entropy/emacs-basic--image-dired-with-manually-files nil)
 (defvar entropy/emacs-basic--image-dired-thumbnal-should-optimize-p nil)
 
 (entropy/emacs-defvar-local-with-pml
@@ -2657,7 +2658,6 @@ sentinel of `image-dired-create-thumb-1'."
                 :around
                 #'__ya/image-dired/image-file-name-regexp))
 
-  (defvar entropy/emacs-basic--image-dired-with-manually-files nil)
   (advice-patch
    'image-dired-display-thumbs
    '(or (setq files entropy/emacs-basic--image-dired-with-manually-files)
