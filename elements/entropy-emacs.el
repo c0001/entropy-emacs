@@ -267,6 +267,14 @@ doesn't has such feature.
 
 ;; *** subr*
 
+(defmacro entropy/emacs-get-variable-context-value (var)
+  "Get value VAL of variable VAR from the elisp context without any
+buffer-local (i.e. through `variable-binding-locus') infuence.
+
+VAL is either the global dynamic binding or from lexical context
+of VAR."
+  `(with-temp-buffer ,var))
+
 (cl-defun entropy/emacs--get-def-body (list-var &optional with-safe)
   "Get BODY inside of plist like list LIST-VAR, commonly is the
 last `keywordp' keypair's cdr or return LIST-VAR when the car of

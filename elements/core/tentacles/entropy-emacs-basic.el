@@ -2667,6 +2667,13 @@ sentinel of `image-dired-create-thumb-1'."
    '(if arg
         (setq files (list (dired-get-filename)))
       (setq files (dired-get-marked-files))))
+  (defun __ya/image-dired-associated-dired-buffer (fn &rest args)
+    (if entropy/emacs-image-dired--with-files nil
+      (apply fn args)))
+  (advice-add
+   'image-dired-associated-dired-buffer
+   :around
+   #'__ya/image-dired-associated-dired-buffer)
   (defun entropy/emacs-image-dired-display-thumbs-recursively
       (&optional files)
     "Like `entropy/emacs-image-dired-init' but without `dired' buffer
@@ -2697,7 +2704,13 @@ pathname."
              :with-regexp (image-file-name-regexp))
             (user-error "No image files found")))
       (let ((entropy/emacs-image-dired--with-files files))
-        (entropy/emacs-image-dired-init))))
+        (with-current-buffer
+            ;; FIXME: we should wrapper the continuation with fake
+            ;; dired buffer since `image-dired' is internally related
+            ;; to a `dired' buffer but on which case we are not focus.
+            (entropy/emacs-get-buffer-create
+             " *eemacs-fake-image-dired-original-dired-buffer*" t)
+          (entropy/emacs-image-dired-init)))))
 
   (defun entropy/emacs-image-dired-init (&optional arg)
     "Initial `image-dired' automatically when proper.
@@ -2792,7 +2805,16 @@ an error."
         (when (buffer-live-p img-dired-buff)
           (with-current-buffer img-dired-buff
             (setq-local entropy/emacs-basic--image-dired-scan-arbitrary-files-p
-                        entropy/emacs-basic--image-dired-scan-arbitrary-files-p)))
+                        (entropy/emacs-get-variable-context-value
+                         entropy/emacs-basic--image-dired-scan-arbitrary-files-p)
+                        entropy/emacs-image-dired--with-files
+                        (entropy/emacs-get-variable-context-value
+                         entropy/emacs-image-dired--with-files)
+                        image-dired-track-movement
+                        (unless (or entropy/emacs-image-dired--with-files
+                                    entropy/emacs-basic--image-dired-scan-arbitrary-files-p)
+                          (entropy/emacs-get-variable-context-value
+                           image-dired-track-movement)))))
         (when (setq img-dired-win (get-buffer-window img-dired-buff))
           (select-window img-dired-win)))))
 
@@ -3054,15 +3076,19 @@ point."
     (when-let ((buff (get-buffer image-dired-thumbnail-buffer))
                ((buffer-live-p buff)))
       (with-current-buffer buff
-        (condition-case err
-            (image-dired-track-original-file)
-          (error
-           (let ((msg (car-safe (cdr err)))
-                 (ignore-msg-regexp
-                  "^Cannot find associated Dired buffer for image: "))
-             (unless (stringp msg) (setq msg nil))
-             (unless (and msg (string-match-p ignore-msg-regexp msg))
-               (signal (car err) (cdr err)))))))))
+        ;; no-dired assosicated mode via
+        ;; `entropy/emacs-image-dired-display-thumbs-recursively'
+        ;; should not track files.
+        (unless entropy/emacs-image-dired--with-files
+          (condition-case err
+              (image-dired-track-original-file)
+            (error
+             (let ((msg (car-safe (cdr err)))
+                   (ignore-msg-regexp
+                    "^Cannot find associated Dired buffer for image: "))
+               (unless (stringp msg) (setq msg nil))
+               (unless (and msg (string-match-p ignore-msg-regexp msg))
+                 (signal (car err) (cdr err))))))))))
   (entropy/emacs-define-idle-function
     entropy/emacs-image-dired-idle-track-orig-file--core-with-idle
     ;; using one second is proper since any lower idle delay
