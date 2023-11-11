@@ -2689,20 +2689,25 @@ pathname."
     (let ((entropy/emacs-basic--image-dired-scan-arbitrary-files-p
            t))
       (entropy/emacs-setf-by-body files
-        (or files
-            (entropy/emacs-list-dir-subfiles-recursively-for-list
-             (read-directory-name
-              "Get image files from dir: "
-              nil nil t)
-             nil
-             :with-level
-             (when (yes-or-no-p "with recursive level restriction?")
-               (entropy/emacs-read-number-string-until-matched
-                "natnump&>=1"
-                (lambda (x) (and (natnump x) (>= x 1) x)) nil
-                "recursive level restriction(>=1)"))
-             :with-regexp (image-file-name-regexp))
-            (user-error "No image files found")))
+        (or
+         files
+         (let ((dir
+                (read-directory-name
+                 "Get image files from dir: "
+                 nil nil t))
+               (level
+                (when (yes-or-no-p "with recursive level restriction?")
+                  (entropy/emacs-read-number-string-until-matched
+                   "natnump&>=1"
+                   (lambda (x) (and (natnump x) (>= x 1) x)) nil
+                   "Input recursive level restriction(>=1)"))))
+           (entropy/emacs-message-simple-progress-message
+               (format "Find image files under [%s]" dir)
+             (entropy/emacs-list-dir-subfiles-recursively-for-list
+              dir nil
+              :with-level level
+              :with-regexp (image-file-name-regexp))))
+         (user-error "No image files found")))
       (let ((entropy/emacs-basic--image-dired-with-manually-files files))
         (with-current-buffer
             ;; FIXME: we should wrapper the continuation with fake
