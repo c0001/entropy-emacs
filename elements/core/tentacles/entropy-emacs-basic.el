@@ -3117,6 +3117,10 @@ to reduce navigation lag."
 
   (defvar __ya/image-dired-display-image-stick-fit-type nil)
 
+  (entropy/emacs-message-make-func-with-simple-progress-prompts
+      'image-dired-line-up
+    "Rearranging image-dired thumbnail display layouts")
+
   (eval-and-compile
     (defmacro entropy/emacs-basic-image-dired--display-size-with-dwim-p (original-size)
       `(or
