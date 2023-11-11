@@ -2657,10 +2657,10 @@ sentinel of `image-dired-create-thumb-1'."
                 :around
                 #'__ya/image-dired/image-file-name-regexp))
 
-  (defvar entropy/emacs-image-dired--with-files nil)
+  (defvar entropy/emacs-basic--image-dired-with-manually-files nil)
   (advice-patch
    'image-dired-display-thumbs
-   '(or (setq files entropy/emacs-image-dired--with-files)
+   '(or (setq files entropy/emacs-basic--image-dired-with-manually-files)
         (if arg
             (setq files (list (dired-get-filename)))
           (setq files (dired-get-marked-files))))
@@ -2668,7 +2668,7 @@ sentinel of `image-dired-create-thumb-1'."
         (setq files (list (dired-get-filename)))
       (setq files (dired-get-marked-files))))
   (defun __ya/image-dired-associated-dired-buffer (fn &rest args)
-    (if entropy/emacs-image-dired--with-files nil
+    (if entropy/emacs-basic--image-dired-with-manually-files nil
       (apply fn args)))
   (advice-add
    'image-dired-associated-dired-buffer
@@ -2703,7 +2703,7 @@ pathname."
                 "recursive level restriction(>=1)"))
              :with-regexp (image-file-name-regexp))
             (user-error "No image files found")))
-      (let ((entropy/emacs-image-dired--with-files files))
+      (let ((entropy/emacs-basic--image-dired-with-manually-files files))
         (with-current-buffer
             ;; FIXME: we should wrapper the continuation with fake
             ;; dired buffer since `image-dired' is internally related
@@ -2726,7 +2726,7 @@ can be found in this dired buffer, cancel the operation and throw
 an error."
     (declare (interactive-only t))
     (interactive "P" dired-mode)
-    (unless (or entropy/emacs-image-dired--with-files
+    (unless (or entropy/emacs-basic--image-dired-with-manually-files
                 (eq major-mode 'dired-mode))
       (user-error "Not in an dired buffer"))
     (let ((entropy/emacs-basic--image-dired-scan-arbitrary-files-p
@@ -2742,7 +2742,7 @@ an error."
           (img-dired-buff (image-dired-create-thumbnail-buffer))
           (img-dired-win nil)
           (img-fmarked (or
-                        entropy/emacs-image-dired--with-files
+                        entropy/emacs-basic--image-dired-with-manually-files
                         (and arg (dired-get-marked-files))
                         (let (effective-marked-files)
                           ;; we must unmark all items firstly since any marked item not an
@@ -2807,11 +2807,11 @@ an error."
             (setq-local entropy/emacs-basic--image-dired-scan-arbitrary-files-p
                         (entropy/emacs-get-variable-context-value
                          entropy/emacs-basic--image-dired-scan-arbitrary-files-p)
-                        entropy/emacs-image-dired--with-files
+                        entropy/emacs-basic--image-dired-with-manually-files
                         (entropy/emacs-get-variable-context-value
-                         entropy/emacs-image-dired--with-files)
+                         entropy/emacs-basic--image-dired-with-manually-files)
                         image-dired-track-movement
-                        (unless (or entropy/emacs-image-dired--with-files
+                        (unless (or entropy/emacs-basic--image-dired-with-manually-files
                                     entropy/emacs-basic--image-dired-scan-arbitrary-files-p)
                           (entropy/emacs-get-variable-context-value
                            image-dired-track-movement)))))
@@ -3079,7 +3079,7 @@ point."
         ;; no-dired assosicated mode via
         ;; `entropy/emacs-image-dired-display-thumbs-recursively'
         ;; should not track files.
-        (unless entropy/emacs-image-dired--with-files
+        (unless entropy/emacs-basic--image-dired-with-manually-files
           (condition-case err
               (image-dired-track-original-file)
             (error
