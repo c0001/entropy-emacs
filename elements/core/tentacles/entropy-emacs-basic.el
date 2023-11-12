@@ -3674,8 +3674,14 @@ With `%s' style." ,cmdnm (if ,fb "forbidden" "query")))
            (advice-add ,cmdnm (if ,fb :override :around)
                        ,name)))))
 
-  (entropy/emacs-basic--image-dired-make-command-safety
-   'image-dired-do-flagged-delete 'forbidden)
+  ;; danger: deletion flaged file shortcut
+  (if (fboundp 'image-dired-do-flagged-delete)
+      ;; for emacs 29 and above
+      (entropy/emacs-basic--image-dired-make-command-safety
+       'image-dired-do-flagged-delete 'forbidden)
+    ;; 28 and lower
+    (entropy/emacs-basic--image-dired-make-command-safety
+     'image-dired-delete-marked 'forbidden))
 
 ;; ******* eemacs spec commands
 ;; ******** open with external app
