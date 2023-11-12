@@ -3680,8 +3680,9 @@ With `%s' style." ,cmdnm (if ,fb "forbidden" "query")))
       (entropy/emacs-basic--image-dired-make-command-safety
        'image-dired-do-flagged-delete 'forbidden)
     ;; 28 and lower
-    (entropy/emacs-basic--image-dired-make-command-safety
-     'image-dired-delete-marked 'forbidden))
+    (if (fboundp 'image-dired-delete-marked)
+        (entropy/emacs-basic--image-dired-make-command-safety
+         'image-dired-delete-marked 'forbidden)))
 
 ;; ******* eemacs spec commands
 ;; ******** open with external app
