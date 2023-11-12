@@ -118,7 +118,7 @@ unless use byte-compile with macroexpand hack.")
 (defvar entropy/emacs-defconst--just-warn
   (bound-and-true-p entropy/emacs-startup-with-Debug-p))
 (defmacro entropy/emacs-defconst (symbol initvalue &optional docstring)
-  "Same as `defconst' but do not allow any set, local bind,
+  "Same as `defvar' but do not allow any set, local bind,
 and any even modification for variable SYMBOL, if not an error is
 raised up."
   (declare (indent defun) (doc-string 3))
@@ -128,19 +128,20 @@ raised up."
                 "\n\n(NOTE: this variable is defined by `entropy/emacs-defconst')"))
   (macroexp-let2* ignore ((ival nil))
     `(let ((,ival ,initvalue))
-       (prog1 (defconst ,symbol ,ival ,docstring)
+       (eval-when-compile (defvar ,symbol))
+       (prog1 (defvar ,symbol ,ival ,docstring)
          (add-variable-watcher
           ',symbol
           (lambda (sym &rest _)
-            (and (eq sym ',symbol)
+            (and t
                  (funcall (if (bound-and-true-p entropy/emacs-defconst--just-warn)
                               #'warn #'error)
                           "Do not modify const variable `%s'"
-                          ',symbol))))))))
+                          sym))))))))
 
 (defmacro entropy/emacs-defconst/only-allow/local
     (symbol initvalue &optional docstring)
-  "Same as `defconst' but do not allow any set
+  "Same as `defvar' but do not allow any set
 and any even modification for variable SYMBOL, but only local
 binding in `let' refer. If not an error is raised up."
   (declare (indent defun) (doc-string 3))
@@ -151,14 +152,42 @@ binding in `let' refer. If not an error is raised up."
 `entropy/emacs-defconst/only-allow/local')"))
   (macroexp-let2* ignore ((ival nil))
     `(let ((,ival ,initvalue))
-       (prog1 (defconst ,symbol ,ival ,docstring)
+       (eval-when-compile (defvar ,symbol))
+       (prog1 (defvar ,symbol ,ival ,docstring)
          (add-variable-watcher
           ',symbol
           (lambda (sym _nval op _wh)
-            (and (eq sym ',symbol)
+            (and t
                  (not (memq op '(let unlet)))
                  (error "Do not modify const variable `%s'"
-                        ',symbol))))))))
+                        sym))))))))
+
+(defmacro entropy/emacs-defconst/unless
+    (symbol initvalue &optional docstring guard)
+  "Same as `defvar' but do not allow any set
+and any even modification for variable SYMBOL, but only the guard
+function GUARD predicated. If not, an error is raised up.
+
+GUARD should be as same as the WATCH-FUNCTION from
+`add-variable-watcher'."
+  (declare (indent defun) (doc-string 3))
+  (setq docstring
+        (concat (or (and docstring (replace-regexp-in-string "\n+$" "" docstring))
+                    "A const variable.")
+                (format "\n\n(NOTE: this variable is defined by \
+`entropy/emacs-defconst/unless' with guard `%S')" guard)))
+  (macroexp-let2* ignore ((ival nil) (guard-func guard))
+    `(let ((,ival ,initvalue))
+       (eval-when-compile (defvar ,symbol))
+       (prog1 (defvar ,symbol ,ival ,docstring)
+         (add-variable-watcher
+          ',symbol
+          (lambda (sym nval op wh)
+            (and t
+                 (and ,guard-func
+                      (not (funcall ,guard-func sym nval op wh)))
+                 (error "Do not modify const variable `%s' via op: `%S'"
+                        sym (list op wh)))))))))
 
 (entropy/emacs-defconst entropy/emacs-false-symbol (make-symbol "false")
   "A non-`intern'ed symbol which indicated semantic \"false\" for
@@ -266,15 +295,6 @@ doesn't has such feature.
   (defalias 'entropy/emacs-define-key #'define-key))
 
 ;; *** subr*
-
-(defmacro entropy/emacs-get-variable-context-value (var)
-  "Get value VAL of variable VAR from the elisp context without any
-buffer-local (i.e. through `variable-binding-locus') infuence.
-
-VAL is either the global dynamic binding or from lexical context
-of VAR. Where in elisp defination, the lexical context value is
-always take precedence."
-  `(with-temp-buffer ,var))
 
 (cl-defun entropy/emacs--get-def-body (list-var &optional with-safe)
   "Get BODY inside of plist like list LIST-VAR, commonly is the

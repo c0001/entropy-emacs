@@ -2583,9 +2583,35 @@ mechanism."
     ('standard-xx-large 1024)
     (_ image-dired-thumb-size)))
 
-(defvar entropy/emacs-basic--image-dired-scan-arbitrary-files-p nil)
-(defvar entropy/emacs-basic--image-dired-with-manually-files nil)
-(defvar entropy/emacs-basic--image-dired-thumbnal-should-optimize-p nil)
+(entropy/emacs-defconst/only-allow/local
+  entropy/emacs-basic--image-dired-scan-arbitrary-files-p nil)
+(entropy/emacs-defconst/only-allow/local
+  entropy/emacs-basic--image-dired-with-manually-files nil)
+(entropy/emacs-defconst/unless
+  entropy/emacs-basic--image-dired-thumbnal-should-optimize-p nil
+  ""
+  (lambda (sym _nval op wh)
+    (progn
+      (unless (memq op '(set makunbound))
+        (error "`%s' should not be let or unlet: op - `%s'"
+               sym op))
+      (when wh
+        (error "`%s' should not be buffer-local bind" sym))
+      t)))
+(entropy/emacs-defconst/unless
+  entropy/emacs-basic--image-dired-use-arbitary-image-file-name-regexp nil
+  ""
+  (lambda (sym _nval op wh)
+    (progn
+      (unless (memq op '(set makunbound))
+        (error "`%s' should not be let or unlet: op - `%s'"
+               sym op))
+      (unless wh
+        (error "`%s' should only be buffer-local bind" sym))
+      t)))
+(entropy/emacs-defconst/only-allow/local
+  entropy/emacs-basic--image-dired-inhibit-arbitary-image-file-name-regexp
+  nil)
 
 (entropy/emacs-defvar-local-with-pml
   ;; make this var permanently buffer local so that it will not
@@ -2651,7 +2677,9 @@ sentinel of `image-dired-create-thumb-1'."
       __ya/image-dired/image-file-name-regexp (fn &rest args)
     :with-emacs-versions '(<= "29.1")
     :with-do-error-when-incompatible t
-    (if entropy/emacs-basic--image-dired-scan-arbitrary-files-p
+    (if (and (or entropy/emacs-basic--image-dired-scan-arbitrary-files-p
+                 entropy/emacs-basic--image-dired-use-arbitary-image-file-name-regexp)
+             (not entropy/emacs-basic--image-dired-inhibit-arbitary-image-file-name-regexp))
         "^.+$"
       (apply fn args)))
   (with-eval-after-load 'image-file
@@ -2689,10 +2717,12 @@ FILES specified already as list of image files' absolute
 pathname."
     (interactive)
     (let (
-          ;; we should grab image filename regex before binding below
-          ;; since the advice
+          ;; we should grab image filename regex inhibits binding
+          ;; below since the advice
           ;; `__ya/image-dired/image-file-name-regexp'.
-          (rex (image-file-name-regexp))
+          (rex (let ((entropy/emacs-basic--image-dired-inhibit-arbitary-image-file-name-regexp
+                      t))
+                 (image-file-name-regexp)))
           (entropy/emacs-basic--image-dired-scan-arbitrary-files-p
            t))
       (entropy/emacs-setf-by-body files
@@ -2717,13 +2747,13 @@ pathname."
               :with-level level
               :with-regexp rex)))
          (user-error "No image files found")))
-      (let ((entropy/emacs-basic--image-dired-with-manually-files files))
-        (with-current-buffer
-            ;; FIXME: we should wrapper the continuation with fake
-            ;; dired buffer since `image-dired' is internally related
-            ;; to a `dired' buffer but on which case we are not focus.
-            (entropy/emacs-get-buffer-create
-             " *eemacs-fake-image-dired-original-dired-buffer*" t)
+      (with-current-buffer
+          ;; FIXME: we should wrapper the continuation with fake
+          ;; dired buffer since `image-dired' is internally related
+          ;; to a `dired' buffer but on which case we are not focus.
+          (entropy/emacs-get-buffer-create
+           " *eemacs-fake-image-dired-original-dired-buffer*" t)
+        (let ((entropy/emacs-basic--image-dired-with-manually-files files))
           (entropy/emacs-image-dired-init)))))
 
   (defun entropy/emacs-image-dired-init (&optional arg)
@@ -2819,17 +2849,14 @@ an error."
           (dired-unmark-all-marks))
         (when (buffer-live-p img-dired-buff)
           (with-current-buffer img-dired-buff
-            (setq-local entropy/emacs-basic--image-dired-scan-arbitrary-files-p
-                        (entropy/emacs-get-variable-context-value
+            (setq-local
+             entropy/emacs-basic--image-dired-use-arbitary-image-file-name-regexp
+             (or entropy/emacs-basic--image-dired-use-arbitary-image-file-name-regexp
+                 entropy/emacs-basic--image-dired-with-manually-files)
+             image-dired-track-movement
+             (unless (or entropy/emacs-basic--image-dired-with-manually-files
                          entropy/emacs-basic--image-dired-scan-arbitrary-files-p)
-                        entropy/emacs-basic--image-dired-with-manually-files
-                        (entropy/emacs-get-variable-context-value
-                         entropy/emacs-basic--image-dired-with-manually-files)
-                        image-dired-track-movement
-                        (unless (or entropy/emacs-basic--image-dired-with-manually-files
-                                    entropy/emacs-basic--image-dired-scan-arbitrary-files-p)
-                          (entropy/emacs-get-variable-context-value
-                           image-dired-track-movement)))))
+               (default-value 'image-dired-track-movement)))))
         (when (setq img-dired-win (get-buffer-window img-dired-buff))
           (select-window img-dired-win)))))
 
@@ -3241,9 +3268,10 @@ dwim memory and use both height and width fit display type."
             (image-set-window-vscroll 0)
             (image-set-window-hscroll 0)))
         ;; finally we should respect image name filter
-        (setq-local entropy/emacs-basic--image-dired-scan-arbitrary-files-p
-                    (with-current-buffer (image-dired-create-thumbnail-buffer)
-                      entropy/emacs-basic--image-dired-scan-arbitrary-files-p)))))
+        (setq-local
+         entropy/emacs-basic--image-dired-use-arbitary-image-file-name-regexp
+         (with-current-buffer (image-dired-create-thumbnail-buffer)
+           entropy/emacs-basic--image-dired-use-arbitary-image-file-name-regexp)))))
 
   (entropy/emacs-when-defun __ya/image-dired-display-image (file &optional original-size)
     "Like `image-dired-display-image' but expand the ORIGINAL-SIZE
@@ -3293,9 +3321,10 @@ dwim memory and use both height and width fit display type."
                    t)))
           (image-dired-image-mode)
           ;; finally we should respect image name filter
-          (setq-local entropy/emacs-basic--image-dired-scan-arbitrary-files-p
-                      (with-current-buffer (image-dired-create-thumbnail-buffer)
-                        entropy/emacs-basic--image-dired-scan-arbitrary-files-p))))
+          (setq-local
+           entropy/emacs-basic--image-dired-use-arbitary-image-file-name-regexp
+           (with-current-buffer (image-dired-create-thumbnail-buffer)
+             entropy/emacs-basic--image-dired-use-arbitary-image-file-name-regexp))))
       (select-window cur-win)))
 
   (defun entropy/emacs-basic--image-diared-display-image
