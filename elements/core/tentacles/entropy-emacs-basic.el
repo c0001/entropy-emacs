@@ -3643,6 +3643,40 @@ prevention of re-generation."
                 :override
                 #'__ya/image-dired-create-thumb-1))
 
+;; ******** safety wrapper for dangerous commands
+
+  (eval-and-compile
+    (defmacro entropy/emacs-basic--image-dired-make-command-safety
+        (cmd-sym &optional with-forbidden)
+      "Advice image-dired dangerous command func symbol CMD-SYM with
+eemacs spec safety way.
+
+If WITH-FORBIDDEN is specified return non-nil, CMD is forbade to
+ran any more. Otherwise query user for confirmation."
+      (macroexp-let2* ignore
+          ((name nil) (msg nil) (cmdnm cmd-sym)
+           (fb with-forbidden))
+        `(let ((,name (intern (format "__eemacs/adv/%s/with-safety-wrapper"
+                                      ,cmdnm)))
+               (,msg
+                (if ,fb
+                    (format "Command `%s' is inhibited since safety consideration."
+                            ,cmdnm)
+                  (format "Command `%s' is a danger cmd, really do?" ,cmdnm))))
+           (defalias ,name
+             (if ,fb (lambda (&rest _) (user-error "%s" ,msg))
+               (lambda (fn &rest args)
+                 (if (yes-or-no-p ,msg) (apply fn args)
+                   (user-error "Abort!"))))
+             (format "eemacs image-dired danger commands safety wrapper for `%s'.
+
+With `%s' style." ,cmdnm (if ,fb "forbidden" "query")))
+           (advice-add ,cmdnm (if ,fb :override :around)
+                       ,name)))))
+
+  (entropy/emacs-basic--image-dired-make-command-safety
+   'image-dired-do-flagged-delete 'forbidden)
+
 ;; ******* eemacs spec commands
 ;; ******** open with external app
 
