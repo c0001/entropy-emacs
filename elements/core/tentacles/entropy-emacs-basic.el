@@ -2584,7 +2584,7 @@ mechanism."
     (_ image-dired-thumb-size)))
 
 (entropy/emacs-defconst/only-allow/local
-  entropy/emacs-basic--image-dired-scan-arbitrary-files-p nil)
+  entropy/emacs-basic--image-dired-mark-arbitrary-files-p nil)
 (entropy/emacs-defconst/only-allow/local
   entropy/emacs-basic--image-dired-with-manually-files nil)
 (entropy/emacs-defconst/unless
@@ -2677,7 +2677,7 @@ sentinel of `image-dired-create-thumb-1'."
       __ya/image-dired/image-file-name-regexp (fn &rest args)
     :with-emacs-versions '(<= "29.1")
     :with-do-error-when-incompatible t
-    (if (and (or entropy/emacs-basic--image-dired-scan-arbitrary-files-p
+    (if (and (or entropy/emacs-basic--image-dired-mark-arbitrary-files-p
                  entropy/emacs-basic--image-dired-use-arbitary-image-file-name-regexp)
              (not entropy/emacs-basic--image-dired-inhibit-arbitary-image-file-name-regexp))
         "^.+$"
@@ -2717,14 +2717,12 @@ FILES specified already as list of image files' absolute
 pathname."
     (interactive)
     (let (
-          ;; we should grab image filename regex inhibits binding
-          ;; below since the advice
+          ;; we should grab image filename regex inhibits the filter
+          ;; shown below since the advice
           ;; `__ya/image-dired/image-file-name-regexp'.
           (rex (let ((entropy/emacs-basic--image-dired-inhibit-arbitary-image-file-name-regexp
                       t))
-                 (image-file-name-regexp)))
-          (entropy/emacs-basic--image-dired-scan-arbitrary-files-p
-           t))
+                 (image-file-name-regexp))))
       (entropy/emacs-setf-by-body files
         (or
          files
@@ -2773,41 +2771,40 @@ an error."
     (unless (or entropy/emacs-basic--image-dired-with-manually-files
                 (eq major-mode 'dired-mode))
       (user-error "Not in an dired buffer"))
-    (let ((entropy/emacs-basic--image-dired-scan-arbitrary-files-p
-           (or entropy/emacs-basic--image-dired-scan-arbitrary-files-p
-               (and arg t)))
-          ;; FIXME: the png opmitization may cause the gened thumbnail
-          ;; be empty? (especially when original file is not named as
-          ;; ordinary image file name)
-          (_ (setq entropy/emacs-basic--image-dired-thumbnal-should-optimize-p
-                   (unless (or arg
-                               entropy/emacs-basic--image-dired-scan-arbitrary-files-p)
-                     entropy/emacs-image-dired-new-thumbnail-should-optimize-p)))
-          (cur-buffer (current-buffer))
-          (img-dired-buff (image-dired-create-thumbnail-buffer))
-          (img-dired-win nil)
-          (img-fmarked (or
-                        entropy/emacs-basic--image-dired-with-manually-files
-                        (and arg (dired-get-marked-files))
-                        (let (effective-marked-files)
-                          ;; we must unmark all items firstly since any marked item not an
-                          ;; image will be a mistake for create thumbnails. Unless user
-                          ;; specifed marked files with prefix arg in which case we ignore
-                          ;; the messy protection.
-                          (dired-unmark-all-marks)
-                          (dired-mark-files-regexp (image-file-name-regexp))
-                          (setq effective-marked-files
-                                (dired-get-marked-files
-                                 nil nil nil
-                                 ;; distinguish the only one marked
-                                 ;; status so that we can jduge
-                                 ;; whether there's actual marked
-                                 ;; files has get from regexp marking
-                                 ;; process.
-                                 t))
-                          (if (null (cdr effective-marked-files))
-                              nil
-                            effective-marked-files)))))
+    (let*
+        ((entropy/emacs-basic--image-dired-mark-arbitrary-files-p
+          (and arg t))
+         ;; FIXME: the png opmitization may cause the gened thumbnail
+         ;; be empty? (especially when original file is not named as
+         ;; ordinary image file name)
+         (_ (setq entropy/emacs-basic--image-dired-thumbnal-should-optimize-p
+                  (unless arg
+                    entropy/emacs-image-dired-new-thumbnail-should-optimize-p)))
+         (cur-buffer (current-buffer))
+         (img-dired-buff (image-dired-create-thumbnail-buffer))
+         (img-dired-win nil)
+         (img-fmarked (or
+                       entropy/emacs-basic--image-dired-with-manually-files
+                       (and arg (dired-get-marked-files))
+                       (let (effective-marked-files)
+                         ;; we must unmark all items firstly since any marked item not an
+                         ;; image will be a mistake for create thumbnails. Unless user
+                         ;; specifed marked files with prefix arg in which case we ignore
+                         ;; the messy protection.
+                         (dired-unmark-all-marks)
+                         (dired-mark-files-regexp (image-file-name-regexp))
+                         (setq effective-marked-files
+                               (dired-get-marked-files
+                                nil nil nil
+                                ;; distinguish the only one marked
+                                ;; status so that we can jduge
+                                ;; whether there's actual marked
+                                ;; files has get from regexp marking
+                                ;; process.
+                                t))
+                         (if (null (cdr effective-marked-files))
+                             nil
+                           effective-marked-files)))))
       (unless img-fmarked
         (user-error "No images found!"))
       (unwind-protect
@@ -2854,8 +2851,7 @@ an error."
              (or entropy/emacs-basic--image-dired-use-arbitary-image-file-name-regexp
                  entropy/emacs-basic--image-dired-with-manually-files)
              image-dired-track-movement
-             (unless (or entropy/emacs-basic--image-dired-with-manually-files
-                         entropy/emacs-basic--image-dired-scan-arbitrary-files-p)
+             (unless entropy/emacs-basic--image-dired-with-manually-files
                (default-value 'image-dired-track-movement)))))
         (when (setq img-dired-win (get-buffer-window img-dired-buff))
           (select-window img-dired-win)))))
