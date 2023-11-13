@@ -3916,7 +3916,10 @@ ARROW is valid in 'up' 'down' 'left' 'right'."
     (when entropy/emacs-basic--image-dired-inhibit-hvscroll
       (user-error "No `%s' scroll can be did" arrow))
     (let* ((buffer-win (image-dired-display-window)))
-      (unless (window-live-p buffer-win)
+      (unless (and (window-live-p buffer-win)
+                   (with-selected-window buffer-win
+                     (bound-and-true-p
+                      __ya/image-dired-display-image-buffer-image-file)))
         (user-error "No lived image-dired original image file display window!"))
       (with-selected-window buffer-win
         (cond
