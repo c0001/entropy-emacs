@@ -162,6 +162,60 @@ binding in `let' refer. If not an error is raised up."
                  (error "Do not modify const variable `%s'"
                         sym))))))))
 
+(defmacro entropy/emacs-defconst/only-allow/buffer-local
+    (symbol initvalue &optional docstring)
+  "Same as `defvar' but do not allow any set
+and any even modification for variable SYMBOL, but only
+buffer-local binding in `setq-local' refer. If not an error is
+raised up."
+  (declare (indent defun) (doc-string 3))
+  (setq docstring
+        (concat (or (and docstring (replace-regexp-in-string "\n+$" "" docstring))
+                    "A const variable.")
+                "\n\n(NOTE: this variable is defined by \
+`entropy/emacs-defconst/only-allow/buffer-local')"))
+  (macroexp-let2* ignore ((ival nil))
+    `(let ((,ival ,initvalue))
+       (eval-when-compile (defvar ,symbol))
+       (prog1 (defvar ,symbol ,ival ,docstring)
+         (add-variable-watcher
+          ',symbol
+          (lambda (sym _nval op wh)
+            (progn
+              (unless (memq op '(set makunbound))
+                (error "`%s' should not be let or unlet: op - `%s'"
+                       sym op))
+              (unless wh
+                (error "`%s' should only be buffer-local bind" sym))))
+          )))))
+
+(defmacro entropy/emacs-defconst/only-allow/global-set
+    (symbol initvalue &optional docstring)
+  "Same as `defvar' but do not allow any set
+and any even modification for variable SYMBOL, but only global
+binding in `setq' refer. If not an error is raised up."
+  (declare (indent defun) (doc-string 3))
+  (setq docstring
+        (concat (or (and docstring (replace-regexp-in-string "\n+$" "" docstring))
+                    "A const variable.")
+                "\n\n(NOTE: this variable is defined by \
+`entropy/emacs-defconst/only-allow/global-set')"))
+  (macroexp-let2* ignore ((ival nil))
+    `(let ((,ival ,initvalue))
+       (eval-when-compile (defvar ,symbol))
+       (prog1 (defvar ,symbol ,ival ,docstring)
+         (add-variable-watcher
+          ',symbol
+          (lambda (sym _nval op wh)
+            (progn
+              (unless (memq op '(set makunbound))
+                (error "`%s' should not be let or unlet: op - `%s'"
+                       sym op))
+              (when wh
+                (error "`%s' should not be buffer-local bind" sym))
+              t))
+          )))))
+
 (defmacro entropy/emacs-defconst/unless
     (symbol initvalue &optional docstring guard)
   "Same as `defvar' but do not allow any set

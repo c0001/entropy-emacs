@@ -2509,9 +2509,15 @@ buffer."
     (interactive)
     (unless (eq major-mode 'image-mode)
       (user-error "Not in image-mode"))
-    (let ((file (buffer-file-name)))
-      (unless (file-exists-p file)
-        (user-error "No original file name found"))
+    (let ((file
+           (or (buffer-file-name)
+               ;; mode enabled by
+               ;; `entropy/emacs-image-dired-enable-image-mode-in-display-buffer'
+               (bound-and-true-p
+                __ya/image-dired-display-image-buffer-image-file))))
+      (unless (and file (file-exists-p file))
+        (user-error "No original file name found or exists: %s"
+                    file))
       (entropy/emacs-image-mode-external-view-union
        file)))
   )
@@ -2585,57 +2591,43 @@ mechanism."
     (_ image-dired-thumb-size)))
 
 (entropy/emacs-defconst/only-allow/local
-  entropy/emacs-basic--image-dired-mark-arbitrary-files-p nil)
+  entropy/emacs-basic--image-dired-mark-arbitrary-files-p
+  nil)
 (entropy/emacs-defconst/only-allow/local
-  entropy/emacs-basic--image-dired-with-manually-files nil)
-(entropy/emacs-defconst/unless
-  entropy/emacs-basic--image-dired-thumbnal-should-optimize-p nil
-  ""
-  (lambda (sym _nval op wh)
-    (progn
-      (unless (memq op '(set makunbound))
-        (error "`%s' should not be let or unlet: op - `%s'"
-               sym op))
-      (when wh
-        (error "`%s' should not be buffer-local bind" sym))
-      t)))
-(entropy/emacs-defconst/unless
-  entropy/emacs-basic--image-dired-use-arbitary-image-file-name-regexp nil
-  ""
-  (lambda (sym _nval op wh)
-    (progn
-      (unless (memq op '(set makunbound))
-        (error "`%s' should not be let or unlet: op - `%s'"
-               sym op))
-      (unless wh
-        (error "`%s' should only be buffer-local bind" sym))
-      t)))
+  entropy/emacs-basic--image-dired-with-manually-files
+  nil)
+(entropy/emacs-defconst/only-allow/global-set
+  entropy/emacs-basic--image-dired-thumbnal-should-optimize-p
+  nil)
+(entropy/emacs-defconst/only-allow/buffer-local
+  entropy/emacs-basic--image-dired-use-arbitary-image-file-name-regexp
+  nil)
 (entropy/emacs-defconst/only-allow/local
   entropy/emacs-basic--image-dired-inhibit-arbitary-image-file-name-regexp
   nil)
-
-(entropy/emacs-defconst/unless
+(entropy/emacs-defconst/only-allow/buffer-local
   entropy/emacs-basic--image-dired-inhibit-hvscroll
-  nil
-  ""
-  (lambda (sym _nval op wh)
-    (progn
-      (unless (memq op '(set makunbound))
-        (error "`%s' should not be let or unlet: op - `%s'"
-               sym op))
-      (unless wh
-        (error "`%s' should only be buffer-local bind" sym))
-      t)))
-
+  ;; default t since the initial time we don't have any image display
+  ;; window so that any scroll command will assert error.
+  t)
 (entropy/emacs-defvar-local-with-pml
   ;; make this var permanently buffer local so that it will not
   ;; disappear after change `major-mode'
   __ya/image-dired-display-image-buffer-image-file nil)
 
+(defvar entropy/emacs-image-dired-display-image-use-image-mode nil)
+
+;; NOTE: we must declared this here since the mode def is lazyload and
+;; any lazy keybind set should not confused the lazyload order that
+;; which one defined this keymap.
+(defvar entropy/emacs-image-dired-display-image-mode-map
+  (make-sparse-keymap))
+
 (defun entropy/emacs-image-dired--mode-match-assert (&rest modes)
   (or (bound-and-true-p __ya/image-dired-display-image-buffer-image-file)
       (let ((modes `(image-dired-image-mode
                      image-dired-display-image-mode
+                     entropy/emacs-image-dired-display-image-mode
                      ,@modes)))
         (if (memq major-mode modes) t
           (user-error "Not in an dired image display spec buffer!")))))
@@ -3195,6 +3187,56 @@ to reduce navigation lag."
       'image-dired-line-up
     "Rearranging image-dired thumbnails display layout")
 
+  (when (>= emacs-major-version 29)
+    (define-derived-mode entropy/emacs-image-dired-display-image-mode
+      special-mode "image-dired-image-display"
+      "Mode for displaying and manipulating original image.
+Resized or in full-size.
+
+NOTE: this mode is same as emacs-28 and lower version's
+`image-dired-display-image-mode', used for emulate thus to
+replace the higher emacs's version's `image-mode' derived
+`image-dired-image-mode' which made
+`image-dired-display-image-mode' as its alias but without same
+mechanism as older ver."
+      (buffer-disable-undo)
+      (image-mode-setup-winprops)
+      (setq cursor-type nil)
+      (add-hook 'file-name-at-point-functions 'image-dired-file-name-at-point nil t))
+
+    (let ((map entropy/emacs-image-dired-display-image-mode-map))
+      ;; `image-mode-map' has bindings that do not make sense in image-dired
+      ;; (set-keymap-parent map image-mode-map)
+      (define-key map "f" 'image-dired-display-current-image-full)
+      (define-key map "s" 'image-dired-display-current-image-sized)
+      (define-key map "g" nil)
+
+      ;; Useful bindings from `image-mode-map'
+      (define-key map [remap forward-char] 'image-forward-hscroll)
+      (define-key map [remap backward-char] 'image-backward-hscroll)
+      (define-key map [remap right-char] 'image-forward-hscroll)
+      (define-key map [remap left-char] 'image-backward-hscroll)
+      (define-key map [remap previous-line] 'image-previous-line)
+      (define-key map [remap next-line] 'image-next-line)
+      (define-key map [remap scroll-up] 'image-scroll-up)
+      (define-key map [remap scroll-down] 'image-scroll-down)
+      (define-key map [remap scroll-up-command] 'image-scroll-up)
+      (define-key map [remap scroll-down-command] 'image-scroll-down)
+      (define-key map [remap scroll-left] 'image-scroll-left)
+      (define-key map [remap scroll-right] 'image-scroll-right)
+      (define-key map [remap move-beginning-of-line] 'image-bol)
+      (define-key map [remap move-end-of-line] 'image-eol)
+      (define-key map [remap beginning-of-buffer] 'image-bob)
+      (define-key map [remap end-of-buffer] 'image-eob)
+
+      (easy-menu-define nil map
+        "Menu for `image-dired-display-image-mode-map'."
+        '("Image-Dired"
+          ["Display original, full size" image-dired-display-current-image-full]
+          ["Display original, sized to fit" image-dired-display-current-image-sized]
+          ["Quit" quit-window]))
+      map))
+
   (defun __ya/image-dired-create-display-image-buffer
       (fn &rest args)
     (if (< emacs-major-version 29) (apply fn args)
@@ -3323,8 +3365,10 @@ also."
         (when (derived-mode-p 'image-mode)
           (with-selected-window window
             (image-set-window-vscroll 0)
-            (image-set-window-hscroll 0))
-          (fundamental-mode))
+            (image-set-window-hscroll 0)))
+        (if (>= emacs-major-version 29)
+            (entropy/emacs-image-dired-display-image-mode)
+          (image-dired-display-image-mode))
         ;; let buffer known the current display image origin file
         (setq __ya/image-dired-display-image-buffer-image-file file)
         (let ((inhibit-read-only t))
@@ -3336,23 +3380,13 @@ also."
           (with-selected-window window
             (unless (string= (buffer-name) image-dired-display-image-buffer)
               (error "internal error <current window is not matched display image buffer>"))
-            (cond
-             ((< emacs-major-version 29)
-              ;; FIXME: We must use `image-mode' subroutines to set the
-              ;; scroll pos since orign `set-window-vscroll' and
-              ;; `set-window-hscroll' is not work when previously has
-              ;; did scrolled operation using `image-next-line' etc. and
-              ;; why? (maybe since `image-next-line' and refer use
-              ;; `setf' i.e. `gv' functionality and why this does?)
-              (image-set-window-vscroll 0)
-              (image-set-window-hscroll 0))
-             (t
-              ;; FIXME: `image-set-window-h/vscroll' can not did
-              ;; without `image-mode' enabeld for emacs-29^ as which
-              ;; we should find another way to reach the aim as
-              ;; emacs-28 and lower version. Thus for now [2023-11-13
-              ;; Mon 17:53:06] we just leave empty here.
-              nil))))
+            ;; NOTE: We must use `image-mode' subroutines to set the
+            ;; scroll pos since orign `set-window-vscroll' and
+            ;; `set-window-hscroll' is not work when previously has
+            ;; did scrolled operation using `image-next-line' etc,
+            ;; since the `image-mode-winprops' effects.
+            (image-set-window-vscroll 0)
+            (image-set-window-hscroll 0)))
         ;; finally we should respect image name filter
         (setq-local
          entropy/emacs-basic--image-dired-use-arbitary-image-file-name-regexp
@@ -3426,39 +3460,27 @@ also."
     "See `__ya/image-dired-display-image'."
     (let* ((imgf (car orig-args)) (osize (cadr orig-args))
            func dwimp)
+      (progn
+        ;; set dwim size indicator
+        (entropy/emacs-setf-by-body dwimp
+          (entropy/emacs-basic-image-dired--display-size-with-dwim-p
+           osize))
+        (when (entropy/emacs-debugger-is-running-p)
+          (message "--> prefix: `%S' : dwim size type `%s', size: %S, cache: %s"
+                   current-prefix-arg
+                   dwimp osize
+                   __ya/image-dired-display-image-stick-fit-type)))
       (entropy/emacs-message-simple-progress-message "%s [%s]"
         :with-temp-message t
         :with-fit-window-width t
         :with-message-color-args
         `((green "Rendering image file")
           (yellow ,imgf))
-        (if (and
-             (progn
-               (entropy/emacs-setf-by-body dwimp
-                 (entropy/emacs-basic-image-dired--display-size-with-dwim-p
-                  osize))
-               (when (entropy/emacs-debugger-is-running-p)
-                 (message "--> prefix: `%S' : dwim size type `%s', size: %S, cache: %s"
-                          current-prefix-arg
-                          dwimp osize
-                          __ya/image-dired-display-image-stick-fit-type))
-               osize)
-             (>= emacs-major-version 29))
-            (progn
-              (setq func '__ya/image-dired-display-image/use-image-mode)
-              (with-current-buffer (image-dired-create-thumbnail-buffer)
-                (setq-local entropy/emacs-basic--image-dired-inhibit-hvscroll nil)))
-          (setq func '__ya/image-dired-display-image/use-fast-insert)
-          (when (>= emacs-major-version 29)
-            ;; since non `image-mode' can not participate with its
-            ;; image line movements functional, and indeed where the
-            ;; osize is not given as nil the thumb's original file
-            ;; display should fit both window's height and width which
-            ;; is no movement available at all.
-            (with-current-buffer (image-dired-create-thumbnail-buffer)
-              (setq-local entropy/emacs-basic--image-dired-inhibit-hvscroll t))))
+        (setq-local entropy/emacs-basic--image-dired-inhibit-hvscroll nil)
+        (if entropy/emacs-image-dired-display-image-use-image-mode
+            (setq func '__ya/image-dired-display-image/use-image-mode)
+          (setq func '__ya/image-dired-display-image/use-fast-insert))
         (funcall func imgf osize dwimp))))
-
   (advice-add 'image-dired-display-image
               :override #'entropy/emacs-basic--image-diared-display-image)
 
@@ -4145,11 +4167,16 @@ dired buffer."
   :eemacs-with-no-require (>= emacs-major-version 29)
 ;; ****** eemacs hydra hollow instance
   :eemacs-mmphc
-  (((:enable t :defer t)
-    (image-dired-display-image-mode
-     (image-dired image-dired-display-image-mode-map)
-     t
-     (2 2 2)))
+  ((((:enable t :defer t)
+     (image-dired-display-image-mode
+      (image-dired image-dired-display-image-mode-map)
+      t
+      (2 2 2)))
+    ((:enable (>= emacs-major-version 29) :defer t)
+     (entropy/emacs-image-dired-display-image-mode
+      (image-dired entropy/emacs-image-dired-display-image-mode-map)
+      t
+      (2 2 2))))
    ("Basic"
     (("RET" entropy/emacs-image-dired-display-image-buffer-redo-command
       "Redisplay the current buffer image."
@@ -4191,7 +4218,8 @@ displayed image as same operated mechanism as
   (defun entropy/emacs-image-dired-enable-image-mode-in-display-buffer ()
     "Enable `image-mode' in `image-dired-display-image-buffer'"
     (declare (interactive-only t))
-    (interactive nil image-dired-display-image-mode)
+    (interactive nil image-dired-display-image-mode
+                 entropy/emacs-image-dired-display-image-mode)
     (entropy/emacs-image-dired--mode-match-assert)
     (let ((inhibit-read-only t)
           (file __ya/image-dired-display-image-buffer-image-file)
@@ -4202,7 +4230,17 @@ displayed image as same operated mechanism as
       (erase-buffer)
       (insert-file-contents-literally file)
       (image-mode)
-      (restore-buffer-modified-p modified)))
+      (restore-buffer-modified-p modified)
+      (buffer-disable-undo)
+      (setq-local column-number-mode nil)
+      (setq-local line-number-mode nil)
+      (add-hook 'file-name-at-point-functions
+                #'image-dired-file-name-at-point nil t)
+      (with-selected-window
+          (or (get-buffer-window)
+              (error "image dired image display window not lived"))
+        (image-set-window-vscroll 0)
+        (image-set-window-hscroll 0))))
 
 ;; ****** __end__
   )
