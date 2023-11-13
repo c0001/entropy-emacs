@@ -2545,6 +2545,7 @@ buffer."
 (defvar image-dired-thumb-visible-marks)
 (defvar image-dired-track-movement)
 (defvar image-dired-temp-image-file)
+(defvar image-dired-temp-rotate-image-file)
 (defvar image-dired-display-image-buffer)
 
 ;; ***** union declare
