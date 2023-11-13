@@ -2613,6 +2613,19 @@ mechanism."
   entropy/emacs-basic--image-dired-inhibit-arbitary-image-file-name-regexp
   nil)
 
+(entropy/emacs-defconst/unless
+  entropy/emacs-basic--image-dired-inhibit-hvscroll
+  nil
+  ""
+  (lambda (sym _nval op wh)
+    (progn
+      (unless (memq op '(set makunbound))
+        (error "`%s' should not be let or unlet: op - `%s'"
+               sym op))
+      (unless wh
+        (error "`%s' should only be buffer-local bind" sym))
+      t)))
+
 (entropy/emacs-defvar-local-with-pml
   ;; make this var permanently buffer local so that it will not
   ;; disappear after change `major-mode'
@@ -2649,6 +2662,33 @@ mechanism."
 
 ;; ****** config
   :config
+
+  (entropy/emacs-setf-by-body image-dired-temp-image-file
+    ;; use tempfs as temp file host to speedup I/O and reduce SSD
+    ;; writes.
+    (entropy/emacs-make-temp-file
+     (format ".eemacs.image-dired.tmpfile.%s."
+             (format-time-string "%Y%m%d%a%H%M%S"))
+     nil nil nil
+     :with-system-tmpfs t))
+  (entropy/emacs-setf-by-body image-dired-temp-rotate-image-file
+    ;; use tempfs as temp file host to speedup I/O and reduce SSD
+    ;; writes.
+    (entropy/emacs-make-temp-file
+     (format ".eemacs.image-dired.tmprotate_file.%s."
+             (format-time-string "%Y%m%d%a%H%M%S"))
+     nil nil nil
+     :with-system-tmpfs t))
+  (entropy/emacs-add-hook-with-lambda
+    (cons t 'entropy/emacs-basic--image-dired-remove-cache-tmpfiles)
+    nil
+    "Remove tmpfs cache image stuffs of `image-dired' before emacs
+killed to prevent garbage resources remained in system."
+    :use-hook 'kill-emacs-hook
+    (dolist (f (list image-dired-temp-image-file
+                     image-dired-temp-rotate-image-file))
+      (when (and f (file-exists-p f))
+        (delete-file f))))
 
   (defvar __ya/image-dired-create-thumb--idle-timer nil)
   (defun __ya/image-dired-create-thumb (original-file thumbnail-file)
@@ -3154,40 +3194,69 @@ to reduce navigation lag."
       'image-dired-line-up
     "Rearranging image-dired thumbnails display layout")
 
+  (defun __ya/image-dired-create-display-image-buffer
+      (fn &rest args)
+    (if (< emacs-major-version 29) (apply fn args)
+      (get-buffer-create image-dired-display-image-buffer)))
+  (advice-add 'image-dired-create-display-image-buffer
+              :around
+              '__ya/image-dired-create-display-image-buffer)
+  (defun __ya/image-dired-display-window
+      (fn &rest args)
+    (or (apply fn args)
+        (display-buffer (image-dired-create-display-image-buffer))))
+  (advice-add 'image-dired-display-window
+              :around
+              '__ya/image-dired-display-window)
+
   (eval-and-compile
-    (defmacro entropy/emacs-basic-image-dired--display-size-with-dwim-p (original-size)
-      `(or
-        ;; explicit should use dwim
-        (when (not ,original-size)
-          ;; inherit history dwim type when history is set
-          (when __ya/image-dired-display-image-stick-fit-type
-            (setq ,original-size
-                  __ya/image-dired-display-image-stick-fit-type))
-          t)
-        (cond
-         ;; user specified dwim type
-         ((memq ,original-size '(2 3))
-          ;; then we update the history dwim type
-          (setq __ya/image-dired-display-image-stick-fit-type
-                ,original-size)
-          t)
-         ;; manually clear the hisrtoy type and fallback to use dwim
-         ((and (listp ,original-size)
-               (not (equal ,original-size
-                           ;; the single prefix treat as use origin size.
-                           '(4))))
-          ;; then we clear the history dwim type
-          (setq
-           __ya/image-dired-display-image-stick-fit-type
-           nil)
-          t)
-         ;; otherwise disable dwim i.e. use single `C-u' type
-         ;; which is same as origin mechanism
-         (t
-          nil)))))
+    (defmacro entropy/emacs-basic-image-dired--display-size-with-dwim-p
+        (original-size &optional noset-p)
+      (macroexp-let2* ignore
+          ((noset noset-p)
+           ;; NOTE: since not all wrapper is a command use
+           ;; `(interactive "P")' flag so that the original-size may
+           ;; not follow user interactively hints. So we should use
+           ;; `current-prefix-arg' as fallback value.
+           (prefval `(or ,original-size current-prefix-arg)))
+        `(progn
+           (unless ,original-size
+             (unless ,noset (setq ,original-size ,prefval)))
+           (or
+            ;; explicit should use dwim
+            (when (not ,prefval)
+              ;; inherit history dwim type when history is set
+              (when (and __ya/image-dired-display-image-stick-fit-type
+                         (not ,noset))
+                (setq ,original-size
+                      __ya/image-dired-display-image-stick-fit-type))
+              t)
+            (cond
+             ;; user specified dwim type
+             ((memq ,prefval '(2 3))
+              ;; then we update the history dwim type
+              (unless ,noset
+                (setq __ya/image-dired-display-image-stick-fit-type
+                      ,original-size))
+              t)
+             ;; manually clear the hisrtoy type and fallback to use dwim
+             ((and (consp ,prefval)
+                   (not (equal ,prefval
+                               ;; the single prefix treat as use origin size.
+                               '(4))))
+              ;; then we clear the history dwim type
+              (unless ,noset
+                (setq
+                 __ya/image-dired-display-image-stick-fit-type
+                 nil))
+              t)
+             ;; otherwise disable dwim i.e. use single `C-u' type
+             ;; which is same as origin mechanism
+             (t nil)))))))
 
   ;; EEMACS_MAINTENANCE follow upstream updates
-  (entropy/emacs-when-defun __ya/image-dired-display-image (file &optional original-size)
+  (defun __ya/image-dired-display-image/use-fast-insert
+      (file &optional original-size should-use-dwim-p)
     "Like `image-dired-display-image' but expand the ORIGINAL-SIZE
 means as DWIM that:
 
@@ -3199,19 +3268,20 @@ The dwim is memoized via history variable
 `__ya/image-dired-display-image-stick-fit-type'.
 
 Any other prefix type is treat as clear/reset the stick history
-dwim memory and use both height and width fit display type."
-    :when (version< emacs-version "29")
+dwim memory and use both height and width fit display type.
+
+This is the variant of `image-dired-display-image' as same as
+emacs ver less than 29 which is commonly faster than which in
+emacs 29 and above to show the thumbnail original image with
+resizing. See `__ya/image-dired-display-image/use-image-mode'
+also."
     (image-dired--check-executable-exists
      'image-dired-cmd-create-temp-image-program)
     (let* ((new-file (expand-file-name image-dired-temp-image-file))
            (window (image-dired-display-window))
            (window-height (image-dired-display-window-height window))
            (window-width (image-dired-display-window-width window))
-           (image-type 'jpeg)
-           (should-use-dwim-p
-            (entropy/emacs-basic-image-dired--display-size-with-dwim-p
-             original-size)))
-
+           (image-type 'jpeg))
       (setq file (expand-file-name file))
       (if should-use-dwim-p
           (let* ((spec
@@ -3244,6 +3314,16 @@ dwim memory and use both height and width fit display type."
             (user-error "Copy as orig file failed type '%s' as ['%s']"
                         (car cpstatus) (cdr cpstatus)))))
       (with-current-buffer (image-dired-create-display-image-buffer)
+        ;; NOTE: if the display buffer is in `image-mode' like modes
+        ;; we should reset the h/v scrolling status for prepare our
+        ;; new display without `image-mode' which if not of doing thus
+        ;; that the display may have the image line movements if
+        ;; previous did thus.
+        (when (derived-mode-p 'image-mode)
+          (with-selected-window window
+            (image-set-window-vscroll 0)
+            (image-set-window-hscroll 0))
+          (fundamental-mode))
         ;; let buffer known the current display image origin file
         (setq __ya/image-dired-display-image-buffer-image-file file)
         (let ((inhibit-read-only t))
@@ -3255,21 +3335,32 @@ dwim memory and use both height and width fit display type."
           (with-selected-window window
             (unless (string= (buffer-name) image-dired-display-image-buffer)
               (error "internal error <current window is not matched display image buffer>"))
-            ;; FIXME: We must use `image-mode' subroutines to set the
-            ;; scroll pos since orign `set-window-vscroll' and
-            ;; `set-window-hscroll' is not work when previously has
-            ;; did scrolled operation using `image-next-line' etc. and
-            ;; why? (maybe since `image-next-line' and refer use
-            ;; `setf' i.e. `gv' functionality and why this does?)
-            (image-set-window-vscroll 0)
-            (image-set-window-hscroll 0)))
+            (cond
+             ((< emacs-major-version 29)
+              ;; FIXME: We must use `image-mode' subroutines to set the
+              ;; scroll pos since orign `set-window-vscroll' and
+              ;; `set-window-hscroll' is not work when previously has
+              ;; did scrolled operation using `image-next-line' etc. and
+              ;; why? (maybe since `image-next-line' and refer use
+              ;; `setf' i.e. `gv' functionality and why this does?)
+              (image-set-window-vscroll 0)
+              (image-set-window-hscroll 0))
+             (t
+              ;; FIXME: `image-set-window-h/vscroll' can not did
+              ;; without `image-mode' enabeld for emacs-29^ as which
+              ;; we should find another way to reach the aim as
+              ;; emacs-28 and lower version. Thus for now [2023-11-13
+              ;; Mon 17:53:06] we just leave empty here.
+              nil))))
         ;; finally we should respect image name filter
         (setq-local
          entropy/emacs-basic--image-dired-use-arbitary-image-file-name-regexp
          (with-current-buffer (image-dired-create-thumbnail-buffer)
-           entropy/emacs-basic--image-dired-use-arbitary-image-file-name-regexp)))))
+           entropy/emacs-basic--image-dired-use-arbitary-image-file-name-regexp))
+        (setq buffer-read-only t))))
 
-  (entropy/emacs-when-defun __ya/image-dired-display-image (file &optional original-size)
+  (defun __ya/image-dired-display-image/use-image-mode
+      (file &optional original-size should-use-dwim-p)
     "Like `image-dired-display-image' but expand the ORIGINAL-SIZE
 means as DWIM that:
 
@@ -3281,17 +3372,22 @@ The dwim is memoized via history variable
 `__ya/image-dired-display-image-stick-fit-type'.
 
 Any other prefix type is treat as clear/reset the stick history
-dwim memory and use both height and width fit display type."
+dwim memory and use both height and width fit display type.
+
+This is a variant of `image-dired-display-image' as same as for
+that of emacs 29 and above which use the `image-mode' to display
+the thumbnail's original image file but slower than the its older
+version i.e. under emacs ver 29 which use the outer convertor to
+fit the window height/width and fast the insert the converted
+image file to window which make emacs had no computation of image
+resizing. See `__ya/image-dired-display-image/use-fast-insert'
+also."
     (declare (advertised-calling-convention (file) "29.1"))
-    :when (version< "29" emacs-version)
     (setq file (expand-file-name file))
     (when (not (file-exists-p file))
       (error "No such file: %s" file))
     (let ((buf (get-buffer-create image-dired-display-image-buffer))
           (cur-win (selected-window))
-          (should-use-dwim-p
-           (entropy/emacs-basic-image-dired--display-size-with-dwim-p
-            original-size))
           (inhibit-read-only t))
       (unless (get-buffer-window buf)
         (display-buffer buf))
@@ -3315,25 +3411,52 @@ dwim memory and use both height and width fit display type."
                      (when (equal original-size '(4))
                        1))
                    t)))
-          (image-dired-image-mode)
-          ;; finally we should respect image name filter
-          (setq-local
-           entropy/emacs-basic--image-dired-use-arbitary-image-file-name-regexp
-           (with-current-buffer (image-dired-create-thumbnail-buffer)
-             entropy/emacs-basic--image-dired-use-arbitary-image-file-name-regexp))))
+          (image-dired-image-mode))
+        ;; finally we should respect image name filter
+        (setq-local
+         entropy/emacs-basic--image-dired-use-arbitary-image-file-name-regexp
+         (with-current-buffer (image-dired-create-thumbnail-buffer)
+           entropy/emacs-basic--image-dired-use-arbitary-image-file-name-regexp))
+        (setq buffer-read-only t))
       (select-window cur-win)))
 
   (defun entropy/emacs-basic--image-diared-display-image
       (&rest orig-args)
     "See `__ya/image-dired-display-image'."
-    (let* ((imgf (car orig-args)))
+    (let* ((imgf (car orig-args)) (osize (cadr orig-args))
+           func dwimp)
       (entropy/emacs-message-simple-progress-message "%s [%s]"
         :with-temp-message t
         :with-fit-window-width t
         :with-message-color-args
         `((green "Rendering image file")
           (yellow ,imgf))
-        (apply '__ya/image-dired-display-image orig-args))))
+        (if (and
+             (progn
+               (entropy/emacs-setf-by-body dwimp
+                 (entropy/emacs-basic-image-dired--display-size-with-dwim-p
+                  osize))
+               (when (entropy/emacs-debugger-is-running-p)
+                 (message "--> prefix: `%S' : dwim size type `%s', size: %S, cache: %s"
+                          current-prefix-arg
+                          dwimp osize
+                          __ya/image-dired-display-image-stick-fit-type))
+               osize)
+             (>= emacs-major-version 29))
+            (progn
+              (setq func '__ya/image-dired-display-image/use-image-mode)
+              (with-current-buffer (image-dired-create-thumbnail-buffer)
+                (setq-local entropy/emacs-basic--image-dired-inhibit-hvscroll nil)))
+          (setq func '__ya/image-dired-display-image/use-fast-insert)
+          (when (>= emacs-major-version 29)
+            ;; since non `image-mode' can not participate with its
+            ;; image line movements functional, and indeed where the
+            ;; osize is not given as nil the thumb's original file
+            ;; display should fit both window's height and width which
+            ;; is no movement available at all.
+            (with-current-buffer (image-dired-create-thumbnail-buffer)
+              (setq-local entropy/emacs-basic--image-dired-inhibit-hvscroll t))))
+        (funcall func imgf osize dwimp))))
 
   (advice-add 'image-dired-display-image
               :override #'entropy/emacs-basic--image-diared-display-image)
@@ -3767,11 +3890,11 @@ buffer is `image-dired-thumbnail-mode' with ARROW.
 ARROW is valid in 'up' 'down' 'left' 'right'."
     (unless (string-equal major-mode "image-dired-thumbnail-mode")
       (user-error "Not in image-dired-thumbnail-mode"))
-    (let* ((buffer (get-buffer image-dired-display-image-buffer))
-           (buffer-win (get-buffer-window buffer)))
-      (unless (and (buffer-live-p buffer)
-                   buffer-win)
-        (user-error "No lived image display buffer or window!"))
+    (when entropy/emacs-basic--image-dired-inhibit-hvscroll
+      (user-error "No `%s' scroll can be did" arrow))
+    (let* ((buffer-win (image-dired-display-window)))
+      (unless (window-live-p buffer-win)
+        (user-error "No lived image-dired original image file display window!"))
       (with-selected-window buffer-win
         (cond
          ((equal arrow 'up)     (funcall-interactively 'image-previous-line n))
@@ -3783,23 +3906,30 @@ ARROW is valid in 'up' 'down' 'left' 'right'."
         ;; FIXME: why we should redraw the display frame to force visualized movitation?
         (unless (or entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer/redraw-timer
                     (eq arrow 'down))
-          (setq entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer/redraw-timer
-                (run-with-timer
-                 0.01 nil
-                 (lambda ()
-                   (let ((frame (window-frame buffer-win)))
-                     (unwind-protect
-                         (when (frame-live-p frame)
-                           (redraw-frame frame))
-                       (setq entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer/redraw-timer
-                             nil)))))))
-        )))
+          (entropy/emacs-setf-by-body
+            entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer/redraw-timer
+            (run-with-timer
+             0.01 nil
+             (lambda ()
+               (let ((frame (window-frame buffer-win)))
+                 (unwind-protect
+                     (when (frame-live-p frame)
+                       (redraw-frame frame))
+                   (entropy/emacs-cancel-timer-var
+                    entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer/redraw-timer
+                    ))))))))))
+  (defvar eemacs/image-dired--hvscroll-adjinterval  0.02)
+  (defvar eemacs/image-dired--hvscroll-adjlen       15)
+  (defvar eemacs/image-dired--hvscroll-breakiternal 0.005)
   (entropy/emacs-define-smooth-continuous-command
       entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer/up
       (&optional n)
     "Use `entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer' with 'up'."
     (declare (interactive-only t))
     (interactive "p" image-dired-thumbnail-mode)
+    :with-adjacent-interval eemacs/image-dired--hvscroll-adjinterval
+    :with-adjacent-len eemacs/image-dired--hvscroll-adjlen
+    :with-break-interval eemacs/image-dired--hvscroll-breakiternal
     (entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer
      'up n))
   (entropy/emacs-define-smooth-continuous-command
@@ -3808,6 +3938,9 @@ ARROW is valid in 'up' 'down' 'left' 'right'."
     "Use `entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer' with 'down'."
     (declare (interactive-only t))
     (interactive "p" image-dired-thumbnail-mode)
+    :with-adjacent-interval eemacs/image-dired--hvscroll-adjinterval
+    :with-adjacent-len eemacs/image-dired--hvscroll-adjlen
+    :with-break-interval eemacs/image-dired--hvscroll-breakiternal
     (entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer
      'down n))
   (entropy/emacs-define-smooth-continuous-command
@@ -3816,6 +3949,9 @@ ARROW is valid in 'up' 'down' 'left' 'right'."
     "Use `entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer' with 'left'."
     (declare (interactive-only t))
     (interactive "p" image-dired-thumbnail-mode)
+    :with-adjacent-interval eemacs/image-dired--hvscroll-adjinterval
+    :with-adjacent-len eemacs/image-dired--hvscroll-adjlen
+    :with-break-interval eemacs/image-dired--hvscroll-breakiternal
     (entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer
      'left n))
   (entropy/emacs-define-smooth-continuous-command
@@ -3824,6 +3960,9 @@ ARROW is valid in 'up' 'down' 'left' 'right'."
     "Use `entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer' with 'right'."
     (declare (interactive-only t))
     (interactive "p" image-dired-thumbnail-mode)
+    :with-adjacent-interval eemacs/image-dired--hvscroll-adjinterval
+    :with-adjacent-len eemacs/image-dired--hvscroll-adjlen
+    :with-break-interval eemacs/image-dired--hvscroll-breakiternal
     (entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer
      'right n))
 
