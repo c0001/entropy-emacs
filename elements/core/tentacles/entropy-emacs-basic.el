@@ -2632,6 +2632,10 @@ mechanism."
         (if (memq major-mode modes) t
           (user-error "Not in an dired image display spec buffer!")))))
 
+(entropy/emacs-defconst/only-allow/local
+  entropy/emacs-basic--image-dired-diswin-wierrwnolive-p
+  nil)
+
 ;; ***** core
 (entropy/emacs-basic-image-dired-use-package image-dired
   :ensure nil
@@ -3247,6 +3251,8 @@ mechanism as older ver."
   (defun __ya/image-dired-display-window
       (fn &rest args)
     (or (apply fn args)
+        (and entropy/emacs-basic--image-dired-diswin-wierrwnolive-p
+             (error "No lived image-dired image display window!"))
         (display-buffer (image-dired-create-display-image-buffer))))
   (advice-add 'image-dired-display-window
               :around
@@ -3915,13 +3921,16 @@ ARROW is valid in 'up' 'down' 'left' 'right'."
       (user-error "Not in image-dired-thumbnail-mode"))
     (when entropy/emacs-basic--image-dired-inhibit-hvscroll
       (user-error "No `%s' scroll can be did" arrow))
-    (let* ((buffer-win (image-dired-display-window)))
-      (unless (and (window-live-p buffer-win)
-                   (with-selected-window buffer-win
-                     (bound-and-true-p
-                      __ya/image-dired-display-image-buffer-image-file)))
+    (let* ((buffer-win
+            (let ((entropy/emacs-basic--image-dired-diswin-wierrwnolive-p t))
+              (image-dired-display-window))))
+      (unless (window-live-p buffer-win)
         (user-error "No lived image-dired original image file display window!"))
       (with-selected-window buffer-win
+        (unless (bound-and-true-p
+                 __ya/image-dired-display-image-buffer-image-file)
+          (user-error "`image-dired' original image file display \
+window has no image displayed i.e. is invalid!"))
         (cond
          ((equal arrow 'up)     (funcall-interactively 'image-previous-line n))
          ((equal arrow 'down)   (funcall-interactively 'image-next-line n))
