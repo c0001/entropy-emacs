@@ -2398,7 +2398,7 @@ overwrited.
 "
   (let ((src-proper-p
          (string-match-p "^jpeg\\|jpg\\|JPEG\\|JPG$"
-                         (file-name-extension srcfname)))
+                         (or (file-name-extension srcfname) "")))
         (error-symbol nil))
     (condition-case error
         (progn
