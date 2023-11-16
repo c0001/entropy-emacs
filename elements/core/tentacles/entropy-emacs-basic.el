@@ -3552,7 +3552,11 @@ emacs 29 and higher default to singal error when such size is not
            (thumbnail-file-1
             (expand-file-name
              ;; MD5 is mandated by the Thumbnail Managing Standard.
-             (concat (funcall sha (concat protocol fename)) suffix)
+             (concat
+              (funcall
+               sha
+               (concat protocol (entropy/emacs-url-encode-string fename)))
+              suffix)
              dir))
            (thumbnail-file-1-exist-p
             (and thumbnail-file-1
@@ -3561,7 +3565,11 @@ emacs 29 and higher default to singal error when such size is not
            (thumbnail-file-2
             (unless thumbnail-file-1-exist-p
               (expand-file-name
-               (concat (funcall sha (concat protocol ftname)) suffix)
+               (concat
+                (funcall
+                 sha
+                 (concat protocol (entropy/emacs-url-encode-string ftname)))
+                suffix)
                dir)))
            (thumbnail-file-2-exist-p
             (and thumbnail-file-2
@@ -3759,8 +3767,9 @@ prevention of re-generation."
                      (tfbasenm (file-name-nondirectory thumbnail-file))
                      (get-uri-checksum-func
                       (lambda (f)
-                        (if xdgp (md5 (concat "file://" f))
-                          (sha1 f))))
+                        (if (not xdgp) (sha1 f)
+                          (md5 (concat "file://"
+                                       (entropy/emacs-url-encode-string f))))))
                      (of (let ((f ftname))
                            (and (not (equal f original-file))
                                 f)))
@@ -3769,7 +3778,7 @@ prevention of re-generation."
                             (and (not (equal f original-file))
                                  f)))
                      (of2md5 (and of2 (funcall get-uri-checksum-func of2)))
-                     (of3 (and (not (file-remote-p thumbnail-file))
+                     (of3 (and (not (file-remote-p ftname))
                                ftname))
                      (of3md5 (when of3
                                (entropy/emacs-message-simple-progress-message
