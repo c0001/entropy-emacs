@@ -423,8 +423,9 @@ enabled at current org buffer. "
         (let ((browse-url-browser-function
                (entropy/emacs-browse-url-function-get-for-web-preview)))
           (browse-url
-           (concat "file:///"
-                   (url-hexify-string link entropy/emacs-url-allowed-chars))))
+           (concat "file://"
+                   (entropy/emacs-url-encode-string
+                    (expand-file-name path)))))
       (error "Invalid link '%s' with path '%s'" link path)))
 
 ;; ******* main

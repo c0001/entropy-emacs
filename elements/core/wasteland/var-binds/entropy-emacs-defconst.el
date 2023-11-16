@@ -731,8 +731,19 @@ see `entropy/emacs-api-restriction-detection-log' for details."
        (dolist (el '(37 38 47 58 61 63))
          (push el hl))
        hl)))
-  "Allowed chars ': / % & = ?' for url-protocal heads in function
+  "NOTE: this variable is obsolete and should not be used any more,
+use `entropy/emacs-url-encode-string' in accordance with RFC
+3986.
+
+Allowed chars ': / % & = ?' for url-protocal heads in function
 `url-hexify-string'")
+
+(defun entropy/emacs-url-encode-string (str)
+  "Encode arbitrary string STR into a URI compatile string component
+or a full URI is STR is a URI string whether or not it has been
+percent-encoded, in accordance with RFC 3986."
+  (entropy/emacs-require-only-once 'url-util)
+  (url-encode-url str))
 
 ;; * provide
 (provide 'entropy-emacs-defconst)

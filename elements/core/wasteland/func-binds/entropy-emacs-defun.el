@@ -10230,7 +10230,7 @@ When SILENT is non-nil, then inhbit any inner reports via `message'."
               ;; line arguments transferring to `curl' for emacs 29 and
               ;; above, where there's no problem for emacs 28 and lower
               ;; vers.
-              (setq url (url-hexify-string url entropy/emacs-url-allowed-chars))))
+              (setq url (entropy/emacs-url-encode-string url))))
          (native-func
           (lambda (x tout)
             "Like `url-http-head' but be silent and no cookie used."

@@ -188,7 +188,7 @@
   (advice-add 'elfeed :around #'__ya/elfeed)
 
   (defun entropy/emacs-rss--elfeed-url-hexify (url)
-    (url-hexify-string url entropy/emacs-url-allowed-chars))
+    (entropy/emacs-url-encode-string url))
 
   (defun entropy/emacs-rss--elfeed-search-update ()
     (elfeed-search-update--force))

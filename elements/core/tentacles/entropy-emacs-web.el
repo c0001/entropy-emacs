@@ -53,9 +53,8 @@ set of `entropy/emacs-browse-url-function-get-for-web-preview'."
              (file-exists-p buffer-file-name))
         (progn
           (setq url
-                (url-hexify-string
-                 (concat "file://" buffer-file-name)
-                 entropy/emacs-url-allowed-chars))
+                (entropy/emacs-url-encode-string
+                 (concat "file://" buffer-file-name)))
           (browse-url url))
       (setq tmp-file
             (make-temp-file "eemacs-web-preview_"
@@ -63,9 +62,8 @@ set of `entropy/emacs-browse-url-function-get-for-web-preview'."
                             ".html"
                             (buffer-substring (point-min) (point-max))))
       (setq url
-            (url-hexify-string
-             (concat "file://" tmp-file)
-             entropy/emacs-url-allowed-chars))
+            (entropy/emacs-url-encode-string
+             (concat "file://" (expand-file-name tmp-file))))
       (browse-url url))))
 
 (defvar web-mode-markup-indent-offset)
