@@ -7327,6 +7327,11 @@ newline."
                (set-marker (process-mark proc) (point)))
              (when moving (goto-char (process-mark proc)))))))))
 
+(entropy/emacs-defconst/unless
+  entropy/emacs-with-make-process--is-first-invoked-p
+  t ""
+  (lambda (_sym _nval op wh)
+    (and (eq op 'set) (not wh))))
 (cl-defmacro entropy/emacs-with-make-process
     (&key name buffer command coding noquery
           stop connection-type filter sentinel
@@ -7506,13 +7511,45 @@ eemacs makeproc sentinel inner error: \"%s\" %s %s"
                      (entropy/emacs-process-stderr-object ,$thiscur_proc))
 
                (when ,$synchronously
-                 (while (null (symbol-value ,$thiscur_sync_sym))
-                   ;; FIXME: emacs will hang the main thread so that
-                   ;; the sentinel not run, for some occasion if use
-                   ;; `sleep-for' instead but why?
-                   (sit-for
-                    ;; NOTE: do not set to 0 since its same as ran without waiting.
-                    0.001))
+                 (let ((wait-sec
+                        ;; NOTE: do not set to 0 since its same as ran without waiting.
+                        0.001)
+                       (cnt 0))
+                   (when (and entropy/emacs-with-make-process--is-first-invoked-p
+                              ;; `sit-for' in `noninteractive' session
+                              ;; is useless and equal to
+                              ;; `sleep-for'. And `read-event' is also
+                              ;; useless while thus. Though below
+                              ;; patch can not take effects for batch
+                              ;; mode although we've just detect the
+                              ;; bug on interactive session only.
+                              (not noninteractive))
+                     ;; FIXME: emacs will hang the main thread so that
+                     ;; the sentinel not run, for some occasion if use
+                     ;; `sleep-for' in where we first invoke this
+                     ;; procedure in current emacs-session, and why?
+                     ;;
+                     ;; And thus for, we put a `read-event' pending
+                     ;; here just once for that case, which we test
+                     ;; can avoid this bug.
+                     ;;
+                     ;; But NOTE do not use `sit-for' instead of
+                     ;; `sleep-for' for the main usage to wait
+                     ;; callback which may mess the program logical
+                     ;; (e.g. nested strange call occurred) and why?
+                     (sit-for 0)
+                     (setq entropy/emacs-with-make-process--is-first-invoked-p
+                           nil))
+                   (while (and
+                           (prog1 t (sleep-for wait-sec)
+                                  (accept-process-output ,$thiscur_proc))
+                           (null (symbol-value ,$thiscur_sync_sym)))
+                     (when (entropy/emacs-debugger-is-running-p)
+                       (with-temp-message
+                           (format "eemacs makeproc wait: %d -- proc \"\" livep %s"
+                                   (cl-incf cnt)
+                                   (process-name ,$thiscur_proc)
+                                   (process-live-p ,$thiscur_proc))))))
                  (let ((,$sentinel/destination  ,$thiscur_proc_buffer)
                        (,$sentinel/stderr       ,$thiscur_proc_stderr)
                        (,$sentinel/proc-exit-status
