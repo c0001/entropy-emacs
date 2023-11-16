@@ -7238,15 +7238,9 @@ filename.
 
 (defun entropy/emacs-process-is-running-p (process)
   "Return non-nil when PROCESS is running."
-  (member (process-status process)
-          '(
-            ;; for non-network process
-            run
-            stop
-            ;; for network process
-            open listen connect
-            ;; TODO: more precision
-            )))
+  (and (process-live-p process)
+       ;; TODO more filters
+       t))
 
 (defun entropy/emacs-process-exit-with-fatal-p
     (process &optional sentinel-event-string)
@@ -7466,9 +7460,11 @@ ran within the code context."
                       (unwind-protect
                           (unwind-protect
                               ;; run user spec sentinel when pure async run
-                              (when (and (functionp ,$make_proc_sentinel)
+                              (when (and ,$make_proc_sentinel
+                                         (functionp ,$make_proc_sentinel)
                                          (not ,$synchronously))
-                                (funcall ,$make_proc_sentinel ,$sentinel/proc ,$sentinel/event))
+                                (funcall ,$make_proc_sentinel
+                                         ,$sentinel/proc ,$sentinel/event))
                             ;; run after/error when pure async run
                             (cond ((entropy/emacs-process-exit-successfully-p
                                     ,$sentinel/proc ,$sentinel/event)
@@ -7478,20 +7474,45 @@ ran within the code context."
                                     ,$sentinel/proc ,$sentinel/event)
                                    (setq ,$ran-out-p
                                          (list :exit-status (process-exit-status ,$sentinel/proc)))
-                                   (unless ,$synchronously ,$this-error-form))))
+                                   (unless ,$synchronously ,$this-error-form))
+                                  ((entropy/emacs-debugger-is-running-p)
+                                   (message "[%s]: \
+eemacs makeproc sentinel inner progress: \"%s\" %s %s"
+                                            (format-time-string "[%Y-%m-%d %a %H:%M:%S]")
+                                            (process-name ,$sentinel/proc)
+                                            (process-status ,$sentinel/proc)
+                                            (process-exit-status ,$sentinel/proc)))))
                         ;; do ran out procedures
-                        (when ,$ran-out-p
-                          (if ,$synchronously
-                              (set ,$thiscur_sync_sym ,$ran-out-p)
-                            ,$this-cleanup-form)))))))
+                        (if (and ,$ran-out-p
+                                 (if (entropy/emacs-debugger-is-running-p)
+                                     (message "Proc \"%s\" has ran out with %s"
+                                              (process-name ,$sentinel/proc)
+                                              (if (eq ,$ran-out-p t) 'success
+                                                'error))
+                                   t))
+                            (if ,$synchronously
+                                (set ,$thiscur_sync_sym ,$ran-out-p)
+                              ,$this-cleanup-form)
+                          (unless (entropy/emacs-process-is-running-p ,$sentinel/proc)
+                            (error "[%s]: \
+eemacs makeproc sentinel inner error: \"%s\" %s %s"
+                                   (format-time-string "[%Y-%m-%d %a %H:%M:%S]")
+                                   (process-name ,$sentinel/proc)
+                                   (process-status ,$sentinel/proc)
+                                   (process-exit-status ,$sentinel/proc)))))))))
 
                (setq ,$thiscur_proc_buffer (process-buffer ,$thiscur_proc)
-                     ,$thiscur_proc_stderr (entropy/emacs-process-stderr-object ,$thiscur_proc))
+                     ,$thiscur_proc_stderr
+                     (entropy/emacs-process-stderr-object ,$thiscur_proc))
 
                (when ,$synchronously
                  (while (null (symbol-value ,$thiscur_sync_sym))
-                   ;; NOTE: do not set to 0 since its same as ran without waiting.
-                   (sleep-for 0.001))
+                   ;; FIXME: emacs will hang the main thread so that
+                   ;; the sentinel not run, for some occasion if use
+                   ;; `sleep-for' instead but why?
+                   (sit-for
+                    ;; NOTE: do not set to 0 since its same as ran without waiting.
+                    0.001))
                  (let ((,$sentinel/destination  ,$thiscur_proc_buffer)
                        (,$sentinel/stderr       ,$thiscur_proc_stderr)
                        (,$sentinel/proc-exit-status
