@@ -7559,7 +7559,15 @@ eemacs makeproc sentinel inner sync wait weak then use `sit-for' to force handle
                              (process-exit-status ,$thiscur_proc)))
                      (setq cnt 0)
                      (while (and (null (symbol-value ,$thiscur_sync_sym))
-                                 (or (sit-for 0.05) t)
+                                 (or (sit-for
+                                      ;; this interval can not too
+                                      ;; slow like 0.0001 or take
+                                      ;; non-effects as same as
+                                      ;; `sleep-for', and FIXME the
+                                      ;; value taking effects seems on
+                                      ;; machine performance
+                                      ;; dependent.
+                                      0.05) t)
                                  (< cnt 10) (cl-incf cnt))))
                    (when (null (symbol-value ,$thiscur_sync_sym))
                      (error "[%s]: \
