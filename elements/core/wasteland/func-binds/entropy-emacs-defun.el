@@ -7513,7 +7513,7 @@ eemacs makeproc sentinel inner error: \"%s\" %s %s"
                (when ,$synchronously
                  (let ((wait-sec
                         ;; NOTE: do not set to 0 since its same as ran without waiting.
-                        0.001)
+                        0.0001)
                        (cnt 0))
                    (when (and entropy/emacs-with-make-process--is-first-invoked-p
                               ;; `sit-for' in `noninteractive' session
@@ -7541,8 +7541,7 @@ eemacs makeproc sentinel inner error: \"%s\" %s %s"
                      (setq entropy/emacs-with-make-process--is-first-invoked-p
                            nil))
                    (while (and
-                           (prog1 t (sleep-for wait-sec)
-                                  (accept-process-output ,$thiscur_proc))
+                           (or (sleep-for wait-sec) t)
                            (null (symbol-value ,$thiscur_sync_sym)))
                      (when (entropy/emacs-debugger-is-running-p)
                        (with-temp-message
