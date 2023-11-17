@@ -2885,7 +2885,7 @@ an error."
           (with-current-buffer img-dired-buff
             (setq-local
              entropy/emacs-basic--image-dired-use-arbitary-image-file-name-regexp
-             (or entropy/emacs-basic--image-dired-use-arbitary-image-file-name-regexp
+             (or entropy/emacs-basic--image-dired-mark-arbitrary-files-p
                  entropy/emacs-basic--image-dired-with-manually-files)
              image-dired-track-movement
              (unless entropy/emacs-basic--image-dired-with-manually-files
