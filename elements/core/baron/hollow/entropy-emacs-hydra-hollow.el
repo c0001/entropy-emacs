@@ -2720,7 +2720,7 @@ hydra body caller) =pretty-hydra-head-command=.
 
 (defun __eemacs/hydra-hollow-plist-get-enable
     (pl)
-  (when (or (daemonp) (not noninteractive))
+  (unless (entropy/emacs-env-init-with-pure-eemacs-env-p)
     (plist-get pl :enable)))
 
 ;; ***** pattern parse
