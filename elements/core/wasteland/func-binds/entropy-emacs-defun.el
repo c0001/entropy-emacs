@@ -7327,11 +7327,6 @@ newline."
                (set-marker (process-mark proc) (point)))
              (when moving (goto-char (process-mark proc)))))))))
 
-(entropy/emacs-defconst/unless
-  entropy/emacs-with-make-process--is-first-invoked-p
-  t ""
-  (lambda (_sym _nval op wh)
-    (and (eq op 'set) (not wh))))
 (cl-defmacro entropy/emacs-with-make-process
     (&key name buffer command coding noquery
           stop connection-type filter sentinel
@@ -7511,44 +7506,67 @@ eemacs makeproc sentinel inner error: \"%s\" %s %s"
                      (entropy/emacs-process-stderr-object ,$thiscur_proc))
 
                (when ,$synchronously
-                 (let ((wait-sec
+                 (let ((wait-msec
                         ;; NOTE: do not set to 0 since its same as ran without waiting.
-                        0.0001)
+                        1)
                        (cnt 0))
-                   (when (and entropy/emacs-with-make-process--is-first-invoked-p
-                              ;; `sit-for' in `noninteractive' session
-                              ;; is useless and equal to
-                              ;; `sleep-for'. And `read-event' is also
-                              ;; useless while thus. Though below
-                              ;; patch can not take effects for batch
-                              ;; mode although we've just detect the
-                              ;; bug on interactive session only.
-                              (not noninteractive))
-                     ;; FIXME: emacs will hang the main thread so that
-                     ;; the sentinel not run, for some occasion if use
-                     ;; `sleep-for' in where we first invoke this
-                     ;; procedure in current emacs-session, and why?
-                     ;;
-                     ;; And thus for, we put a `read-event' pending
-                     ;; here just once for that case, which we test
-                     ;; can avoid this bug.
-                     ;;
-                     ;; But NOTE do not use `sit-for' instead of
-                     ;; `sleep-for' for the main usage to wait
-                     ;; callback which may mess the program logical
-                     ;; (e.g. nested strange call occurred) and why?
-                     (sit-for 0)
-                     (setq entropy/emacs-with-make-process--is-first-invoked-p
-                           nil))
                    (while (and
-                           (or (sleep-for wait-sec) t)
-                           (null (symbol-value ,$thiscur_sync_sym)))
+                           (or (sleep-for 0 wait-msec) t)
+                           (process-live-p ,$thiscur_proc))
                      (when (entropy/emacs-debugger-is-running-p)
-                       (with-temp-message
-                           (format "eemacs makeproc wait: %d -- proc \"\" livep %s"
-                                   (cl-incf cnt)
-                                   (process-name ,$thiscur_proc)
-                                   (process-live-p ,$thiscur_proc))))))
+                       (let ((message-log-max most-positive-fixnum))
+                         (message
+                          "eemacs makeproc sync wait: %d -- proc \"%s\" livep: %s exit: %s"
+                          (cl-incf cnt)
+                          (process-name ,$thiscur_proc)
+                          (process-live-p ,$thiscur_proc)
+                          (process-exit-status ,$thiscur_proc)))))
+                   (when (null (symbol-value ,$thiscur_sync_sym))
+                     (setq cnt 0)
+                     (while (and (or (sleep-for 0 wait-msec) t)
+                                 ;; `sit-for' in `noninteractive'
+                                 ;; session is useless and equal to
+                                 ;; `sleep-for'. And `read-event' is
+                                 ;; also useless while thus. Though
+                                 ;; below patch can not take effects
+                                 ;; for batch mode although we've just
+                                 ;; detect the bug on interactive
+                                 ;; session only.
+                                 (if noninteractive t (< cnt 10))
+                                 (cl-incf cnt)
+                                 (null (symbol-value ,$thiscur_sync_sym)))))
+                   ;; FIXME: emacs will hang the main thread so that
+                   ;; the sentinel not run, for some occasion if use
+                   ;; `sleep-for' in where we first invoke this
+                   ;; procedure in current emacs-session, and why?
+                   ;;
+                   ;; And thus for, we put a `read-event' pending
+                   ;; here just once for that case, which we test
+                   ;; can avoid this bug.
+                   ;;
+                   ;; But NOTE do not use `sit-for' instead of
+                   ;; `sleep-for' for the main usage to wait
+                   ;; callback which may mess the program logical
+                   ;; (e.g. nested strange call occurred) and why?
+                   (when (null (symbol-value ,$thiscur_sync_sym))
+                     (warn "[%s]: \
+eemacs makeproc sentinel inner sync wait weak than use `sit-for' to force handle wait: \
+\"%s\" %s %s"
+                           (format-time-string "[%Y-%m-%d %a %H:%M:%S]")
+                           (process-name ,$thiscur_proc)
+                           (process-status ,$thiscur_proc)
+                           (process-exit-status ,$thiscur_proc))
+                     (setq cnt 0)
+                     (while (and (null (symbol-value ,$thiscur_sync_sym))
+                                 (or (sit-for 0.05) t)
+                                 (< cnt 10) (cl-incf cnt))))
+                   (when (null (symbol-value ,$thiscur_sync_sym))
+                     (error "[%s]: \
+eemacs makeproc sentinel inner sync wait error: \"%s\" %s %s"
+                            (format-time-string "[%Y-%m-%d %a %H:%M:%S]")
+                            (process-name ,$thiscur_proc)
+                            (process-status ,$thiscur_proc)
+                            (process-exit-status ,$thiscur_proc))))
                  (let ((,$sentinel/destination  ,$thiscur_proc_buffer)
                        (,$sentinel/stderr       ,$thiscur_proc_stderr)
                        (,$sentinel/proc-exit-status
