@@ -2718,6 +2718,11 @@ hydra body caller) =pretty-hydra-head-command=.
 
 ;; **** library
 
+(defun __eemacs/hydra-hollow-plist-get-enable
+    (pl)
+  (when (or (daemonp) (not noninteractive))
+    (plist-get pl :enable)))
+
 ;; ***** pattern parse
 ;; For give the more powerful key slot form syntax, we defined a new
 ;; form-type =pretty-hydra-riched-usepackage-pattern=, see below
@@ -2842,7 +2847,7 @@ both ommited, that as:
                 (not (null orig-pattern)))
            (let ((elts orig-pattern))
              (dolist (ptr elts)
-               (let* ((enable       (plist-get ptr :enable))
+               (let* ((enable       (__eemacs/hydra-hollow-plist-get-enable ptr))
                       (adfors       (plist-get ptr :adfors))
                       (adtype       (plist-get ptr :adtype))
                       (pdump-no-end (plist-get ptr :pdumper-no-end))
@@ -3019,7 +3024,7 @@ evaluated result as its value.
       (let* ((baron (car island))
              (attr (car baron))
              (_requests (cadr baron))
-             (enable (let ((enable-slot (plist-get attr :enable)))
+             (enable (let ((enable-slot (__eemacs/hydra-hollow-plist-get-enable attr)))
                        (entropy/emacs-hydra-hollow--common-judge-p
                         enable-slot)))
              (defer (let ((defer-slot (plist-get attr :defer)))
@@ -3111,7 +3116,7 @@ evaluated result as its value.
       (let* ((baron (car island))
              (attr (car baron))
              (enable (entropy/emacs-hydra-hollow--common-judge-p
-                      (plist-get attr :enable)))
+                      (__eemacs/hydra-hollow-plist-get-enable attr)))
              (defer (entropy/emacs-hydra-hollow--common-judge-p
                      (plist-get attr :defer)))
              (requests (cadr baron))
@@ -3216,7 +3221,8 @@ evaluated result as its value.
          (dolist (island ',$arg)
            (let* ((baron (car island))
                   (attr (car baron))
-                  (enable (let ((enable-slot (plist-get attr :enable)))
+                  (enable (let ((enable-slot
+                                 (__eemacs/hydra-hollow-plist-get-enable attr)))
                             (entropy/emacs-hydra-hollow--common-judge-p
                              enable-slot)))
                   (defer (let ((defer-slot (plist-get attr :defer)))
@@ -3317,7 +3323,7 @@ evaluated result as its value.
     (dolist (island $arg)
       (let* ((baron (car island))
              (attr (car baron))
-             (enable (let ((enable-slot (plist-get attr :enable)))
+             (enable (let ((enable-slot (__eemacs/hydra-hollow-plist-get-enable attr)))
                        (entropy/emacs-hydra-hollow--common-judge-p
                         enable-slot)))
              (defer (let ((defer-slot (plist-get attr :defer)))
@@ -3413,7 +3419,7 @@ evaluated result as its value.
     (dolist (island $arg)
       (let* ((baron (car island))
              (attr (car baron))
-             (enable (let ((enable-slot (plist-get attr :enable)))
+             (enable (let ((enable-slot (__eemacs/hydra-hollow-plist-get-enable attr)))
                        (entropy/emacs-hydra-hollow--common-judge-p
                         enable-slot)))
              (defer (let ((defer-slot (plist-get attr :defer)))

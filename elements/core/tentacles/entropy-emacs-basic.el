@@ -2645,7 +2645,9 @@ mechanism."
   :eemacs-with-no-require (>= emacs-major-version 29)
   :commands (image-dired
              entropy/emacs-image-dired-init
-             entropy/emacs-image-dired-display-thumbs-recursively)
+             entropy/emacs-image-dired-display-thumbs-recursively
+             entropy/emacs-image-dired-batch-gen-thumbs
+             entropy/emacs-image-dired-batch-gen-thumbs-async)
 
 ;; ****** preface
   ;; :preface
@@ -2687,25 +2689,59 @@ killed to prevent garbage resources remained in system."
       (when (and f (file-exists-p f))
         (delete-file f))))
 
-  (defvar __ya/image-dired-create-thumb--idle-timer nil)
-  (defun __ya/image-dired-create-thumb (original-file thumbnail-file)
-    "Same as `image-dired-create-thumb' but use a single idle timer to
+  (cond
+   ((or (daemonp) (not noninteractive))
+    (defvar __ya/image-dired-create-thumb--idle-timer nil)
+    (defun __ya/image-dired-create-thumb (original-file thumbnail-file)
+      "Same as `image-dired-create-thumb' but use a single idle timer to
 notice the queue run instead of populating a immediately timer in
 each creation occurred since the queue guard
 `image-dired-thumb-queue-run' will also ran in the process
 sentinel of `image-dired-create-thumb-1'."
-    (setq image-dired-queue
-          (nconc image-dired-queue
-                 (list (list original-file thumbnail-file))))
-    (entropy/emacs-cancel-timer-var
-     __ya/image-dired-create-thumb--idle-timer)
-    (entropy/emacs-setf-by-body
-      __ya/image-dired-create-thumb--idle-timer
-      (run-with-idle-timer
-       0.01 nil #'image-dired-thumb-queue-run)))
-  (advice-add 'image-dired-create-thumb
-              :override
-              #'__ya/image-dired-create-thumb)
+      (setq image-dired-queue
+            (nconc image-dired-queue
+                   (list (list original-file thumbnail-file))))
+      (entropy/emacs-cancel-timer-var
+       __ya/image-dired-create-thumb--idle-timer)
+      (entropy/emacs-setf-by-body
+        __ya/image-dired-create-thumb--idle-timer
+        (run-with-idle-timer
+         0.01 nil #'image-dired-thumb-queue-run)))
+    (advice-add 'image-dired-create-thumb
+                :override
+                #'__ya/image-dired-create-thumb))
+   (noninteractive
+    (advice-add 'image-dired-create-thumb
+                :override
+                (lambda (original-file thumbnail-file)
+                  "The override advice for `image-dired-create-thumb' just used in batch
+mode, in where just add job queue `image-dired-queue' without
+creation, for thus, use `image-dired-thumb-queue-run' after the lisp
+program thumb names gotten procedure done, for example:
+
+#+begin_src elisp
+  (when noninteractive
+    (setq files (directory-files-recursively
+                 PATH (image-file-name-regexp)))
+    (let (thumbfile)
+      (dolist (el files)
+        (or (setq thumbfile (image-dired-thumb-name el))
+            (error \"Thumbfile name can not generated of: %s\" el))
+        (unless (file-exists-p thumbfile)
+          (image-dired-create-thumb el thumbfile)))
+      (or image-dired-queue
+          (error
+           \"There's no image files found in dir: %s\" dir))
+      (let ((que-len (length image-dired-queue)))
+        (image-dired-thumb-queue-run)
+        (while (and (sleep-for 0.001) image-dired-queue))
+        (message \"All %d thumbs generated, OK!\" que-len))))
+#+end_src
+"
+                  (setq image-dired-queue
+                        (nconc image-dired-queue
+                               (entropy/emacs-double-list
+                                original-file thumbnail-file)))))))
 
   ;; EEMACS_MAINTENANCE: emacs 29 and above only support image file
   ;; with valid suffix name convention to be scaned to generate
@@ -2742,37 +2778,45 @@ sentinel of `image-dired-create-thumb-1'."
    #'__ya/image-dired-associated-dired-buffer)
   (defvar entropy/emacs-image-dired-display-thumbs-recursively--log nil)
   (defun entropy/emacs-image-dired-display-thumbs-recursively
-      (&optional files)
+      (dir &optional level regexp)
     "Like `entropy/emacs-image-dired-init' but without `dired' buffer
 bounding restriction.
 
 Instead it read all image FILES from a specified dir path
 recursively with `read-directory-name'.
 
-From elisp programming, non-interactively functional used when
-FILES specified already as list of image files' absolute
-pathname."
-    (interactive)
+From elisp programming, find image files from DIR recursively
+with nested LEVEL restriction based on
+`entropy/emacs-list-dir-subfiles-recursively-for-list'."
+    (interactive
+     (let ((choose-dir
+            (read-directory-name
+             "Get image files from dir: "
+             nil nil t))
+           (choose-level
+            (when (yes-or-no-p "with recursive level restriction?")
+              (entropy/emacs-read-number-string-until-matched
+               "natnump&>=1"
+               (lambda (x) (and (natnump x) (>= x 1) x)) nil
+               "Input recursive level restriction(>=1)"))))
+       (list choose-dir choose-level nil)))
     (let (
           ;; we should grab image filename regex inhibits the filter
           ;; shown below since the advice
           ;; `__ya/image-dired/image-file-name-regexp'.
-          (rex (let ((entropy/emacs-basic--image-dired-inhibit-arbitary-image-file-name-regexp
+          (rex
+           (or regexp
+               (let ((entropy/emacs-basic--image-dired-inhibit-arbitary-image-file-name-regexp
                       t))
                  (image-file-name-regexp))))
+          files)
       (entropy/emacs-setf-by-body files
         (or
          files
          (let ((dir
-                (read-directory-name
-                 "Get image files from dir: "
-                 nil nil t))
+                (and dir (file-directory-p dir) dir))
                (level
-                (when (yes-or-no-p "with recursive level restriction?")
-                  (entropy/emacs-read-number-string-until-matched
-                   "natnump&>=1"
-                   (lambda (x) (and (natnump x) (>= x 1) x)) nil
-                   "Input recursive level restriction(>=1)"))))
+                (when level (and (natnump level) (> level 0)))))
            (push (list level rex dir)
                  entropy/emacs-image-dired-display-thumbs-recursively--log)
            (entropy/emacs-message-simple-progress-message
@@ -2892,6 +2936,132 @@ an error."
                (default-value 'image-dired-track-movement)))))
         (when (setq img-dired-win (get-buffer-window img-dired-buff))
           (select-window img-dired-win)))))
+
+  (defun entropy/emacs-image-dired-batch-gen-thumbs (dir &optional level)
+    "Batch generate images in DIR recursively use `image-dired'
+subroutines with nested searching LEVEL restriction.
+
+When in interactive session, both DIR and LEVEL can be specified
+in `interactive' wrapper.
+
+This function also support emacs batch mode i.e. `noninteractive'
+session to generate thumbs as a standalone process."
+    (interactive
+     (let ((choose-dir
+            (read-directory-name
+             "Get image files from dir: "
+             nil nil t))
+           (choose-level
+            (when (yes-or-no-p "with recursive level restriction?")
+              (entropy/emacs-read-number-string-until-matched
+               "natnump&>=1"
+               (lambda (x) (and (natnump x) (>= x 1) x)) nil
+               "Input recursive level restriction(>=1)"))))
+       (list choose-dir choose-level)))
+    (let (files
+          thumbfile
+          ;; we should grab image filename regex inhibits the filter
+          ;; shown below since the advice
+          ;; `__ya/image-dired/image-file-name-regexp'.
+          (rex
+           (let
+               ((entropy/emacs-basic--image-dired-inhibit-arbitary-image-file-name-regexp
+                 t))
+             (image-file-name-regexp))))
+      (entropy/emacs-setf-by-body files
+        (or
+         (entropy/emacs-message-simple-progress-message
+             (format "Find image files under [%s]" dir)
+           (entropy/emacs-list-dir-subfiles-recursively-for-list
+            dir nil
+            :with-level level
+            :with-regexp rex))
+         (entropy/emacs-error-without-debugger
+          "No images found use level %s in dir: %s" level dir)))
+      (dolist (el files)
+        (or (setq thumbfile (image-dired-thumb-name el))
+            (error "Thumbfile name can not generated of: %s" el))
+        (unless (file-exists-p thumbfile)
+          (image-dired-create-thumb el thumbfile)))
+      (entropy/emacs-when-let*-firstn 2
+          ((noninteractive)
+           (que-len (length image-dired-queue))
+           cbk)
+        (condition-case err
+            (catch :break
+              (unless image-dired-queue
+                (setq cbk
+                      (cons t
+                            (list
+                             (format
+                              "No need do any further operations \
+since all images' thumbs had already generated of dir: %s"
+                              dir))))
+                (throw :break nil))
+              (image-dired-thumb-queue-run)
+              (entropy/emacs-sleep-while image-dired-queue)
+              (entropy/emacs-setf-by-body cbk
+                (cons
+                 t
+                 (list
+                  (format "All %d thumbs generation of \
+dir \"%s\" have been done successfully."
+                          que-len dir)))))
+          (error (setq cbk (cons nil err))))
+        cbk)))
+
+  (defun entropy/emacs-image-dired-batch-gen-thumbs-async--guard
+      (proc tmsym cbksym dir level regexp)
+    (let* ((cbk (symbol-value cbksym))
+           (succp (and cbk (eq t (car cbk))))
+           (tmi (symbol-value tmsym)))
+      (or (processp proc)
+          (progn (setq proc nil) (cancel-timer tmi)))
+      (unless (or
+               (not proc)
+               (entropy/emacs-process-is-running-p proc))
+        (if (entropy/emacs-process-exit-with-fatal-p proc)
+            (cancel-timer tmi)
+          (when cbk
+            (message "%s: %s"
+                     (if succp "Success" "Fatal")
+                     (cdr cbk))
+            (cancel-timer tmi)
+            (when (and succp (current-idle-time))
+              (entropy/emacs-image-dired-display-thumbs-recursively
+               dir level regexp)))))))
+
+  (defun entropy/emacs-image-dired-batch-gen-thumbs-async (dir &optional level)
+    "Same as `entropy/emacs-image-dired-batch-gen-thumbs' but in async
+way."
+    (interactive
+     (let ((choose-dir
+            (read-directory-name
+             "Get image files from dir: "
+             nil nil t))
+           (choose-level
+            (when (yes-or-no-p "with recursive level restriction?")
+              (entropy/emacs-read-number-string-until-matched
+               "natnump&>=1"
+               (lambda (x) (and (natnump x) (>= x 1) x)) nil
+               "Input recursive level restriction(>=1)"))))
+       (list choose-dir choose-level)))
+    (let* ((cbk (make-symbol "cbk"))
+           (tmi (make-symbol "timer"))
+           (proc
+            (entropy/emacs-run-batch-with-eemacs-pure-env
+             `(progn
+                (require 'entropy-emacs-basic)
+                (entropy/emacs-image-dired-batch-gen-thumbs ,dir ,level))
+             `(setq ,cbk $async-result) nil
+             :load-custom-file-p t)))
+      (set cbk nil)
+      (pop-to-buffer (entropy/emacs-process-stderr-buffer proc))
+      (set
+       tmi
+       (run-at-time
+        nil 1 'entropy/emacs-image-dired-batch-gen-thumbs-async--guard
+        proc tmi cbk dir level nil))))
 
   (setq image-dired-cmd-create-thumbnail-program
         (if (executable-find "gm") "gm" "convert"))
