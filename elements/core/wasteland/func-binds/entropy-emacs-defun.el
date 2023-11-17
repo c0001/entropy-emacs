@@ -7550,7 +7550,7 @@ eemacs makeproc sentinel inner error: \"%s\" %s %s"
                    ;; (e.g. nested strange call occurred) and why?
                    (when (null (symbol-value ,$thiscur_sync_sym))
                      (warn "[%s]: \
-eemacs makeproc sentinel inner sync wait weak than use `sit-for' to force handle wait: \
+eemacs makeproc sentinel inner sync wait weak then use `sit-for' to force handle wait: \
 \"%s\" %s %s"
                            (format-time-string "[%Y-%m-%d %a %H:%M:%S]")
                            (process-name ,$thiscur_proc)
@@ -7562,7 +7562,7 @@ eemacs makeproc sentinel inner sync wait weak than use `sit-for' to force handle
                                  (< cnt 10) (cl-incf cnt))))
                    (when (null (symbol-value ,$thiscur_sync_sym))
                      (error "[%s]: \
-eemacs makeproc sentinel inner sync wait error: \"%s\" %s %s"
+eemacs makeproc sentinel inner sync wait hang: \"%s\" %s %s"
                             (format-time-string "[%Y-%m-%d %a %H:%M:%S]")
                             (process-name ,$thiscur_proc)
                             (process-status ,$thiscur_proc)
