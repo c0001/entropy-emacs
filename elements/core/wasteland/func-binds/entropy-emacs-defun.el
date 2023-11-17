@@ -7549,13 +7549,14 @@ eemacs makeproc sentinel inner error: \"%s\" %s %s"
                    ;; callback which may mess the program logical
                    ;; (e.g. nested strange call occurred) and why?
                    (when (null (symbol-value ,$thiscur_sync_sym))
-                     (warn "[%s]: \
+                     (when (entropy/emacs-debugger-is-running-p)
+                       (warn "[%s]: \
 eemacs makeproc sentinel inner sync wait weak then use `sit-for' to force handle wait: \
 \"%s\" %s %s"
-                           (format-time-string "[%Y-%m-%d %a %H:%M:%S]")
-                           (process-name ,$thiscur_proc)
-                           (process-status ,$thiscur_proc)
-                           (process-exit-status ,$thiscur_proc))
+                             (format-time-string "[%Y-%m-%d %a %H:%M:%S]")
+                             (process-name ,$thiscur_proc)
+                             (process-status ,$thiscur_proc)
+                             (process-exit-status ,$thiscur_proc)))
                      (setq cnt 0)
                      (while (and (null (symbol-value ,$thiscur_sync_sym))
                                  (or (sit-for 0.05) t)
