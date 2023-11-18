@@ -1383,6 +1383,21 @@ emacs specified environment variable references APIs, this is the
 only one for thus."
   (entropy/emacs-getenv "EEMACS_MAKE_WITH_ALL_YES"))
 
+;; *** eemacs log refer
+
+(defun entropy/emacs-log-suggest-push-output-p ()
+  "Return non-nil for suggesting any log facilities to push their
+logs to whatever output stream they chosen for. Otherwise, nil
+for that suggest not to do thus since huge logs outputs may mess
+the usual *echo area* on where user notice oftenly."
+  (and
+   (entropy/emacs-debugger-is-running-p)
+   (not
+    (or (entropy/emacs-env-init-with-pure-eemacs-env-p)
+        (entropy/emacs-is-make-session)
+        (entropy/emacs-is-make-all-session)
+        (entropy/emacs-is-make-with-all-yes-session)))))
+
 ;; *** eemacs-require-func
 
 (defun entropy/emacs-common-require-feature

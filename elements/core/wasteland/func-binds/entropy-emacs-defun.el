@@ -7513,7 +7513,7 @@ eemacs makeproc sentinel inner error: \"%s\" %s %s"
                    (while (and
                            (or (sleep-for 0 wait-msec) t)
                            (process-live-p ,$thiscur_proc))
-                     (when (entropy/emacs-debugger-is-running-p)
+                     (when (entropy/emacs-log-suggest-push-output-p)
                        (let ((message-log-max most-positive-fixnum))
                          (message
                           "eemacs makeproc sync wait: %d -- proc \"%s\" livep: %s exit: %s"
@@ -7524,6 +7524,7 @@ eemacs makeproc sentinel inner error: \"%s\" %s %s"
                    (when (null (symbol-value ,$thiscur_sync_sym))
                      (setq cnt 0)
                      (while (and (or (sleep-for 0 wait-msec) t)
+                                 (null (symbol-value ,$thiscur_sync_sym))
                                  ;; `sit-for' in `noninteractive'
                                  ;; session is useless and equal to
                                  ;; `sleep-for'. And `read-event' is
@@ -7533,8 +7534,7 @@ eemacs makeproc sentinel inner error: \"%s\" %s %s"
                                  ;; detect the bug on interactive
                                  ;; session only.
                                  (if noninteractive t (< cnt 10))
-                                 (cl-incf cnt)
-                                 (null (symbol-value ,$thiscur_sync_sym)))))
+                                 (cl-incf cnt))))
                    ;; FIXME: emacs will hang the main thread so that
                    ;; the sentinel not run, for some occasion if use
                    ;; `sleep-for' in where we first invoke this

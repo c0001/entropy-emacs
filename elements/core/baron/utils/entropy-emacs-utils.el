@@ -51,6 +51,13 @@
 ;; ** f
 (use-package f :init (require 'f))
 
+;; ** xdg
+(use-package xdg
+  :ensure nil
+  :eemacs-functions
+  (xdg-config-home
+   xdg-cache-home))
+
 ;; ** advice-patch
 ;; This package builds on `advice-add' but instead of letting you add code
 ;; before/after/around the body of the advised function, it lets you directly
