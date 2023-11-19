@@ -255,6 +255,9 @@ Version 2017-12-23"
             (user-error "[%s] open dir with fatal <%s>: exit code %s"
                         type use-dir-path
                         (process-exit-status proc)))))
+    ;; NOTE: since dir path may has abbreviated prefix '~' which can
+    ;; not used as an arg for spawns which commonly not support that.
+    (setq use-dir-path (expand-file-name use-dir-path))
     (cond
      (sys/is-wingroup-and-graphic-support-p
       (w32-shell-execute
@@ -287,8 +290,7 @@ Version 2017-12-23"
 ;; TODO: support cross platforms term choosing, for now just support
 ;; linux
 (defun entropy/emacs-tools-open-in-terminal--choose-terms
-    (&optional wcdir)
-  (setq wcdir (or wcdir default-directory))
+    (&optional _wcdir)
   (let ((al
          (entropy/emacs-list-without-orphans
           :with-orphans (list nil)
