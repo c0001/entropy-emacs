@@ -3021,7 +3021,12 @@ dir \"%s\" have been done successfully."
                (not proc)
                (entropy/emacs-process-is-running-p proc))
         (if (entropy/emacs-process-exit-with-fatal-p proc)
-            (cancel-timer tmi)
+            (progn (cancel-timer tmi)
+                   (entropy/emacs-message-do-message
+                    (red "ERR: do images' thumbs \
+generation with fatal(exit: %s) of dir (level: %s regex: \"%s\"): %s"
+                         (process-exit-status proc)
+                         level regexp dir)))
           (when cbk
             (message "%s: %s"
                      (if succp "Success" "Fatal")
