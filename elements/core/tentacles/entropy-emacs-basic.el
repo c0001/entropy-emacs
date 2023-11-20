@@ -3027,7 +3027,7 @@ dir \"%s\" have been done successfully."
                      (if succp "Success" "Fatal")
                      (cdr cbk))
             (cancel-timer tmi)
-            (when (and succp (current-idle-time))
+            (when (and succp (current-idle-time) (display-graphic-p))
               (entropy/emacs-image-dired-display-thumbs-recursively
                dir level regexp)))))))
 
