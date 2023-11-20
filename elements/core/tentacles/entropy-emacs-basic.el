@@ -7984,7 +7984,8 @@ occasion or do not use this guard in you way."
      )))
 
 ;; default enabled for basic daemon session
-(when (equal "main" (entropy/emacs-getenv "EEMACS_SYSTEMD_DAEMON_SERVICE"))
+(when (and (not (entropy/emacs-env-init-with-pure-eemacs-env-p))
+           (equal "main" (entropy/emacs-getenv "EEMACS_SYSTEMD_DAEMON_SERVICE")))
   (entropy/emacs-basic-safe-terminal-bracketed-paste))
 
 ;; ** Basic Misc. commands
