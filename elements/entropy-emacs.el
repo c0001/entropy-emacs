@@ -1349,7 +1349,7 @@ emacs specified environment variable references APIs, this is the
 only one for thus."
   (if __entropy/emacs-is-make-session-check-done
       __entropy/emacs-is-make-session-value-cache
-    (let ((env-p (entropy/emacs-getenv "EEMACS_MAKE")))
+    (let ((env-p (entropy/emacs-getenv-eemacs-env "EEMACS_MAKE")))
       (setq __entropy/emacs-is-make-session-value-cache
             env-p
             __entropy/emacs-is-make-session-check-done
@@ -1367,7 +1367,7 @@ NOTE: you should always use this function to get thus variable
 value where there's no published for any of the internal entropy
 emacs specified environment variable references APIs, this is the
 only one for thus."
-  (entropy/emacs-getenv "EEMACS_MAKE_ALL"))
+  (entropy/emacs-getenv-eemacs-env "EEMACS_MAKE_ALL"))
 
 (defun entropy/emacs-is-make-with-all-yes-session ()
   "Obtained the 'EEMACS_MAKE_WITH_ALL_YES' env variable value if
@@ -1381,7 +1381,7 @@ NOTE: you should always use this function to get thus variable
 value where there's no published for any of the internal entropy
 emacs specified environment variable references APIs, this is the
 only one for thus."
-  (entropy/emacs-getenv "EEMACS_MAKE_WITH_ALL_YES"))
+  (entropy/emacs-getenv-eemacs-env "EEMACS_MAKE_WITH_ALL_YES"))
 
 ;; *** eemacs log refer
 
@@ -1724,7 +1724,10 @@ byte-compile generated but source loading undeeded.")
 session like for `entropy/emacs-pdumper-load-hook'.
 
 NOTE: do not use this unless for eemacs inner facilities
-developments."
+developments.
+
+NOTE: for eemacs spec env vars use the alias
+`entropy/emacs--inner-setenv-eemacs-env' to distinguish context."
   (prog1 (apply 'setenv args)
     (if (bound-and-true-p entropy/emacs-fall-love-with-pdumper)
         (if (bound-and-true-p entropy/emacs-pdumper-load-hook)
@@ -1734,10 +1737,15 @@ developments."
           (setq entropy/emacs-pdumper-load-hook
                 (list (lambda nil (apply 'setenv args))))))))
 
+(defalias 'entropy/emacs--inner-setenv-eemacs-env
+  'entropy/emacs--inner-setenv
+  "Alias to `entropy/emacs--inner-setenv' but only used to
+distingush setenv eemacs spec env vars")
+
 ;; The eemacs specified envrionment to indicated all subprocess are
 ;; ran in an eemacs session, in which case all subprocess can detected
 ;; this variable to do some extra operations or something else.
-(entropy/emacs--inner-setenv "EEMACS_ENV" "TRUE")
+(entropy/emacs--inner-setenv-eemacs-env "EEMACS_ENV" "TRUE")
 
 ;; ** Start Eemacs
 
@@ -1748,7 +1756,7 @@ developments."
                      (not entropy/emacs-do-pdumping-with-lazy-load-p))
                 ;; NOTE: We should not enable lazy load for a systemd
                 ;; service session both for running and compiling
-                (entropy/emacs-getenv "EEMACS_SYSTEMD_DAEMON_SERVICE")
+                (entropy/emacs-getenv-eemacs-env "EEMACS_SYSTEMD_DAEMON_SERVICE")
                 (daemonp)))
        (setq entropy/emacs-custom-enable-lazy-load nil))
       ((and entropy/emacs-fall-love-with-pdumper

@@ -61,7 +61,7 @@
   (eval-when-compile (require 'rx))
   (entropy/emacs-setf-by-body openwith-associations
     (let ((eemacs-xdg-open-cmd
-           (getenv "EEMACS_SPAWN_BASH_SCRIPT_XDG_OPEN"))
+           (entropy/emacs-getenv-eemacs-env "EEMACS_SPAWN_BASH_SCRIPT_XDG_OPEN"))
           use-eemacs-xdg-open-cmd)
       (list
        (list

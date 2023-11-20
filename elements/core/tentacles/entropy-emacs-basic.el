@@ -5975,8 +5975,8 @@ the return value is t or nil while t indicates the read procedure
 successfully both of situation of read persisit of create an new."
   (interactive)
   (if (file-exists-p entropy/emacs-basic-kill-ring-persist-lock-file)
-      (when (and (not (entropy/emacs-getenv "EEMACS_SYSTEMD_DAEMON_SERVICE"))
-                 (not (entropy/emacs-getenv "EEMACS_CI_TEST"))
+      (when (and (not (entropy/emacs-getenv-eemacs-env "EEMACS_SYSTEMD_DAEMON_SERVICE"))
+                 (not (entropy/emacs-getenv-eemacs-env "EEMACS_CI_TEST"))
                  (yes-or-no-p "It seems kill ring persist file is locked by another emacs session\
 , unlock it?(NOTE: it may cover the another emacs session's kill-ring persistence!)")
                  (progn (delete-file entropy/emacs-basic-kill-ring-persist-lock-file)
@@ -7985,7 +7985,7 @@ occasion or do not use this guard in you way."
 
 ;; default enabled for basic daemon session
 (when (and (not (entropy/emacs-env-init-with-pure-eemacs-env-p))
-           (equal "main" (entropy/emacs-getenv "EEMACS_SYSTEMD_DAEMON_SERVICE")))
+           (equal "main" (entropy/emacs-getenv-eemacs-env "EEMACS_SYSTEMD_DAEMON_SERVICE")))
   (entropy/emacs-basic-safe-terminal-bracketed-paste))
 
 ;; ** Basic Misc. commands

@@ -977,7 +977,7 @@ lsp-java-v3.1_jdtls_release/%s"))
                      (:name "clangd-lsp"
                             :pred entropy/emacs-coworker-check-clangd-lsp
                             :enable (EEMACS-DT-FORM
-                                     (if (entropy/emacs-getenv "EEMACS_CI_TEST")
+                                     (if (entropy/emacs-getenv-eemacs-env "EEMACS_CI_TEST")
                                          (executable-find "clangd") t)))
                      (:name "rust-analyzer"
                             :pred entropy/emacs-coworker-check-rust-analyzer

@@ -750,7 +750,7 @@ Currently detected env variables:")
 
 ;; * provide
 
-(when (and (entropy/emacs-getenv "EEMACS_CI_TEST") (daemonp))
+(when (and (entropy/emacs-getenv-eemacs-env "EEMACS_CI_TEST") (daemonp))
   ;; Use idle timer so that the server init completed as so non server
   ;; init failure error `Error: server did not start correctly'
   ;; returned.

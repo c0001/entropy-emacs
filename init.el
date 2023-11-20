@@ -142,19 +142,52 @@ It's a version string which can be used for `version<' and
 
 ;; **** Eemacs init env filter
 
-(defun entropy/emacs-getenv (variable &optional frame)
+(defsubst entropy/emacs-getenv (variable &optional frame)
   "Same as `getenv' but also return nil when VARIABLE's value is an
-empty string predicated by `string-empty-p'."
+empty string predicated by `string-empty-p'.
+
+NOTE: for eemacs spec env vars use the alias
+`entropy/emacs-getenv-eemacs-env' to distinguish context."
   (let ((env-p (getenv variable frame)))
     (if (or (null env-p) (string-empty-p env-p))
         nil env-p)))
 
+(defalias 'entropy/emacs-getenv-eemacs-env
+  'entropy/emacs-getenv
+  "Alias of `entropy/emacs-getenv' to distinguish the inner usage
+for eemacs defined env variable only.")
+
+(defsubst entropy/emacs-getenv-equal
+    (variable value &optional frame with-empty-string)
+  "Return non-nil when the value of `getenv' of env var VARIABLE is
+`equal' to VALUE, otherwise return nil.
+
+If VALUE is a `consp' list, then the `equal' of values is treated
+with `member' of value to the VALUE list.
+
+The return is always nil when no such VARIABLE in env or value of
+VARIABLE is `string-empty-p' unless WITH-EMPTY-STRING is non-nil.
+
+NOTE: for eemacs spec env vars use the alias
+`entropy/emacs-getenv-equal-eemacs-eqnv' to distinguish context."
+  (when-let ((val
+              (if with-empty-string
+                  (getenv variable frame)
+                (entropy/emacs-getenv variable frame))))
+    (if (consp value)
+        (member val value) (equal val value))))
+
+(defalias 'entropy/emacs-getenv-equal-eemacs-env
+  'entropy/emacs-getenv-equal
+  "Alias of `entropy/emacs-getenv-equal' to distinguish the inner
+usage for eemacs defined env variable only.")
+
 (defun entropy/emacs-env-init-with-pure-eemacs-env-p (&rest _)
-  (entropy/emacs-getenv "EEMACS_INIT_WITH_PURE"))
+  (entropy/emacs-getenv-eemacs-env "EEMACS_INIT_WITH_PURE"))
 
 (defun entropy/emacs-env-init-with-pure-eemacs-env/load-custom-file-p nil
   (and (entropy/emacs-env-init-with-pure-eemacs-env-p)
-       (entropy/emacs-getenv "EEMACS_INIT_WITH_PURE_LCSTF")))
+       (entropy/emacs-getenv-eemacs-env "EEMACS_INIT_WITH_PURE_LCSTF")))
 
 ;; ** Load custom
 
@@ -194,7 +227,7 @@ value assignments into."
   :group 'entropy-emacs-customize-top-group)
 
 (defcustom entropy/emacs-startup-with-Debug-p
-  (entropy/emacs-getenv "EEMACS_DEBUG")
+  (entropy/emacs-getenv-eemacs-env "EEMACS_DEBUG")
   "Does eemacs start with debug mode?"
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-DEBUG)
@@ -235,8 +268,8 @@ renderred after init this.)"
 ;; ** Startup entropy-emacs
 
 (defvar entropy/emacs-fall-love-with-pdumper
-  (or (equal (getenv "EEMACS_MAKE") "Dump")
-      (equal (getenv "EEMACS_MAKE") "Compile-Dump"))
+  (entropy/emacs-getenv-equal-eemacs-env
+   "EEMACS_MAKE" '("Dump" "Compile-Dump"))
   "The emacs running type indication for pdumper.")
 
 (defvar entropy/emacs-do-pdumping-with-lazy-load-p nil
@@ -256,7 +289,7 @@ dumped as well as older vers any more.")
   "Hook for run with pdumper session startup.")
 (defun entropy/emacs-suggest-startup-with-elisp-source-load-p nil
   (or
-   (member (entropy/emacs-getenv "EEMACS_MAKE") '("Compile" "Compile-Dump"))
+   (entropy/emacs-getenv-equal-eemacs-env "EEMACS_MAKE" '("Compile" "Compile-Dump"))
    (and noninteractive
         (not entropy/emacs-fall-love-with-pdumper)
         (not (daemonp)))
@@ -265,7 +298,7 @@ dumped as well as older vers any more.")
         ;; session invoked by make env, since that's clear to
         ;; show that this indeed is. In other words, we allow
         ;; debug on byte-compiled eemacs core.
-        (entropy/emacs-getenv "EEMACS_DEBUG"))
+        (entropy/emacs-getenv-eemacs-env "EEMACS_DEBUG"))
    (entropy/emacs-env-init-with-pure-eemacs-env-p)))
 
 (defvar __inited-p? nil)

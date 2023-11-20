@@ -153,14 +153,14 @@ EEMACS_MAINTENANCE: eemacs internal used only.")
 
 ;; ** env
 
-(entropy/emacs--inner-setenv
+(entropy/emacs--inner-setenv-eemacs-env
  "EEMACS_SPAWN_BASH_SCRIPT_TEMPLATE"
  (expand-file-name
   "eemacs-run.sh.template"
   (expand-file-name
    "annex/scripts"
    entropy/emacs-user-emacs-directory)))
-(entropy/emacs--inner-setenv
+(entropy/emacs--inner-setenv-eemacs-env
  "EEMACS_SPAWN_BASH_SCRIPT_XDG_OPEN"
  (expand-file-name
   "eemacs-xdg-open.sh"

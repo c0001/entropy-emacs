@@ -909,7 +909,7 @@ since we solved deps broken")))))
       ;; we must check all depedencies firstly while compile
       (entropy/emacs-batch--check-packages)
       (entropy/emacs-batch--prompts-for-byte-compile-eemacs-internal
-       (unless (and (entropy/emacs-getenv "EEMACS_MAKE_ALL")
+       (unless (and (entropy/emacs-getenv-eemacs-env "EEMACS_MAKE_ALL")
                     (not (equal type "Compile-Dump")))
          (entropy/emacs-batch--do-bytecompile-eemacs-core t))
        (entropy/emacs-batch--do-bytecompile-eemacs-core)))

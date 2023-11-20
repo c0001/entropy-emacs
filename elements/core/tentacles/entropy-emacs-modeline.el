@@ -144,7 +144,7 @@
 
 (defvar entropy/emacs-modeline--mdl-common-eyebrowse-segment nil)
 (defvar entropy/emacs-modeline--mdl-common-eyebrowse-sysdaemon-indicator
-  (entropy/emacs-getenv "EEMACS_SYSTEMD_DAEMON_SERVICE"))
+  (entropy/emacs-getenv-eemacs-env "EEMACS_SYSTEMD_DAEMON_SERVICE"))
 (defun entropy/emacs-modeline--mdl-common-eyebrowse-segment-1 ()
   (if (or (null entropy/emacs-modeline--mdl-common-eyebrowse-segment)
           (bound-and-true-p entropy/emacs-current-session-is-idle-p))

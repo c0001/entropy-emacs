@@ -906,7 +906,7 @@ the :eemacs-adrequrie has been loaded and the related form is banned."
           ;; or that's a mistake by user-end since installing package
           ;; via a systemd session may be too long where may confuse
           ;; user to caught what happening.
-          (entropy/emacs-getenv "EEMACS_SYSTEMD_DAEMON_SERVICE"))
+          (entropy/emacs-getenv-eemacs-env "EEMACS_SYSTEMD_DAEMON_SERVICE"))
       (entropy/emacs-package-prepare-foras)
     (cond
      ((entropy/emacs-is-make-all-session)
