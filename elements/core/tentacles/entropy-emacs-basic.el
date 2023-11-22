@@ -4047,7 +4047,8 @@ With `%s' style." ,cmdnm (if ,fb "forbidden" "query")))
     (interactive nil image-dired-thumbnail-mode)
     (unless (string-equal major-mode "image-dired-thumbnail-mode")
       (user-error "Not in image-dired-thumbnail-mode"))
-    (let ((assoc-dired-buffer (image-dired-associated-dired-buffer)))
+    (let ((assoc-dired-buffer (image-dired-associated-dired-buffer))
+          (file-name (image-dired-original-file-name)))
       (unless (and (bufferp assoc-dired-buffer)
                    (buffer-live-p assoc-dired-buffer))
         (user-error "No associated dired-buffer found!"))
@@ -4060,6 +4061,16 @@ With `%s' style." ,cmdnm (if ,fb "forbidden" "query")))
           ;; yet.
           (image-dired-track-original-file)))
       (let ((buffer-name (buffer-name assoc-dired-buffer)))
+        (with-current-buffer assoc-dired-buffer
+          (unless (entropy/emacs-dired-fname-line-p
+                   :move-to-filename t)
+            (user-error "Could not find image in Dired buffer for tracking"))
+          (let ((fname (dired-file-name-at-point)))
+            (unless (file-exists-p fname)
+              (user-error "Image in Dired buffer not exist for tracking"))
+            (unless (file-equal-p fname file-name)
+              (user-error "Image in Dired buffer not equal \"%s\" for tracking"
+                          file-name))))
         (if (bound-and-true-p shackle-mode)
             (let* ((shackle-rules
                     (or (and (ignore-errors (shackle-match buffer-name)) shackle-rules)
