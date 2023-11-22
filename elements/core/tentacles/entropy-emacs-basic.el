@@ -2349,6 +2349,10 @@ window point not shown in nice place e.g. at window bottom."
       " *image-dired*")
 (setq image-dired-display-image-buffer
       " *image-dired-display-image*")
+(defvar entropy/emacs--image-dired-thumbnail-buffername
+  image-dired-thumbnail-buffer)
+(defvar entropy/emacs--image-dired-display-image-buffername
+  image-dired-display-image-buffer)
 ;; TODO: use `buffer-disable-undo' for hacking above referred buffer
 ;; creation image-dired subroutines. Since we hack with a unusual
 ;; buffer name which can not directly switched via candidates by most
@@ -2617,6 +2621,67 @@ mechanism."
 
 (defvar entropy/emacs-image-dired-display-image-use-image-mode nil)
 
+(entropy/emacs-defvar-local-with-pml
+  entropy/emacs--image-dired-current-thumbnails-buffer nil)
+(entropy/emacs-defconst/only-allow/local
+  entropy/emacs--image-dired-global-current-thumbnails-buffer nil)
+(defun entropy/emacs--image-dired-update-thumbnail-buffname-core
+    (&optional thbuff)
+  (when thbuff
+    (setq entropy/emacs--image-dired-current-thumbnails-buffer
+          (buffer-name thbuff)))
+  (when entropy/emacs--image-dired-current-thumbnails-buffer
+    (setq-local image-dired-thumbnail-buffer
+                entropy/emacs--image-dired-current-thumbnails-buffer)))
+(entropy/emacs-defconst/only-allow/local
+  entropy/emacs--image-dired-usenew-thumbnails-buffer-p nil)
+(entropy/emacs-defvar-local-with-pml
+  entropy/emacs--image-dired-current-image-display-buffer nil)
+
+(entropy/emacs-!cl-defun
+    entropy/emacs-image-dired-find-thumbnails-buffer ()
+  (or
+   (let ((buf entropy/emacs--image-dired-global-current-thumbnails-buffer))
+     (and (buffer-live-p buf) buf))
+   (and (eq major-mode 'image-dired-thumbnail-mode) (current-buffer))
+   (let ((buf entropy/emacs--image-dired-current-thumbnails-buffer))
+     (and (buffer-live-p buf) buf))
+   (entropy/emacs-!error
+    "can not find lived image-dired thumbnails buffer")))
+
+(entropy/emacs-defconst/only-allow/global-set
+  entropy/emacs--image-dired-tmpfiles nil)
+(entropy/emacs-defconst/only-allow/global-set
+  entropy/emacs--image-dired-tmpfiles--iter 0)
+(defmacro entropy/emacs--image-dired-create-tmpfile-of-var
+    (name var)
+  `(entropy/emacs-when-let*-first
+       (((if (not (local-variable-p ',var)) t
+           (and (not (file-exists-p ,var)) t)))
+        f)
+     (setq
+      f
+      ;; use tempfs as temp file host to speedup I/O and reduce SSD
+      ;; writes.
+      (entropy/emacs-make-temp-file
+       (format ".eemacs.image-dired.%s_file.%s."
+               ,name (format-time-string "%Y%m%d%a%H%M%S"))
+       nil nil nil
+       :with-system-tmpfs t))
+     (setq-local ,var f)
+     (add-to-list
+      'entropy/emacs--image-dired-tmpfiles
+      f)
+     (entropy/emacs-add-hook-with-lambda
+       (cons (format "__eemacs/image-dired-tmpfile/%d"
+                     (cl-incf entropy/emacs--image-dired-tmpfiles--iter))
+             t)
+       nil
+       :use-hook 'kill-buffer-hook
+       :use-local t
+       (let ((inhibit-quit t))
+         (and (file-exists-p f) (delete-file f))))))
+
 ;; NOTE: we must declared this here since the mode def is lazyload and
 ;; any lazy keybind set should not confused the lazyload order that
 ;; which one defined this keymap.
@@ -2662,30 +2727,13 @@ mechanism."
 ;; ****** config
   :config
 
-  (entropy/emacs-setf-by-body image-dired-temp-image-file
-    ;; use tempfs as temp file host to speedup I/O and reduce SSD
-    ;; writes.
-    (entropy/emacs-make-temp-file
-     (format ".eemacs.image-dired.tmpfile.%s."
-             (format-time-string "%Y%m%d%a%H%M%S"))
-     nil nil nil
-     :with-system-tmpfs t))
-  (entropy/emacs-setf-by-body image-dired-temp-rotate-image-file
-    ;; use tempfs as temp file host to speedup I/O and reduce SSD
-    ;; writes.
-    (entropy/emacs-make-temp-file
-     (format ".eemacs.image-dired.tmprotate_file.%s."
-             (format-time-string "%Y%m%d%a%H%M%S"))
-     nil nil nil
-     :with-system-tmpfs t))
   (entropy/emacs-add-hook-with-lambda
     (cons t 'entropy/emacs-basic--image-dired-remove-cache-tmpfiles)
     nil
     "Remove tmpfs cache image stuffs of `image-dired' before emacs
 killed to prevent garbage resources remained in system."
     :use-hook 'kill-emacs-hook
-    (dolist (f (list image-dired-temp-image-file
-                     image-dired-temp-rotate-image-file))
+    (dolist (f entropy/emacs--image-dired-tmpfiles)
       (when (and f (file-exists-p f))
         (delete-file f))))
 
@@ -2832,7 +2880,9 @@ with nested LEVEL restriction based on
           ;; to a `dired' buffer but on which case we are not focus.
           (entropy/emacs-get-buffer-create
            " *eemacs-fake-image-dired-original-dired-buffer*" t)
-        (let ((entropy/emacs-basic--image-dired-with-manually-files files))
+        (let ((entropy/emacs-basic--image-dired-with-manually-files files)
+              (entropy/emacs--image-dired-usenew-thumbnails-buffer-p
+               (not noninteractive)))
           (entropy/emacs-image-dired-init)))))
 
   (defun entropy/emacs-image-dired-init (&optional arg)
@@ -2862,7 +2912,11 @@ an error."
                   (unless arg
                     entropy/emacs-image-dired-new-thumbnail-should-optimize-p)))
          (cur-buffer (current-buffer))
-         (img-dired-buff (image-dired-create-thumbnail-buffer))
+         (img-dired-buff
+          (let ((entropy/emacs--image-dired-usenew-thumbnails-buffer-p
+                 (or entropy/emacs--image-dired-usenew-thumbnails-buffer-p
+                     (called-interactively-p 'interactive))))
+            (image-dired-create-thumbnail-buffer)))
          (img-dired-win nil)
          (img-fmarked (or
                        entropy/emacs-basic--image-dired-with-manually-files
@@ -2914,7 +2968,13 @@ an error."
                   (entropy/emacs-message-simple-progress-message
                       (format "Generating/Getting thumbs cache from storage type `%s'"
                               image-dired-thumbnail-storage)
-                    (image-dired-display-thumbs))
+                    (let
+                        ;; inhibit double new the thumbnails buffer
+                        (entropy/emacs--image-dired-usenew-thumbnails-buffer-p
+                         ;; follow same thumbnail buffer as we are generated recently
+                         (entropy/emacs--image-dired-global-current-thumbnails-buffer
+                          img-dired-buff))
+                      (image-dired-display-thumbs)))
                   (with-current-buffer img-dired-buff
                     (when (bound-and-true-p hl-line-mode)
                       ;; display `hl-line-mode' since its cover the
@@ -3105,7 +3165,7 @@ way."
   "Do BODY at every point at an image thumbnail in
 `image-dired-thumbnail-buffer' pretending with
 `with-silent-modifications'."
-  `(with-current-buffer image-dired-thumbnail-buffer
+  `(with-current-buffer (entropy/emacs-image-dired-find-thumbnails-buffer)
      (save-mark-and-excursion
        (goto-char (point-min))
        (let ((inhibit-read-only t))
@@ -3269,7 +3329,7 @@ way."
 
 Valid TYPE are 'mark' 'flag' and 'unmark' and 'toggle'."
     (when image-dired-thumb-visible-marks
-      (with-current-buffer image-dired-thumbnail-buffer
+      (with-current-buffer (entropy/emacs-image-dired-find-thumbnails-buffer)
         (save-mark-and-excursion
           (let ((inhibit-read-only t))
             (with-silent-modifications
@@ -3322,9 +3382,9 @@ point."
             (entropy/emacs-image-dired-thumb-set-mark-properties-at-point
              command))))))
 
-  (defun entropy/emacs-image-dired-idle-track-orig-file--core (&rest _)
-    (when-let ((buff (get-buffer image-dired-thumbnail-buffer))
-               ((buffer-live-p buff)))
+  (defun entropy/emacs-image-dired-idle-track-orig-file--core
+      (thumbnails-buffer)
+    (when-let ((buff thumbnails-buffer) ((buffer-live-p buff)))
       (with-current-buffer buff
         ;; no-dired assosicated mode via
         ;; `entropy/emacs-image-dired-display-thumbs-recursively'
@@ -3339,23 +3399,19 @@ point."
                (unless (stringp msg) (setq msg nil))
                (unless (and msg (string-match-p ignore-msg-regexp msg))
                  (signal (car err) (cdr err))))))))))
-  (entropy/emacs-define-idle-function
-    entropy/emacs-image-dired-idle-track-orig-file--core-with-idle
-    ;; using one second is proper since any lower idle delay
-    ;; may hint the key repeat frequency which will not show
-    ;; the idle delay effects.
-    1
-    "Idle variant for `image-dired-track-original-file' \
-to reduce navigation lag."
-    (entropy/emacs-image-dired-idle-track-orig-file--core))
 
   (defun entropy/emacs-image-dired-idle-track-orig-file ()
     "Like `image-dired-track-original-file' but run with idle timer."
     (when image-dired-track-movement
-      (if (eq this-command
-              'entropy/emacs-image-dired-thumbnail-mode-pop-assoc-dired)
-          (entropy/emacs-image-dired-idle-track-orig-file--core)
-        (funcall entropy/emacs-image-dired-idle-track-orig-file--core-with-idle))))
+      (entropy/emacs-run-at-idle-immediately
+       entropy/emacs-image-dired-track-orig-file--with-idle
+       :idle-when
+       (not (eq this-command
+                'entropy/emacs-image-dired-thumbnail-mode-pop-assoc-dired))
+       :which-hook 1
+       :current-buffer (current-buffer)
+       (entropy/emacs-image-dired-idle-track-orig-file--core
+        (current-buffer)))))
 
 ;; ******* patch
 ;; ******** core
@@ -3416,21 +3472,73 @@ mechanism as older ver."
           ["Quit" quit-window]))
       map))
 
-  (defun __ya/image-dired-create-display-image-buffer
-      (fn &rest args)
-    (if (< emacs-major-version 29) (apply fn args)
-      (get-buffer-create image-dired-display-image-buffer)))
+  (defun __ya/image-dired-create-thumbnail-buffer ()
+    (let ((buffname entropy/emacs--image-dired-thumbnail-buffername)
+          (use-newp entropy/emacs--image-dired-usenew-thumbnails-buffer-p)
+          (curbuff
+           (or
+            entropy/emacs--image-dired-global-current-thumbnails-buffer
+            entropy/emacs--image-dired-current-thumbnails-buffer))
+          buf)
+      (cond (use-newp
+             (setq buf (generate-new-buffer buffname)))
+            ((not (buffer-live-p curbuff))
+             (setq buf (get-buffer-create buffname)))
+            (t (setq buf curbuff)))
+      (with-current-buffer buf
+        (setq buffer-read-only t)
+        (unless (eq major-mode 'image-dired-thumbnail-mode)
+          (image-dired-thumbnail-mode))
+        (entropy/emacs--image-dired-update-thumbnail-buffname-core
+         buf))
+      buf))
+  (advice-add 'image-dired-create-thumbnail-buffer
+              :override
+              #'__ya/image-dired-create-thumbnail-buffer)
+
+  (entropy/emacs-!cl-defun __ya/image-dired-create-display-image-buffer
+      ()
+    (unless (eq major-mode 'image-dired-thumbnail-mode)
+      (entropy/emacs-!error "\
+this func should always ran in a `image-dired-thumbnail-mode' buffer"))
+    (let ((buf
+           (or (and (local-variable-p
+                     'entropy/emacs--image-dired-current-image-display-buffer)
+                    (let ((buff
+                           entropy/emacs--image-dired-current-image-display-buffer))
+                      (and (buffer-live-p buff) buff)))
+               (let ((buffname entropy/emacs--image-dired-display-image-buffername))
+                 (if (get-buffer buffname)
+                     (generate-new-buffer buffname)
+                   (get-buffer-create buffname)))))
+          (thbuf (current-buffer)))
+      (progn
+        (entropy/emacs--image-dired-create-tmpfile-of-var
+         "tmpdisplay" image-dired-temp-image-file)
+        (entropy/emacs--image-dired-create-tmpfile-of-var
+         "tmprotate" image-dired-temp-rotate-image-file))
+      (setq entropy/emacs--image-dired-current-image-display-buffer
+            buf)
+      (with-current-buffer buf
+        (entropy/emacs--image-dired-update-thumbnail-buffname-core
+         thbuf))
+      buf))
   (advice-add 'image-dired-create-display-image-buffer
-              :around
+              :override
               '__ya/image-dired-create-display-image-buffer)
-  (defun __ya/image-dired-display-window
-      (fn &rest args)
-    (or (apply fn args)
-        (and entropy/emacs-basic--image-dired-diswin-wierrwnolive-p
-             (error "No lived image-dired image display window!"))
-        (display-buffer (image-dired-create-display-image-buffer))))
+  (entropy/emacs-add-hook-with-lambda
+    (cons 'entropy/emacs--image-dired-update-thumbnail-buffname t) nil
+    :use-hook 'after-change-major-mode-hook
+    (entropy/emacs--image-dired-update-thumbnail-buffname-core))
+
+  (defun __ya/image-dired-display-window ()
+    (let ((buf (image-dired-create-display-image-buffer)))
+      (or (get-buffer-window buf)
+          (and entropy/emacs-basic--image-dired-diswin-wierrwnolive-p
+               (user-error "No lived image-dired image display window!"))
+          (display-buffer buf))))
   (advice-add 'image-dired-display-window
-              :around
+              :override
               '__ya/image-dired-display-window)
 
   (eval-and-compile
@@ -3559,8 +3667,6 @@ also."
           (goto-char (point-min))
           (image-dired-update-property 'original-file-name file)
           (with-selected-window window
-            (unless (string= (buffer-name) image-dired-display-image-buffer)
-              (error "internal error <current window is not matched display image buffer>"))
             ;; NOTE: We must use `image-mode' subroutines to set the
             ;; scroll pos since orign `set-window-vscroll' and
             ;; `set-window-hscroll' is not work when previously has
@@ -3573,6 +3679,7 @@ also."
          entropy/emacs-basic--image-dired-use-arbitary-image-file-name-regexp
          (with-current-buffer (image-dired-create-thumbnail-buffer)
            entropy/emacs-basic--image-dired-use-arbitary-image-file-name-regexp))
+        (entropy/emacs--image-dired-update-thumbnail-buffname-core)
         (setq buffer-read-only t))))
 
   (defun __ya/image-dired-display-image/use-image-mode
@@ -3602,7 +3709,7 @@ also."
     (setq file (expand-file-name file))
     (when (not (file-exists-p file))
       (error "No such file: %s" file))
-    (let ((buf (get-buffer-create image-dired-display-image-buffer))
+    (let ((buf (image-dired-create-display-image-buffer))
           (cur-win (selected-window))
           (inhibit-read-only t))
       (unless (get-buffer-window buf)
@@ -3633,6 +3740,7 @@ also."
          entropy/emacs-basic--image-dired-use-arbitary-image-file-name-regexp
          (with-current-buffer (image-dired-create-thumbnail-buffer)
            entropy/emacs-basic--image-dired-use-arbitary-image-file-name-regexp))
+        (entropy/emacs--image-dired-update-thumbnail-buffname-core)
         (setq buffer-read-only t))
       (select-window cur-win)))
 
@@ -4047,38 +4155,39 @@ With `%s' style." ,cmdnm (if ,fb "forbidden" "query")))
     (interactive nil image-dired-thumbnail-mode)
     (unless (string-equal major-mode "image-dired-thumbnail-mode")
       (user-error "Not in image-dired-thumbnail-mode"))
-    (let ((assoc-dired-buffer (image-dired-associated-dired-buffer))
-          (file-name (image-dired-original-file-name)))
-      (unless (and (bufferp assoc-dired-buffer)
-                   (buffer-live-p assoc-dired-buffer))
-        (user-error "No associated dired-buffer found!"))
-      (when image-dired-track-movement
-        (with-current-buffer image-dired-thumbnail-buffer
+    (when (or image-dired-track-movement
+              (user-error "`image-dired-track-movement' is disabled"))
+      (with-current-buffer (entropy/emacs-image-dired-find-thumbnails-buffer)
+        (let ((assoc-dired-buffer (image-dired-associated-dired-buffer))
+              (file-name (image-dired-original-file-name)))
+          (unless (and (bufferp assoc-dired-buffer)
+                       (buffer-live-p assoc-dired-buffer))
+            (user-error "No associated dired-buffer found!"))
           ;; NOTE: firstly we should forcely sync the track point
           ;; since we use
           ;; `entropy/emacs-image-dired-idle-track-orig-file' to idle
           ;; tracking orig file in most of case which may not did done
           ;; yet.
-          (image-dired-track-original-file)))
-      (let ((buffer-name (buffer-name assoc-dired-buffer)))
-        (with-current-buffer assoc-dired-buffer
-          (unless (entropy/emacs-dired-fname-line-p
-                   :move-to-filename t)
-            (user-error "Could not find image in Dired buffer for tracking"))
-          (let ((fname (dired-file-name-at-point)))
-            (unless (file-exists-p fname)
-              (user-error "Image in Dired buffer not exist for tracking"))
-            (unless (file-equal-p fname file-name)
-              (user-error "Image in Dired buffer not equal \"%s\" for tracking"
-                          file-name))))
-        (if (bound-and-true-p shackle-mode)
-            (let* ((shackle-rules
-                    (or (and (ignore-errors (shackle-match buffer-name)) shackle-rules)
-                        `((,buffer-name :select t :size 0.4 :align below :autoclose t)))))
-              (display-buffer assoc-dired-buffer)
-              (message "Shackle popup to dired buffer <%s>" buffer-name))
-          (pop-to-buffer assoc-dired-buffer)
-          (message "Native popup to dired buffer <%s>" buffer-name)))))
+          (image-dired-track-original-file)
+          (let ((buffer-name (buffer-name assoc-dired-buffer)))
+            (with-current-buffer assoc-dired-buffer
+              (unless (entropy/emacs-dired-fname-line-p
+                       :move-to-filename t)
+                (user-error "Could not find image in Dired buffer for tracking"))
+              (let ((fname (dired-file-name-at-point)))
+                (unless (file-exists-p fname)
+                  (user-error "Image in Dired buffer not exist for tracking"))
+                (unless (file-equal-p fname file-name)
+                  (user-error "Image in Dired buffer not equal \"%s\" for tracking"
+                              file-name))))
+            (if (bound-and-true-p shackle-mode)
+                (let* ((shackle-rules
+                        (or (and (ignore-errors (shackle-match buffer-name)) shackle-rules)
+                            `((,buffer-name :select t :size 0.4 :align below :autoclose t)))))
+                  (display-buffer assoc-dired-buffer)
+                  (message "Shackle popup to dired buffer <%s>" buffer-name))
+              (pop-to-buffer assoc-dired-buffer)
+              (message "Native popup to dired buffer <%s>" buffer-name)))))))
 
 ;; ******** jump to associated dired buffer
 

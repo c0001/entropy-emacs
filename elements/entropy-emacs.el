@@ -1297,7 +1297,6 @@ thus is void, the bind's value is nil. Return BODY's value.
 available.
 
 (see `entropy/emacs-inner-sym-for/current-defname')"
-  (unless args (setq args (list nil)))
   (let ((sym (make-symbol "it")))
     `(entropy/emacs-!with-cdefn
        :with-it-as ,sym
@@ -1310,7 +1309,6 @@ available.
 available.
 
 (see `entropy/emacs-inner-sym-for/current-defname')"
-  (unless args (setq args (list nil)))
   (let ((sym (make-symbol "it")))
     `(entropy/emacs-!with-cdefn
        :with-it-as ,sym
@@ -1323,7 +1321,6 @@ available.
 when available.
 
 (see `entropy/emacs-inner-sym-for/current-defname')"
-  (unless args (setq args (list nil)))
   (let ((sym (make-symbol "it")))
     `(entropy/emacs-!with-cdefn
        :with-it-as ,sym
