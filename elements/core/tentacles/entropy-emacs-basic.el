@@ -2728,6 +2728,24 @@ mechanism."
 ;; ****** config
   :config
 
+  (advice-add
+   'image-dired-original-file-name
+   :around
+   (entropy/emacs-with-lambda
+     (cons t '__ya/image-dired-original-file-name)
+     (fn &rest args)
+     "Around advice for `image-dired-original-file-name' but error when
+the original image file losted when proper."
+     (if (not (memq this-command
+                    '(image-dired-display-next
+                      image-dired-display-previous
+                      image-dired-display-this)))
+         (apply fn args)
+       (let ((rtn (apply fn args)))
+         (unless (file-exists-p rtn)
+           (user-error "Could open non-existed image file \"%s\""))
+         rtn))))
+
   (entropy/emacs-add-hook-with-lambda
     (cons t 'entropy/emacs-basic--image-dired-remove-cache-tmpfiles)
     nil
