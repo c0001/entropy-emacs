@@ -234,6 +234,10 @@ was found."
   :eemacs-if (entropy/emacs-vterm-support-p)
   :defer (or entropy/emacs-fall-love-with-pdumper (entropy/emacs-custom-enable-lazy-load/val))
   :commands (vterm vterm-mode)
+  :bind
+  (
+   ;; frequently mishanding keystrokes
+   ("C-c C-s-t" . vterm-copy-mode))
   :eemacs-functions
   (vterm-mode
    vterm-send-string
@@ -340,6 +344,28 @@ else return 0; fi\n"))
 
   :config
 
+  (defun entropy/emacs-shell--vterm-input-empty-p (&optional vbuf errmsg)
+    "Return non-nil when current vterm user input is empty i.e no jobs
+running in foreground."
+    (let (prbegpt prendpt)
+      (with-current-buffer (or vbuf (current-buffer))
+        (condition-case err
+            (and
+             (not (bound-and-true-p vterm-copy-mode))
+             (eq major-mode 'vterm-mode)
+             (vterm-check-proc (current-buffer))
+             (setq
+              prbegpt
+              (or (vterm--get-prompt-point)
+                  (error "vterm can not found prompt begin point"))
+              prendpt
+              (or (vterm--get-end-of-line)
+                  (error "vterm can not found prompt end point")))
+             (= prbegpt (point)) (= prbegpt prendpt))
+          (error
+           (when errmsg
+             (error "%s: %s" errmsg err)))))))
+
   (defun entropy/emacs-shell--vterm-mode-around-advice (orig-func &rest orig-args)
     "prevent `vterm-mode` calling in vterm-mode from causing
 segmentation fault."
@@ -409,10 +435,16 @@ segmentation fault."
   (define-key vterm-mode-map (kbd "M-O") nil)
   ;; Disable the C-d keybinding since it usually terminate the vterm
   ;; tty unexpectedly.
-  (define-key vterm-mode-map (kbd "C-d")
-              #'(lambda () (interactive)
-                  (user-error "C-d is inhibited in vterm since \
-it usually kill the current vterm tty unexpectedly")))
+  (define-key
+   vterm-mode-map (kbd "C-d")
+   (entropy/emacs-with-lambda
+     (cons t 'entropy/emacs-shell--vterm-handle-C-d) nil
+     (interactive)
+     (let (_)
+       (if (entropy/emacs-shell--vterm-input-empty-p)
+           (user-error "C-d is inhibited in empty prompt area since \
+it usually kill the current vterm tty unexpectedly")
+         (call-interactively 'vterm--self-insert)))))
 
   ;; enable native ime toggle for `vterm-mode'. Based on vterm updates
   ;; of
