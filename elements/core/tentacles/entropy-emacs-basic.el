@@ -2673,9 +2673,9 @@ mechanism."
       'entropy/emacs--image-dired-tmpfiles
       f)
      (entropy/emacs-add-hook-with-lambda
-       (cons (format "__eemacs/image-dired-tmpfile/%d"
-                     (cl-incf entropy/emacs--image-dired-tmpfiles--iter))
-             t)
+       (cons t
+             (format "__eemacs/image-dired-tmpfile/%d"
+                     (cl-incf entropy/emacs--image-dired-tmpfiles--iter)))
        nil
        :use-hook 'kill-buffer-hook
        :use-local t
@@ -3527,7 +3527,7 @@ this func should always ran in a `image-dired-thumbnail-mode' buffer"))
               :override
               '__ya/image-dired-create-display-image-buffer)
   (entropy/emacs-add-hook-with-lambda
-    (cons 'entropy/emacs--image-dired-update-thumbnail-buffname t) nil
+    (cons t 'entropy/emacs--image-dired-update-thumbnail-buffname) nil
     :use-hook 'after-change-major-mode-hook
     (entropy/emacs--image-dired-update-thumbnail-buffname-core))
 
