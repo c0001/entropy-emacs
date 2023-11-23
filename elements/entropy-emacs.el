@@ -1395,6 +1395,13 @@ the usual *echo area* on where user notice oftenly."
         (entropy/emacs-is-make-all-session)
         (entropy/emacs-is-make-with-all-yes-session)))))
 
+(defmacro entropy/emacs-!message-when-debug (format-string &rest args)
+  "Like `entropy/emacs-!message' but message just when in eemacs
+debug cases. (see `entropy/emacs-log-suggest-push-output-p')"
+  (let ((sym (make-symbol "it")))
+    `(when (entropy/emacs-log-suggest-push-output-p)
+       (entropy/emacs-!message format-string args))))
+
 ;; *** eemacs-require-func
 
 (defun entropy/emacs-common-require-feature

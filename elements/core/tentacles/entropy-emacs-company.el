@@ -1332,8 +1332,10 @@ Either for inner bugs fix."
               ;; lived since `frame-local-getq' is buggy if not of thus.
               (frame-live-p frame))
              ((if (not (bound-and-true-p __ya/company-box--kill-buffer-no-run))
-                  (message "company-box--kill-buffer for frame: %s" frame)
-                (message "company-box--kill-buffer ignore frame: %s" frame)
+                  (entropy/emacs-!message-when-debug
+                   "company-box--kill-buffer for frame: %s" frame)
+                (entropy/emacs-!message-when-debug
+                 "company-box--kill-buffer ignore frame: %s" frame)
                 nil))
              ;; Temporally FIX EEMACS_BUG c621974f-ec39-40ee-a9a5-f0be94119993
              (__ya/company-box--kill-buffer-no-run t)
