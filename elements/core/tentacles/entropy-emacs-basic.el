@@ -2674,8 +2674,9 @@ mechanism."
       f)
      (entropy/emacs-add-hook-with-lambda
        (cons t
-             (format "__eemacs/image-dired-tmpfile/%d"
-                     (cl-incf entropy/emacs--image-dired-tmpfiles--iter)))
+             (intern
+              (format "__eemacs/image-dired-tmpfile/%d"
+                      (cl-incf entropy/emacs--image-dired-tmpfiles--iter))))
        nil
        :use-hook 'kill-buffer-hook
        :use-local t
