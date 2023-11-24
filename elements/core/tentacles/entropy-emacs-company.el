@@ -1317,7 +1317,7 @@ And also with some other bugs fix."
 
   ;; EEMACS_MAINTENANCE: follow upstream updates
   (defvar __ya/company-box--kill-buffer-no-run nil)
-  (defun __ya/company-box--kill-buffer (frame)
+  (entropy/emacs-!cl-defun __ya/company-box--kill-buffer (frame)
     "Same as original func but run immediately in context without idle
 tricks.
 
