@@ -475,7 +475,7 @@ NOTE: Just use it in `noninteractive' session."
 
 (cl-defmacro entropy/emacs-message-simple-progress-message
     (message &rest body
-             &key with-temp-message ignore-current-messages
+             &key without-msg with-temp-message ignore-current-messages
              with-fit-window-width
              with-either-popup
              with-message-color-args
@@ -517,6 +517,9 @@ If WITH-REST-DOING-MSG is set and return non-nil, then at then end of
 progressing message done, a tail *ing* like msg will be rmained to
 show as the indicator when rest jobs is running for reduce waiting
 confusion of for what is waiting.
+
+Optional WITHOUT-MSG (default nil) if set and return non-nil,
+then run BODY directly like `progn'.
 "
   (declare (indent 1) (debug t))
   (let ((body (entropy/emacs-message--get-plist-body body))
@@ -531,69 +534,70 @@ confusion of for what is waiting.
         (msg-max-ov-sym (make-symbol "origin-message-log-max-value"))
         (use-popup-p-sym (make-symbol "with-popup-p"))
         (msg-color-args-sym (make-symbol "message-color-args")))
-    `(let* ((,with-tmpmsg-sym ,with-temp-message)
-            (,curmsg-sym (current-message))
-            (,new-curmsg-sym ,curmsg-sym)
-            (,new-curmsg-np-sym t)
-            (,ignmsgs-sym ,ignore-current-messages)
-            (,message-sym ,message)
-            (,use-popup-p-sym ,with-either-popup)
-            (,msg-color-args-sym ,with-message-color-args)
-            (_ (when (and ,message-sym ,msg-color-args-sym)
-                 (setq ,message-sym
-                       (entropy/emacs-message--format-message-2
-                        ,message-sym ,msg-color-args-sym))))
-            ;; restrict messages
-            (,msg-max-ov-sym message-log-max)
-            (message-log-max
-             (if ,with-tmpmsg-sym nil ,msg-max-ov-sym))
-            (,progmsg-sym nil)
-            (,progress-reporter-sym
-             (when ,message-sym
-               (prog1 (make-progress-reporter
-                       (if (or noninteractive (not ,with-fit-window-width))
-                           (format "%s ... " ,message-sym)
-                         (concat
-                          (entropy/emacs-substring-to-window-max-chars-width
-                           ,message-sym
-                           :window (minibuffer-window)
-                           :ellipsis 9)
-                          " ... ")))
-                 (setq ,progmsg-sym (current-message))))))
-       (when (and ,message-sym ,use-popup-p-sym
-                  (or (eq ,use-popup-p-sym 'force)
-                      (and entropy/emacs-startup-with-Debug-p
-                           (not entropy/emacs-startup-done))))
-         (entropy/emacs-message--do-message-popup
-          (format "%s ..." ,message-sym)
-          :without-log-message-before-eemacs-init-done t))
-       (prog1 (let ((message-log-max ,msg-max-ov-sym))
-                (prog1 ,(entropy/emacs-macroexp-progn body)
-                  (setq ,new-curmsg-sym (current-message)
-                        ,new-curmsg-np-sym
-                        (or (equal ,new-curmsg-sym ,curmsg-sym)
-                            (and ,progress-reporter-sym
-                                 ;; FIXME: how we prevent body
-                                 ;; yielding same message as current
-                                 ;; progress start message?
-                                 (equal ,new-curmsg-sym ,progmsg-sym))))))
-         ;; NOTE: we just update the reporter when body doesn't yield
-         ;; any messages, if not, we should respect the BODY's
-         ;; behaviour.
-         (when (and ,progress-reporter-sym ,new-curmsg-np-sym)
-           (progress-reporter-done ,progress-reporter-sym)
-           (when ,with-rest-doing-msg
-             (let ((message-log-max nil)) (message "λ ... "))))
-         (when (and ,message-sym ,curmsg-sym)
-           (let (
-                 ;; we has no reason to log the old msg again since we
-                 ;; just need to let be shown in echo area.
-                 (message-log-max nil))
-             (when (and ,with-tmpmsg-sym ,new-curmsg-np-sym
-                        (if (functionp ,ignmsgs-sym)
-                            (not (funcall ,ignmsgs-sym ,curmsg-sym))
-                          (not (member ,curmsg-sym ,ignmsgs-sym))))
-               (message "%s" ,curmsg-sym))))))))
+    `(if ,without-msg ,(entropy/emacs-macroexp-progn body)
+       (let* ((,with-tmpmsg-sym ,with-temp-message)
+              (,curmsg-sym (current-message))
+              (,new-curmsg-sym ,curmsg-sym)
+              (,new-curmsg-np-sym t)
+              (,ignmsgs-sym ,ignore-current-messages)
+              (,message-sym ,message)
+              (,use-popup-p-sym ,with-either-popup)
+              (,msg-color-args-sym ,with-message-color-args)
+              (_ (when (and ,message-sym ,msg-color-args-sym)
+                   (setq ,message-sym
+                         (entropy/emacs-message--format-message-2
+                          ,message-sym ,msg-color-args-sym))))
+              ;; restrict messages
+              (,msg-max-ov-sym message-log-max)
+              (message-log-max
+               (if ,with-tmpmsg-sym nil ,msg-max-ov-sym))
+              (,progmsg-sym nil)
+              (,progress-reporter-sym
+               (when ,message-sym
+                 (prog1 (make-progress-reporter
+                         (if (or noninteractive (not ,with-fit-window-width))
+                             (format "%s ... " ,message-sym)
+                           (concat
+                            (entropy/emacs-substring-to-window-max-chars-width
+                             ,message-sym
+                             :window (minibuffer-window)
+                             :ellipsis 9)
+                            " ... ")))
+                   (setq ,progmsg-sym (current-message))))))
+         (when (and ,message-sym ,use-popup-p-sym
+                    (or (eq ,use-popup-p-sym 'force)
+                        (and entropy/emacs-startup-with-Debug-p
+                             (not entropy/emacs-startup-done))))
+           (entropy/emacs-message--do-message-popup
+            (format "%s ..." ,message-sym)
+            :without-log-message-before-eemacs-init-done t))
+         (prog1 (let ((message-log-max ,msg-max-ov-sym))
+                  (prog1 ,(entropy/emacs-macroexp-progn body)
+                    (setq ,new-curmsg-sym (current-message)
+                          ,new-curmsg-np-sym
+                          (or (equal ,new-curmsg-sym ,curmsg-sym)
+                              (and ,progress-reporter-sym
+                                   ;; FIXME: how we prevent body
+                                   ;; yielding same message as current
+                                   ;; progress start message?
+                                   (equal ,new-curmsg-sym ,progmsg-sym))))))
+           ;; NOTE: we just update the reporter when body doesn't yield
+           ;; any messages, if not, we should respect the BODY's
+           ;; behaviour.
+           (when (and ,progress-reporter-sym ,new-curmsg-np-sym)
+             (progress-reporter-done ,progress-reporter-sym)
+             (when ,with-rest-doing-msg
+               (let ((message-log-max nil)) (message "λ ... "))))
+           (when (and ,message-sym ,curmsg-sym)
+             (let (
+                   ;; we has no reason to log the old msg again since we
+                   ;; just need to let be shown in echo area.
+                   (message-log-max nil))
+               (when (and ,with-tmpmsg-sym ,new-curmsg-np-sym
+                          (if (functionp ,ignmsgs-sym)
+                              (not (funcall ,ignmsgs-sym ,curmsg-sym))
+                            (not (member ,curmsg-sym ,ignmsgs-sym))))
+                 (message "%s" ,curmsg-sym)))))))))
 
 (defmacro entropy/emacs-message-make-func-with-simple-progress-prompts
     (func-name &optional message &rest args)

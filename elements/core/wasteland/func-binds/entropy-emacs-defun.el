@@ -11280,15 +11280,21 @@ user end in this case."
              with-default-directory-as))
        temporary-file-directory)
    :load-custom-file-p load-custom-file-p
-   (async-start
-    `(lambda (&rest _)
-       (let ((start-file
-              (expand-file-name
-               "init.el" ,entropy/emacs-user-emacs-directory)))
-         (load start-file)
-         ,start-form))
-    `(lambda ($async-result)
-       ,finish-form))))
+   (let (
+         ;; we should always press the debugger from running spawns so
+         ;; that the `async-debug' is pressed either where judge the
+         ;; spawn's exit status via the `process-exit-status' instead
+         ;; of a debugger raising.
+         (debug-on-error nil))
+     (async-start
+      `(lambda (&rest _)
+         (let ((start-file
+                (expand-file-name
+                 "init.el" ,entropy/emacs-user-emacs-directory)))
+           (load start-file)
+           ,start-form))
+      `(lambda ($async-result)
+         ,finish-form)))))
 
 (cl-defun entropy/emacs-run-body-with-eemacs-pure-env
     (&rest body

@@ -2702,6 +2702,18 @@ mechanism."
   entropy/emacs-basic--image-dired-diswin-wierrwnolive-p
   nil)
 
+(entropy/emacs-defconst/only-allow/local
+  entropy/emacs-basic--image-dired-cache-thumbnail-htable/var nil)
+(defun entropy/emacs-basic--image-dired-cache-thumbnail-htable/make
+    (origfiles)
+  (cons origfiles (make-hash-table :test 'equal)))
+(defun entropy/emacs-basic--image-dired-cache-thumbnail-htable/add
+    (origfile thumbfile ccht)
+  (puthash origfile thumbfile (cdr ccht)))
+(defun entropy/emacs-basic--image-dired-cache-thumbnail-htable/get
+    (origfile ccht)
+  (gethash origfile (cdr ccht)))
+
 ;; ***** core
 (entropy/emacs-basic-image-dired-use-package image-dired
   :ensure nil
@@ -2759,12 +2771,18 @@ killed to prevent garbage resources remained in system."
   (cond
    ((or (daemonp) (not noninteractive))
     (defvar __ya/image-dired-create-thumb--idle-timer nil)
-    (defun __ya/image-dired-create-thumb (original-file thumbnail-file)
+    (cl-defun __ya/image-dired-create-thumb (original-file thumbnail-file)
       "Same as `image-dired-create-thumb' but use a single idle timer to
 notice the queue run instead of populating a immediately timer in
 each creation occurred since the queue guard
 `image-dired-thumb-queue-run' will also ran in the process
 sentinel of `image-dired-create-thumb-1'."
+      (when-let ((ccht entropy/emacs-basic--image-dired-cache-thumbnail-htable/var))
+        ;; even if the thumb not exist but we should respect the cache.
+        (when (entropy/emacs-basic--image-dired-cache-thumbnail-htable/get
+               original-file ccht)
+          (cl-return-from __ya/image-dired-create-thumb
+            nil)))
       (setq image-dired-queue
             (nconc image-dired-queue
                    (list (list original-file thumbnail-file))))
@@ -2876,10 +2894,12 @@ with nested LEVEL restriction based on
                (let ((entropy/emacs-basic--image-dired-inhibit-arbitary-image-file-name-regexp
                       t))
                  (image-file-name-regexp))))
+          (ccht entropy/emacs-basic--image-dired-cache-thumbnail-htable/var)
           files)
       (entropy/emacs-setf-by-body files
         (or
          files
+         (and ccht (car ccht))
          (let ((dir
                 (and dir (file-directory-p dir) dir))
                (level
@@ -3039,6 +3059,7 @@ session to generate thumbs as a standalone process."
        (list choose-dir choose-level)))
     (let (files
           thumbfile
+          ccht
           ;; we should grab image filename regex inhibits the filter
           ;; shown below since the advice
           ;; `__ya/image-dired/image-file-name-regexp'.
@@ -3057,11 +3078,21 @@ session to generate thumbs as a standalone process."
             :with-regexp rex))
          (entropy/emacs-error-without-debugger
           "No images found use level %s in dir: %s" level dir)))
+      (and noninteractive
+           (setq ccht
+                 (entropy/emacs-basic--image-dired-cache-thumbnail-htable/make
+                  files)))
       (dolist (el files)
-        (or (setq thumbfile (image-dired-thumb-name el))
-            (error "Thumbfile name can not generated of: %s" el))
-        (unless (file-exists-p thumbfile)
-          (image-dired-create-thumb el thumbfile)))
+        (entropy/emacs-message-simple-progress-message
+            (format "Getting thumbnail file for image: %s" el)
+          :without-msg (not noninteractive)
+          (or (setq thumbfile (image-dired-thumb-name el))
+              (error "Thumbfile name can not generated of: %s" el))
+          (and ccht
+               (entropy/emacs-basic--image-dired-cache-thumbnail-htable/add
+                el thumbfile ccht))
+          (unless (file-exists-p thumbfile)
+            (image-dired-create-thumb el thumbfile))))
       (entropy/emacs-when-let*-firstn 2
           ((noninteractive)
            (que-len (length image-dired-queue))
@@ -3070,7 +3101,7 @@ session to generate thumbs as a standalone process."
             (catch :break
               (unless image-dired-queue
                 (setq cbk
-                      (cons t
+                      (cons (or ccht t)
                             (list
                              (format
                               "No need do any further operations \
@@ -3081,7 +3112,7 @@ since all images' thumbs had already generated of dir: %s"
               (entropy/emacs-sleep-while image-dired-queue)
               (entropy/emacs-setf-by-body cbk
                 (cons
-                 t
+                 (or ccht t)
                  (list
                   (format "All %d thumbs generation of \
 dir \"%s\" have been done successfully."
@@ -3092,7 +3123,7 @@ dir \"%s\" have been done successfully."
   (defun entropy/emacs-image-dired-batch-gen-thumbs-async--guard
       (proc tmsym cbksym dir level regexp)
     (let* ((cbk (symbol-value cbksym))
-           (succp (and cbk (eq t (car cbk))))
+           (succp (and cbk (car cbk)))
            (tmi (symbol-value tmsym)))
       (or (processp proc)
           (progn (setq proc nil) (cancel-timer tmi)))
@@ -3112,8 +3143,10 @@ generation with fatal(exit: %s) of dir (level: %s regex: \"%s\"): %s"
                      (cdr cbk))
             (cancel-timer tmi)
             (when (and succp (current-idle-time) (display-graphic-p))
-              (entropy/emacs-image-dired-display-thumbs-recursively
-               dir level regexp)))))))
+              (let ((entropy/emacs-basic--image-dired-cache-thumbnail-htable/var
+                     succp))
+                (entropy/emacs-image-dired-display-thumbs-recursively
+                 dir level regexp))))))))
 
   (defun entropy/emacs-image-dired-batch-gen-thumbs-async (dir &optional level)
     "Same as `entropy/emacs-image-dired-batch-gen-thumbs' but in async
@@ -3946,8 +3979,16 @@ standard (https://specifications.freedesktop.org/thumbnail-spec/thumbnail-spec-l
 just reuse thumbs with same checksum of the file uri which is
 seems not adapting for our daily re-usage aims i.e. file with
 same checksum should has re-use same thumb."
-    (let ((file (expand-file-name file)))
-      (cond ((memq image-dired-thumbnail-storage
+    (let ((file (expand-file-name file))
+          (ccht
+           entropy/emacs-basic--image-dired-cache-thumbnail-htable/var)
+          ccthumbf)
+      (cond ((and ccht
+                  (setq ccthumbf
+                        (entropy/emacs-basic--image-dired-cache-thumbnail-htable/get
+                         file ccht)))
+             ccthumbf)
+            ((memq image-dired-thumbnail-storage
                    __ya/image-dired-thumbnail-standard-sizes)
              (let* ((thumbdir (cl-case image-dired-thumbnail-storage
                                 (standard "thumbnails/normal")
