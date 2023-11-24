@@ -1398,9 +1398,9 @@ the usual *echo area* on where user notice oftenly."
 (defmacro entropy/emacs-!message-when-debug (format-string &rest args)
   "Like `entropy/emacs-!message' but message just when in eemacs
 debug cases. (see `entropy/emacs-log-suggest-push-output-p')"
-  (let ((sym (make-symbol "it")))
+  (let (_)
     `(when (entropy/emacs-log-suggest-push-output-p)
-       (entropy/emacs-!message format-string args))))
+       (entropy/emacs-!message ,format-string ,@args))))
 
 ;; *** eemacs-require-func
 
