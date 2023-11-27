@@ -526,6 +526,7 @@ notation.
   (entropy/emacs-start--require-with-duration-log 'entropy-emacs-go)
   (entropy/emacs-start--require-with-duration-log 'entropy-emacs-rust)
   (entropy/emacs-start--require-with-duration-log 'entropy-emacs-yaml)
+  (entropy/emacs-start--require-with-duration-log 'entropy-emacs-docker)
   ;; For tramp
   (entropy/emacs-start--require-with-duration-log 'entropy-emacs-tramp)
   ;; For game
