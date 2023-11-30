@@ -724,7 +724,7 @@ Browser chosen based on variable
             (browse-url-browser-function
              (let (rtn choices)
                (when (functionp entropy/emacs-browse-url-function)
-                 (cl-pushnew `("personal" ,entropy/emacs-browse-url-function)
+                 (cl-pushnew '("personal" entropy/emacs-browse-url-user-browser)
                              choices))
                (when (executable-find "w3m")
                  (cl-pushnew `("w3m" ,(lambda (url &rest _)
@@ -970,7 +970,8 @@ effective then adding option of personal browse url function that be in ordered 
          ((string= choice "default")
           (entropy/emacs-textwww--setting-default-browser 'browse-url-default-browser))
          ((string= choice "personal")
-          (entropy/emacs-textwww--setting-default-browser entropy/emacs-browse-url-function))
+          (entropy/emacs-textwww--setting-default-browser
+           'entropy/emacs-browse-url-user-browser))
          ((string= choice "w3m")
           (entropy/emacs-textwww--setting-default-browser 'entropy/emacs-textwww--w3m-browse-url))
          (t
@@ -997,13 +998,13 @@ effective then adding option of personal browse url function that be in ordered 
 (when (and entropy/emacs-enable-personal-browse-url-function
            (functionp entropy/emacs-browse-url-function))
   (if (not (executable-find "w3m"))
-      (entropy/emacs-textwww--setting-default-browser entropy/emacs-browse-url-function)
+      (entropy/emacs-textwww--setting-default-browser
+       'entropy/emacs-browse-url-default-browser)
     (if sys/is-graphic-support
         (entropy/emacs-textwww--setting-default-browser
-         entropy/emacs-browse-url-function)
+         'entropy/emacs-browse-url-default-browser)
       (entropy/emacs-textwww--setting-default-browser
        'entropy/emacs-textwww--w3m-browse-url))))
-
 
 ;; * provide
 (provide 'entropy-emacs-textwww)

@@ -310,10 +310,8 @@ Trying insert some words in below are:
 The main goal for this advice function was to chanage startup
 screen's `browse-url-browse-function' to
 `entropy/emacs-browse-url-function'."
-  (if (and entropy/emacs-browse-url-function entropy/emacs-enable-personal-browse-url-function)
-      (setq-local browse-url-browser-function entropy/emacs-browse-url-function)
-    (setq-local browse-url-browser-function 'browse-url-default-browser)))
-
+  (setq-local browse-url-browser-function
+              'entropy/emacs-browse-url-default-browser))
 
 (defun entropy/emacs-start--about-emacs-after-advice (&rest _)
   "The advice when `entropy/emacs-browse-url-function' was detectived.
@@ -322,9 +320,8 @@ The main goal for this advice function was to chanage \"About
 Emacs\" buffer's local `browse-url-browse-function' to
 `entropy/emacs-browse-url-function'."
   (with-current-buffer "*About GNU Emacs*"
-    (if (and entropy/emacs-browse-url-function entropy/emacs-enable-personal-browse-url-function)
-        (setq-local browse-url-browser-function entropy/emacs-browse-url-function)
-      (setq-local browse-url-browser-function 'browse-url-default-browser))))
+    (setq-local browse-url-browser-function
+                'entropy/emacs-browse-url-default-browser)))
 
 (advice-add 'fancy-startup-screen :after #'entropy/emacs-start--startup-screen-after-advice)
 

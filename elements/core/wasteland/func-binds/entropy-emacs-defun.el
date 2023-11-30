@@ -58,7 +58,9 @@
 (declare-function async-start "ext:async")
 (declare-function ivy-state-prompt "ext:ivy")
 (declare-function doom-modeline-refresh-bars "ext:doom-modeline")
-(declare-function xclip-mode "xclip")
+(declare-function xclip-mode "ext:xclip")
+(declare-function browse-url-interactive-arg "browse-url")
+(declare-function browse-url-encode-url "browse-url")
 
 ;; ** internal libs
 
@@ -13569,6 +13571,35 @@ WHEN-GUI WHEN-GUI-EACH WHEN-TUI WHEN-TUI-EACH WITH-LEXICAL-BINDINGS &rest BODY)"
     (&rest _)
     "Reset eemacs icon available judgement stub."
     (entropy/emacs-icons-displayable-p t)))
+
+;; *** Browse url specification
+
+(defun entropy/emacs-browse-url-user-browser (url &rest args)
+  "Like `browse-url-default-browser' but call
+`entropy/emacs-browse-url-function'. Error when either such
+function is not set or invalid or fatal of invocation.
+
+\(fn URL &rest ARGS)"
+  (interactive (browse-url-interactive-arg "URL: "))
+  (setq url (browse-url-encode-url url))
+  (let* ((func entropy/emacs-browse-url-function)
+         (nm "entropy/emacs-browse-url-function")
+         (errfunc
+          (lambda (&rest fmts)
+            (error "[%s]: %s" nm (apply 'format fmts)))))
+    (condition-case err (apply func url args)
+      (error
+       (funcall errfunc "fatal with: %s" err)))))
+
+(defun entropy/emacs-browse-url-default-browser (url &rest args)
+  "Like `browse-url-default-browser' but for eemacs spec.
+
+\(fn URL &rest ARGS)"
+  (let (_)
+    (cond
+     ((functionp entropy/emacs-browse-url-function)
+      (apply 'entropy/emacs-browse-url-user-browser url args))
+     (t (apply 'browse-url-default-browser url args)))))
 
 ;; *** Proxy specification
 ;; **** process env with eemacs union internet proxy

@@ -1022,7 +1022,8 @@ The minor changing was compat for above."
                                           (default 'browse-url-default-browser)
                                           (eww 'eww-browse-url)
                                           (emacs-w3m 'entropy/emacs-textwww--w3m-browse-url)
-                                          (entropy-browse-url-function entropy/emacs-browse-url-function))))
+                                          (entropy-browse-url-function
+                                           'entropy/emacs-browse-url-user-browser))))
       (apply oldfun args)))
   (advice-add 'elfeed-search-browse-url :around #'entropy/emacs-rss--elfeed-browse-url-around)
   (advice-add 'elfeed-show-visit :around #'entropy/emacs-rss--elfeed-browse-url-around)

@@ -988,7 +988,7 @@ context."
      ((eq t entropy/emacs-browse-url-function-for-web-preview)
       'browse-url-default-browser)
      ((eq nil entropy/emacs-browse-url-function-for-web-preview)
-      browse-url-browser-function)
+      'entropy/emacs-browse-url-default-browser)
      ((functionp entropy/emacs-browse-url-function-for-web-preview)
       entropy/emacs-browse-url-function-for-web-preview)
      (t
