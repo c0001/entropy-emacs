@@ -388,17 +388,18 @@ With prefix argument binds, jump to the previous mark place."
     "This advice let `dired-revert' takes care of the user nervousness
 and result feedback for a refresh of the result of the directory
 user expected to known about."
-    (if (not (eq this-command 'revert-buffer))
-        ;; only for diretly interactiely invoking `revert-buffer' so
-        ;; that doesn't pollute msg from other commands.
-        (apply orig-func orig-args)
-      (entropy/emacs-message-simple-progress-message
-          (let ((cur-buff (current-buffer))
-                (fmstr "Reverting dired buffer %S"))
-            (when (bound-and-true-p dired-omit-mode)
-              (setq fmstr (concat fmstr " (with omitting nodes)")))
-            (format fmstr cur-buff))
-        (apply orig-func orig-args))))
+    (entropy/emacs-message-simple-progress-message
+        (let ((cur-buff (current-buffer))
+              (fmstr "Reverting dired buffer %S"))
+          (when (bound-and-true-p dired-omit-mode)
+            (setq fmstr (concat fmstr " (with omitting nodes)")))
+          (format fmstr cur-buff))
+      :with-temp-message
+      ;; only preserve progress msg for diretly interactiely
+      ;; invocation of `revert-buffer' so that doesn't pollute msg
+      ;; from other commands.
+      (not (eq (selected-window) (get-buffer-window)))
+      (apply orig-func orig-args)))
   (advice-add 'dired-revert
               :around
               #'__ya/dired-revert/with-prompting)
