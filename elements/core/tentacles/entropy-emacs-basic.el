@@ -3453,17 +3453,33 @@ point."
                  (signal (car err) (cdr err))))))))))
 
   (defun entropy/emacs-image-dired-idle-track-orig-file ()
-    "Like `image-dired-track-original-file' but run with idle timer."
-    (when image-dired-track-movement
+    "Like `image-dired-track-original-file' but run with idle timer in
+proper cases."
+    (entropy/emacs-when-let*-firstn 1
+        ((image-dired-track-movement)
+         (thumb-buff (current-buffer))
+         idlep)
       (entropy/emacs-run-at-idle-immediately
        entropy/emacs-image-dired-track-orig-file--with-idle
        :idle-when
-       (not (eq this-command
-                'entropy/emacs-image-dired-thumbnail-mode-pop-assoc-dired))
+       (entropy/emacs-setf-by-body idlep
+         (and
+          ;; only idle the tracking while do ops in
+          ;; `image-dired-thumbnail-mode' buffer, otherwise we should
+          ;; respect lisp execution order.
+          (eq major-mode 'image-dired-thumbnail-mode)
+          (not (eq this-command
+                   'entropy/emacs-image-dired-thumbnail-mode-pop-assoc-dired))))
        :which-hook 1
-       :current-buffer (current-buffer)
-       (entropy/emacs-image-dired-idle-track-orig-file--core
-        (current-buffer)))))
+       (unless
+           (and idlep
+                ;; if in the idle way, we should thought whether the
+                ;; `current-buffer' is still in that thumb buffer,
+                ;; otherwise we should not run the track anymore since
+                ;; user may track manually in prev interaction yet.
+                (not (eq thumb-buff (current-buffer))))
+         (entropy/emacs-image-dired-idle-track-orig-file--core
+          thumb-buff)))))
 
 ;; ******* patch
 ;; ******** core
