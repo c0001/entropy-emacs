@@ -193,7 +193,7 @@
   (defun entropy/emacs-rss--elfeed-search-update ()
     (elfeed-search-update--force))
 
-  (defvar entropy/emamcs-rss--elfeed-save-custom t) ;default to `t' to suitable for subroutines patches
+  (defvar entropy/emacs-rss--elfeed-save-custom t) ;default to `t' to suitable for subroutines patches
   (defvar entropy/emacs-rss--elfeed-use-proxy-p nil)
   (defvar entropy/emacs-rss--elfeed-gen-feeds-done nil
     "NOTE: Internal indicator for eemacs elfeed config initial, do
@@ -265,7 +265,7 @@ to `elfeed-feeds'."
                           (cdr el))
                     tmpvar)))
           (setq entropy/emacs-elfeed-feeds tmpvar)
-          (when entropy/emamcs-rss--elfeed-save-custom
+          (when entropy/emacs-rss--elfeed-save-custom
             (customize-save-variable 'entropy/emacs-elfeed-feeds
                                      tmpvar)))
         (entropy/emacs-elfeed-feeds--gen-feeds t))))
@@ -291,7 +291,7 @@ instead."
     (let* ((hexi-url (entropy/emacs-rss--elfeed-url-hexify url))
            (use-proxy-p (yes-or-no-p "With proxy?"))
            (new-feeds-plists (list (list hexi-url :use-proxy use-proxy-p)))
-           (entropy/emamcs-rss--elfeed-save-custom save))
+           (entropy/emacs-rss--elfeed-save-custom save))
       (setq entropy/emacs-elfeed-feeds
             (append entropy/emacs-elfeed-feeds
                     new-feeds-plists))
@@ -462,7 +462,7 @@ Optional arg FEEDS-PLIST-NAME if nil, pruning
                  0 2
                  #'entropy/emacs-rss--elfeed-update/fetch-proxy-feeds-guard))))))
 
-  (defun entropy/emacs-rss--elfeed-update/fetch-comon-feeds-guard (proxy-feeds)
+  (defun entropy/emacs-rss--elfeed-update/fetch-common-feeds-guard (proxy-feeds)
     (let ((inhibit-quit t))
       (if (entropy/emacs-rss--elfeed-process-running-p)
           (message "Waiting for non-proxy feeds retrieve done ...")
@@ -497,7 +497,7 @@ is not run normally")
         (setq entropy/emacs-rss--elfeed-update/fetch-common-feeds/guard-timer
               (run-with-timer
                0 2
-               #'entropy/emacs-rss--elfeed-update/fetch-comon-feeds-guard
+               #'entropy/emacs-rss--elfeed-update/fetch-common-feeds-guard
                proxy-feeds)))))
 
   (defun entropy/emacs-rss--elfeed-fetch-feeds (elfeed-feeds-rich)
