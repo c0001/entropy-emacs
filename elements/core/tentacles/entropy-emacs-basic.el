@@ -6342,7 +6342,29 @@ successfully both of situation of read persisit of create an new."
        '(epg-gpgsm-program
          (expand-file-name
           "gpgsm.exe"
-          entropy/emacs-microsoft-windows-unix-emulator-bin-path))))))
+          entropy/emacs-microsoft-windows-unix-emulator-bin-path)))))
+  :config
+
+  ;; EEMACS_MAINTENANCE: gnupg 2.4.1 and higher will freeze emacs when
+  ;; saving *.gpg file since its incompatible updates. For now we've
+  ;; use a temporarily workaround for it but not perfect, thus we
+  ;; should follow gpg official discussion and updates.
+  (when-let*
+      ((gpgobj
+        (epg-config--make-gpg-configuration epg-gpg-program))
+       (gpgver
+        (alist-get 'version gpgobj)))
+    (when (and (version<= "2.4.1" gpgver)
+               ;; EEMACS_MAINTENANCE: follow news of the gnupg
+               ;; upstream for version that fixed this problem.
+               t)
+      (warn "\
+gpg version \"%s\" detected, therefore \
+defalias of `ignore' to the function `epg-wait-for-status' \
+since the incompatible updates of gpg-agent since version \"2.4.1\", \
+see https://emacs-china.org/t/gnupg-2-4-1-easypg/25264 for details"
+            gpgver)
+      (advice-add 'epg-wait-for-status :around 'ignore))))
 
 ;; **** Autocompression moode
 
