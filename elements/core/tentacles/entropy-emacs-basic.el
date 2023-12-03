@@ -6319,6 +6319,7 @@ successfully both of situation of read persisit of create an new."
 ;; **** Epa (emacs gpg assistant)
 (use-package epa
   :ensure nil
+  :eemacs-functions (epa-file-enable)
   :init
   (entropy/emacs-lazy-initial-for-hook
    '(dired-mode-hook find-file-hook)
@@ -6327,23 +6328,24 @@ successfully both of situation of read persisit of create an new."
    :pdumper-no-end t
    (epa-file-enable))
 
-  (when (and entropy/emacs-microsoft-windows-unix-emulator-enable
-             (file-exists-p entropy/emacs-microsoft-windows-unix-emulator-bin-path))
-    (entropy/emacs-lazy-load-simple 'custom
-      (custom-set-variables
-       '(epg-gpg-program
-         (expand-file-name
-          "gpg.exe"
-          entropy/emacs-microsoft-windows-unix-emulator-bin-path))
-       '(epg-gpgconf-program
-         (expand-file-name
-          "gpgconf.exe"
-          entropy/emacs-microsoft-windows-unix-emulator-bin-path))
-       '(epg-gpgsm-program
-         (expand-file-name
-          "gpgsm.exe"
-          entropy/emacs-microsoft-windows-unix-emulator-bin-path)))))
   :config
+
+  (when (and sys/win32p
+             entropy/emacs-microsoft-windows-unix-emulator-enable
+             (file-directory-p entropy/emacs-microsoft-windows-unix-emulator-bin-path))
+    (progn
+      (setq epg-gpg-program
+            (expand-file-name
+             "gpg.exe"
+             entropy/emacs-microsoft-windows-unix-emulator-bin-path))
+      (setq epg-gpgconf-program
+            (expand-file-name
+             "gpgconf.exe"
+             entropy/emacs-microsoft-windows-unix-emulator-bin-path))
+      (setq epg-gpgsm-program
+            (expand-file-name
+             "gpgsm.exe"
+             entropy/emacs-microsoft-windows-unix-emulator-bin-path))))
 
   ;; EEMACS_MAINTENANCE: gnupg 2.4.1 and higher will freeze emacs when
   ;; saving *.gpg file since its incompatible updates. For now we've
