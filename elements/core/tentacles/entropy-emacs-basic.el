@@ -4250,37 +4250,23 @@ usage, this is the most difference from
            (odbffp (dired-buffers-for-dir file-dir))
            (no-native-track-p (or (not image-dired-track-movement)
                                   (not odbffp)))
-           (use-ddirp
-            (or
-             arg
-             (and
-              no-native-track-p
-              (not (file-equal-p file-ddir file-dir))
-              ;; if a dired buffer lived for the file host,
-              ;; then we don't ask even futher since that's redundant
-              ;; from the interactive indicator usage.
-              (not odbffp)
-              (yes-or-no-p
-               (substitute-quotes
-                "`image-dired-track-movement' is disabled
-or associated dired buffer is not lived,
-so that eemacs will create a fresh new associated dired buffer,
-goto file's host dir node (y) or tracking the file as normally (n)? "
-                ))))))
+           (use-ddirp arg))
       (unless no-native-track-p
         (unless (buffer-live-p assoc-dired-buffer)
-          (setq assoc-dired-buffer (dired-noselect file-dir))))
+          (setq assoc-dired-buffer (dired-noselect file-dir)
+                assoc-dired-buffname (buffer-name assoc-dired-buffer))))
       (cond
        ((or use-ddirp no-native-track-p)
         (let (fname)
           (cond
            (use-ddirp
             (setq assoc-dired-buffer (dired-noselect file-ddir)
+                  assoc-dired-buffname (buffer-name assoc-dired-buffer)
                   fname file-dir))
            (t
             (setq assoc-dired-buffer (dired-noselect file-dir)
+                  assoc-dired-buffname (buffer-name assoc-dired-buffer)
                   fname file-name)))
-          (setq assoc-dired-buffname (buffer-name assoc-dired-buffer))
           (with-current-buffer assoc-dired-buffer
             (when-let ((pt (progn (dired-goto-file fname) (point)))
                        (dbfwin (get-buffer-window assoc-dired-buffer)))
