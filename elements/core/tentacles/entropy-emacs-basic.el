@@ -4262,10 +4262,14 @@ usage, this is the most difference from
               (not odbffp)
               (yes-or-no-p
                (substitute-quotes
-                "`image-dired-track-movement' is disabled,
+                "`image-dired-track-movement' is disabled
+or associated dired buffer is not lived,
 so that eemacs will create a fresh new associated dired buffer,
 goto file's host dir node (y) or tracking the file as normally (n)? "
                 ))))))
+      (unless no-native-track-p
+        (unless (buffer-live-p assoc-dired-buffer)
+          (setq assoc-dired-buffer (dired-noselect file-dir))))
       (cond
        ((or use-ddirp no-native-track-p)
         (let (fname)
@@ -4294,7 +4298,14 @@ goto file's host dir node (y) or tracking the file as normally (n)? "
           ;; `entropy/emacs-image-dired-idle-track-orig-file' to idle
           ;; tracking orig file in most of case which may not did done
           ;; yet.
-          (image-dired-track-original-file)
+          (with-current-buffer assoc-dired-buffer
+            ;; NOTE: we do not use original
+            ;; `image-dired-track-original-file' since the dired
+            ;; buffer may not lived and the new one we made is not
+            ;; internally 'associated' with the thumbnail buffer.
+            (when-let ((pt (progn (dired-goto-file file-name) (point)))
+                       (dbfwin (get-buffer-window assoc-dired-buffer)))
+              (set-window-point dbfwin pt)))
           (let (_)
             (with-current-buffer assoc-dired-buffer
               (unless (entropy/emacs-dired-fname-line-p
