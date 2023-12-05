@@ -4226,17 +4226,66 @@ With `%s' style." ,cmdnm (if ,fb "forbidden" "query")))
 
   ;; declare it as dynamic binding firstly
   (defvar shackle-rules)
-  (defun entropy/emacs-image-dired-thumbnail-mode-pop-assoc-dired ()
-    "Popup associated dired buffer in current image dired thumbnail buffer."
+  (defun entropy/emacs-image-dired-thumbnail-mode-pop-assoc-dired (arg)
+    "Popup associated dired buffer in current image dired thumbnail buffer.
+
+If prefix ARG is non-nil goto its host dir node line in its grand
+dir's dired buffer.
+
+If `image-dired-track-movement' is not set or the associated
+dired buffer not lived, eemacs will automatically open one for
+usage, this is the most difference from
+`image-dired-track-original-file'."
     (declare (interactive-only t))
-    (interactive nil image-dired-thumbnail-mode)
+    (interactive "P" image-dired-thumbnail-mode)
     (unless (string-equal major-mode "image-dired-thumbnail-mode")
       (user-error "Not in image-dired-thumbnail-mode"))
-    (when (or image-dired-track-movement
-              (user-error "`image-dired-track-movement' is disabled"))
-      (with-current-buffer (entropy/emacs-image-dired-find-thumbnails-buffer)
-        (let ((assoc-dired-buffer (image-dired-associated-dired-buffer))
-              (file-name (image-dired-original-file-name)))
+    (let* ((assoc-dired-buffer (image-dired-associated-dired-buffer))
+           (assoc-dired-buffname (and assoc-dired-buffer
+                                      (buffer-name assoc-dired-buffer)))
+           (file-name (image-dired-original-file-name))
+           (file-dir (file-name-directory file-name))
+           (file-ddir (file-name-directory
+                       (directory-file-name file-dir)))
+           (odbffp (dired-buffers-for-dir file-dir))
+           (no-native-track-p (or (not image-dired-track-movement)
+                                  (not odbffp)))
+           (use-ddirp
+            (or
+             arg
+             (and
+              no-native-track-p
+              (not (file-equal-p file-ddir file-dir))
+              ;; if a dired buffer lived for the file host,
+              ;; then we don't ask even futher since that's redundant
+              ;; from the interactive indicator usage.
+              (not odbffp)
+              (yes-or-no-p
+               (substitute-quotes
+                "`image-dired-track-movement' is disabled,
+so that eemacs will create a fresh new associated dired buffer,
+goto file's host dir node (y) or tracking the file as normally (n)? "
+                ))))))
+      (cond
+       ((or use-ddirp no-native-track-p)
+        (let (fname)
+          (cond
+           (use-ddirp
+            (setq assoc-dired-buffer (dired-noselect file-ddir)
+                  fname file-dir))
+           (t
+            (setq assoc-dired-buffer (dired-noselect file-dir)
+                  fname file-name)))
+          (setq assoc-dired-buffname (buffer-name assoc-dired-buffer))
+          (with-current-buffer assoc-dired-buffer
+            (when-let ((pt (progn (dired-goto-file fname) (point)))
+                       (dbfwin (get-buffer-window assoc-dired-buffer)))
+              ;; NOTE: we should sync window point when buffer
+              ;; displayed so that the track visually updated, or the
+              ;; window point not changed even when tracked yet.
+              (set-window-point dbfwin pt)))))
+       (t
+        (with-current-buffer (entropy/emacs-image-dired-find-thumbnails-buffer)
           (unless (and (bufferp assoc-dired-buffer)
                        (buffer-live-p assoc-dired-buffer))
             (user-error "No associated dired-buffer found!"))
@@ -4246,7 +4295,7 @@ With `%s' style." ,cmdnm (if ,fb "forbidden" "query")))
           ;; tracking orig file in most of case which may not did done
           ;; yet.
           (image-dired-track-original-file)
-          (let ((buffer-name (buffer-name assoc-dired-buffer)))
+          (let (_)
             (with-current-buffer assoc-dired-buffer
               (unless (entropy/emacs-dired-fname-line-p
                        :move-to-filename t)
@@ -4256,22 +4305,23 @@ With `%s' style." ,cmdnm (if ,fb "forbidden" "query")))
                   (user-error "Image in Dired buffer not exist for tracking"))
                 (unless (file-equal-p fname file-name)
                   (user-error "Image in Dired buffer not equal \"%s\" for tracking"
-                              file-name))))
-            (if (bound-and-true-p shackle-mode)
-                (let* ((shackle-rules
-                        (or (and (ignore-errors (shackle-match buffer-name)) shackle-rules)
-                            `((,buffer-name :select t :size 0.4 :align below :autoclose t)))))
-                  (display-buffer assoc-dired-buffer)
-                  (message "Shackle popup to dired buffer <%s>" buffer-name))
-              (pop-to-buffer assoc-dired-buffer)
-              (message "Native popup to dired buffer <%s>" buffer-name)))))))
+                              file-name))))))))
+      (let ((buffer-name assoc-dired-buffname))
+        (if (bound-and-true-p shackle-mode)
+            (let* ((shackle-rules
+                    (or (and (ignore-errors (shackle-match buffer-name)) shackle-rules)
+                        `((,buffer-name :select t :size 0.4 :align below :autoclose t)))))
+              (display-buffer assoc-dired-buffer)
+              (message "Shackle popup to dired buffer <%s>" buffer-name))
+          (pop-to-buffer assoc-dired-buffer)
+          (message "Native popup to dired buffer <%s>" buffer-name)))))
 
 ;; ******** jump to associated dired buffer
 
   (defun entropy/emacs-image-dired-jump-original-dired-buffer ()
     "Like `image-dired-jump-original-dired-buffer' but try to display
-the origin dired buffer first so that we commonly can did
-successfully for this operation."
+the exist associated dired window first to prevent poping out the
+new one."
     (declare (interactive-only t))
     (interactive)
     (let* ((buff (image-dired-associated-dired-buffer))
@@ -4281,7 +4331,8 @@ successfully for this operation."
                    (window-live-p win))
         (setq win nil)
         (when buff
-          (entropy/emacs-image-dired-thumbnail-mode-pop-assoc-dired)
+          (call-interactively
+           'entropy/emacs-image-dired-thumbnail-mode-pop-assoc-dired)
           (setq win (get-buffer-window buff))))
       (if win
           (progn
