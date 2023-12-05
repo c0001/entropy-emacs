@@ -3228,6 +3228,9 @@ way."
                ,(entropy/emacs-macroexp-progn body)))
            (forward-char)))))))
 
+;; NOTE: declare this since we've no-require `image-dired' which will
+;; cause bytecomp warns.
+(defvar image-dired-thumbnail-mode-map)
 (entropy/emacs-basic-image-dired-use-package image-dired
   :ensure nil
   ;; NOTE: emacs 29's `image-dired' has lots of obsolte declarations,
@@ -3246,6 +3249,14 @@ way."
     (("RET" image-dired-display-thumbnail-original-image
       "Display current thumbnail’s original image"
       :enable t :map-inject t :exit t)
+     ("C-a" entropy/emacs-image-dired-move-beginning-of-line
+      "Move to the beginning of current line in thumbnail buffer."
+      ;; just enable for 29 upper ver. since the subroutine is not
+      ;; defined under thus.
+      :enable (> emacs-major-version 28) :map-inject t :exit t)
+     ("C-e" entropy/emacs-image-dired-move-end-of-line
+      "Move to the end of current line in thumbnail buffer."
+      :enable (> emacs-major-version 28) :map-inject t :exit t)
      ("C-<return>" entropy/emacs-image-dired-thumbnail-mode-open-as-external
       "Display current thumbnail’s original image with external app"
       :enable t :map-inject t :exit t)
@@ -3288,10 +3299,10 @@ way."
            :other-rest-args ((image-dired image-dired-thumbnail-mode-map)))
       "Navigation on display buffer"
       :enable t :exit t)
-     ("SPC" image-dired-display-next-thumbnail-original
+     ("SPC" entropy/emacs-image-dired-display-next-thumbnail-original
       "Move to next thumbnail and display the image."
       :enable t :exit t :map-inject t)
-     ("DEL" image-dired-display-previous-thumbnail-original
+     ("DEL" entropy/emacs-image-dired-display-previous-thumbnail-original
       "Move to previous thumbnail and display image."
       :enable t :exit t :map-inject t))
     "Mark&Track"
@@ -4466,6 +4477,9 @@ window has no image displayed i.e. is invalid!"))
     (when image-dired-track-movement
       (entropy/emacs-image-dired-idle-track-orig-file))
     (image-dired-display-thumb-properties))
+  (define-key image-dired-thumbnail-mode-map
+              [remap forward-char]
+              #'entropy/emacs-image-dired-forward-image)
 
   (entropy/emacs-define-smooth-continuous-command
       entropy/emacs-image-dired-backward-image (&optional arg)
@@ -4488,6 +4502,9 @@ window has no image displayed i.e. is invalid!"))
     (when image-dired-track-movement
       (entropy/emacs-image-dired-idle-track-orig-file))
     (image-dired-display-thumb-properties))
+  (define-key image-dired-thumbnail-mode-map
+              [remap backward-char]
+              #'entropy/emacs-image-dired-backward-image)
 
   (entropy/emacs-define-smooth-continuous-command
       entropy/emacs-image-dired-next-line ()
@@ -4504,6 +4521,9 @@ window has no image displayed i.e. is invalid!"))
     (if image-dired-track-movement
         (entropy/emacs-image-dired-idle-track-orig-file))
     (image-dired-display-thumb-properties))
+  (define-key image-dired-thumbnail-mode-map
+              [remap next-line]
+              #'entropy/emacs-image-dired-next-line)
 
   (entropy/emacs-define-smooth-continuous-command
       entropy/emacs-image-dired-previous-line ()
@@ -4523,6 +4543,96 @@ window has no image displayed i.e. is invalid!"))
     (if image-dired-track-movement
         (entropy/emacs-image-dired-idle-track-orig-file))
     (image-dired-display-thumb-properties))
+  (define-key image-dired-thumbnail-mode-map
+              [remap previous-line]
+              #'entropy/emacs-image-dired-previous-line)
+
+  (entropy/emacs-define-smooth-continuous-command
+      entropy/emacs-image-dired-display-next-thumbnail-original
+      (&optional arg)
+    "Like `image-dired-display-next-thumbnail-original' but using
+`entropy/emacs-image-dired-idle-track-orig-file' as subroutine."
+    (interactive "p" image-dired-thumbnail-mode)
+    ;; Disable `image-dired-track-movement' for forwarding since in
+    ;; emacs 29 and higher the track will throw error to break
+    ;; continuation when associated dired buffer is not exist. (see
+    ;; `image-dired--with-dired-buffer').
+    (let ((image-dired-track-movement nil))
+      (if (> emacs-major-version 28)
+          (image-dired-forward-image arg 'wrap-around)
+        (image-dired-forward-image arg)))
+    (image-dired-display-thumbnail-original-image)
+    (when image-dired-track-movement
+      (entropy/emacs-image-dired-idle-track-orig-file)))
+
+  (entropy/emacs-define-smooth-continuous-command
+      entropy/emacs-image-dired-display-previous-thumbnail-original
+      (&optional arg)
+    "Like `image-dired-display-next-thumbnail-original' but using
+`entropy/emacs-image-dired-idle-track-orig-file' as subroutine."
+    (interactive "p" image-dired-thumbnail-mode)
+    (let ((image-dired-track-movement nil))
+      (image-dired-backward-image arg))
+    (image-dired-display-thumbnail-original-image)
+    (when image-dired-track-movement
+      (entropy/emacs-image-dired-idle-track-orig-file)))
+
+  (when
+      ;; subroutine only valid uppon emacs 29 since the defination is
+      ;; born from thus.
+      (> emacs-major-version 28)
+    (entropy/emacs-define-smooth-continuous-command
+        entropy/emacs-image-dired-move-beginning-of-line ()
+      "Like `image-dired-move-beginning-of-line' but using
+`entropy/emacs-image-dired-idle-track-orig-file' as subroutine."
+      (interactive nil image-dired-thumbnail-mode)
+      (let ((image-dired-track-movement nil))
+        (image-dired-move-beginning-of-line))
+      (when image-dired-track-movement
+        (entropy/emacs-image-dired-idle-track-orig-file)))
+    (define-key image-dired-thumbnail-mode-map
+                [remap beginning-of-line]
+                #'entropy/emacs-image-dired-move-beginning-of-line)
+
+    (entropy/emacs-define-smooth-continuous-command
+        entropy/emacs-image-dired-move-end-of-line ()
+      "Like `image-dired-move-end-of-line' but using
+`entropy/emacs-image-dired-idle-track-orig-file' as subroutine."
+      (interactive nil image-dired-thumbnail-mode)
+      (let ((image-dired-track-movement nil))
+        (image-dired-move-end-of-line))
+      (when image-dired-track-movement
+        (entropy/emacs-image-dired-idle-track-orig-file)))
+    (define-key image-dired-thumbnail-mode-map
+                [remap end-of-line]
+                #'entropy/emacs-image-dired-move-end-of-line)
+
+    (entropy/emacs-define-smooth-continuous-command
+        entropy/emacs-image-dired-end-of-buffer ()
+      "Like `image-dired-end-of-buffer' but using
+`entropy/emacs-image-dired-idle-track-orig-file' as subroutine."
+      (interactive nil image-dired-thumbnail-mode)
+      (let ((image-dired-track-movement nil))
+        (image-dired-end-of-buffer))
+      (when image-dired-track-movement
+        (entropy/emacs-image-dired-idle-track-orig-file)))
+    (define-key image-dired-thumbnail-mode-map
+                [remap end-of-buffer]
+                #'entropy/emacs-image-dired-end-of-buffer)
+
+    (entropy/emacs-define-smooth-continuous-command
+        entropy/emacs-image-dired-beginning-of-buffer ()
+      "Like `image-dired-beginning-of-buffer' but using
+`entropy/emacs-image-dired-idle-track-orig-file' as subroutine."
+      (interactive nil image-dired-thumbnail-mode)
+      (let ((image-dired-track-movement nil))
+        (image-dired-beginning-of-buffer))
+      (when image-dired-track-movement
+        (entropy/emacs-image-dired-idle-track-orig-file)))
+    (define-key image-dired-thumbnail-mode-map
+                [remap beginning-of-buffer]
+                #'entropy/emacs-image-dired-beginning-of-buffer)
+    )
 
 ;; ******** mark/unmark
 
