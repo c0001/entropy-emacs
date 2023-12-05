@@ -398,7 +398,7 @@ user expected to known about."
       ;; only preserve progress msg for diretly interactiely
       ;; invocation of `revert-buffer' so that doesn't pollute msg
       ;; from other commands.
-      (not (eq (selected-window) (get-buffer-window)))
+      (not (eq real-this-command 'revert-buffer))
       (apply orig-func orig-args)))
   (advice-add 'dired-revert
               :around
