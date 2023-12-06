@@ -2752,7 +2752,11 @@ the original image file losted when proper."
      (if (not (memq this-command
                     '(image-dired-display-next
                       image-dired-display-previous
-                      image-dired-display-this)))
+                      image-dired-display-this
+                      image-dired-display-thumbnail-original-image
+                      entropy/emacs-image-dired-display-next-thumbnail-original
+                      entropy/emacs-image-dired-display-previous-thumbnail-original
+                      )))
          (apply fn args)
        (let ((rtn (apply fn args)))
          (unless (file-exists-p rtn)
