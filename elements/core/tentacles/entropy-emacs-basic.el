@@ -2760,7 +2760,8 @@ the original image file losted when proper."
          (apply fn args)
        (let ((rtn (apply fn args)))
          (unless (file-exists-p rtn)
-           (user-error "Could open non-existed image file \"%s\""))
+           (user-error "Could open non-existed image file \"%s\""
+                       rtn))
          rtn))))
 
   (entropy/emacs-add-hook-with-lambda
