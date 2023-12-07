@@ -628,6 +628,18 @@ overflow hr line e.g. display in eldoc."
 (use-package markdown-preview-mode
   :after markdown-mode
   :preface
+  (defun entropy/emacs-markdown-restart-mdp-mode ()
+    (declare (interactive-only t))
+    (interactive)
+    (entropy/emacs-message-simple-progress-message
+        (substitute-quotes
+         (format "%sing `markdown-preview-mode'"
+                 (if (bound-and-true-p markdown-preview-mode)
+                     "Restart" "Start")))
+      :with-temp-message t
+      (and (bound-and-true-p markdown-preview-mode)
+           (markdown-preview-mode -1))
+      (markdown-preview-mode)))
 
   :commands (markdown-preview-mode)
   :bind (:map markdown-mode-command-map
@@ -636,7 +648,7 @@ overflow hr line e.g. display in eldoc."
   (((:enable t :defer (:data (:adfors (markdown-mode-hook) :adtype hook :pdumper-no-end t)))
     (markdown-mode-command-map))
    ("Preview"
-    (("p p" markdown-preview-mode
+    (("p p" entropy/emacs-markdown-restart-mdp-mode
       "Live preview markdown buffer with external browser"
       :enable t :exit t))))
 
