@@ -629,19 +629,6 @@ overflow hr line e.g. display in eldoc."
   :after markdown-mode
   :preface
 
-  (defun entropy/emacs-markdown--mdp-before-advice (&rest _)
-    "Before advice for `markdown-preview-mode' when it trigger
-to disable `markdown-preview-mode' for clean up all web-sockets
-to prevent ports keeping as causing to next previewing error.
-
-This issue refer to
-`https://github.com/ancane/markdown-preview-mode/issues/31'.
-"
-    (cond
-     (markdown-preview-mode
-      (markdown-preview-cleanup)
-      (message "Clean up all markdown preview websockets done!"))))
-
   :commands (markdown-preview-mode)
   :bind (:map markdown-mode-command-map
               ("P" . markdown-preview-mode))
@@ -659,10 +646,6 @@ This issue refer to
    'entropy/emacs-markdown-preview-stylesheets
    markdown-preview-javascript
    'entropy/emacs-markdown-preview-javascript)
-
-  (advice-add 'markdown-preview-mode
-              :before
-              #'entropy/emacs-markdown--mdp-before-advice)
 
   (advice-add 'markdown-preview-mode
               :around
