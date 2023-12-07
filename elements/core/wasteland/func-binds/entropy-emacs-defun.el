@@ -11998,7 +11998,8 @@ avar is `nil' or not a symbol: %s"
                (set ,avar-sym nval))))
          (entropy/emacs-sync-var-dynamic-value--regist
           ,avar-sym ,bvar-sym ,adfunc-sym))
-       (symbol-value ,avar-sym))))
+       ;; use this to return value for skipping bytecomp warns
+       (entropy/emacs-bound-and-true-p ,avar-sym))))
 
 (defmacro entropy/emacs-sync-setq (&rest args)
   "Like `setq' but using `entropy/emacs-sync-var-dynamic-value' as
