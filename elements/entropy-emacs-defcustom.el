@@ -2228,6 +2228,12 @@ When set to an empty string, this attribute is omitted.  Defaults to
   :type '(repeat (string :tag "Css file host uri"))
   :group 'entropy/emacs-customize-group-for-markdown-mode)
 
+;; ***** markdown builtin prviewer
+
+(defgroup entropy/emacs-customize-group-for-markdown-mode-builtin-preview nil
+  "Eemacs markdown-mode builtin preview configuration customizable group."
+  :group 'entropy/emacs-customize-group-for-markdown-mode)
+
 (defcustom entropy/emacs-markdown-preview-stylesheets
   (list "https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/2.9.0/github-markdown.min.css"
         "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"
@@ -2249,7 +2255,7 @@ When set to an empty string, this attribute is omitted.  Defaults to
          </style>")
   "List of client stylesheets for preview."
   :type '(repeat (string :tag "Css file host uri or content"))
-  :group 'entropy/emacs-customize-group-for-markdown-mode)
+  :group 'entropy/emacs-customize-group-for-markdown-mode-builtin-preview)
 
 (defcustom entropy/emacs-markdown-preview-javascript
   (list "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"
@@ -2263,7 +2269,24 @@ When set to an empty string, this attribute is omitted.  Defaults to
          </script>")
   "List of client javascript libs for preview."
   :type '(repeat (string :tag "Js script host uri or content"))
+  :group 'entropy/emacs-customize-group-for-markdown-mode-builtin-preview)
+
+;; ***** markdown grip previewer
+
+(defgroup entropy/emacs-customize-group-for-markdown-mode-grip-preview nil
+  "Eemacs markdown-mode girp preview configuration customizable group."
   :group 'entropy/emacs-customize-group-for-markdown-mode)
+
+(defcustom entropy/emacs-markdown-preview-grip-localhost-port 6419
+  "The at-least available localhost port used for 'grip' markdown
+previewer."
+  :type 'number
+  :group 'entropy/emacs-customize-group-for-markdown-mode-grip-preview)
+
+(defcustom entropy/emacs-markdown-preview-grip-options nil
+  "The extra options used for 'grip' markdown previewer."
+  :type '(repeat (string :tag "grip option"))
+  :group 'entropy/emacs-customize-group-for-markdown-mode-grip-preview)
 
 ;; **** common lisp mode
 (defgroup entropy/emacs-customize-group-for-common-lisp-mode nil

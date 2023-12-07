@@ -11942,6 +11942,90 @@ When TURN-OFF evaled non-nil, then run BODY directly."
     `(if ,turn-off ,(entropy/emacs-macroexp-progn body)
        (save-mark-and-excursion (save-match-data ,@body)))))
 
+(defvar entropy/emacs-sync-var-dynamic-value--cache nil)
+(defun entropy/emacs-sync-var-dynamic-value--regist
+    (avar bvar guard-func)
+  (let* ((rp (assoc bvar entropy/emacs-sync-var-dynamic-value--cache))
+         (val (and
+               rp
+               (alist-get bvar entropy/emacs-sync-var-dynamic-value--cache)))
+         (arp (and val (assoc avar val))))
+    (if arp (progn
+              (remove-variable-watcher bvar (cdr arp))
+              (setf (cdr arp) guard-func))
+      (if rp (setf (cdr rp) (list (cons avar guard-func)))
+        (push (cons bvar (list (cons avar guard-func)))
+              entropy/emacs-sync-var-dynamic-value--cache)))
+    (when (functionp guard-func)
+      (add-variable-watcher bvar guard-func))))
+(defmacro entropy/emacs-sync-var-dynamic-value
+    (avar bvar &optional pred)
+  "Sync dynamic value of variable BVAR to dynamic value of variable
+AVAR when each time the dynamic value of BVAR is changed.
+
+Optional argument PRED is a variable watcher function compatible
+with `add-variable-watcher' but should return non-nil if the
+synchronization should be applied. (NOTE: do not use PRED to set
+BVAR's value or the infinitely sync loop will be occurred.)
+
+Since the designation of PRED, it's also possible to use PRED as
+the variable wather function instead of the original one for
+usage of let PRED always return nil, but this is not recommended
+since its redundancy.
+
+If BVAR is not a `boundp' variable symbol, then this macro served
+as same as `set'.
+
+The return is the new AVAR's value."
+  (macroexp-let2* ignore
+      ((avar-sym avar) (bvar-sym bvar)
+       (pred-sym pred) (adfunc-sym nil))
+    `(progn
+       (when (or (eq ,avar-sym nil) (not (symbolp ,avar-sym)))
+         (error "\
+entropy/emacs-sync-var-dynamic-value: \
+avar is `nil' or not a symbol: %s"
+                ,avar-sym))
+       (if (or (not (symbolp ,bvar-sym)) (not (boundp ,bvar-sym)))
+           (set ,avar-sym ,bvar-sym)
+         (set ,avar-sym (symbol-value ,bvar-sym))
+         (entropy/emacs-setf-by-body ,adfunc-sym
+           (lambda (sym nval op wh)
+             (when (and (eq op 'set)
+                        (if (not ,pred-sym) t
+                          (funcall ,pred-sym
+                                   sym nval op wh)))
+               (set ,avar-sym nval))))
+         (entropy/emacs-sync-var-dynamic-value--regist
+          ,avar-sym ,bvar-sym ,adfunc-sym))
+       (symbol-value ,avar-sym))))
+
+(defmacro entropy/emacs-sync-setq (&rest args)
+  "Like `setq' but using `entropy/emacs-sync-var-dynamic-value' as
+subroutine, that AVAR's value modification is only affects the
+dynamic slot.
+
+In which case not to sync BVAR's value, BVAR should not be a
+symbol and `boundp'.
+
+The second AVAR is not computed until after the first AVAR is
+set, and so on; each BVAR can use the new dynamic value of
+variables set earlier in the ‘entropy/emacs-sync-setq’.  The
+return value of the ‘entropy/emacs-sync-setq’ macaro is the
+dynamic value of the last AVAR.
+
+\(fn [AVAR BVAR]...)"
+  (let (forms var val (oargs args))
+    (while args
+      (setq var (pop args))
+      (unless args
+        (error "entropy/emacs-sync-setq: args not paired: %S"
+               oargs))
+      (setq val (pop args))
+      (push `(entropy/emacs-sync-var-dynamic-value
+              ',var ,val) forms))
+    `(progn ,@(nreverse forms))))
+
 ;; *** Lazy load specification
 (defvar entropy/emacs--lazy-load-simple-feature-head nil)
 (defvar entropy/emacs-lazy-load-simple-log-var nil)

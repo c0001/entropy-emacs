@@ -533,22 +533,83 @@ overflow hr line e.g. display in eldoc."
 ;; *** simple preview
 ;; Render and preview via `grip'
 ;; you can install grip by 'pip install grip'
+
+;; FIXME: we should check whether this port is available.
+(defvar entropy/emacs-markdown-preview-grip--port-base
+  entropy/emacs-markdown-preview-grip-localhost-port)
+(defvar entropy/emacs-markdown-preview-grip--port-pool nil)
+
+(defvar-local entropy/emacs-markdown-preview-grip--local-tmpfile nil)
+
+(defvar-local entropy/emacs-markdown-preview-grip--local-port nil)
+(defun entropy/emacs-markdown-prview-grip--gen-port ()
+  (let ((port
+         (if entropy/emacs-markdown-preview-grip--port-pool
+             (1+
+              (apply
+               'max
+               entropy/emacs-markdown-preview-grip--port-pool))
+           entropy/emacs-markdown-preview-grip--port-base)))
+    (setq entropy/emacs-markdown-preview-grip--local-port port)
+    (push port entropy/emacs-markdown-preview-grip--port-pool)
+    (number-to-string port)))
+
+(defvar-local entropy/emacs-markdown-preview-grip--local-proc nil)
+(defun entropy/emacs-markdown-preview-grip--shutdown ()
+  (let ((oldproc entropy/emacs-markdown-preview-grip--local-proc)
+        (oldport entropy/emacs-markdown-preview-grip--local-port)
+        (tmpfile entropy/emacs-markdown-preview-grip--local-tmpfile)
+        (inhibit-quit t))
+    (when oldport
+      (setq
+       entropy/emacs-markdown-preview-grip--port-pool
+       (delete oldport
+               entropy/emacs-markdown-preview-grip--port-pool)
+       entropy/emacs-markdown-preview-grip--local-port
+       nil))
+    (when (and (processp oldproc) (process-live-p oldproc))
+      (delete-process oldproc))
+    (when (and tmpfile (file-exists-p tmpfile))
+      (delete-file tmpfile))))
+
+(defun entropy/emacs-markdown-preview-grip--start ()
+  (let ((port (entropy/emacs-markdown-prview-grip--gen-port))
+        (browse-url-browser-function
+         (entropy/emacs-browse-url-function-get-for-web-preview))
+        (buffname (buffer-file-name)))
+    (unless buffname
+      (write-file
+       (setq
+        entropy/emacs-markdown-preview-grip--local-tmpfile
+        (entropy/emacs-make-temp-file
+         (format "eemacs-mdpreview.%s." (buffer-name))
+         nil ".md" nil
+         :with-system-tmpfs t)))
+      (setq buffname entropy/emacs-markdown-preview-grip--local-tmpfile))
+    (entropy/emacs-setf-by-body entropy/emacs-markdown-preview-grip--local-proc
+      (apply 'start-process
+             `("grip" "*gfm-to-html*"
+               "grip"
+               ,(format "--title=%s" buffname)
+               ,@entropy/emacs-markdown-preview-grip-options
+               ,buffname ,port)))
+    (browse-url (format "http://localhost:%s/%s.%s"
+                        port
+                        (file-name-base buffname)
+                        (file-name-extension buffname)))))
+
 (defun entropy/emacs-markdown-preview-grip ()
   "Render and preview with `grip'."
   (declare (interactive-only t))
   (interactive nil markdown-mode)
-  (if (executable-find "grip")
-      (let ((port "6419")
-            (browse-url-browser-function
-             (entropy/emacs-browse-url-function-get-for-web-preview)))
-        (start-process "grip" "*gfm-to-html*" "grip" (buffer-file-name) port)
-        (browse-url (format "http://localhost:%s/%s.%s"
-                            port
-                            (file-name-base
-                             (buffer-file-name))
-                            (file-name-extension
-                             (buffer-file-name)))))
-    (user-error "Please install grip by 'pip install grip'.")))
+  (entropy/emacs-markdown-preview-grip--shutdown)
+  (unless (executable-find "grip")
+    (user-error "Please install grip by 'pip install grip'."))
+  (dolist (hook '(kill-buffer-hook change-major-mode-hook))
+    (add-hook hook
+              'entropy/emacs-markdown-preview-grip--shutdown
+              nil t))
+  (entropy/emacs-markdown-preview-grip--start))
 
 (entropy/emacs-lazy-initial-for-hook
  '(markdown-mode-hook)
@@ -593,10 +654,11 @@ This issue refer to
       :enable t :exit t))))
 
   :config
-  (setq markdown-preview-stylesheets
-        entropy/emacs-markdown-preview-stylesheets
-        markdown-preview-javascript
-        entropy/emacs-markdown-preview-javascript)
+  (entropy/emacs-sync-setq
+   markdown-preview-stylesheets
+   'entropy/emacs-markdown-preview-stylesheets
+   markdown-preview-javascript
+   'entropy/emacs-markdown-preview-javascript)
 
   (advice-add 'markdown-preview-mode
               :before
