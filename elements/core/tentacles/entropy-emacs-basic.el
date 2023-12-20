@@ -997,34 +997,42 @@ referred %s buffer '%s'"
           (condition-case this-error
               (let ((delete-by-moving-to-trash
                      ;; TODO: Do we should grab user's choice?
-                     delete-by-moving-to-trash))
+                     delete-by-moving-to-trash)
+                    delfunc)
                 (cond ((file-symlink-p file)
                        (setq cur-file-type 'symbol_link)
-                       (delete-file file))
+                       (setq delfunc (lambda nil (delete-file file))))
                       ((not (file-exists-p file))
                        (error "file is not exist: %s" file))
                       ((eq (file-regular-p file) t)
                        (setq cur-file-type 'file)
-                       (delete-file file))
+                       (setq delfunc (lambda nil (delete-file file))))
                       ((f-directory-p file)
                        (setq cur-file-type 'directory)
-                       (delete-directory file t))
-                      (t
-                       (error "unknown file type: %s" file)))
+                       (entropy/emacs-setf-by-body delfunc
+                         (lambda nil
+                           (delete-directory
+                            file
+                            (unless (or noninteractive current-prefix-arg)
+                              (yes-or-no-p
+                               (format "Recursively delete directory? (%s)" file)))))))
+                      (t (error "unknown file type: %s" file)))
                 (push (list :file-type cur-file-type
                             :file-path file
                             :date (cons (current-time-string) (current-time)))
                       entropy/emacs-basic--dired-files-deleted-history)
-                (cl-case cur-file-type
-                  (symbol_link
-                   (entropy/emacs-safety-message
-                    (format "Delete symbolink '%s' done! -v-" file)))
-                  (file
-                   (entropy/emacs-safety-message
-                    (format "Delete file '%s' done! -v-" file)))
-                  (directory
-                   (entropy/emacs-safety-message
-                    (format "Delete directory '%s' done! -v-" file)))))
+                (entropy/emacs-message-simple-progress-message
+                    (cl-case cur-file-type
+                      (symbol_link
+                       (entropy/emacs-safety-format
+                        (format "Deleting symbolink '%s'" file)))
+                      (file
+                       (entropy/emacs-safety-format
+                        (format "Deleting file '%s'" file)))
+                      (directory
+                       (entropy/emacs-safety-format
+                        (format "Deleting directory '%s'" file))))
+                  (funcall delfunc)))
             (error
              (setq error-occurred t)
              (let* ((inhibit-read-only t))
