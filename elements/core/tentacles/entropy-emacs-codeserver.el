@@ -1439,6 +1439,8 @@ FIXME: should investigating the source code for indeed fixing.
 NOTE: related to the display char height?"
     (let* ((owstart (window-start))
            (owend   (window-end))
+           (curwin (selected-window))
+           (curxref-sym (symbol-at-point))
            (lnm (line-number-at-pos))
            (lnm-wstart (line-number-at-pos owstart))
            (lnm-wend   (line-number-at-pos owend)))
@@ -1451,12 +1453,15 @@ NOTE: related to the display char height?"
              (< (- lnm-wend lnm) (+ lsp-ui-peek-peek-height 3)))
         (recenter 0)
         ;; ensure window-start is flushed for subroutine
-        (redisplay t)))
-    (entropy/emacs-message-simple-progress-message
-        (format "Picking up references of <%s>" (symbol-at-point))
-      :with-temp-message t
-      :with-fit-window-width t
-      (apply orig-func orig-args)))
+        (redisplay t))
+      (entropy/emacs-message-simple-progress-message
+          (format "Picking up references of <%s>" curxref-sym)
+        :with-temp-message t
+        :with-fit-window-width t
+        (entropy/emacs-unwind-protect-unless-success
+            (apply orig-func orig-args)
+          (when (eq (selected-window) curwin)
+            (set-window-start curwin owstart))))))
   (advice-add 'lsp-ui-peek-find-references
               :around
               #'__ya/lsp-ui-peek-find-references)
