@@ -877,10 +877,10 @@ condition state for whether be continuing rest process."
       (error "Cancel deleting files!")))
 
   (entropy/emacs-!cl-defun entropy/emacs-basic-dired-delete-file-recursive
-      (&optional pre-files just-kill-refers)
+      (&optional pre-files just-kill-refers inctp)
     "Delete file recursively with refer buffer cleaned (i.e. files
 under this dir will cleaned their corresponding buffers (file
-buffer and dir host dired buffer within current emacs session.)
+buffer and dir host dired buffer within current emacs session.))
 
 This func is the replacement for func `dired-do-delete', take
 advantage by giving the deletion failed handle for each fatal by
@@ -896,8 +896,19 @@ For lisp code, optional args:
 - PRE-FILES: file list to deletion
 - JUST-KILL-REFERS: just kill file referred file buffer or hosted
   dir's dired buffers.
+
+For interactively invocation, one \\[universal-argument] to just
+kill referred buffer (as same to pred JUST-KILL-REFERS for lisp
+usage), and any other dups of \\[universal-argument] is treat to
+made recursively deletion for each directories without
+confirmation quried about, in other words, every recursively
+deletion will ask for a confirmation firstly in such of case.
 "
-    (interactive (list (dired-get-marked-files) (if current-prefix-arg t))
+    (interactive (list (dired-get-marked-files)
+                       (and current-prefix-arg
+                            (equal current-prefix-arg '(4))
+                            t)
+                       t)
                  dired-mode)
     (unless (derived-mode-p 'dired-mode)
       (entropy/emacs-!user-error
@@ -990,7 +1001,9 @@ referred %s buffer '%s'"
                              (with-current-buffer buff
                                (if buffer-file-name "file" "non-file"))
                              buff)))
-                (kill-buffer buff)))))
+                (entropy/emacs-message-simple-progress-message
+                    (format "Killing buffer '%S'" buff)
+                  (kill-buffer buff))))))
 
         ;; Do deletion
         (when (not just-kill-refers)
@@ -1013,7 +1026,7 @@ referred %s buffer '%s'"
                          (lambda nil
                            (delete-directory
                             file
-                            (unless (or noninteractive current-prefix-arg)
+                            (if (or noninteractive (not inctp) current-prefix-arg) t
                               (yes-or-no-p
                                (format "Recursively delete directory? (%s)" file)))))))
                       (t (error "unknown file type: %s" file)))
