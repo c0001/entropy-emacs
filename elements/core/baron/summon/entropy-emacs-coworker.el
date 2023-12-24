@@ -715,25 +715,28 @@ latest/download/rust-analyzer-%s-%s.gz"
                            arch sys)))
          url)
        'gzip 'no-success-msg))
-    (unless (eq status 'exist)
-      (let ((f
-             (expand-file-name "rust-analyzer/rust-analyzer"
-                               entropy/emacs-coworker-archive-host-root))
-            (lf (expand-file-name "rust-analyzer" entropy/emacs-coworker-bin-host-path)))
-        (condition-case err
-            (chmod f
-                   (file-modes-symbolic-to-number
-                    "u+x" (file-modes f)))
-          (error
-           (entropy/emacs-error-without-debugger
-            "chmod `%s' as X with fatal (%s)" f err)))
-        (condition-case err
-            (make-symbolic-link f lf 'of-if-exists)
-          (error
-           (entropy/emacs-error-without-debugger
-            "make symbolic for `%s' to `%s' with fatal (%s)" f lf err)))
-        (entropy/emacs-coworker--coworker-message-install-success
-         "rust-analyzer")))))
+    ;; FIXME: the existence indicator we don't used yet.
+    (ignore status)
+    (let ((f
+           (expand-file-name "rust-analyzer/rust-analyzer"
+                             entropy/emacs-coworker-archive-host-root))
+          (lf (expand-file-name "rust-analyzer" entropy/emacs-coworker-bin-host-path)))
+      (and (entropy/emacs-filesystem-node-exists-p lf)
+           (delete-file lf))
+      (condition-case err
+          (chmod f
+                 (file-modes-symbolic-to-number
+                  "u+x" (file-modes f)))
+        (error
+         (entropy/emacs-error-without-debugger
+          "chmod `%s' as X with fatal (%s)" f err)))
+      (condition-case err
+          (make-symbolic-link f lf)
+        (error
+         (entropy/emacs-error-without-debugger
+          "make symbolic for `%s' to `%s' with fatal (%s)" f lf err)))
+      (entropy/emacs-coworker--coworker-message-install-success
+       "rust-analyzer"))))
 
 ;; **** python
 ;; ***** python language server types
