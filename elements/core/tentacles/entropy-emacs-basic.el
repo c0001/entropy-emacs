@@ -2946,10 +2946,21 @@ with nested LEVEL restriction based on
           ;; to a `dired' buffer but on which case we are not focus.
           (entropy/emacs-get-buffer-create
            " *eemacs-fake-image-dired-original-dired-buffer*" t)
-        (let ((entropy/emacs-basic--image-dired-with-manually-files files)
+        (let ((entropy/emacs-basic--image-dired-with-manually-files
+               (entropy/emacs-message-simple-progress-message
+                   "Sorting image files as modtime latest as first"
+                 (sort
+                  files
+                  (lambda (x y)
+                    (let ((xat (file-attributes x))
+                          (yat (file-attributes y)))
+                      (if (or (not x) (not y)) t
+                        (time-less-p
+                         (file-attribute-modification-time yat)
+                         (file-attribute-modification-time xat))))))))
               (entropy/emacs--image-dired-usenew-thumbnails-buffer-p
                (not noninteractive)))
-          (entropy/emacs-image-dired-init)))))
+          (funcall-interactively 'entropy/emacs-image-dired-init)))))
 
   (defun entropy/emacs-image-dired-init (&optional arg)
     "Initial `image-dired' automatically when proper.
