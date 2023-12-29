@@ -41,7 +41,10 @@
 
 With prefix \\[universal-argument], show `projectile-ibuffer' for
 all projects, except for double \\[universal-argument] which just
-show thus of current project if it is."
+show thus of current project if it is.
+
+NOTE: the projectile integration just workable when
+`entropy/emacs-enable-ibuffer-projectitle' is enabled."
   (declare (interactive-only t))
   (interactive)
   (let* ((pref current-prefix-arg)

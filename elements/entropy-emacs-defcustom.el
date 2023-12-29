@@ -1316,11 +1316,8 @@ choose `entropy/emacs-enable-emacs-rime' as current chosen.")
   :group 'entropy-emacs-customize-top-group)
 
 ;; **** ibuffer
-(defcustom entropy/emacs-enable-ibuffer-projectitle nil
-  "Enable ibuffer-projectitle in ibuffer
-
-Note: ibuffer-projectitle will cause the performance debug.
-"
+(defcustom entropy/emacs-enable-ibuffer-projectitle t
+  "Enable ibuffer-projectitle in ibuffer when proper"
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-project-management)
 
