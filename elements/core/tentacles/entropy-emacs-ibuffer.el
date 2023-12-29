@@ -77,8 +77,19 @@ NOTE: the projectile integration just workable when
       :exit t
       :global-bind t))))
 
-  :init (setq ibuffer-filter-group-name-face '(:inherit (font-lock-string-face bold)))
   :config
+
+  ;; face spec
+  (setq ibuffer-filter-group-name-face
+        (list :inherit (list 'font-lock-string-face 'bold)))
+
+  ;; hiden tmp buffers
+  (dolist (el
+           (list
+            (regexp-quote
+             entropy/emacs-split-window-default-exhaustion-buffname)))
+    (ibuffer-add-to-tmp-hide el))
+
   (entropy/emacs-lazy-load-simple 'counsel
     (with-no-warnings
       (defun entropy/emacs-ibuffer-find-file ()
