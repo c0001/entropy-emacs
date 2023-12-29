@@ -1428,6 +1428,16 @@ updating."
    (entropy/emacs-custom-enable-lazy-load/val))
   :after lsp-ui
   :config
+
+  (defun __adv/lsp-ui-peek-find-references/disable-transient-keymap-when-unwind
+      (fn &rest args)
+    (entropy/emacs-unwind-protect-unless-success
+        (apply fn args) (lsp-ui-peek-mode -1)))
+
+  (advice-add 'lsp-ui-peek-find-references
+              :around
+              #'__adv/lsp-ui-peek-find-references/disable-transient-keymap-when-unwind)
+
   (defvar-local __ya/lsp-ui-peek--win-start nil)
   (defun __ya/lsp-ui-peek-find-references (orig-func &rest orig-args)
     "Tempo Fix `lsp-ui-peek--show' hardcoded window recenter for exhibition
@@ -1479,7 +1489,7 @@ NOTE: related to the display char height?"
     (let ((nostart __ya/lsp-ui-peek--win-start))
       (when nostart
         (setq lsp-ui-peek--win-start nostart))
-      (prog1 (apply orig-func orig-args)
+      (unwind-protect (apply orig-func orig-args)
         (setq __ya/lsp-ui-peek--win-start nil))))
   (advice-add 'lsp-ui-peek--abort
               :around
