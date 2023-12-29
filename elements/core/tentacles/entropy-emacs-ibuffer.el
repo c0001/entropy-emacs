@@ -32,6 +32,31 @@
 
 ;; ** require
 
+(entropy/emacs-defconst/only-allow/local
+  __entropy/emacs-ibuffer-in-project-p nil)
+(entropy/emacs-defconst/only-allow/local
+  __entropy/emacs-ibuffer-use-projects-style-p nil)
+(defun entropy/emacs-ibuffer-main ()
+  "Call `ibuffer' or `projectile-ibuffer'.
+
+With prefix \\[universal-argument], show `projectile-ibuffer' for
+all projects, except for double \\[universal-argument] which just
+show thus of current project if it is."
+  (declare (interactive-only t))
+  (interactive)
+  (let* ((pref current-prefix-arg)
+         (prp (and
+               pref
+               entropy/emacs-enable-ibuffer-projectitle
+               (bound-and-true-p projectile-mode)))
+         (cprp (and prp (equal pref '(16)) (projectile-project-root)))
+         (__entropy/emacs-ibuffer-use-projects-style-p prp)
+         (__entropy/emacs-ibuffer-in-project-p cprp)
+         (current-prefix-arg nil))
+    (cond
+     (cprp (projectile-ibuffer nil))
+     (t (ibuffer)))))
+
 ;; ** ibuffer core
 (use-package ibuffer
   :ensure nil
@@ -44,7 +69,7 @@
        (entropy/emacs-after-startup-idle-hook)
        :adtype hook :pdumper-no-end t))))
    ("WI&BUF"
-    (("C-x C-b" ibuffer "Begin using Ibuffer to edit a list of buffers"
+    (("C-x C-b" entropy/emacs-ibuffer-main "Begin using Ibuffer to edit a list of buffers"
       :enable t
       :exit t
       :global-bind t))))
@@ -106,15 +131,17 @@
 
 ;; ** ibuffer-projectitle display
 (use-package ibuffer-projectile
-  :if entropy/emacs-enable-ibuffer-projectitle
   :preface
   (defun entropy/emacs-ibuffer--ibprjt-init ()
-    (ibuffer-projectile-set-filter-groups)
-    (unless (eq ibuffer-sorting-mode 'alphabetic)
-      (ibuffer-do-sort-by-alphabetic)))
+    (when (and __entropy/emacs-ibuffer-use-projects-style-p
+               (not __entropy/emacs-ibuffer-in-project-p))
+      (entropy/emacs-message-simple-progress-message
+          "generate ibffer projectile groups"
+        (ibuffer-projectile-set-filter-groups))
+      (unless (eq ibuffer-sorting-mode 'alphabetic)
+        (ibuffer-do-sort-by-alphabetic))))
 
   :init
-  (setq ibuffer-filter-group-name-face 'font-lock-function-name-face)
   (add-hook 'ibuffer-hook
             #'entropy/emacs-ibuffer--ibprjt-init)
   :config
@@ -131,17 +158,16 @@
 
 ;; ** common ibuffer display
 (defun entropy/emacs-ibuffer--init-common-1 ()
-  (let ((set-basic-format? (and (not (bound-and-true-p all-the-icons-ibuffer-mode))
-                                (not entropy/emacs-enable-ibuffer-projectitle))))
+  (let* ((use-all-prjs-p
+          (and __entropy/emacs-ibuffer-use-projects-style-p
+               (not __entropy/emacs-ibuffer-in-project-p)))
+         ;; We set the eemacs default ibuffer style unless either
+         ;; `all-the-icons-ibuffer-mode' nor `ibuffer-projectile'
+         ;; (current project mode) was enable since collision.a
+         (set-basic-format?
+          (and (not use-all-prjs-p)
+               (not (bound-and-true-p all-the-icons-ibuffer-mode)))))
 
-    ;; filter ibuffer using `major-mode' when `ibuffer-projectile' is
-    ;; disable.
-    (unless entropy/emacs-enable-ibuffer-projectitle
-      (ibuffer-set-filter-groups-by-mode))
-
-    ;; We set the eemacs default ibuffer style unless either
-    ;; `all-the-icons-ibuffer-mode' nor `ibuffer-projectile' was
-    ;; enable.
     (when set-basic-format?
       ;; size readable form EmacsWiki `https://www.emacswiki.org/emacs/IbufferMode'
       ;; Use human readable Size column instead of original one
@@ -153,15 +179,28 @@
          ((> (buffer-size) 1000) (format "%7.1fk" (/ (buffer-size) 1000.0)))
          (t (format "%8d" (buffer-size)))))
       ;; Modify the default ibuffer-formats
-      (setq ibuffer-formats
-            '((mark modified read-only " "
-                    (name 18 18 :left :elide)
-                    " "
-                    (size-h 9 -1 :right)
-                    " "
-                    (mode 16 16 :left :elide)
-                    " "
-                    filename-and-process))))))
+      (setq-local
+       ibuffer-formats
+       '((mark modified read-only " "
+               (name 18 18 :left :elide)
+               " "
+               (size-h 9 -1 :right)
+               " "
+               (mode 16 16 :left :elide)
+               " "
+               filename-and-process))))
+
+    ;; disable filter ibuffer using `major-mode' when
+    ;; `ibuffer-projectile' (all projects mode) is disable since
+    ;; collision
+    (if use-all-prjs-p
+        (and set-basic-format? (ibuffer-update nil t))
+      ;; NOTE: we don't need to manually update ibuffer since
+      ;; `ibuffer-set-filter-groups-by-mode' will internally invoke
+      ;; it.
+      (entropy/emacs-message-simple-progress-message
+          "ibuffer filter with major-modes"
+        (ibuffer-set-filter-groups-by-mode)))))
 
 (defun entropy/emacs-ibuffer--init-common ()
   (entropy/emacs-message-simple-progress-message

@@ -39,6 +39,9 @@
   :commands (projectile-find-file
              projectile-mode
              entropy/emacs-project-projectile-update-project-root-cache)
+  :eemacs-functions
+  (projectile-project-root
+   projectile-ibuffer)
   :bind
   :init
   (setq
