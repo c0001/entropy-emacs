@@ -738,7 +738,7 @@ since emacs-28.2 since some improvements and fix in `tramp' but still
 has this bug in its more deeper core parts i.e. `tramp-gvfs' ]
 
 #+begin_src elisp
-(entropy/emacs-test-emacs-with-pure-setup-with-form
+(entropy/emacs-test-emacs-with-vanilla-setup
  "tramp-archive-enabled-bug-reproduce"
  :use-current-package-user-dir nil
  :emacs-invocation-name "emacs-28.1"
