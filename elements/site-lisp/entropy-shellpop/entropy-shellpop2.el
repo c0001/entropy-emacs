@@ -256,8 +256,9 @@
 (defun entropy/shellpop2/main//func/set-modeline-format ()
   (let* ((lhs
           '(format
-            "%s %s%s %s%s %s%s%s"
+            "%s %s %s%s %s%s %s%s%s"
             (propertize "*Shellpop*" 'face 'tty-menu-enabled-face)
+            (format-mode-line mode-line-mule-info)
             (propertize "Desc: " 'face 'success)
             (let ((orig-desc (entropy/shellpop2/main//get/current/shell/buffer/caption))
                   unset-p)
