@@ -219,6 +219,14 @@ its lag wildcard detection mechanism."
   (advice-add 'projectile-expand-file-name-wildcard
               :around #'__ya/projectile-expand-file-name-wildcard)
 
+  (defun __ya/projectile-project-p (fn &rest args)
+    "Around advice for `projectile-project-p' since it didn't handle
+permission-denied path properly."
+    (condition-case _ (apply fn args)
+      (permission-denined nil)))
+  (advice-add 'projectile-project-p
+              :around #'__ya/projectile-project-p)
+
 ;; ****** Make projetile candi predicates persisted
   (defun entropy/emacs-projectile--gen-candi-persist-rule (adv-for &optional remove)
     "Make projetile candi predicates persisted in the completion
