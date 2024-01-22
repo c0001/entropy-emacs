@@ -144,8 +144,8 @@
 
 ;; ** browsers
 ;; *** emacs-w3m interface
-(use-package w3m
-  :if (executable-find "w3m")
+(entropy/emacs--inner-use-package w3m
+  :eemacs-if (executable-find "w3m")
   :commands
   (w3m
    w3m-search
