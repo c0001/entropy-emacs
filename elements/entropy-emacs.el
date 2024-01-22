@@ -1755,13 +1755,12 @@ distingush setenv eemacs spec env vars")
 
 ;; forbidden `entropy/emacs-custom-enable-lazy-load' at special
 ;; session.
-(cond ((and entropy/emacs-custom-enable-lazy-load
-            (or (and entropy/emacs-fall-love-with-pdumper
-                     (not entropy/emacs-do-pdumping-with-lazy-load-p))
-                ;; NOTE: We should not enable lazy load for a systemd
-                ;; service session both for running and compiling
-                (entropy/emacs-getenv-eemacs-env "EEMACS_SYSTEMD_DAEMON_SERVICE")
-                (daemonp)))
+(cond ((or (and entropy/emacs-fall-love-with-pdumper
+                (not entropy/emacs-do-pdumping-with-lazy-load-p))
+           ;; NOTE: We should not enable lazy load for a systemd
+           ;; service session both for running and compiling
+           (entropy/emacs-getenv-eemacs-env "EEMACS_SYSTEMD_DAEMON_SERVICE")
+           (daemonp))
        (setq entropy/emacs-custom-enable-lazy-load nil))
       ((and entropy/emacs-fall-love-with-pdumper
             entropy/emacs-do-pdumping-with-lazy-load-p)
