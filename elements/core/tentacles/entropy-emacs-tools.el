@@ -1498,11 +1498,13 @@ It's usefully for windows user to quickly switching to
      (("p" entropy/proxy-url-switch-proxy-for-eww-group
        "Toggle proxy type"
        :enable t :map-inject t :exit t))))
-   (((:enable t :defer (:data
-                        (:adfors
-                         (eww-mode w3m-mode)
-                         :adtype after
-                         :pdumper-no-end t)))
+   (((:enable
+      (executable-find "w3m")
+      :defer (:data
+              (:adfors
+               (eww-mode w3m-mode)
+               :adtype after
+               :pdumper-no-end t)))
      (w3m-mode (w3m w3m-mode-map)))
     ("Proxy"
      (("p" entropy/emacs-tools-w3m-toggle-proxy
