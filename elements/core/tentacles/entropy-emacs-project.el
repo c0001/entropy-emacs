@@ -214,7 +214,7 @@ its lag wildcard detection mechanism."
     (let ((name-pattern (car args)) (dir (cdr args)))
       (or (condition-case _ (apply fn args)
             (invalid-regexp     nil)
-            (permission-denined nil))
+            (permission-denied nil))
           (expand-file-name name-pattern dir))))
   (advice-add 'projectile-expand-file-name-wildcard
               :around #'__ya/projectile-expand-file-name-wildcard)
@@ -223,7 +223,7 @@ its lag wildcard detection mechanism."
     "Around advice for `projectile-project-p' since it didn't handle
 permission-denied path properly."
     (condition-case _ (apply fn args)
-      (permission-denined nil)))
+      (permission-denied nil)))
   (advice-add 'projectile-project-p
               :around #'__ya/projectile-project-p)
 
