@@ -213,7 +213,8 @@ subdirectory.")
 its lag wildcard detection mechanism."
     (let ((name-pattern (car args)) (dir (cdr args)))
       (or (condition-case _ (apply fn args)
-            (invalid-regexp nil))
+            (invalid-regexp     nil)
+            (permission-denined nil))
           (expand-file-name name-pattern dir))))
   (advice-add 'projectile-expand-file-name-wildcard
               :around #'__ya/projectile-expand-file-name-wildcard)
