@@ -491,6 +491,12 @@ notation.
     (entropy/emacs-start--require-with-duration-log 'entropy-emacs-highlight))
 
   ;; For code IDE
+
+  ;; NOTE: the eemacs-project config must load before the reset since
+  ;; some hacks should take precedence before other dev configs
+  ;; loaded.
+  (entropy/emacs-start--require-with-duration-log 'entropy-emacs-project)
+
   (entropy/emacs-start--require-with-duration-log 'entropy-emacs-yas)
   (entropy/emacs-start--require-with-duration-log 'entropy-emacs-codeserver)
   (entropy/emacs-start--require-with-duration-log 'entropy-emacs-company)
@@ -501,7 +507,6 @@ notation.
   (entropy/emacs-start--require-with-duration-log 'entropy-emacs-textwww)
   (entropy/emacs-start--require-with-duration-log 'entropy-emacs-rss)
   (entropy/emacs-start--require-with-duration-log 'entropy-emacs-gnus)
-  (entropy/emacs-start--require-with-duration-log 'entropy-emacs-project)
   (entropy/emacs-start--require-with-duration-log 'entropy-emacs-tools)
   (entropy/emacs-start--require-with-duration-log 'entropy-emacs-music)
   (entropy/emacs-start--require-with-duration-log 'entropy-emacs-vcs)

@@ -31,6 +31,22 @@
 ;; * Code:
 
 ;; ** require
+;; ** project (emacs builtin)
+
+(use-package project
+  :ensure nil
+  :config
+
+  (defun __ya/project-current (fn &rest args)
+    "Around advice for `project-current' only when its
+MAYBE-PROMPT arg is nil/omitted since it didn't handle
+permission-denied path properly."
+    (if (car args) (apply fn args)
+      (condition-case _ (apply fn args)
+        (permission-denied nil))))
+  (advice-add 'project-current :around #'__ya/project-current)
+
+  )
 
 ;; ** projectile
 ;; *** core
