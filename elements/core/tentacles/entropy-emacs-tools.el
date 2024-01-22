@@ -1560,6 +1560,7 @@ can't visit one page suddenly."
                 #'entropy/emacs-tools--w3m-recorde-retrieve-url))
 
   (entropy/emacs-lazy-load-simple 'w3m
+    :always-lazy-load (not (executable-find "w3m"))
     (unless (eq entropy/emacs-proxy-url-loaded t)
       (require 'entropy-proxy-url)
       (entropy/proxy-url-make-builtin-recipes)
