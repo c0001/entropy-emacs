@@ -6552,9 +6552,9 @@ successfully both of situation of read persisit of create an new."
        (gpgver
         (alist-get 'version gpgobj)))
     (when (and (version<= "2.4.1" gpgver)
-               ;; EEMACS_MAINTENANCE: follow news of the gnupg
-               ;; upstream for version that fixed this problem.
-               t)
+               ;; gnupg 2.4.4 has fixed this issue:
+               ;; https://emacs-china.org/t/gnupg-2-4-1-easypg/25264/6
+               (version< gpgver "2.4.4"))
       (warn "\
 gpg version \"%s\" detected, therefore \
 defalias of `ignore' to the function `epg-wait-for-status' \
