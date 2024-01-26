@@ -703,6 +703,9 @@ EXIT /b
        "rust-analyzer"
        (let* ((arch (cond ((string-match-p "^x86_64" system-configuration)
                            "x86_64")
+                          ((string-match-p "^aarch64-unknown-linux-"
+                                           system-configuration)
+                           "aarch64")
                           (t
                            (user-error "unknow system architecture `%s'"
                                        system-configuration))))
