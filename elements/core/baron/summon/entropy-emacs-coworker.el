@@ -869,7 +869,7 @@ EXIT /b
   (let (status)
     (when
         (entropy/emacs-coworker--coworker-alist-judge
-         (list (cons 'file "rust-analyzer")))
+         (list (cons 'file (list "rust-analyzer"))))
       (entropy/emacs-coworker--coworker-message-existed "rust-analyzer")
       (cl-return))
     (entropy/emacs-setf-by-body status
