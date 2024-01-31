@@ -1589,6 +1589,41 @@ value (`default-value') will be mapping thru out."
           (funcall fn i rtn))
         (nreverse k)))))
 
+;; *** buffer
+
+(eval-and-compile
+  (defmacro entropy/emacs-buffer-substring
+      (&optional buffer start end no-properties-p)
+    "Like `buffer-substring', but optional BUFFER arg is
+supported (defaults to `current-buffer').
+
+If NO-PROPERTIES-P is non-nil, use
+`buffer-substring-no-properties' as subroutine.
+
+START and END is used as usual but just evaluated while
+`current-buffer' has bound to BUFFER."
+    (declare (indent 1))
+    (macroexp-let2* ignore
+        ((buffer-sym `(or ,buffer (current-buffer)))
+         (start-sym nil) (end-sym nil))
+      `(with-current-buffer ,buffer-sym
+         (let ((,start-sym ,start) (,end-sym ,end))
+           (if (not no-properties-p)
+               (buffer-substring ,start-sym ,end-sym)
+             (buffer-substring-no-properties
+              ,start-sym ,end-sym)))))))
+
+(defun entropy/emacs-get-buffer-whole-substring
+    (&optional buffer no-properties-p)
+  "Get BUFFER's whole substring and return it.
+
+BUFFER defaults to `current-buffer'.
+
+If NO-PROPERTIES-P is non-nil, text properties are removed before
+return."
+  (entropy/emacs-buffer-substring buffer
+    (point-min) (point-max) no-properties-p))
+
 ;; *** file
 
 (defun entropy/emacs-file-truename (file)

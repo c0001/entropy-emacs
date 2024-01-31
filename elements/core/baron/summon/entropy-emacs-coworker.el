@@ -75,8 +75,9 @@
                (dolist (el files)
                  (unless (or (file-exists-p el)
                              ;; find file with more suffix for windows platform
-                             (file-exists-p (format "%s.cmd" el))
-                             (file-exists-p (format "%s.exe" el)))
+                             (and sys/win32p
+                                  (file-exists-p (format "%s.cmd" el))
+                                  (file-exists-p (format "%s.exe" el))))
                    (setq rtn t)
                    (throw :exit nil))))
              (if rtn nil t))))
@@ -474,11 +475,162 @@ EXIT /b
       (entropy/emacs-coworker--coworker-message-existed
        server-name-string))))
 
+;; **** go install
+;; ***** isolate type
+(defun entropy/emacs-coworker--coworker-isolate-bins-install-by-go
+    (server-name-string server-bins server-repo-string)
+  (let ((this-gobin-prefix
+         (expand-file-name (format "eemacs-go-lsp/%s" server-name-string)
+                           entropy/emacs-coworker-lib-host-root))
+        (server-lostp
+         (not
+          (entropy/emacs-coworker--coworker-alist-judge
+           (list (cons 'file
+                       (mapcar
+                        (lambda (x)
+                          (expand-file-name
+                           x
+                           entropy/emacs-coworker-bin-host-path))
+                        server-bins)))))))
+
+    (if server-lostp
+        (let ((process-environment
+               (cons (format "GOBIN=%s" this-gobin-prefix)
+                     (entropy/emacs-trim-process-environment
+                      nil "GOBIN"))))
+          (entropy/emacs-with-make-process
+           :name (format "eemacs_coworker_install_<%s>" server-name-string)
+           :synchronously t
+           :buffer
+           (get-buffer-create
+            (format "eemacs_coworker_install_<%s>_stdout" server-name-string))
+           :command `("go" "install" ,server-repo-string)
+           :prepare
+           (progn
+             (entropy/emacs-coworker--coworker-message-do-task server-name-string)
+             (condition-case error
+                 (progn
+                   (unless (executable-find "go")
+                     (error "Command 'go' not found in your system!"))
+                   (mkdir entropy/emacs-coworker-bin-host-path t)
+                   (mkdir entropy/emacs-coworker-lib-host-root t)
+                   (if (file-directory-p this-gobin-prefix)
+                       (delete-directory this-gobin-prefix t))
+                   (make-directory this-gobin-prefix t)
+                   t)
+               (error
+                (entropy/emacs-error-without-debugger
+                 "eemacs coworker init task for '%s' did with fatal for preparing: %s"
+                 server-name-string error))))
+           :after
+           (dolist (srvbin server-bins)
+             (let ((gobin (expand-file-name srvbin this-gobin-prefix))
+                   (destbin
+                    (expand-file-name
+                     srvbin entropy/emacs-coworker-bin-host-path)))
+               (if (not (file-exists-p gobin))
+                   (entropy/emacs-error-without-debugger
+                    "%s not found after installation of '%s'"
+                    gobin server-name-string)
+                 (entropy/emacs-message-simple-progress-message
+                     (format "Make symlink of '%s' to '%s'" gobin destbin)
+                   (make-symbolic-link gobin destbin)))))
+           :error
+           (entropy/emacs-error-without-debugger
+            (format
+             "%s"
+             (entropy/emacs-get-buffer-whole-substring
+              $sentinel/destination)))
+           :cleanup
+           (when (buffer-live-p $sentinel/destination)
+             (kill-buffer $sentinel/destination))))
+      (entropy/emacs-coworker--coworker-message-existed
+       server-name-string))))
+
+
+;; **** cargo install
+;; ***** isolate type
+(defun entropy/emacs-coworker--coworker-isolate-bins-install-by-cargo
+    (server-name-string server-bins server-repo-string)
+  (let ((this-cargohome-prefix
+         (expand-file-name (format "eemacs-rust-lsp/%s" server-name-string)
+                           entropy/emacs-coworker-lib-host-root))
+        (server-lostp
+         (not
+          (entropy/emacs-coworker--coworker-alist-judge
+           (list (cons 'file
+                       (mapcar
+                        (lambda (x)
+                          (expand-file-name
+                           x
+                           entropy/emacs-coworker-bin-host-path))
+                        server-bins)))))))
+
+    (if server-lostp
+        (let ((process-environment
+               (cons (format "CARGO_HOME=%s" this-cargohome-prefix)
+                     (entropy/emacs-trim-process-environment
+                      nil "CARGO_HOME"))))
+          (entropy/emacs-with-make-process
+           :name (format "eemacs_coworker_install_<%s>" server-name-string)
+           :synchronously t
+           :buffer
+           (get-buffer-create
+            (format "eemacs_coworker_install_<%s>_stdout" server-name-string))
+           :command `("go" "install" ,server-repo-string)
+           :prepare
+           (progn
+             (entropy/emacs-coworker--coworker-message-do-task server-name-string)
+             (condition-case error
+                 (progn
+                   (unless (executable-find "cargo")
+                     (error "Command 'cargo' not found in your system!"))
+                   (mkdir entropy/emacs-coworker-bin-host-path t)
+                   (mkdir entropy/emacs-coworker-lib-host-root t)
+                   ;; NOTE: we prefer persist rust home libs since its
+                   ;; registry can be reused.
+                   ;;
+                   ;; (if (file-directory-p this-cargohome-prefix)
+                   ;;     (delete-directory this-cargohome-prefix t))
+                   (make-directory this-cargohome-prefix t)
+                   t)
+               (error
+                (entropy/emacs-error-without-debugger
+                 "eemacs coworker init task for '%s' did with fatal for preparing: %s"
+                 server-name-string error))))
+           :after
+           (dolist (srvbin server-bins)
+             (let ((cmdbin
+                    (expand-file-name
+                     srvbin
+                     (expand-file-name "bin" this-cargohome-prefix)))
+                   (destbin
+                    (expand-file-name
+                     srvbin entropy/emacs-coworker-bin-host-path)))
+               (if (not (file-exists-p cmdbin))
+                   (entropy/emacs-error-without-debugger
+                    "%s not found after installation of '%s'"
+                    cmdbin server-name-string)
+                 (entropy/emacs-message-simple-progress-message
+                     (format "Make symlink of '%s' to '%s'" cmdbin destbin)
+                   (make-symbolic-link cmdbin destbin)))))
+           :error
+           (entropy/emacs-error-without-debugger
+            (format
+             "%s"
+             (entropy/emacs-get-buffer-whole-substring
+              $sentinel/destination)))
+           :cleanup
+           (when (buffer-live-p $sentinel/destination)
+             (kill-buffer $sentinel/destination))))
+      (entropy/emacs-coworker--coworker-message-existed
+       server-name-string))))
+
 ;; **** archive download
 
 (defun entropy/emacs-coworker--coworker-install-by-archive-get
     (server-name-string server-archive-name server-host-url server-archive-type
-                        &optional no-success-msg ok-if-exist)
+                        &optional no-success-msg)
   ;; SERVER-ARCHIVE-TYPE can also be `identity' which treat it as an
   ;; single file.
   ;;
@@ -492,29 +644,36 @@ EXIT /b
           (expand-file-name
            "eemacs-tmp-download-cache"
            entropy/emacs-coworker-archive-host-root))
-         (tmp-download-basename
-          (format "eemacs-coworker_random_download_file_for_%s_%s.%s"
-                  ;; escape the path separator
-                  (replace-regexp-in-string "/" "_" server-archive-name)
-                  (random)
-                  server-archive-type))
-         (tmp-download-file
-          (expand-file-name
-           tmp-download-basename
-           tmp-download-host))
+         (tmp-download-basename-gen-func
+          (lambda nil
+            (format "eemacs-coworker_random_download_file_for_%s_%s.%s"
+                    ;; escape the path separator
+                    (replace-regexp-in-string "/" "_" server-archive-name)
+                    (abs (random))
+                    server-archive-type)))
+         (tmp-download-file nil)
+         (_
+          (while
+              (file-exists-p
+               (setq tmp-download-file
+                     (expand-file-name
+                      (funcall tmp-download-basename-gen-func)
+                      tmp-download-host)))))
          (server-extdir-or-dest
           (expand-file-name
            server-archive-name
            entropy/emacs-coworker-archive-host-root)))
     ;; Firstly make stuff directory
-    (unless (file-exists-p entropy/emacs-coworker-archive-host-root)
+    (unless (file-directory-p entropy/emacs-coworker-archive-host-root)
       (make-directory entropy/emacs-coworker-archive-host-root t))
-    (unless (file-exists-p tmp-download-host)
+    (unless (file-directory-p tmp-download-host)
       (make-directory tmp-download-host t))
+    (when (and (eq server-archive-type 'identity))
+      (make-directory (file-name-directory
+                       (directory-file-name server-extdir-or-dest))))
     ;; begin downloading
     (entropy/emacs-coworker--coworker-message-do-task server-name-string)
     (if (and (file-exists-p server-extdir-or-dest)
-             (not ok-if-exist)
              (if (eq server-archive-type 'identity) t
                ;; unless the old extract dir is empty so as not existed
                ;; since we can reuse it for the new extraction.
@@ -522,31 +681,37 @@ EXIT /b
         (progn (entropy/emacs-coworker--coworker-message-existed server-name-string)
                ;; return
                'exist)
-      (message "Downloading lsp archive for '%s' ..." server-name-string)
+      (message "Downloading coworker archive for '%s' ..." server-name-string)
       (setq download-cbk
             (entropy/emacs-network-download-file
              server-host-url
              tmp-download-file (executable-find "curl")))
       (unless (eq (symbol-value download-cbk) 'success)
         (entropy/emacs-error-without-debugger
-         "'%s' lsp server download with fatal with error type '%s'"
+         "'%s' coworker download with fatal with error type '%s'"
          server-name-string
          (get download-cbk 'error-type)))
-      (cond ((eq server-archive-type 'identity)
-             (rename-file tmp-download-file server-extdir-or-dest))
-            (t
-             (make-directory server-extdir-or-dest t)
-             (entropy/emacs-archive-dowith
-              server-archive-type
-              tmp-download-file
-              (cond ((eq server-archive-type 'gzip)
-                     ;; NOTE gzip just support single file
-                     ;; com/decom-press, so we recognize the
-                     ;; `server-archive-name' as the sub-filename of
-                     ;; the extract dir and extract that as-is.
-                     (expand-file-name server-archive-name server-extdir-or-dest))
-                    (t server-extdir-or-dest))
-              :extract)))
+      (condition-case err
+          (cond ((eq server-archive-type 'identity)
+                 (rename-file tmp-download-file server-extdir-or-dest))
+                (t
+                 (delete-directory server-extdir-or-dest t)
+                 (make-directory server-extdir-or-dest t)
+                 (entropy/emacs-archive-dowith
+                  server-archive-type
+                  tmp-download-file
+                  (cond ((eq server-archive-type 'gzip)
+                         ;; NOTE gzip just support single file
+                         ;; com/decom-press, so we recognize the
+                         ;; `server-archive-name' as the sub-filename of
+                         ;; the extract dir and extract that as-is.
+                         (expand-file-name server-archive-name server-extdir-or-dest))
+                        (t server-extdir-or-dest))
+                  :extract)))
+        (error
+         (entropy/emacs-error-without-debugger
+          "'%s' coworker install with fatal with error of: %s"
+          err)))
       (unless no-success-msg
         (entropy/emacs-coworker--coworker-message-install-success
          server-name-string))
@@ -557,7 +722,9 @@ EXIT /b
 
 (dolist (install-func  '(entropy/emacs-coworker--coworker-install-by-archive-get
                          entropy/emacs-coworker--coworker-isolate-bins-install-by-npm
-                         entropy/emacs-coworker--coworker-isolate-bins-install-by-pip))
+                         entropy/emacs-coworker--coworker-isolate-bins-install-by-pip
+                         entropy/emacs-coworker--coworker-isolate-bins-install-by-go
+                         entropy/emacs-coworker--coworker-isolate-bins-install-by-cargo))
   (advice-add install-func
               :around
               #'entropy/emacs-advice-for-common-do-with-http-proxy))
@@ -695,8 +862,13 @@ EXIT /b
          entropy/emacs-coworker-archive-host-root)))
 
 ;; **** rust-analyzer
-(defun entropy/emacs-coworker-check-rust-analyzer (&rest _)
+(cl-defun entropy/emacs-coworker-check-rust-analyzer (&rest _)
   (let (status)
+    (when
+        (entropy/emacs-coworker--coworker-alist-judge
+         (list (cons 'file "rust-analyzer")))
+      (entropy/emacs-coworker--coworker-message-existed "rust-analyzer")
+      (cl-return))
     (entropy/emacs-setf-by-body status
       (entropy/emacs-coworker--coworker-install-by-archive-get
        "rust-analyzer"
@@ -926,6 +1098,14 @@ lsp-java-v3.1_jdtls_release/%s"))
               (funcall symlink-func))
           (funcall symlink-func))))))
 
+;; **** gopls
+(defun entropy/emacs-coworker-check-gopls-lsp (&rest _)
+  (interactive)
+  (entropy/emacs-coworker--coworker-isolate-bins-install-by-go
+   "golang-lsp"
+   '("gopls")
+   "golang.org/x/tools/gopls@latest"))
+
 ;; *** exra tools
 ;; **** wsl-open
 (defun entropy/emacs-coworker-check-wsl-open (&rest _)
@@ -988,6 +1168,9 @@ lsp-java-v3.1_jdtls_release/%s"))
                      (:name "rust-analyzer"
                             :pred entropy/emacs-coworker-check-rust-analyzer
                             :enable (EEMACS-DT-IDENTITY t))
+                     (:name "golang-lsp"
+                            :pred entropy/emacs-coworker-check-gopls-lsp
+                            :enalble (EEMACS-DT-IDENTITY t))
                      (:name "wsl-open"
                             :pred entropy/emacs-coworker-check-wsl-open
                             :enable (EEMACS-DT-FORM sys/wsl2-env-p))
