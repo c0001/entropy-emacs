@@ -2860,7 +2860,7 @@ program thumb names gotten procedure done, for example:
   ;; thumbnails which is not proper for daily usage.
   (entropy/emacs-defun-with-emacs-version-restriction
       __ya/image-dired/image-file-name-regexp (fn &rest args)
-    :with-emacs-versions '(<= "29.1")
+    :with-emacs-versions `(<= ,entropy/emacs-highest-emacs-version-requirement)
     :with-do-error-when-incompatible t
     (if (and (or entropy/emacs-basic--image-dired-mark-arbitrary-files-p
                  entropy/emacs-basic--image-dired-use-arbitary-image-file-name-regexp)
@@ -6929,9 +6929,9 @@ backtrace:
 #+end_example
 "
   :detector (not (entropy/emacs-do-error-for-emacs-version-incompatible
-                  '<= "29.1" 'noerror))
+                  '<= entropy/emacs-highest-emacs-version-requirement 'noerror))
   :signal (entropy/emacs-do-error-for-emacs-version-incompatible
-           '<= "29.1")
+           '<= entropy/emacs-highest-emacs-version-requirement)
   (when (and
          ;; emacs 27 and lower has no problem
          (not (< emacs-major-version 28))
@@ -8289,14 +8289,15 @@ otherwise returns nil."
 
 (entropy/emacs--api-restriction-uniform
     'xterm--pasted-text-progress-prompts 'emacs-version-incompatible
-  :detector (> emacs-major-version 29)
+  :detector
+  (version< entropy/emacs-highest-emacs-version-requirement emacs-version)
   :signal
   (signal
    entropy/emacs-emacs-version-incompatible-error-symbol
    (list
     (format
      "highest emacs version restrict by '%s' but current stands on '%s'"
-     "29.1" emacs-version)))
+     entropy/emacs-highest-emacs-version-requirement emacs-version)))
   :do-error t
   (defun __ya/xterm--pasted-text ()
     "eemacs spec for `xterm--pasted-text'."
