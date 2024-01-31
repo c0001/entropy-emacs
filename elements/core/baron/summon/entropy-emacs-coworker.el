@@ -1173,7 +1173,7 @@ lsp-java-v3.1_jdtls_release/%s"))
                             :enable (EEMACS-DT-IDENTITY t))
                      (:name "golang-lsp"
                             :pred entropy/emacs-coworker-check-gopls-lsp
-                            :enalble (EEMACS-DT-IDENTITY t))
+                            :enable (EEMACS-DT-IDENTITY t))
                      (:name "wsl-open"
                             :pred entropy/emacs-coworker-check-wsl-open
                             :enable (EEMACS-DT-FORM sys/wsl2-env-p))
