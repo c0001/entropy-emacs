@@ -669,8 +669,11 @@ EXIT /b
     (unless (file-directory-p tmp-download-host)
       (make-directory tmp-download-host t))
     (when (and (eq server-archive-type 'identity))
-      (make-directory (file-name-directory
-                       (directory-file-name server-extdir-or-dest))))
+      (let ((pdir
+             (file-name-directory
+              (directory-file-name server-extdir-or-dest))))
+        (unless (file-directory-p pdir)
+          (make-directory pdir))))
     ;; begin downloading
     (entropy/emacs-coworker--coworker-message-do-task server-name-string)
     (if (and (file-exists-p server-extdir-or-dest)
