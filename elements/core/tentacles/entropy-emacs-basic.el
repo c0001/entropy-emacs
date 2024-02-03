@@ -382,12 +382,45 @@ With prefix argument binds, jump to the previous mark place."
   (setq dired-recursive-deletes 'always
         dired-recursive-copies 'always)
 
-;; ******* Revet prompting
+;; ******* dired-revert enhancement
+
+  (defun entropy/emacs-basic-dired-clean-nonexist-dired-buffers ()
+    "Kill all non existed directory bound `dired-buffers' unless
+`current-buffer' if its a dired buffer.
+
+This function exists since huge amounts of `dired-buffers' will
+extremely slown down the dired rename/copy builtin operations
+caused by dired subroutine `dired-buffers-for-dir', therefore,
+there's no need to presist those zombie dired buffers in current
+emacs session."
+    (interactive)
+    (let (buff dir (cbuff (current-buffer)) (cnt 0))
+      (entropy/emacs-message-simple-progress-message
+          "killing non existed dir bound dired buffers"
+        :with-temp-message
+        (not (eq real-this-command
+                 'entropy/emacs-basic-dired-clean-nonexist-dired-buffers))
+        (dolist (el (copy-sequence dired-buffers))
+          (setq dir (car el) buff (cdr el))
+          (unless (file-directory-p dir)
+            (when (buffer-live-p buff)
+              (cond
+               ((eq buff cbuff) nil)
+               (t
+                (setq dired-buffers (delete el dired-buffers))
+                (kill-buffer buff) (cl-incf cnt)))))))
+      (and (> cnt 0)
+           (message "killed %d non-existed dir bound dired buffers"
+                    cnt))))
 
   (defun __ya/dired-revert/with-prompting (orig-func &rest orig-args)
     "This advice let `dired-revert' takes care of the user nervousness
 and result feedback for a refresh of the result of the directory
-user expected to known about."
+user expected to known about.
+
+Implicitly that this advice will invoke
+`entropy/emacs-basic-dired-clean-nonexist-dired-buffers' before
+actually reverting happened."
     (entropy/emacs-message-simple-progress-message
         (let ((cur-buff (current-buffer))
               (fmstr "Reverting dired buffer %S"))
@@ -399,6 +432,8 @@ user expected to known about."
       ;; invocation of `revert-buffer' so that doesn't pollute msg
       ;; from other commands.
       (not (eq real-this-command 'revert-buffer))
+      (let ((inhibit-message t))
+        (entropy/emacs-basic-dired-clean-nonexist-dired-buffers))
       (apply orig-func orig-args)))
   (advice-add 'dired-revert
               :around
