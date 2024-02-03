@@ -384,7 +384,9 @@ With prefix argument binds, jump to the previous mark place."
 
 ;; ******* dired-revert enhancement
 
-  (defun entropy/emacs-basic-dired-clean-nonexist-dired-buffers ()
+  (defvar entropy/emacs-basic--dired-cleaned-nonexist-dired-buffers nil)
+  (entropy/emacs-!cl-defun entropy/emacs-basic-dired-clean-nonexist-dired-buffers
+      nil
     "Kill all non existed directory bound `dired-buffers' unless
 `current-buffer' if its a dired buffer.
 
@@ -394,12 +396,19 @@ caused by dired subroutine `dired-buffers-for-dir', therefore,
 there's no need to presist those zombie dired buffers in current
 emacs session."
     (interactive)
-    (let (buff dir (cbuff (current-buffer)) (cnt 0))
+    (let (buff
+          dir
+          (cbuff (current-buffer)) (cnt 0)
+          (is-call-directly-p
+           (memq real-this-command
+                 (list entropy/emacs-inner-sym-for/current-defname
+                       'dired-revert 'revert-buffer))))
       (entropy/emacs-message-simple-progress-message
           "killing non existed dir bound dired buffers"
-        :with-temp-message
-        (not (eq real-this-command
-                 'entropy/emacs-basic-dired-clean-nonexist-dired-buffers))
+        :with-temp-message t
+        ;; NOTE: do not pollute other dired commands' important final
+        ;; msg which indicate what is happened instantly.
+        :without-msg (not is-call-directly-p)
         (dolist (el (copy-sequence dired-buffers))
           (setq dir (car el) buff (cdr el))
           (unless (file-directory-p dir)
@@ -407,11 +416,13 @@ emacs session."
               (cond
                ((eq buff cbuff) nil)
                (t
+                (push el entropy/emacs-basic--dired-cleaned-nonexist-dired-buffers)
                 (setq dired-buffers (delete el dired-buffers))
-                (kill-buffer buff) (cl-incf cnt)))))))
-      (and (> cnt 0)
-           (message "killed %d non-existed dir bound dired buffers"
-                    cnt))))
+                (kill-buffer buff) (cl-incf cnt))))))
+        (and (> cnt 0)
+             is-call-directly-p
+             (message "killed %d non-existed dir bound dired buffers"
+                      cnt)))))
 
   (defun __ya/dired-revert/with-prompting (orig-func &rest orig-args)
     "This advice let `dired-revert' takes care of the user nervousness
@@ -432,7 +443,7 @@ actually reverting happened."
       ;; invocation of `revert-buffer' so that doesn't pollute msg
       ;; from other commands.
       (not (eq real-this-command 'revert-buffer))
-      (let ((inhibit-message t))
+      (let ((inhibit-message t) (message-log-max t))
         (entropy/emacs-basic-dired-clean-nonexist-dired-buffers))
       (apply orig-func orig-args)))
   (advice-add 'dired-revert
