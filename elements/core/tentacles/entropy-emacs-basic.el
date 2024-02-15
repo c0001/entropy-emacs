@@ -418,7 +418,7 @@ emacs session."
                  ;; whether that buffer was lived or not.
                  (not (buffer-live-p buff))
                  (not (file-directory-p dir)))
-            (when (buffer-live-p buff)
+            (progn
               (cond
                ((eq buff cbuff) nil)
                (t
