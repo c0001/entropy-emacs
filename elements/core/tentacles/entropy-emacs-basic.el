@@ -411,7 +411,13 @@ emacs session."
         :without-msg (not is-call-directly-p)
         (dolist (el (copy-sequence dired-buffers))
           (setq dir (car el) buff (cdr el))
-          (unless (file-directory-p dir)
+          (when (or
+                 ;; we check dir associated buffer whether lived
+                 ;; firstly since buffer like remote dired item will
+                 ;; prompt for the remotion authentication whenever
+                 ;; whether that buffer was lived or not.
+                 (not (buffer-live-p buff))
+                 (not (file-directory-p dir)))
             (when (buffer-live-p buff)
               (cond
                ((eq buff cbuff) nil)
