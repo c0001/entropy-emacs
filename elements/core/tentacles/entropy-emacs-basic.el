@@ -551,7 +551,7 @@ modifcation is to remove this feature.
 
   (eval-and-compile
     (defmacro entropy/emacs-basic--dired-cmd-run-with-simple-progress-prompt
-        (cmd-name msg &rest body)
+        (cmd-name canbe-nonint msg &rest body)
       ;; NOTE: preserved symbol for msg and body fn=function-name
       ;; args=applied-arguments
       (declare (indent 2))
@@ -564,15 +564,16 @@ entropy/emacs-basic--dired-cmd-run-with-simple-progress-prompt/for/%s/"
            (defun ,fnm-sym (fn &rest args)
              ,(format "Simple progress message around advice for dired command `%s'."
                       cmd-name)
-             (if (not (called-interactively-p 'interactive)) (apply fn args)
+             (if (not (or ,canbe-nonint (called-interactively-p 'interactive)))
+                 (apply fn args)
                (entropy/emacs-message-simple-progress-message ,msg
                  ,@(if body body
                      '((apply fn args))))))
            (advice-add ',cmd-name :around ',fnm-sym)))))
 
   (entropy/emacs-basic--dired-cmd-run-with-simple-progress-prompt
-      dired-create-directory
-      (format "Creating directory \"%s\"" (car args))
+      dired-create-directory nil
+    (format "Creating directory \"%s\"" (car args))
     (let* ((dir (car args))
            (attr (file-attributes dir)))
       (cond
@@ -587,6 +588,14 @@ entropy/emacs-basic--dired-cmd-run-with-simple-progress-prompt/for/%s/"
                     (if (stringp (file-attribute-type attr))
                         "existed(broken)" "existed")))))
     (apply fn args))
+
+  (entropy/emacs-api-restriction/emacs-version
+      'adv/progress-prompt/dired--find-file
+    :max-emacs-ver "29.2"
+    :do-error t
+    (entropy/emacs-basic--dired-cmd-run-with-simple-progress-prompt
+        dired--find-file (memq this-command '(dired-find-file))
+      (format "Dired find file \"%s\"" (nth 1 args))))
 
 ;; ****** Eemacs spec `dired' commands
 ;; ******* Dired sibling directory navigation dwim
@@ -2226,14 +2235,10 @@ which is hardcoded in the ORIGIN-FUNC.
               :around
               #'__ya/dired-subtree--dired-line-is-directory-or-link-p)
 
-  (defun __ya/dired-subtree-insert (&rest _args)
-    "Like `dired-subtree-insert' but with bug fix.
-
-EEMACS_MAINTENANCE: Updpate with upstream's updates.
-"
+  (defun __ya/dired-subtree-insert-1 (dir-name &rest _args)
     (when (and (dired-subtree--dired-line-is-directory-or-link-p)
                (not (dired-subtree--is-expanded-p)))
-      (let* ((dir-name (dired-get-filename nil))
+      (let* (
              (listing (dired-subtree--readin (file-name-as-directory dir-name)))
              ;; EEMACS_TEMPORALLY_HACK inhibit point motion features
              ;; to ensure plain motion operations did correctly.
@@ -2298,6 +2303,23 @@ EEMACS_MAINTENANCE: Updpate with upstream's updates.
         (goto-char beg)
         (dired-move-to-filename)
         (run-hooks 'dired-subtree-after-insert-hook))))
+
+  (defun __ya/dired-subtree-insert (&rest args)
+    "Like `dired-subtree-insert' but with bug fix.
+
+EEMACS_MAINTENANCE: Updpate with upstream's updates.
+"
+    (let ((dir-name (dired-get-filename nil)))
+      (if (or (called-interactively-p 'interactive)
+              (memq this-command
+                    '(dired-subtree-toggle
+                      entropy/emacs-basic-dired-subtree-cycle
+                      dired-subtree-cycle)))
+          (entropy/emacs-message-simple-progress-message
+              (format "dired subtree insert \"%s\"" dir-name)
+            (apply '__ya/dired-subtree-insert-1 dir-name args))
+        (apply '__ya/dired-subtree-insert-1 dir-name args))))
+
   (advice-add 'dired-subtree-insert
               :override
               #'__ya/dired-subtree-insert)

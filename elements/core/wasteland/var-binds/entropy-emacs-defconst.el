@@ -632,6 +632,41 @@ see `entropy/emacs-api-restriction-detection-log' for details."
                       ,type-sym ,op-name-sym (nth 1 fake-err-data)))))
          ,(entropy/emacs-macroexp-progn body)))))
 
+(cl-defmacro entropy/emacs-api-restriction/emacs-version
+    (op-name
+     &rest body
+     &key
+     when doc do-error
+     min-emacs-ver max-emacs-ver
+     &allow-other-keys)
+  "Do eemacs api restriction on `emacs-version' aspect, relying on
+`entropy/emacs--api-restriction-uniform'.
+
+All arguments but MIN-EMACS-VER (defaults to
+`entropy/emacs-lowest-emacs-version-requirement') and
+MAX-EMACS-VER (defaults to
+`entropy/emacs-highest-emacs-version-requirement') which used to
+restrict the lowest and highest emacs version range for BODY."
+  (declare (indent 1))
+  (let ((body (entropy/emacs--get-def-body body)))
+    (macroexp-let2* ignore
+        ((minver `(or ,min-emacs-ver entropy/emacs-lowest-emacs-version-requirement))
+         (maxver `(or ,max-emacs-ver entropy/emacs-highest-emacs-version-requirement)))
+      `(entropy/emacs--api-restriction-uniform ,op-name
+           'emacs-version-incompatible
+         :when ,when :doc ,doc
+         :do-error ,do-error
+         :detector
+         (or
+          (version< emacs-version ,minver)
+          (version< ,maxver emacs-version))
+         :signal
+         (signal
+          entropy/emacs-emacs-version-incompatible-error-symbol
+          (list 'emacs-version emacs-version
+                (format "require: %s to %s" ,minver ,maxver)))
+         ,@body))))
+
 ;; ** others
 (defconst entropy/emacs-origin-load-path (copy-sequence load-path))
 
