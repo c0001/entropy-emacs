@@ -614,6 +614,10 @@ the parent subtree sibling using `dired-sutree-up'."
        (t
         (dired-up-directory)))))
 
+  (entropy/emacs-message-make-func-with-simple-progress-prompts
+      'entropy/emacs-basic-dired-Meta-up
+    "Dired goto parent directory")
+
   (defun entropy/emacs-basic-dired-Meta-down ()
     "Downup to parent next sibling `dired' buffer of
 `dired-current-directory' or goto the next upgrade level 1
@@ -650,6 +654,10 @@ subtree sibling using `dired-subtree''s subroutine."
           (user-error "No more subdirectories for dired host <%s>"
                       (dired-current-directory)))
         ))))
+
+  (entropy/emacs-message-make-func-with-simple-progress-prompts
+      'entropy/emacs-basic-dired-Meta-down
+    "Dired goto parent's next sibling directory")
 
 ;; ******* Yet another `narrow-to-region' to suite for `dired'
 
