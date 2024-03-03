@@ -396,13 +396,16 @@ caused by dired subroutine `dired-buffers-for-dir', therefore,
 there's no need to presist those zombie dired buffers in current
 emacs session."
     (interactive)
-    (let (buff
-          dir
-          (cbuff (current-buffer)) (cnt 0)
-          (is-call-directly-p
-           (memq real-this-command
-                 (list entropy/emacs-inner-sym-for/current-defname
-                       'dired-revert 'revert-buffer))))
+    (let* (buff
+           dir
+           (cbuff (current-buffer))
+           (cbuff-of-local-fs-p
+            (not (file-remote-p (with-current-buffer cbuff default-directory))))
+           (cnt 0)
+           (is-call-directly-p
+            (memq real-this-command
+                  (list entropy/emacs-inner-sym-for/current-defname
+                        'dired-revert 'revert-buffer))))
       (entropy/emacs-message-simple-progress-message
           "killing non existed dir bound dired buffers"
         :with-temp-message t
@@ -417,7 +420,12 @@ emacs session."
                  ;; prompt for the remotion authentication whenever
                  ;; whether that buffer was lived or not.
                  (not (buffer-live-p buff))
-                 (not (file-directory-p dir)))
+                 ;; NOTE: do quickly check when checking from a local
+                 ;; directory dired buffer since its commonly no need
+                 ;; to check those remote items which may need passwd
+                 ;; verification.
+                 (unless (and (file-remote-p dir) cbuff-of-local-fs-p)
+                   (not (file-directory-p dir))))
             (progn
               (cond
                ((eq buff cbuff) nil)
