@@ -198,6 +198,12 @@
   (advice-add 'mpc
               :around
               #'__mpc/disable-window-configuration-restore)
+
+  ;; patched to not kill `entropy/emacs-main-frame'
+  (advice-patch
+   'mpc-quit
+   '(unless (eq frame entropy/emacs-main-frame) (ignore-errors (delete-frame frame)))
+   '(ignore-errors (delete-frame frame)))
   (advice-add 'mpc-quit
               :around
               #'entropy/emacs-music-mpc--patch-quit-around-advice)
