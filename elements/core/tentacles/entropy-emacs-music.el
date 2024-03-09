@@ -172,7 +172,7 @@
            entropy/emacs-mpd-host-url
            entropy/emacs-mpd-host-port)
    mpc-songs-format
-   "%-5{Time} %25{Title} %20{Album} %20{Artist} %5{Date}"
+   "%4{Disc} %25{Title} %20{Album} %20{Artist} %5{Date} %-5{Time}"
    mpc-browser-tags
    '(Artist
      Album
