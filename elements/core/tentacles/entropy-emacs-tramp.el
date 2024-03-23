@@ -160,7 +160,15 @@ This func divided this string into the return list as:
                          (assoc "Port" group))))
         (user (nth 1 (or (assoc "user" group)
                          (assoc "User" group))))
-        link tramp-method)
+        link tramp-method ssh-on-termux-p
+        (init-path ":/"))
+    ;; FIXME: find a more intelligence way for ssh init path
+    ;; inspection
+    (when (and port (equal port "8022"))
+      (setq ssh-on-termux-p (yes-or-no-p "\
+It seems '%s:%s' is hosted on termux emulator, did it? "))
+      (and ssh-on-termux-p
+           (setq init-path ":/data/data/com.termux/files/home")))
     (if (not host-address)
         (error "No address found!"))
     (setq tramp-method
@@ -172,11 +180,13 @@ This func divided this string into the return list as:
      ((and port user)
       (setq link (concat "/" tramp-method ":" user "@"
                          host-address
-                         "#" port ":/")))
+                         "#" port init-path)))
      (port
-      (setq link (concat "/" tramp-method ":" host-address "#" port ":/")))
+      (setq link (concat "/" tramp-method ":" host-address "#" port init-path)))
      (user
-      (setq link (concat "/" tramp-method ":" user "@" host-address ":/"))))
+      (setq link (concat "/" tramp-method ":" user "@" host-address init-path)))
+     (t
+      (setq link (concat "/" tramp-method ":" host-address init-path))))
     (find-file link)))
 
 
