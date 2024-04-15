@@ -3697,7 +3697,9 @@ mechanism as older ver."
         (unless (eq major-mode 'image-dired-thumbnail-mode)
           (image-dired-thumbnail-mode))
         (entropy/emacs--image-dired-update-thumbnail-buffname-core
-         buf))
+         buf)
+        (entropy/emacs-set-buffer-local-fallback-default-directory
+         temporary-file-directory))
       buf))
   (advice-add 'image-dired-create-thumbnail-buffer
               :override

@@ -4362,6 +4362,31 @@ See also `entropy/emacs-return-as-default-directory'."
            `(entropy/emacs-return-as-default-directory
              ,@body))))
 
+(defun entropy/emacs-set-buffer-local-fallback-default-directory
+    (fallback-default-directory)
+  "Made buffer-local `default-directory' fallback to
+FALLBACK-DEFAULT-DIRECTORY only when the current one is not
+existed.
+
+This function existed since many occasions in emacs calling
+process within a buffer whose `default-directory' is missing, and
+the whole procedure failed due to this but the exact procedure
+was not related to that default-directory i.e. they can be ran
+successfully in any place as `default-directory'."
+  (let ((cdfd (entropy/emacs-return-as-default-directory
+               default-directory))
+        fdfd)
+    (unless (file-directory-p cdfd)
+      (setq fdfd
+            (entropy/emacs-return-as-default-directory
+             fallback-default-directory))
+      (if (file-directory-p fdfd)
+          (setq-local default-directory fdfd)
+        (signal 'file-missing
+                (list "Setting fallback current directory"
+                      "No such file or directory"
+                      fdfd))))))
+
 (defun entropy/emacs-apply-func-with-fallback-default-directory
     (fn fallback-default-directory &rest args)
   "Apply function FN with ARGS as normal with current
