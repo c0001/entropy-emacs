@@ -4362,6 +4362,44 @@ See also `entropy/emacs-return-as-default-directory'."
            `(entropy/emacs-return-as-default-directory
              ,@body))))
 
+(defun entropy/emacs-apply-func-with-fallback-default-directory
+    (fn fallback-default-directory &rest args)
+  "Apply function FN with ARGS as normal with current
+`default-directory' CDFD but fallback to use
+FALLBACK-DEFAULT-DIRECTORY when CDFD is not existed.
+
+This function existed since many occasions in emacs calling
+process within a buffer whose `default-directory' is missing, and
+the whole procedure failed due to this but the exact procedure
+was not related to that default-directory i.e. they can be ran
+successfully in any place as `default-directory'."
+  (let ((cdfd (entropy/emacs-return-as-default-directory
+               default-directory))
+        fdfd udfd)
+    (if (file-directory-p cdfd) (setq udfd cdfd)
+      (setq fdfd
+            (entropy/emacs-return-as-default-directory
+             fallback-default-directory))
+      (if (file-directory-p fdfd) (setq udfd fdfd)
+        (signal 'file-missing
+                (list "Setting fallback current directory"
+                      "No such file or directory"
+                      fdfd))))
+    (let ((default-directory udfd)) (apply fn args))))
+
+(defun entropy/emacs-call-process-with-tmpdir-as-fallback-directory
+    (&rest args)
+  "Same as `call-process' for ARGS, but wrapped within
+`entropy/emacs-apply-func-with-fallback-default-directory' for
+using `temporary-file-directory' as the fallback
+`default-directory'."
+  (apply
+   'entropy/emacs-apply-func-with-fallback-default-directory
+   'call-process temporary-file-directory
+   args))
+(defalias 'eemacs-fdfdtmp/call-process
+  'entropy/emacs-call-process-with-tmpdir-as-fallback-directory)
+
 (defun entropy/emacs-directory-file-name (file-or-directory)
   "like `directory-file-name' but checking its type by
 `directory-name-p' firstly so that both file and directory name

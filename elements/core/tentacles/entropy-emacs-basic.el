@@ -3839,7 +3839,7 @@ also."
                    (cons ?f file)
                    (cons ?t new-file)))
                  (ret
-                  (apply #'call-process
+                  (apply #'entropy/emacs-call-process-with-tmpdir-as-fallback-directory
                          image-dired-cmd-create-temp-image-program nil nil nil
                          (mapcar
                           (lambda (arg) (format-spec arg spec))
