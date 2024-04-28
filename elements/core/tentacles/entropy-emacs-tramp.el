@@ -165,8 +165,10 @@ This func divided this string into the return list as:
     ;; FIXME: find a more intelligence way for ssh init path
     ;; inspection
     (when (and port (equal port "8022"))
-      (setq ssh-on-termux-p (yes-or-no-p "\
-It seems '%s:%s' is hosted on termux emulator, did it? "))
+      (setq ssh-on-termux-p
+            (yes-or-no-p "\
+It seems '%s:%s' is hosted on termux emulator, did it? "
+                         host-address port))
       (and ssh-on-termux-p
            (setq init-path ":/data/data/com.termux/files/home")))
     (if (not host-address)
