@@ -169,7 +169,17 @@ files destroying."
               this-command)))
         (apply orig-func orig-args)
       (user-error "Abort!")))
-  (dolist (func '(magit-sparse-checkout-enable
+  (dolist (func '(
+                  ;; FIXME: command `magit-stage-modified' (which
+                  ;; cause the annoy 'git … add -u .' command history
+                  ;; in magit process buffer logged for) is bind as
+                  ;; `S' in `magit-status-mode-map' which always made
+                  ;; mistake key stroke with key `$' (bind to
+                  ;; `magit-process-buffer') in my case while my
+                  ;; fingernail of my ring finger of my left hand is
+                  ;; grown up, but should it be customizable?
+                  magit-stage-modified
+                  magit-sparse-checkout-enable
                   magit-cherry-apply
                   magit-apply))
     (advice-add func

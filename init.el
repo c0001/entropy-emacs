@@ -92,7 +92,7 @@
 It's a version string which can be used for `version<' and
 `version<='.")
 (defconst entropy/emacs-highest-emacs-version-requirement
-  "29.2"
+  "29.3"
   "The highest emacs version requirement for entropy-emacs.
 
 It's a version string which can be used for `version<' and
