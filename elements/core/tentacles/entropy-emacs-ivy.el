@@ -565,7 +565,11 @@ upstream and may be make risky follow the ivy updates.
                                        (funcall symname-func this-caller))
                        )))
         (progn
-          (user-error "Ivy quit for caller '%s'" this-caller)))))
+          (if (functionp entropy/emacs-ivy-dispatch-caller-done-message-func)
+              (unwind-protect
+                  (user-error (funcall entropy/emacs-ivy-dispatch-caller-done-message-func))
+                (setq entropy/emacs-ivy-dispatch-caller-done-message-func nil))
+            (user-error "Ivy quit for caller '%s'" this-caller))))))
   (advice-add 'ivy-read :after #'entropy/emacs-ivy--ivy-read-quit-after-dispatch-actions)
 
 ;; **** inhibit double tab trigger

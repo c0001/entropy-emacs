@@ -2426,6 +2426,14 @@ not dynamically change their regexp builder from
     ;; filenames or CJK missed filenames.
     (ivy--regex-plus str)))
 
+(defvar entropy/emacs-ivy-dispatch-caller-done-message-func nil
+  "A function which should return a message string used to display
+after a ivy dispatcher action invoked done.
+
+This variable exists since eemacs hacked ivy-read, on where the
+`current-message' maybe overridden by the eemacs's ivy-read's
+quit action after a dispatcher action ran done.")
+
 ;; ** operation refer
 ;; *** Read only suggestion
 
