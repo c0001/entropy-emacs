@@ -632,16 +632,17 @@ specification."
         (let* ((buff-name (completing-read prompt table)))
           (funcall action buff-name))))))
   (when (eq entropy/emacs-command-completion-use-style 'ivy)
-    (ivy-add-actions
-     'entropy/emacs-popwin-shackle-popup-buffer
-     `(("k"
-        ,(lambda (buffer) (interactive)
-           (setq entropy/emacs-ivy-dispatch-caller-done-message-func
-                 'current-message)
-           (entropy/emacs-message-simple-progress-message
-               (format "Killing buffer %S" buffer)
-             (kill-buffer buffer)))
-        "kill buffer"))))
+    (with-eval-after-load 'ivy
+      (ivy-add-actions
+       'entropy/emacs-popwin-shackle-popup-buffer
+       `(("k"
+          ,(lambda (buffer) (interactive)
+             (setq entropy/emacs-ivy-dispatch-caller-done-message-func
+                   'current-message)
+             (entropy/emacs-message-simple-progress-message
+                 (format "Killing buffer %S" buffer)
+               (kill-buffer buffer)))
+          "kill buffer")))))
 
   (defun entropy/emacs-popwin-shackle-popup-find-file-action (file)
     (let* ((buff-name (buffer-name (find-file-noselect file)))
