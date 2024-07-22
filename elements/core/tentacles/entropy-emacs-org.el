@@ -454,6 +454,41 @@ enabled at current org buffer. "
     ;; then inject the defautly one
     (add-to-list 'org-file-apps '(directory . emacs)))
 
+;; ***** eemacs outline unified specification
+
+  (defun eemacs//outline-on-org-mode-p nil
+    (derived-mode-p 'org-mode))
+
+  (entropy/emacs-outline-op-regist-op
+   'org-mode 'at-heading-p
+   'eemacs//outline-on-org-mode-p
+   (lambda (&rest _) (org-at-heading-p)))
+
+  (entropy/emacs-outline-op-regist-op
+   'org-mode 'get-current-head-level
+   'eemacs//outline-on-org-mode-p
+   (lambda (&rest _) (org-current-level)))
+
+  (entropy/emacs-outline-op-regist-op
+   'org-mode 'goto-prev-head
+   'eemacs//outline-on-org-mode-p
+   (lambda (&rest _)
+     (outline-previous-heading) (forward-line 0)
+     (and (org-at-heading-p) t)))
+
+  (entropy/emacs-outline-op-regist-op
+   'org-mode 'goto-next-head
+   'eemacs//outline-on-org-mode-p
+   (lambda (&rest _)
+     (outline-next-heading) (forward-line 0)
+     (and (org-at-heading-p) t)))
+
+  (entropy/emacs-outline-op-regist-op
+   'org-mode 'map-region
+   'eemacs//outline-on-org-mode-p
+   (lambda (&rest args)
+     (apply 'org-map-region args)))
+
 ;; **** ___end___
   )
 

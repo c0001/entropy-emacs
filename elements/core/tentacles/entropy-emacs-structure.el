@@ -33,8 +33,11 @@
 ;; ** require
 (use-package outline
   :ensure nil
+;; *** preface
   :preface
   (defvar outline-regexp)
+
+;; *** eemacs unified outline interface
 
   (defun entropy/outline-previous-visible-heading (&optional arg)
     "Like `outline-previous-visible-heading' but goto to parent
@@ -49,13 +52,16 @@ prefix arg was `(4)' i.e. the single `C-u' type."
       (outline-previous-visible-heading
        (prefix-numeric-value arg)))))
 
+;; *** init
   :init
   ;; make `outline-minor-mode' enabled in markdown mode since its
   ;; based on thus so that we can invoke some eemacs outline specs for
   ;; markdown as well.
   (add-hook 'markdown-mode-hook #'outline-minor-mode)
 
+;; *** config
   :config
+;; **** keybinding
   (define-key outline-mode-map
               (kbd "C-c C-p")
               #'entropy/outline-previous-visible-heading)
@@ -79,7 +85,10 @@ prefix arg was `(4)' i.e. the single `C-u' type."
               'outline-move-subtree-up)
   (define-key outline-mode-map
               (kbd entropy/emacs-ukrd-outline-move-subtree-down)
-              'outline-move-subtree-down))
+              'outline-move-subtree-down)
+
+;; *** __config_end__
+  )
 
 ;; ** libraries
 ;; function for universal code folding
@@ -1225,6 +1234,36 @@ This function is an around advice for `outshine-mode'."
               :around
               #'entropy/emacs-structure--outshine-mode-around-adv)
 
+;; **** eemacs outline unified
+
+  (defun eemacs//outline-on-outshine-mode-p nil
+    (bound-and-true-p outshine-mode))
+
+  (entropy/emacs-outline-op-regist-op
+   'outshine-mode 'at-heading-p
+   'eemacs//outline-on-outshine-mode-p
+   (lambda (&rest _) (looking-at-p outline-regexp)))
+
+  (entropy/emacs-outline-op-regist-op
+   'outshine-mode 'get-current-head-level
+   'eemacs//outline-on-outshine-mode-p
+   (lambda (&rest _) (outshine-calc-outline-level)))
+
+  (entropy/emacs-outline-op-regist-op
+   'outshine-mode 'goto-prev-head
+   'eemacs//outline-on-outshine-mode-p
+   (lambda (&rest _)
+     (outline-previous-heading) (forward-line 0)
+     (and (looking-at-p outline-regexp) t)))
+
+  (entropy/emacs-outline-op-regist-op
+   'outshine-mode 'goto-next-head
+   'eemacs//outline-on-outshine-mode-p
+   (lambda (&rest _)
+     (outline-next-heading) (forward-line 0)
+     (and (looking-at-p outline-regexp) t)))
+
+;; *** __end__
   )
 
 ;; ** benefit interactively functions
@@ -1258,7 +1297,6 @@ amounts."
               calc-depth-1?))
            (temp-buffer (get-buffer-create "*eemacs/org-subtree-counts-check*"))
            (cur-mode major-mode)
-           (outline-raw-p (derived-mode-p 'outline-mode))
            (cur-prefix
             (if (and (listp cur-prefix) (not (null cur-prefix)))
                 (floor (log (car cur-prefix) 4))
@@ -1273,36 +1311,26 @@ amounts."
                   (outline-up-heading cur-prefix)
                   (point)))
               (t (point-min))))
+           (ot-gcl-func (entropy/emacs-outline-op-get-op 'get-current-head-level))
+           ;; (ot-gnl-func (entropy/emacs-outline-op-get-op 'get-next-head-level))
+           (ot-gph-func (entropy/emacs-outline-op-get-op 'goto-prev-head))
+           (ot-gnh-func (entropy/emacs-outline-op-get-op 'goto-next-head))
+           (ot-mapreg-func (entropy/emacs-outline-op-get-op 'map-region))
            (see-level
-            (lambda (&optional no-jump)
-              (save-excursion
-                (if outline-raw-p
-                    (if (eq major-mode 'org-mode)
-                        (let ((org-level (save-mark-and-excursion
-                                           (org-outline-level))))
-                          (if org-level
-                              (cond
-                               ((= 0 org-level)
-                                (user-error "no backward org heading found"))
-                               (t
-                                org-level))
-                            (user-error "no org heading found")))
-                      (progn
-                        (unless no-jump
-                          (outline-back-to-heading))
-                        (outline-level)))
-                  (progn
-                    (entropy/emacs-require-only-once 'outshine)
-                    (unless (bound-and-true-p outshine-mode)
-                      (outshine-mode 1))
-                    (or (outshine-calc-outline-level)
-                        (user-error "no org heading found")))))))
-           (cur-level
-            (or
-             (condition-case nil
-                 (funcall see-level)
-               (t 0))
-             0))
+            (lambda (&optional no-jump noerr)
+              (let (cl)
+                (or
+                 (save-excursion
+                   (if (setq cl (funcall ot-gcl-func)) cl
+                     (if no-jump nil
+                       (if (funcall ot-gph-func) (funcall ot-gcl-func)
+                         (goto-char (point-min))
+                         (when (funcall ot-gnh-func)
+                           (setq cl (funcall ot-gcl-func))
+                           (cl-decf cl))))))
+                 (unless noerr
+                   (error "see-level: null obtained"))))))
+           (cur-level (or (funcall see-level nil t) 0))
            (end-pos
             (condition-case nil
                 (progn
@@ -1318,7 +1346,8 @@ amounts."
           (insert subtree-content)
           (funcall cur-mode)
           (goto-char (point-min))
-          (outline-map-region
+          (funcall
+           ot-mapreg-func
            (if calc-depth-1?
                (lambda (&rest _)
                  (let* ((pos-level (funcall see-level 'no-jump)))

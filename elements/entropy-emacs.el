@@ -1316,6 +1316,12 @@ available.
          (error (concat "[%s] " ,string)
                 ,sym ,@args)))))
 
+(defmacro entropy/emacs-!error-as-eemacs-internal-error (string &rest args)
+  "Like `entropy/emacs-!error' but used as eemacs internal bug error"
+  (let (_)
+    `(entropy/emacs-!error
+      (concat "eemacs inner bug error: " ,string) ,@args)))
+
 (defmacro entropy/emacs-!user-error (string &rest args)
   "Like `user-error' but message with =eemacs-defn-bind= as prefix
 when available.
@@ -1608,7 +1614,7 @@ START and END is used as usual but just evaluated while
          (start-sym nil) (end-sym nil))
       `(with-current-buffer ,buffer-sym
          (let ((,start-sym ,start) (,end-sym ,end))
-           (if (not no-properties-p)
+           (if (not ,no-properties-p)
                (buffer-substring ,start-sym ,end-sym)
              (buffer-substring-no-properties
               ,start-sym ,end-sym)))))))

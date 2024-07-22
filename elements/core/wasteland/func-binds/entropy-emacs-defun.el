@@ -12005,6 +12005,49 @@ When TURN-OFF evaled non-nil, then run BODY directly."
     `(if ,turn-off ,(entropy/emacs-macroexp-progn body)
        (save-mark-and-excursion (save-match-data ,@body)))))
 
+(eval-and-compile
+  (cl-defmacro entropy/emacs-save-memrconds
+      (&rest
+       body
+       &key
+       save-match-data save-mark
+       save-excursion  save-restriction
+       &allow-other-keys)
+    "Arrange BODY within `save-match-data', `save-excursion',
+`save-mark' and `save-restriction' according to
+each named as is optional key's non-nil value if needed.
+
+Since we can not save the mark while allow the buffer excursion
+operation at the same time, thus `save-mark's non-nil state will
+cover whatever value of `save-excursion' is i.e. using
+`save-mark-and-excursion' for saving the mark which will also
+save the excursion."
+    (let ((body
+           (entropy/emacs-get-plist-body body t)))
+      (macroexp-let2* ignore
+          ((svmd save-match-data) (svexr save-excursion)
+           (svrt save-restriction) (svmk save-mark)
+           (rbody nil) (bsmd nil) (bsr nil) (tbody nil))
+        `(let (_)
+           (if (not (or ,svmd ,svexr ,svrt ,svmk)) (progn ,@body)
+             (setq ,rbody (lambda nil ,@body))
+             (if (not ,svmd) (setq ,bsmd (lambda nil (funcall ,rbody)))
+               (setq ,bsmd (lambda nil (save-match-data (funcall ,rbody)))))
+             (if (not ,svrt) (setq ,bsr (lambda nil (funcall ,bsmd)))
+               (setq ,bsr (lambda nil (save-restriction (funcall ,bsmd)))))
+             (cond
+              ((not (null ,svmk))
+               (entropy/emacs-setf-by-body ,tbody
+                 (lambda nil
+                   (save-mark-and-excursion (funcall ,bsr)))))
+              ((not (null ,svexr))
+               (entropy/emacs-setf-by-body ,tbody
+                 (lambda nil
+                   (save-excursion (funcall ,bsr)))))
+              (t
+               (setq ,tbody (lambda nil (funcall ,bsr)))))
+             (funcall ,tbody)))))))
+
 (defvar entropy/emacs-sync-var-dynamic-value--cache nil)
 (defun entropy/emacs-sync-var-dynamic-value--regist
     (avar bvar guard-func)

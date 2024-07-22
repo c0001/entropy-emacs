@@ -947,6 +947,197 @@ It is a string used for `kbd'.")
 (defvar entropy/emacs-ukrd-outline-move-subtree-up "M-S-<up>")
 (defvar entropy/emacs-ukrd-outline-move-subtree-down "M-S-<down>")
 
+
+(defvar-local eemacs//outline-buffer-point nil)
+(defun eemacs//outline-excursion-old-point-set nil
+  (setq eemacs//outline-buffer-point (point)))
+(defun entropy/emacs-outline-op-do-op (type)
+  (funcall (entropy/emacs-outline-op-get-op type)))
+(defun eemacs//outline-default-cond-judge-func nil
+  (or (eq major-mode 'outline-mode)
+      (bound-and-true-p outline-minor-mode)))
+(entropy/emacs-!cl-defun eemacs//outline-goto-head-guard (val)
+  (let ((curln nil)
+        (orgpt eemacs//outline-buffer-point))
+    (if (not (or (null val) (eq t val))) nil
+      (if (not (entropy/emacs-outline-op-do-op 'at-heading-p))
+          (entropy/emacs-!error-as-eemacs-internal-error
+           "head goto op not end on a outline head")
+        (if (null orgpt) t
+          (setq curln (line-number-at-pos))
+          (if (not (= curln (line-number-at-pos orgpt))) t
+            (entropy/emacs-!error-as-eemacs-internal-error
+             "head goto op end on same head as before: lnm_%s origpt_%s"
+             curln orgpt)))))))
+(defvar entropy/emacs-outline-op-regist-cache
+  `((at-heading-p
+     :save-match-data t
+     :save-excursion t
+     :save-mark t
+     :save-restriction t
+     :before
+     ,(lambda nil (forward-line 0))
+     :after     nil
+     :precond   nil
+     :valguard: nil
+     :preds
+     ((t
+       eemacs//outline-default-cond-judge-func
+       ,(lambda (&rest _) (looking-at-p outline-regexp)))))
+    (get-current-head-level
+     :save-match-data t
+     :save-excursion t
+     :save-mark t
+     :save-restriction t
+     :before ,(lambda nil (forward-line 0))
+     :after nil
+     :precond ,(lambda nil (entropy/emacs-outline-op-do-op 'at-heading-p))
+     :valguard:
+     ,(lambda (val) (or (null val) (entropy/emacs-natural-number-p val)))
+     :preds
+     ((t
+       eemacs//outline-default-cond-judge-func
+       ,(lambda (&rest _) (forward-line 0) (outline-level)))))
+    (goto-prev-head
+     :save-match-data t
+     :save-excursion nil
+     :save-mark nil
+     :save-restriction t
+     :before  eemacs//outline-excursion-old-point-set
+     :after   nil
+     :precond nil
+     :valguard:
+     ,(lambda (val) (or (null val) (eq val t)))
+     :preds
+     ((t
+       eemacs//outline-default-cond-judge-func
+       ,(lambda (&rest _)
+          (outline-previous-heading)
+          (if (entropy/emacs-outline-op-do-op 'at-heading-p)
+              t nil)))))
+    (get-prev-head-level
+     :save-match-data t
+     :save-excursion t
+     :save-mark t
+     :save-restriction t
+     :before ignore
+     :after  ignore
+     :precond ,(lambda nil (entropy/emacs-outline-op-do-op 'goto-prev-head))
+     :valguard:
+     ,(lambda (val) (or (null val) (entropy/emacs-natural-number-p val)))
+     :preds
+     ((t
+       always
+       ,(lambda (&rest _)
+          (entropy/emacs-outline-op-do-op 'current-level)))))
+    (goto-next-head
+     :save-match-data t
+     :save-excursion nil
+     :save-mark nil
+     :save-restriction t
+     :before  eemacs//outline-excursion-old-point-set
+     :after   nil
+     :precond nil
+     :valguard:
+     ,(lambda (val) (or (null val) (eq val t)))
+     :preds
+     ((t
+       eemacs//outline-default-cond-judge-func
+       ,(lambda (&rest _)
+          (outline-next-heading)
+          (if (entropy/emacs-outline-op-do-op 'at-heading-p)
+              t nil)))))
+    (get-next-head-level
+     :save-match-data t
+     :save-excursion t
+     :save-mark t
+     :save-restriction t
+     :before nil
+     :after  nil
+     :precond ,(lambda nil (entropy/emacs-outline-op-do-op 'goto-next-head))
+     :valguard:
+     ,(lambda (val) (or (null val) (entropy/emacs-natural-number-p val)))
+     :preds
+     ((t
+       always
+       ,(lambda (&rest _)
+          (entropy/emacs-outline-op-do-op 'current-level)))))
+    (map-region
+     :save-match-data t
+     :save-excursion  nil
+     :save-mark nil
+     :save-restriction t
+     :before    nil
+     :after     nil
+     :precond   nil
+     :valguard: nil
+     :preds
+     ((t
+       eemacs//outline-default-cond-judge-func
+       ,(lambda (&rest args)
+          (apply 'outline-map-region args)))))
+    ))
+(entropy/emacs-!cl-defun entropy/emacs-outline-op-regist-op (sym type condi rep)
+  (let* ((val (assoc type entropy/emacs-outline-op-regist-cache))
+         (_ (unless val
+              (entropy/emacs-!error-as-eemacs-internal-error
+               "empty regist type: %s" type)))
+         (cval (plist-get (cdr val) :preds)) nval)
+    (unless (functionp condi)
+      (entropy/emacs-!error-as-eemacs-internal-error
+       "condi is not a function: %s -- %s" type condi))
+    (unless (functionp rep)
+      (entropy/emacs-!error-as-eemacs-internal-error
+       "rep is not a function: %s -- %s" type rep))
+    (if (not (setq nval (assoc sym cval)))
+        (entropy/emacs-list-add-car cval (list sym condi rep) :with-error t)
+      (setcdr nval (list condi rep))
+      (entropy/emacs-!message-when-debug
+       "update type (%s) of sym (%s) done" type sym))))
+(entropy/emacs-!cl-defun entropy/emacs-outline-op-get-op (type)
+  (let* ((val (assoc type entropy/emacs-outline-op-regist-cache))
+         (_ (unless val
+              (entropy/emacs-!error-as-eemacs-internal-error
+               "empty regist type: %s" type)
+              ))
+         (pval (cdr val))
+         (cval (plist-get pval :preds))
+         nval condi rep rtn)
+    (entropy/emacs-setf-by-body rtn
+      (catch :exit
+        (while (setq nval (pop cval))
+          (setq condi (nth 1 nval))
+          (setq rep   (nth 2 nval))
+          (unless (functionp condi)
+            (entropy/emacs-!error-as-eemacs-internal-error
+             "condi is not a function: %s -- %s" type condi))
+          (unless (functionp rep)
+            (entropy/emacs-!error-as-eemacs-internal-error
+             "rep is not a function: %s -- %s" type rep))
+          (and (funcall condi) (throw :exit rep)))))
+    (or (and rtn
+             (lambda (&rest args)
+               (entropy/emacs-save-memrconds
+                :save-mark (plist-get pval :save-mark)
+                :save-match-data (plist-get pval :save-match-data)
+                :save-restriction (plist-get pval :save-restriction)
+                :save-excursion (plist-get pval :save-excursion)
+                (let ((precond (plist-get pval :precond)))
+                  (when (if precond (funcall precond) t)
+                    (when-let ((prf (plist-get pval :before)))
+                      (funcall prf))
+                    (prog1
+                        (let ((rval (apply rtn args)) (rvalguard (plist-get pval :valguard)))
+                          (if (not rvalguard) rval
+                            (unless (funcall rvalguard rval)
+                              (error "[eemacs-outline-op-err: %s]: return value '%s' is invalid"
+                                     type rval))
+                            rval))
+                      (when-let ((atf (plist-get pval :after)))
+                        (funcall atf))))))))
+        (entropy/emacs-!error-as-eemacs-internal-error
+         "can not get type op: %s" type))))
+
 ;; *** individuals
 (defvar entropy/emacs-ukrd-toggle-link-display "C-x C-l")
 
