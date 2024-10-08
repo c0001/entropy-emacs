@@ -11023,7 +11023,7 @@ bottom)."
 ;; **** split window
 
 (defvar entropy/emacs-split-window-default-exhaustion-buffname
-  "*eemacs-split-default-exhausted-buffer*")
+  " *eemacs-split-default-exhausted-buffer*")
 
 (defun entropy/emacs-no-same-buffer-split-window
     (&optional window size side pixelwise buffname)
