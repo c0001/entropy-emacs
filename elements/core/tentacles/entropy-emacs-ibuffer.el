@@ -84,11 +84,21 @@ NOTE: the projectile integration just workable when
         (list :inherit (list 'font-lock-string-face 'bold)))
 
   ;; hiden tmp buffers
-  (dolist (el
-           (list
-            (regexp-quote
-             entropy/emacs-split-window-default-exhaustion-buffname)))
-    (ibuffer-add-to-tmp-hide el))
+  (add-hook
+   'ibuffer-never-show-predicates
+   (lambda (buff)
+     (let ((buffnm (buffer-name buff)))
+       (catch :exit
+         (dolist (el
+                  (list
+                   (regexp-quote
+                    entropy/emacs-split-window-default-exhaustion-buffname)
+                   ;; "^ +\\*"    ;special buffers
+                   ;; TODO: pseudo function for future judgements adding
+                   (lambda nil nil)))
+           (if (stringp el)
+               (and (string-match-p el buffnm) (throw :exit t))
+             (and (funcall el) (throw :exit t))))))))
 
   (entropy/emacs-lazy-load-simple 'counsel
     (with-no-warnings
