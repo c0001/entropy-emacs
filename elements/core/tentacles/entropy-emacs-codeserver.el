@@ -1576,6 +1576,25 @@ NOTE: related to the display char height?"
    "require lsp-java"
    (require 'lsp-java-boot)))
 
+;; ******* lsp javascript
+
+(use-package lsp-javascript
+  :ensure nil
+  :config
+  ;; EEMACS_MAINTENANCE:
+  (defun __ya/lsp-clients-typescript-server-path (ofunc &rest oargs)
+    "advice for `lsp-clients-typescript-server-path' for fix bug
+introduced via 'https://github.com/emacs-lsp/lsp-mode/pull/4202'."
+    (let ((rtn (apply ofunc oargs)))
+      (if (f-exists? rtn) rtn
+        (unless (and lsp-clients-typescript-prefer-use-project-ts-server
+                     (f-exists? (lsp-clients-typescript-project-ts-server-path)))
+          (setq rtn (lsp-package-path 'typescript)))
+        rtn)))
+  (advice-add 'lsp-clients-typescript-server-path
+              :around
+              '__ya/lsp-clients-typescript-server-path))
+
 ;; **** Eglot
 
 
@@ -1682,47 +1701,32 @@ to enable the lsp server for this major-mode supported by `lsp-mode'.
 
   :config
 ;; ***** mode spec framework
-  (defvar entropy/emacs-codeserver--eglot-modes-spec nil)
-  (defun entropy/emacs-codeserver--eglot-completion-with-placeholder
-      ()
-    "Add :usePlaceholders to the lsp SERVER specification which
-let eglot do completion with interface argument injection."
-    (mapc (lambda (eglot-pm)
-            (let* ((server-item (ignore-errors (cadr eglot-pm)))
-                   (server (cond
-                            ((stringp server-item)
-                             (make-symbol (format ":%s" server-item)))
-                            (t
-                             nil)))
-                   (spec-exist (alist-get server eglot-workspace-configuration)))
-              (when server
-                (cond (spec-exist
-                       (let ((spec-plist (car spec-exist)))
-                         (unless (member :usePlaceholders spec-plist)
-                           (plist-put spec-plist :usePlaceholders t))))
-                      (t
-                       (add-to-list
-                        'eglot-workspace-configuration
-                        `(,server (:usePlaceholders . t))))))))
-          eglot-server-programs))
 
+  (defvar entropy/emacs-codeserver--eglot-modes-spec nil)
+  (defun entropy/emacs-codeserver--eglot-pm-name (mode)
+    (let (frtn)
+      (if (not (listp mode)) (setq frtn (list mode))
+        (if (memq :language-id (cdr mode)) (setq frtn (list (car mode)))
+          (dolist (el mode)
+            (let ((rtn (entropy/emacs-codeserver--eglot-pm-name el)))
+              (entropy/emacs-nconc-with-setvar-use-rest
+                  frtn rtn)))
+          frtn))))
   (defun entropy/emacs-codeserver--eglot-top-prepare (&rest _)
-    (make-local-variable 'eglot-workspace-configuration)
     (setq-local eldoc-idle-delay entropy/emacs-ide-doc-delay)
     (entropy/emacs-company-start-with-yas)
     (mapc
      (lambda (it)
        (when (ignore-errors
-               (or (eq (car it) major-mode)
-                   (member major-mode (car it))))
+               (memq major-mode
+                     (entropy/emacs-codeserver--eglot-pm-name (car it))))
          (let ((func-or-form (cdr it)))
            (cond
             ((symbolp func-or-form)
              (funcall func-or-form))
             ((listp func-or-form)
              (entropy/emacs-eval-with-lexical func-or-form))))))
-     entropy/emacs-codeserver--eglot-modes-spec)
-    (entropy/emacs-codeserver--eglot-completion-with-placeholder))
+     entropy/emacs-codeserver--eglot-modes-spec))
 
   ;; we grab the eglot init subroutine as advice object since `eglot'
   ;; is an interactive function which use `eglot--guess-contact' as
@@ -1732,195 +1736,136 @@ let eglot do completion with interface argument injection."
 
 ;; ***** server spec
 
+  (defun entropy/emacs-codeserver--eglot-match-eglotpms-p (mode cmode)
+    (let ((modes (entropy/emacs-codeserver--eglot-pm-name mode))
+          (cmodes (entropy/emacs-codeserver--eglot-pm-name cmode))
+          i (falsep nil))
+      (catch :exit
+        (while cmodes
+          (setq i (pop cmodes))
+          (unless (memq i modes)
+            (setq falsep t) (throw :exit t))))
+      (not falsep)))
+
   (defun entropy/emacs-codeserver--eglot-server-chosen-hack
       (mode concact)
     (let* (_)
       (make-local-variable 'eglot-server-programs)
       (setq eglot-server-programs
             (--map-when
-             (equal (car it) mode)
-             (cons (car it)
-                   concact)
-             eglot-server-programs))
-      (unless (alist-get mode eglot-server-programs)
-        (setq eglot-server-programs
-              (append `((,mode . ,concact))
-                      eglot-server-programs)))))
+             (entropy/emacs-codeserver--eglot-match-eglotpms-p
+              mode (car it))
+             ;; remove the matched one so that there's no conflict/dups
+             ;; against our spec
+             nil
+             eglot-server-programs)
+            eglot-server-programs
+            (delete nil eglot-server-programs)
+            eglot-server-programs
+            (append `((,mode . ,concact))
+                    eglot-server-programs))))
 
 ;; ****** python
-  (defun entropy/emacs-codeserver--eglot-server-chosen-for-PYTHON ()
-    (entropy/emacs-codeserver--eglot-server-chosen-hack
-     'python-mode
-     (cl-case entropy/emacs-codeserver-prefer-pyls-type
-       (pyls '("pyls"))
-       (pyright '("pyright-langserver" "--stdio")))))
-  (add-to-list 'entropy/emacs-codeserver--eglot-modes-spec
-               '(python-mode
-                 . entropy/emacs-codeserver--eglot-server-chosen-for-PYTHON))
+
+  (let ((modes (list 'python-mode 'python-ts-mode)))
+    (defun entropy/emacs-codeserver--eglot-server-chosen-for-PYTHON ()
+      (entropy/emacs-codeserver--eglot-server-chosen-hack
+       modes
+       (cl-case entropy/emacs-codeserver-prefer-pyls-type
+         (pyls '("pyls"))
+         (pyright '("pyright-langserver" "--stdio")))))
+    (add-to-list 'entropy/emacs-codeserver--eglot-modes-spec
+                 `(,modes
+                   . entropy/emacs-codeserver--eglot-server-chosen-for-PYTHON)))
 
 ;; ****** php
-  (defun entropy/emacs-codeserver--eglot-server-chosen-for-PHP ()
-    (entropy/emacs-codeserver--eglot-server-chosen-hack
-     'php-mode
-     '("intelephense" "--stdio")))
-  (add-to-list 'entropy/emacs-codeserver--eglot-modes-spec
-               '(php-mode
-                 . entropy/emacs-codeserver--eglot-server-chosen-for-PHP))
+
+  (let ((modes (list 'php-mode 'php-ts-mode)))
+    (defun entropy/emacs-codeserver--eglot-server-chosen-for-PHP ()
+      (entropy/emacs-codeserver--eglot-server-chosen-hack
+       modes
+       (list "intelephense" "--stdio")))
+    (add-to-list 'entropy/emacs-codeserver--eglot-modes-spec
+                 `(,modes
+                   . entropy/emacs-codeserver--eglot-server-chosen-for-PHP)))
 
 ;; ****** C and CPP
-  (defun entropy/emacs-codeserver--eglot-server-chosen-for-C&CPP ()
-    (entropy/emacs-codeserver--eglot-server-chosen-hack
-     '(c++-mode c-mode) '("clangd")))
-  (add-to-list 'entropy/emacs-codeserver--eglot-modes-spec
-               '((c++-mode c-mode)
-                 . entropy/emacs-codeserver--eglot-server-chosen-for-C&CPP))
+
+  (let ((modes (list 'c-mode 'c++-mode 'c-ts-mode)))
+    (defun entropy/emacs-codeserver--eglot-server-chosen-for-C&CPP ()
+      (entropy/emacs-codeserver--eglot-server-chosen-hack
+       modes (list "clangd")))
+    (add-to-list 'entropy/emacs-codeserver--eglot-modes-spec
+                 `(,modes
+                   . entropy/emacs-codeserver--eglot-server-chosen-for-C&CPP)))
 
 ;; ****** JS
-  (defun entropy/emacs-codeserver--eglot-server-chosen-for-JS&TS ()
-    (entropy/emacs-codeserver--eglot-server-chosen-hack
-     '(js-mode typescript-mode)
-     `("typescript-language-server" "--tsserver-path"
-       ,(executable-find "tsserver")
-       "--stdio"))
-    (entropy/emacs-codeserver--eglot-server-chosen-hack
-     'js2-mode
-     `("typescript-language-server" "--tsserver-path"
-       ,(executable-find "tsserver")
-       "--stdio")))
-  (add-to-list 'entropy/emacs-codeserver--eglot-modes-spec
-               '((js-mode js2-mode typescript-mode)
-                 . entropy/emacs-codeserver--eglot-server-chosen-for-JS&TS))
+
+  (let ((modes
+         (copy-tree
+          '((js-mode :language-id "javascript")
+            (js-ts-mode :language-id "javascript")
+            (tsx-ts-mode :language-id "typescriptreact")
+            (typescript-ts-mode :language-id "typescript")
+            (typescript-mode :language-id "typescript")))))
+    (defun entropy/emacs-codeserver--eglot-server-chosen-for-JS&TS ()
+      (entropy/emacs-codeserver--eglot-server-chosen-hack
+       modes
+       ;; fix bugs introduced via 'https://github.com/emacs-lsp/lsp-mode/pull/4202'
+       `("typescript-language-server" "--stdio"
+         :initializationOptions
+         (:tsserver (:path ,(executable-find "tsserver"))))))
+    (add-to-list 'entropy/emacs-codeserver--eglot-modes-spec
+                 `(,modes
+                   . entropy/emacs-codeserver--eglot-server-chosen-for-JS&TS)))
 
 ;; ****** Html
-;; ******* server defination
-
-  (defclass eglot-html-languageserver (eglot-lsp-server) ()
-    :documentation "Vscode html-languageserver class for eglot")
-  (cl-defmethod eglot-initialization-options ((_server eglot-html-languageserver))
-    "`eglot-html-languageserver' initialization method"
-    '(:embeddedLanguages
-      (:css "true" :javascript "true")
-      :provideFormatte "true"
-      :settings (
-                 :html.customData []
-                 :html.format.enable "true"
-                 :html.format.wrapLineLength 120
-                 :html.format.unformatted "wbr"
-                 :html.format.contentUnformatted "pre,code,textarea"
-                 :html.format.indentInnerHtml "false"
-                 :html.format.preserveNewLines "true"
-                 :html.format.maxPreserveNewLines "null"
-                 :html.format.indentHandlebars "false"
-                 :html.format.endWithNewline "false"
-                 :html.format.extraLiners "head, body, /html"
-                 :html.format.wrapAttributes "auto"
-                 :html.suggest.html5 "true"
-                 :html.validate.scripts "true"
-                 :html.validate.styles "true"
-                 :css.customData []
-                 :css.completion.triggerPropertyValueCompletion "true"
-                 :css.completion.completePropertyWithSemicolon "true"
-                 :css.validate "true"
-                 :css.lint.compatibleVendorPrefixes "ignore"
-                 :css.lint.vendorPrefix "warning"
-                 :css.lint.duplicateProperties "ignore"
-                 :css.lint.emptyRules "warning"
-                 :css.lint.importStatement "ignore"
-                 :css.lint.boxModel "ignore"
-                 :css.lint.universalSelector "ignore"
-                 :css.lint.zeroUnits "ignore"
-                 :css.lint.fontFaceProperties "warning"
-                 :css.lint.hexColorLength "error"
-                 :css.lint.argumentsInColorFunction "error"
-                 :css.lint.unknownProperties "warning"
-                 :css.lint.validProperties []
-                 :css.lint.ieHack "ignore"
-                 :css.lint.unknownVendorSpecificProperties "ignore"
-                 :css.lint.propertyIgnoredDueToDisplay "warning"
-                 :css.lint.important "ignore"
-                 :css.lint.float "ignore"
-                 :css.lint.idSelector "ignore"
-                 :css.lint.unknownAtRules "warning"
-                 :javascript.referencesCodeLens.enabled "false"
-                 :javascript.referencesCodeLens.showOnAllFunctions "false"
-                 :javascript.suggest.completeFunctionCalls "false"
-                 :javascript.suggest.includeAutomaticOptionalChainCompletions "true"
-                 :javascript.suggest.names "true"
-                 :javascript.suggest.paths "true"
-                 :javascript.suggest.autoImports "true"
-                 :javascript.suggest.completeJSDocs "true"
-                 :javascript.suggest.enabled "true"
-                 :javascript.validate.enable "true"
-                 :javascript.format.enable "true"
-                 :javascript.format.insertSpaceAfterCommaDelimiter "true"
-                 :javascript.format.insertSpaceAfterConstructor "false"
-                 :javascript.format.insertSpaceAfterSemicolonInForStatements "true"
-                 :javascript.format.insertSpaceBeforeAndAfterBinaryOperators "true"
-                 :javascript.format.insertSpaceAfterKeywordsInControlFlowStatements "true"
-                 :javascript.format.insertSpaceAfterFunctionKeywordForAnonymousFunctions "false"
-                 :javascript.format.insertSpaceBeforeFunctionParenthesis "false"
-                 :javascript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyParenthesis "false"
-                 :javascript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets "false"
-                 :javascript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces "true"
-                 :javascript.format.insertSpaceAfterOpeningAndBeforeClosingTemplateStringBraces "false"
-                 :javascript.format.insertSpaceAfterOpeningAndBeforeClosingJsxExpressionBraces "false"
-                 :javascript.format.placeOpenBraceOnNewLineForFunctions "false"
-                 :javascript.format.placeOpenBraceOnNewLineForControlBlocks "false"
-                 :javascript.format.semicolons "ignore"
-                 :javascript.implicitProjectConfig.checkJs "true"
-                 :javascript.implicitProjectConfig.experimentalDecorators "false"
-                 :javascript.suggestionActions.enabled "true"
-                 :javascript.preferences.quoteStyle "single"
-                 :javascript.preferences.importModuleSpecifier "auto"
-                 :javascript.preferences.renameShorthandProperties "true"
-                 :javascript.updateImportsOnFileMove.enabled "prompt"
-                 )
-      ))
-
 ;; ******* core
 
-  (defun entropy/emacs-codeserver--eglot-server-chosen-for-HTML ()
-    (entropy/emacs-codeserver--eglot-server-chosen-hack
-     '(web-mode html-mode)
-     '(eglot-html-languageserver
-       .
-       ("html-languageserver"
-        "--stdio"))))
-  (add-to-list 'entropy/emacs-codeserver--eglot-modes-spec
-               '((web-mode html-mode)
-                 . entropy/emacs-codeserver--eglot-server-chosen-for-HTML))
+  (let ((modes
+         (list 'html-mode
+               (list 'html-ts-mode :language-id "html")
+               (list 'web-mode :language-id "html"))))
+    (defun entropy/emacs-codeserver--eglot-server-chosen-for-HTML ()
+      (entropy/emacs-codeserver--eglot-server-chosen-hack
+       modes
+       (list "vscode-html-language-server" "--stdio")))
+    (add-to-list 'entropy/emacs-codeserver--eglot-modes-spec
+                 `(,modes
+                   . entropy/emacs-codeserver--eglot-server-chosen-for-HTML)))
 
 ;; ****** Css
 
-  (defun entropy/emacs-codeserver--eglot-server-chosen-for-CSS ()
-    (entropy/emacs-codeserver--eglot-server-chosen-hack
-     'css-mode
-     `("css-languageserver"
-       "--stdio")))
-  (add-to-list 'entropy/emacs-codeserver--eglot-modes-spec
-               '(css-mode
-                 . entropy/emacs-codeserver--eglot-server-chosen-for-CSS))
+  (let ((modes (list 'css-mode 'css-ts-mode)))
+    (defun entropy/emacs-codeserver--eglot-server-chosen-for-CSS ()
+      (entropy/emacs-codeserver--eglot-server-chosen-hack
+       modes
+       `("css-languageserver" "--stdio")))
+    (add-to-list 'entropy/emacs-codeserver--eglot-modes-spec
+                 `(,modes
+                   . entropy/emacs-codeserver--eglot-server-chosen-for-CSS)))
 
 ;; ****** json
-  (defun entropy/emacs-codeserver--eglot-server-chosen-for-JSON ()
-    (entropy/emacs-codeserver--eglot-server-chosen-hack
-     'json-mode
-     `("vscode-json-languageserver"
-       "--stdio")))
-  (add-to-list 'entropy/emacs-codeserver--eglot-modes-spec
-               '(json-mode
-                 . entropy/emacs-codeserver--eglot-server-chosen-for-JSON))
 
+  (let ((modes (list 'json-mode 'json-ts-mode)))
+    (defun entropy/emacs-codeserver--eglot-server-chosen-for-JSON ()
+      (entropy/emacs-codeserver--eglot-server-chosen-hack
+       modes
+       (list "vscode-json-languageserver" "--stdio")))
+    (add-to-list 'entropy/emacs-codeserver--eglot-modes-spec
+                 `(,modes
+                   . entropy/emacs-codeserver--eglot-server-chosen-for-JSON)))
 
 ;; ****** Cmake
 
-  (defun entropy/emacs-codeserver--eglot-server-chosen-for-CMAKE ()
-    (entropy/emacs-codeserver--eglot-server-chosen-hack
-     'cmake-mode
-     `("cmake-language-server")))
-  (add-to-list 'entropy/emacs-codeserver--eglot-modes-spec
-               '(cmake-mode
-                 . entropy/emacs-codeserver--eglot-server-chosen-for-CMAKE))
+  (let ((modes (list 'cmake-mode 'cmake-ts-mode)))
+    (defun entropy/emacs-codeserver--eglot-server-chosen-for-CMAKE ()
+      (entropy/emacs-codeserver--eglot-server-chosen-hack
+       modes
+       (list "cmake-language-server")))
+    (add-to-list 'entropy/emacs-codeserver--eglot-modes-spec
+                 `(,modes
+                   . entropy/emacs-codeserver--eglot-server-chosen-for-CMAKE)))
 
 ;; ***** doc show
 
