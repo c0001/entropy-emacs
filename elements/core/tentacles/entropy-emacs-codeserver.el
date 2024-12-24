@@ -1983,7 +1983,7 @@ to enable the lsp server for this major-mode supported by `lsp-mode'.
                         (null
                          (setq eglot--ui-doc-enable-buffers
                           (--filter (and (bufferp it) (buffer-live-p it))
-                                    (delete*
+                                    (delete
                                      (current-buffer)
                                      eglot--ui-doc-enable-buffers)))))
                (cancel-timer eglot-ui-doc-idle-timer)
