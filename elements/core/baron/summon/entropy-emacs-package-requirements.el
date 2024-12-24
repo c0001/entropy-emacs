@@ -85,7 +85,6 @@
     autothemer
     avy
     beacon
-    bind-key
     bing-dict
     bongo
     browse-at-remote
@@ -165,8 +164,8 @@
       :under 29
       :name 'flymake
       :pkg-desc (lambda () (__entropy/emacs-requirements/pkgs_desc_get_statble 'flymake)))
-    ghub
-    git-commit
+    ;; magit/ghub require emacs version upon 29 now [2024-12-23 Mon 17:59:06]
+    ,(when (version<= "29.1" emacs-version) 'ghub)
     git-messenger
     git-timemachine
     git-modes
@@ -286,7 +285,7 @@
     treepy
     trie
     ujelly-theme
-    use-package
+    ,(when (< emacs-major-version 29) 'use-package)
     vimish-fold
     visual-ascii-mode
     visual-regexp

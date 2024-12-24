@@ -751,11 +751,11 @@ customized variable `entropy/emacs-ext-elpkg-get-type'."
 value type according to non-defined internal definition")
 
 (defconst entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-version
-  "v3.1.0"
+  "v3.2.0"
   "")
 
 (defconst entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-git-tag
-  (format "CI/dev/%s/20230903014859"
+  (format "CI/dev/%s/20241223131540"
           entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-version)
   "")
 
@@ -781,7 +781,7 @@ download/%s/entropy-emacs-extensions_build_%s.tar.xz"
   "")
 
 (defconst entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-archive-sha256sum
-  "bb532b5d46a62022fd502bc986275343ebf58cce750d7a47a4ed3a00bbc372e7"
+  "95cf10427463e0888022d6deaac6d41538fab1e610058cf1e638e71cc8828eaa"
   "")
 
 ;; using `entropy-emacs-extensions-project-build' prefer when detected
@@ -802,8 +802,7 @@ download/%s/entropy-emacs-extensions_build_%s.tar.xz"
     (setq package-archives
           `(("entropy-melpa"      . ,(funcall archive-fmt "melpa"))
             ("entropy-elpa"       . ,(funcall archive-fmt "elpa"))
-            ;; NOTE: disable elpa devel channel to avoid retrieving package updated with new emacs version.
-            ;; ("entropy-elpa-devel" . ,(funcall archive-fmt "elpa-devel"))
+            ("entropy-elpa-devel" . ,(funcall archive-fmt "elpa-devel"))
             ))))
 
 ;; **** elpkg install location
