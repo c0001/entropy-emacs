@@ -1982,10 +1982,10 @@ to enable the lsp server for this major-mode supported by `lsp-mode'.
              (when (and (timerp eglot-ui-doc-idle-timer)
                         (null
                          (setq eglot--ui-doc-enable-buffers
-                          (--filter (and (bufferp it) (buffer-live-p it))
-                                    (delete
-                                     (current-buffer)
-                                     eglot--ui-doc-enable-buffers)))))
+                               (--filter (and (bufferp it) (buffer-live-p it))
+                                         (delete
+                                          (current-buffer)
+                                          eglot--ui-doc-enable-buffers)))))
                (cancel-timer eglot-ui-doc-idle-timer)
                (cancel-function-timers 'eglot-ui-doc-display)
                (setq eglot-ui-doc-idle-timer nil))
