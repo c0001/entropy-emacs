@@ -99,6 +99,12 @@
   :commands (async-byte-compile-file
              async-bytecomp-package-mode
              async-shell-command)
+  :init
+  ;; FIXME: disable below option since it use
+  ;; `tramp-password-prompt-regexp' to match the process buffer
+  ;; content in process filter which may cause the stack overflow for
+  ;; regex matching while thus of piece of content is huge.
+  (setq async-prompt-for-password nil)
   :config
   (defun __ya/async-start-process/suggest-read-only-for-proc-buffer
       (orig-func &rest orig-args)
