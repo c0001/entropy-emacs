@@ -127,6 +127,10 @@ configuration.")
                                 (seq "pkg.el" (? "c") line-end)
                                 (seq line-start "test.el")
                                 (seq line-start "doom-themes-ext")
+                                ;; diff-hl use emacs-27's thread
+                                ;; feature but the mutex doesn't
+                                ;; support to be dump
+                                "diff-hl"
                                 ;; vterm is an dynamic module which
                                 ;; can not be load while pdumper
                                 ;; session.

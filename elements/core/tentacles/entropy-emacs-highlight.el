@@ -589,6 +589,12 @@ while change themes."
              diff-hl-mode)
   :bind (:map diff-hl-command-map
               ("SPC" . diff-hl-mark-hunk))
+  :defer
+  (or
+   ;; pdump can not dump mutex and condvar made by
+   ;; `make-thread'
+   entropy/emacs-fall-love-with-pdumper
+   (entropy/emacs-custom-enable-lazy-load/val))
   :init
   (when (and (or (and entropy/emacs-microsoft-windows-unix-emulator-enable
                       sys/win32p)

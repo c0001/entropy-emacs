@@ -1580,6 +1580,12 @@ NOTE: related to the display char height?"
 
 (use-package lsp-javascript
   :ensure nil
+  :defer
+  (or
+   ;; pdump can not dump mutex and condvar made by
+   ;; `make-condition-variable'
+   entropy/emacs-fall-love-with-pdumper
+   (entropy/emacs-custom-enable-lazy-load/val))
   :config
   ;; EEMACS_MAINTENANCE:
   (defun __ya/lsp-clients-typescript-server-path (ofunc &rest oargs)
