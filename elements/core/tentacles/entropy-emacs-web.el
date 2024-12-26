@@ -695,7 +695,7 @@ whose major-mode is `%s' which may make messy?"
         (setq ftype "html"))
        (t (setq ftype (completing-read
                        "Which type of this file is?: "
-                       (list "css" "html" "jss")
+                       (list "css" "html" "js")
                        nil t))))
       (setq ftype (cond
                    ((string= "js" ftype) 'web-beautify-js-buffer)
