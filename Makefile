@@ -37,7 +37,8 @@ EEMACS_SERVICE_HOST := $(XDG_CONFIG_HOME)/systemd/user
 EEMACS_SERVICE_FILE = $(EEMACS_SERVICE_HOST)/eemacs-daemon.$(EEMACS_SESSION).service
 EMACS := emacs
 EMACS_MAJOR_VERSION := 28
-EMACS_RUN = $(EMACS) -Q --eval '(setenv "EEMACS_DEBUG" DEBUG )' -l init.el
+EMACS_DEBUG = $(EMACS) -Q --eval '(setenv "EEMACS_DEBUG" "1")' -l init.el --debug-init
+EMACS_DEV_AND_DEBUG = $(EMACS) -Q --eval '(progn (setenv "EEMACS_DEBUG" "1") (setenv "EEMACS_DEV" "1"))' -l init.el --debug-init
 EMACS_MAKE = $(EMACS) -Q --batch --eval '(setenv "EEMACS_MAKE" MAKE_TYPE )' -l init.el
 TERMINATE_WARN = $(EMACS) --batch -q --eval '(or (yes-or-no-p "Remember terminate by kill -9 this make process instead of Ctrl-c since curl do not capture SIGINT") (error "force abort!"))'
 
@@ -124,4 +125,8 @@ install-systemd-service:
 
 debug:
 	@$(EchoEmpty)
-	@$(EMACS_RUN:DEBUG="1") --debug-init
+	@$(EMACS_DEBUG)
+
+dev_and_debug:
+	@$(EchoEmpty)
+	@$(EMACS_DEV_AND_DEBUG)

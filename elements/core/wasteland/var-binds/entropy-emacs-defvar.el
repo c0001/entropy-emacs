@@ -2776,7 +2776,28 @@ is follow their original order in this hook.")
           (funcall orig-func bn)
         (funcall orig-func bn ibh))))
   (advice-add 'get-buffer-create
-              :around #'entropy/emacs--get-buffer-create))
+              :around #'entropy/emacs--get-buffer-create)
+
+  (when (>= emacs-major-version 30)
+    (defun entropy/emacs--require/adv-for/load-pkg/org-compat (ofunc &rest oargs)
+      "For emacs-30^ org-version-9.7^, in lib `org-compat' use `subr-arity'
+       to distinguish function `get-buffer-create''s arguments amounts to do
+       its compat job of `org-get-buffer-create' like what we do as
+       `entropy/emacs-get-buffer-create'. But func `subr-arity' will do error
+       when the function is not a `subrp' routine, where `org-compat' use
+       `symbol-function' to get the origin function but is a mistake since
+       its return is a adviced lambda wrapper which is not a `subrp' routine."
+      (if (eq (car oargs) 'org-compat)
+          (progn
+            (advice-remove 'get-buffer-create
+                           #'entropy/emacs--get-buffer-create)
+            (prog1 (apply ofunc oargs)
+              (advice-add 'get-buffer-create
+                          :around #'entropy/emacs--get-buffer-create)))
+        (apply ofunc oargs)))
+    (advice-add 'require :around 'entropy/emacs--require/adv-for/load-pkg/org-compat)
+    (with-eval-after-load 'org-compat
+      (advice-remove 'require 'entropy/emacs--require/adv-for/load-pkg/org-compat))))
 
 ;; *** More file buffer metas
 

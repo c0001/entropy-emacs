@@ -1008,19 +1008,19 @@ shutdown since it is managed by the customize variable
 
 ;; ********* lsp idle hook specifications
   (defvar entropy/emacs-codeserver--lsp-on-idle-cases
-    '(
+    `(
       ;; Remove `lsp--document-highlight' when current file is not
       ;; writeable in which case that those clients can not parse the
       ;; file in where frequently errors prompted.
-      (lambda ()
-        (unless (ignore-errors
-                  (file-writable-p
-                   (file-truename
-                    (buffer-file-name (current-buffer)))))
-          (remove-hook
-           'lsp-on-idle-hook
-           'lsp--document-highlight
-           t))))
+      ,(lambda ()
+         (unless (ignore-errors
+                   (file-writable-p
+                    (file-truename
+                     (buffer-file-name (current-buffer)))))
+           (remove-hook
+            'lsp-on-idle-hook
+            'lsp--document-highlight
+            t))))
     "Cases of list of functions to run before hook `lsp-on-idle-hook' run."
     )
 

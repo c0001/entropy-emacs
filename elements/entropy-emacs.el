@@ -1790,7 +1790,7 @@ distingush setenv eemacs spec env vars")
 ;; The eemacs specified envrionment to indicated all subprocess are
 ;; ran in an eemacs session, in which case all subprocess can detected
 ;; this variable to do some extra operations or something else.
-(entropy/emacs--inner-setenv-eemacs-env "EEMACS_ENV" "TRUE")
+(entropy/emacs--inner-setenv-eemacs-env "EEMACS_ENV" "1")
 
 ;; ** Start Eemacs
 

@@ -3629,6 +3629,14 @@ proper cases."
       'image-dired-line-up
     "Rearranging image-dired thumbnails display layout")
 
+  (if (>= emacs-major-version 29)
+      (declare-function image-dired--file-URI "image-dired-external")
+    (defun image-dired--file-URI (file)
+      ;; https://en.wikipedia.org/wiki/File_URI_scheme
+      (if (memq system-type '(windows-nt ms-dos))
+          (concat "/" file)
+        file)))
+
   (when (>= emacs-major-version 29)
     (define-derived-mode entropy/emacs-image-dired-display-image-mode
       special-mode "image-dired-image-display"
@@ -3839,6 +3847,7 @@ also."
                                   "")
                              window-height))
                    (cons ?f file)
+                   (cons ?u (image-dired--file-URI file))
                    (cons ?t new-file)))
                  (ret
                   (apply #'entropy/emacs-call-process-with-tmpdir-as-fallback-directory
@@ -4193,6 +4202,7 @@ prevention of re-generation."
            (spec `((?s . ,size) (?w . ,size) (?h . ,size)
                    (?m . ,modif-time)
                    (?f . ,original-file)
+                   (?u . ,(image-dired--file-URI original-file))
                    (?q . ,thumbnail-nq8-file)
                    (?t . ,thumbnail-file)))
            (thumbnail-dir (file-name-directory thumbnail-file))

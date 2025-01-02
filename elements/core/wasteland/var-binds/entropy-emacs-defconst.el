@@ -570,6 +570,7 @@ NOTE: all the key can be evaluated at run-time
         (doc-sym       (make-symbol "docstring"))
         (detector-sym  (make-symbol "detector"))
         (signal-sym    (make-symbol "signal"))
+        (just-warn-sym (make-symbol "just-warn-p"))
         (default-sym   (make-symbol "default"))
         (warn-func-sym (make-symbol "warn-func"))
         (err-sym       (make-symbol "err-sym"))
@@ -577,6 +578,9 @@ NOTE: all the key can be evaluated at run-time
         (do-body-p-sym (make-symbol "do-body-p")))
     `(entropy/emacs-when-let*-first
          ((,(or when t))
+          (,just-warn-sym
+           (if (entropy/emacs-getenv-equal-eemacs-env "EEMACS_DEV" "1")
+               t nil))
           (,op-name-sym ,op-name)
           (,type-sym    ,type)
           (,doc-sym     ,doc)
@@ -596,14 +600,14 @@ NOTE: all the key can be evaluated at run-time
               (format "%s: [type: '%s' op-name: '%s' err-msg: \"%s\"], \
 see `entropy/emacs-api-restriction-detection-log' for details."
                       ,err-sym ,type-sym ,op-name-sym ,err-data-sym)
-              ,do-error))))
+              (if ,just-warn-sym nil ,do-error)))))
        (unless ,default-sym
          (entropy/emacs-do-eemacs-top-error
           "%s"
           (format "invalid eemacs api restriction type - %s"
                   ,type-sym)))
        (cond ((funcall ,detector-sym)
-              (setq ,do-body-p-sym nil)
+              (setq ,do-body-p-sym (if (or ,just-warn-sym nil) t nil))
               (condition-case err
                   (funcall ,signal-sym)
                 (t
