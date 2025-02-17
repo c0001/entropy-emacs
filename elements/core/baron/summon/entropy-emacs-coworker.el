@@ -630,12 +630,16 @@ EXIT /b
 
 (defun entropy/emacs-coworker--coworker-install-by-archive-get
     (server-name-string server-archive-name server-host-url server-archive-type
-                        &optional no-success-msg)
+                        &optional no-success-msg
+                        after-install-func)
   ;; SERVER-ARCHIVE-TYPE can also be `identity' which treat it as an
   ;; single file.
   ;;
   ;; SERVER-ARCHIVE-NAME can also be a non-prefix relative pathname of
   ;; `entropy/emacs-coworker-archive-host-root' (e.g. "lsp/sub*/**")
+  ;;
+  ;; AFTER-ISNTALL-FUNC ran after the extraction successfully and
+  ;; accept one argument the top path for extraction.
   ;;
   ;; Return `t' for full success, `exist' for exists without download
   ;; and install.
@@ -714,7 +718,14 @@ EXIT /b
         (error
          (entropy/emacs-error-without-debugger
           "'%s' coworker install with fatal with error of: %s"
-          err)))
+          server-name-string err)))
+      (when (functionp after-install-func)
+        (condition-case err
+            (funcall after-install-func server-extdir-or-dest)
+          (error
+           (entropy/emacs-error-without-debugger
+            "'%s' coworker after-install with fatal with error of: %s"
+            server-name-string err))))
       (unless no-success-msg
         (entropy/emacs-coworker--coworker-message-install-success
          server-name-string))
@@ -808,12 +819,40 @@ EXIT /b
    "cmake-lsp" '("cmake-language-server") "cmake-language-server"))
 
 ;; **** bash
+
 (defun entropy/emacs-coworker-check-bash-lsp (&rest _)
   (interactive)
   (entropy/emacs-coworker--coworker-isolate-bins-install-by-npm
    "bash-language-server"
    '("bash-language-server")
-   "bash-language-server"))
+   "bash-language-server")
+  (entropy/emacs-coworker--coworker-install-by-archive-get
+   "shellcheck"
+   "shellcheck"
+   "https://github.com/koalaman/shellcheck/releases/download/v0.10.0/shellcheck-v0.10.0.linux.x86_64.tar.xz"
+   'txz nil
+   (lambda (x)
+     (let ((default-directory x) y (z nil) a)
+       (setq y (entropy/emacs-list-dir-lite x))
+       (when (or (> (length y) 1) (null y))
+         (entropy/emacs-error-without-debugger
+          "shellchek extracted as messy: dirlist as '%s'" y))
+       (let ((default-directory (cdar y)))
+         (catch :break
+           (dolist (el (entropy/emacs-list-dir-lite "." 'no-abs))
+             (message "shellcheck release items: %s" el)
+             (when (string-match-p "shellcheck\\(\\.exe\\)?" (cdr el))
+               (setq z (expand-file-name (cdr el))) (throw :break t))))
+         (or z
+             (entropy/emacs-error-without-debugger
+              "shellcheck bin not fonud in: %s" y))
+         (setq a (expand-file-name
+                  (format "shellcheck%s" (if sys/win32p ".exe" ""))
+                  entropy/emacs-coworker-bin-host-path))
+         (when (entropy/emacs-filesystem-node-exists-p a)
+           (delete-file a))
+         (entropy/emacs-make-filesystem-node-symbolic-link
+          z a))))))
 
 ;; **** json
 (defun entropy/emacs-coworker-check-json-lsp (&rest _)
