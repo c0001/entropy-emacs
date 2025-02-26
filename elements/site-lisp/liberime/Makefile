@@ -1,3 +1,4 @@
+PREFIX ?= $(CURDIR)
 UNAME_S := $(shell sh -c 'uname -s 2>/dev/null || echo not')
 EMACS   := $(shell sh -c 'which emacs')
 
@@ -16,12 +17,12 @@ endif
 
 VERSION = 1.00
 CC = gcc
-LDFLAGS = -shared
+LDFLAGS += -shared
 SRC = src
 SOURCES = $(wildcard $(SRC)/*.c)
 OBJS = $(patsubst %.c, %.o, $(SOURCES))
 TARGET = $(SRC)/liberime-core$(SUFFIX)
-CFLAGS = -fPIC -O2 -Wall
+CFLAGS += -fPIC -O2 -Wall
 
 ifndef EMACS_MAJOR_VERSION
 	EMACS_MAJOR_VERSION = 26
@@ -30,11 +31,16 @@ endif
 ifndef EMACS
 	CFLAGS += -I emacs-module/$(EMACS_MAJOR_VERSION)
 endif
+ifdef EMACS_PLUS_PATH
+       CFLAGS += -I ${EMACS_PLUS_PATH}
+endif
 
 ifdef RIME_PATH
 	CFLAGS += -I ${RIME_PATH}/src/
 	LDFLAGS += -L ${RIME_PATH}/build/lib/ -L ${RIME_PATH}/build/lib/Release/
-	LDFLAGS += -Wl,-rpath,${RIME_PATH}/build/lib/:${RIME_PATH}/build/lib/Release $(LIBRIME)
+	LDFLAGS += -Wl,-rpath,${RIME_PATH}/build/lib/
+	LDFLAGS += -Wl,-rpath,${RIME_PATH}/build/lib/Release
+	LDFLAGS += $(LIBRIME)
 else
 	LDFLAGS += $(LIBRIME)
 endif
@@ -58,3 +64,6 @@ test:$(TARGET)
 
 liberime-build:
 	make -f Makefile-liberime-build
+
+install: ${TARGET}
+	install -p -m 755 ${TARGET} $(PREFIX)/lib

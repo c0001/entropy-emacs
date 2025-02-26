@@ -747,8 +747,9 @@ faild with hash '%s' which must match '%s'"
     (eemacs-site-lisp_emacs-rime
      "-emacs-rime"
      nil)
-
-    ))
+    (eemacs-site-lisp_liberime
+     "-liberime"
+     nil)))
 (setq entropy/emacs-batch--bytecompile-item-register
       (delete nil entropy/emacs-batch--bytecompile-item-register))
 

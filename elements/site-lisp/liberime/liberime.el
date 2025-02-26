@@ -97,7 +97,7 @@ More info: https://github.com/rime/home/wiki/SharedData"
 if NAMES is nil, \"rime-data\" as fallback."
   (cl-some (lambda (parent)
              (cl-some (lambda (name)
-                        (let ((dir (concat (file-name-as-directory parent) name)))
+                        (let ((dir (expand-file-name name parent)))
                           (when (file-directory-p dir)
                             dir)))
                       (or names '("rime-data"))))
@@ -112,7 +112,12 @@ if NAMES is nil, \"rime-data\" as fallback."
       (cl-case system-type
         (gnu/linux
          (liberime-find-rime-data
-          '("/usr/share/local" "/usr/share")))
+          '("/usr/share/local"
+            "/usr/share"
+            ;; GuixOS support
+            "~/.guix-home/profile/share"
+            "~/.guix-profile/share"
+            "/run/current-system/profile/share")))
         (darwin
          "/Library/Input Methods/Squirrel.app/Contents/SharedSupport")
         (windows-nt
@@ -216,8 +221,12 @@ if NAMES is nil, \"rime-data\" as fallback."
               (let ((p (getenv "RIME_PATH")))
                 (if p
                     (concat "CFLAGS += -I " p "/src/\n"
-                            "LDFLAGS += -L " p "/build/lib/ -L " p "/build/lib/Release/\n"
-                            "LDFLAGS += -Wl,-rpath," p "/build/lib/:" p "/build/lib/Release\n")
+                            "LDFLAGS += -L " p "/build/lib/ \n"
+                            "LDFLAGS += -L " p "/build/lib/Release/\n"
+                            "LDFLAGS += -L " p "/dist/lib\n"
+                            "LDFLAGS += -Wl,-rpath," p "/build/lib/\n"
+                            "LDFLAGS += -Wl,-rpath," p "/build/lib/Release\n"
+                            "LDFLAGS += -Wl,-rpath," p "/dist/lib\n")
                   "\n"))
               (concat
                ".PHONY:all objs\n"
@@ -280,8 +289,7 @@ if NAMES is nil, \"rime-data\" as fallback."
           (goto-char (point-min)))
         (pop-to-buffer buf)))))
 
-;; NOTE: eemacs do not need this to auto compile liberime since its laggy
-;; (liberime-load)
+(liberime-load)
 
 (defun liberime-get-preedit ()
   "Get rime preedit."

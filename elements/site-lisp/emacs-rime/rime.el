@@ -81,13 +81,14 @@
 ;;
 ;; Set via ~rime-show-candidate~.
 ;;
-;; | Value      | description                                                                 |
-;; |------------+-----------------------------------------------------------------------------|
-;; | ~nil~        | don't show candidate at all.                                                |
-;; | ~minibuffer~ | Display in minibuffer.                                                      |
-;; | ~message~    | Display with ~message~ function, useful when you use minibuffer as mode-line.  |
-;; | ~popup~      | Use popup.                                                                  |
-;; | ~posframe~   | Use posfarme, will fallback to popup in TUI                                 |
+;; | Value        | description                                                                   |
+;; |--------------+-------------------------------------------------------------------------------|
+;; | ~nil~        | don't show candidate at all.                                                  |
+;; | ~minibuffer~ | Display in minibuffer.                                                        |
+;; | ~message~    | Display with ~message~ function, useful when you use minibuffer as mode-line. |
+;; | ~popup~      | Use popup.                                                                    |
+;; | ~posframe~   | Use posfarme, will fallback to popup in TUI                                   |
+;; | ~sidewindow~ | Use sidewindow.                                                               |
 ;;
 ;; * The lighter
 ;;
@@ -275,6 +276,13 @@ nil, don't display."
   :options '(t inline nil)
   :group 'rime)
 
+(defcustom rime-return-insert-raw t
+  "Whether hitting return commits the raw input.
+
+If nil, hitting return commits the selected candicate instead."
+  :type 'boolean
+  :group 'rime)
+
 (defcustom rime-posframe-fixed-position nil
   "Use a fixed position for posframe candidate."
   :type :boolean
@@ -291,7 +299,7 @@ Otherwise you should set this to where you put librime."
 (defun rime--guess-emacs-module-header-root ()
   "Guess `emacs-module-module-header-root' from some known places."
   (or
-   (let ((module-header (expand-file-name "emacs-module.h" (concat source-directory "src/"))))
+   (let ((module-header (expand-file-name "emacs-module.h" (concat source-directory "/src/"))))
      (when (file-exists-p module-header)
        (file-name-directory module-header)))
    (let* ((emacs-dir (getenv "emacs_dir")) ;; https://www.gnu.org/software/emacs/manual/html_node/emacs/Misc-Variables.html
@@ -349,7 +357,8 @@ nil means don't display candidate at all.
 `popup', display with popup.el.
 `message', display with function `message', this is a
 replacement for `minibuffer' if you use minibuffer as the mode-line.
-`posframe', display candidate in posframe, will fallback to popup in TUI."
+`posframe', display candidate in posframe, will fallback to popup in TUI.
+`sidewindow', display in sidewindow."
   :type 'symbol
   :options '(minibuffer message popup posframe sidewindow)
   :group 'rime)
@@ -528,7 +537,7 @@ Currently just deactivate input method."
 
 (defun rime--posframe-display-content (content)
   "Display CONTENT with posframe."
-  (if (and (featurep 'posframe) (display-graphic-p))
+  (if (and (featurep 'posframe) (posframe-workable-p))
       (if (string-blank-p content)
           (posframe-hide rime-posframe-buffer)
         (let*
@@ -669,7 +678,7 @@ Currently just deactivate input method."
                                  (if curr
                                     (propertize (car c) 'face 'rime-highlight-candidate-face)
                                   (propertize (car c) 'face 'rime-default-face))
-                                 (if-let (comment (cdr c))
+                                 (if-let* ((comment (cdr c)))
                                      (propertize (format " %s" comment) 'face 'rime-comment-face)
                                    ""))))
           (setq result (concat result
@@ -732,7 +741,7 @@ the car is keyCode, the cdr is mask."
                         'rime-preedit-face
                       (cons 'rime-preedit-face
                             (plist-get (text-properties-at
-                                        (if (> (point) 1)
+                                        (if (> (point) (point-min))
                                             (1- (point))
                                           (point)))
                                        'face))))))))
@@ -775,12 +784,16 @@ By default the input-method will not handle DEL, so we need this command."
   "Commit the raw input."
   (interactive)
   (when (rime--rime-lib-module-ready-p)
-    (when-let ((input (rime-lib-get-input)))
-      (rime--clear-overlay)
-      (insert input)
-      (rime-lib-clear-composition)
-      (rime--redisplay))
-    (rime--refresh-mode-state)))
+    (if rime-return-insert-raw
+        (rime--commit
+         (rime-lib-get-input))
+      (rime--commit-preview))))
+
+(defun rime--shift-return ()
+  "Commit the preedit."
+  (interactive)
+  (when (rime--rime-lib-module-ready-p)
+    (rime--commit-preedit)))
 
 (defun rime--ascii-mode-p ()
   "If ascii-mode is enabled."
@@ -879,6 +892,7 @@ By default the input-method will not handle DEL, so we need this command."
                   (prior #xff55)
                   (next #xff56)
                   (delete #xffff)
+                  (escape #xff1b)
                   (t key-raw))))
          (mask (cdr parsed)))
     (unless (numberp key)
@@ -907,6 +921,47 @@ By default the input-method will not handle DEL, so we need this command."
               (string-prefix-p "rime-" (symbol-name this-command))
               (string-match-p "self-insert" (symbol-name this-command)))
     (rime--clear-state)))
+
+(defun rime--commit (value)
+  "Insert VALUE, then clear state."
+  (when (and value (rime--rime-lib-module-ready-p))
+    (rime--clear-overlay)
+    (insert value)
+    (rime-lib-clear-composition)
+    (rime--redisplay)
+    (rime--refresh-mode-state)))
+
+(defun rime--commit-preview ()
+  "Commit the currently previewed text."
+  (when (rime--rime-lib-module-ready-p)
+    (rime--commit
+     (-some->> (rime-lib-get-context)
+       (alist-get 'commit-text-preview)))))
+
+(defun rime--commit-preedit ()
+  "Commit the currently previewed text."
+  (when (rime--rime-lib-module-ready-p)
+    (rime--commit
+     (-some->> (rime-lib-get-context)
+       (alist-get 'composition)
+       (alist-get 'preedit)))))
+
+(defun rime-commit1 ()
+  "Commit the 1st item if exists."
+  (interactive)
+  (when (rime-lib-process-key 32 0)
+    (let ((commit (rime-lib-get-commit)))
+      (insert commit)
+      (rime--clear-state))))
+
+(defcustom rime-commit1-forall nil "Non-nil to auto commit the 1st item before any command unrelated to rime.")
+
+(defun rime--commit1-before-unrelated-command ()
+  "Commit the 1st item if this command is unrelated to rime."
+  (unless (or (not (symbolp this-command))
+              (string-prefix-p "rime-" (symbol-name this-command))
+              (string-match-p "self-insert" (symbol-name this-command)))
+    (rime-commit1)))
 
 (defun rime--refresh-mode-state ()
   "Toggle variable `rime-active-mode' based on if context is available."
@@ -963,7 +1018,8 @@ You can customize the color with `rime-indicator-face' and `rime-indicator-dim-f
      (if rime-librime-root
          (format "LIBRIME_ROOT=%s" (file-name-as-directory (expand-file-name rime-librime-root))))
      (if rime-emacs-module-header-root
-         (format "EMACS_MODULE_HEADER_ROOT=%s" (file-name-as-directory (expand-file-name rime-emacs-module-header-root))))
+         (format "EMACS_MODULE_HEADER_ROOT=%s" (shell-quote-argument
+                                                (file-name-as-directory (expand-file-name rime-emacs-module-header-root)))))
      (format "MODULE_FILE_SUFFIX=%s" module-file-suffix))))
 
 (defun rime-compile-module ()
@@ -1032,6 +1088,8 @@ Argument NAME ignored."
     (define-key keymap (kbd "<backspace>") 'rime--backspace)
     (define-key keymap (kbd "<return>") 'rime--return)
     (define-key keymap (kbd "RET") 'rime--return)
+    (define-key keymap (kbd "S-<return>") 'rime--shift-return)
+    (define-key keymap (kbd "S-RET") 'rime--shift-return)
     (define-key keymap (kbd "<escape>") 'rime--escape)
     keymap)
   "Keymap during composition.")
@@ -1069,13 +1127,16 @@ Argument NAME ignored."
 
 (defun rime-active-mode--init ()
   "Init for command `rime-active-mode'."
-  (add-hook 'pre-command-hook #'rime--clear-state-before-unrelated-command t t)
+  (if rime-commit1-forall
+      (add-hook 'pre-command-hook #'rime--commit1-before-unrelated-command t t)
+    (add-hook 'pre-command-hook #'rime--clear-state-before-unrelated-command t t))
   (cl-case major-mode
     (vterm-mode (rime--init-hook-vterm))
     (t (rime--init-hook-default))))
 
 (defun rime-active-mode--uninit ()
   "Uninit for command `rime-active-mode'."
+  (remove-hook 'pre-command-hook #'rime--commit1-before-unrelated-command t)
   (remove-hook 'pre-command-hook #'rime--clear-state-before-unrelated-command t)
   (cl-case major-mode
     (vterm-mode (rime--uninit-hook-vterm))
@@ -1163,7 +1224,6 @@ Will resume when finish composition."
         mode-line-format nil
         tab-line-format  nil)
   (jit-lock-mode nil))
-
 
 (require 'rime-predicates)
 
