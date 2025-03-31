@@ -599,7 +599,7 @@ entropy/emacs-basic--dired-cmd-run-with-simple-progress-prompt/for/%s/"
 
   (entropy/emacs-api-restriction/emacs-version
       'adv/progress-prompt/dired--find-file
-    :max-emacs-ver "29.4"
+    :max-emacs-ver "30.1"
     :do-error t
     (entropy/emacs-basic--dired-cmd-run-with-simple-progress-prompt
         dired--find-file (memq this-command '(dired-find-file))
