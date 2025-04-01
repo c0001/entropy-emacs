@@ -348,6 +348,12 @@ doesn't has such feature.
       (define-key (car args) (cadr args) (caddr args)))
   (defalias 'entropy/emacs-define-key #'define-key))
 
+(when (and (>= emacs-major-version 30) (not (fboundp 'comp-async-runnings)))
+  (defun __entropy/emacs-comp-async-runnings nil
+    "This func is the comp ver. of `comp-async-runnings' for emacs version upper than 30."
+    (comp--async-runnings))
+  (defalias 'comp-async-runnings #'__entropy/emacs-comp-async-runnings))
+
 ;; *** subr*
 
 (cl-defun entropy/emacs--get-def-body (list-var &optional with-safe)
