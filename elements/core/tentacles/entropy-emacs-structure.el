@@ -420,7 +420,7 @@ want to preserve the source demo."
    ("C-c M-p" . nil)
    ("C-c M-y" . nil)
    :map outshine-mode-map
-   ("C-x n s" . org-narrow-to-subtree)
+   ("C-x n s" . outshine-narrow-to-subtree)
    ("C-<f7>" . entropy/emacs-structure-outshine-reload-major))
 
 ;; *** preface
