@@ -126,7 +126,8 @@ Be sure in mind that data was the most core of your life!
 
 ;;;; face declaration
 (defgroup entropy/cpmv-face nil
-  "face variable group for `entropy-dired-cp-or-mv'.")
+  "face variable group for `entropy-dired-cp-or-mv'."
+  :group 'face)
 
 (defface entropy/cpmv-title-face
   '((t (:foreground "orange1" :bold t)))

@@ -87,7 +87,8 @@ package management!"))
   (when entropy/emacs-font-setting-enable
     (defface entropy/emacs-markdown-face--fixed-pitch
       '((t :inherit 'fixed-pitch))
-      "")
+      ""
+      :group 'entropy/emacs-tempo-face-group)
     (set-face-attribute
      'entropy/emacs-markdown-face--fixed-pitch
      nil

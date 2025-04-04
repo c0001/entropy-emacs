@@ -8377,11 +8377,14 @@ otherwise returns nil."
 
 ;; ******* size unit indicator patch
   (defface __proced-size-gb-unit-face
-    '((t (:foreground "Red"))) "")
+    '((t (:foreground "Red"))) ""
+    :group 'entropy/emacs-tempo-face-group)
   (defface __proced-size-mb-unit-face
-    '((t (:foreground "yellow"))) "")
+    '((t (:foreground "yellow"))) ""
+    :group 'entropy/emacs-tempo-face-group)
   (defface __proced-size-kb-unit-face
-    '((t (:foreground "green"))) "")
+    '((t (:foreground "green"))) ""
+    :group 'entropy/emacs-tempo-face-group)
   (defun __proced-size-kb-to-dwim-human-readable (size)
     (let* ((gb (/ size (expt 1024.0 2)))
            (mb (/ size 1024.0))

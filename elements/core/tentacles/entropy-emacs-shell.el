@@ -195,11 +195,12 @@ was found."
   :commands (eterm-256color-mode)
   :hook (term-mode . eterm-256color-mode))
 
-(use-package fakecygpty
-  :if (and sys/win32p
-           entropy/emacs-win-fakecygpty-enable
-           (executable-find "fakecygpty")
-           (executable-find "qkill"))
+(entropy/emacs--inner-use-package fakecygpty
+  :eemacs-if
+  (and sys/win32p
+       entropy/emacs-win-fakecygpty-enable
+       (executable-find "fakecygpty")
+       (executable-find "qkill"))
   :ensure nil
   :commands fakecygpty-activate
   :preface

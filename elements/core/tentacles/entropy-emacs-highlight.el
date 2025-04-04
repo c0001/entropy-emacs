@@ -688,18 +688,21 @@ while change themes."
     (defvar my-prev-whitespace-mode nil)
     (make-local-variable 'my-prev-whitespace-mode)
 
-    (defadvice popup-draw (before my-turn-off-whitespace activate compile)
+    (defun __eemacs/popup-draw/without-whitespace-mode (&rest _)
       "Turn off whitespace mode before showing autocomplete box."
       (if whitespace-mode
           (progn
             (setq my-prev-whitespace-mode t)
             (whitespace-mode -1))
         (setq my-prev-whitespace-mode nil)))
+    (advice-add 'popup-draw :before #'__eemacs/popup-draw/without-whitespace-mode)
 
-    (defadvice popup-delete (after my-restore-whitespace activate compile)
+    (defun __eemacs/popup-delete/without-whitespace-mode (&rest _)
       "Restore previous whitespace mode when deleting autocomplete box."
-      (if my-prev-whitespace-mode
-          (whitespace-mode 1)))))
+      (if my-prev-whitespace-mode (whitespace-mode 1)))
+    (advice-add 'popup-delete :after #'__eemacs/popup-delete/without-whitespace-mode)
+
+    ))
 
 ;; ** display-fill-column-indicator-mode
 

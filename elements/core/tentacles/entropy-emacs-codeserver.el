@@ -1651,7 +1651,7 @@ introduced via 'https://github.com/emacs-lsp/lsp-mode/pull/4202'."
         eglot-autoreconnect 4
         ;; disale the eglot event buffer for performance issue:
         ;; https://emacs-china.org/t/eglot/21074
-        eglot-events-buffer-size 0
+        eglot-events-buffer-config (list :size 0 :format 'full)
         eglot-connect-timeout 10
         eglot-extend-to-xref nil)
 

@@ -1,3 +1,4 @@
+;; -*- lexical-binding: t; -*-
 (defconst company-en-words-data/en-words-simple-list
   '(("A" "art.")
     ("AOL" "abbr.")

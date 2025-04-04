@@ -130,7 +130,7 @@
     editorconfig
     ;; force use new version of `eglot'
     ,(entropy/emacs-pkgreq-make-pkgreqptr
-      :under 29
+      :under 30
       :name 'eglot
       :pkg-desc (lambda () (__entropy/emacs-requirements/pkgs_desc_get_statble 'eglot)))
     ,(entropy/emacs-pkgreq-make-pkgreqptr

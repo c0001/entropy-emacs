@@ -490,7 +490,7 @@ The non-nil return is the SYN-LIST-REGION."
   '(c-mode c++-mode java-mode js-mode rust-mode rustic-mode typescript-mode)
   "A list of modes not support docstring."
   :group 'entropy-emacs-syntax
-  :type 'list)
+  :type '(repeat symbol))
 
 (defun entropy/emacs-syntax--comment-faces ()
   "Return comment faces of current mode."

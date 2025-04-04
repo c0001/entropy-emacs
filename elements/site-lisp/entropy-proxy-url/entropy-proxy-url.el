@@ -311,7 +311,7 @@ The order of the sequence of the CARs of the entry were:
 See also:
 - `entropy/proxy-url-default-http-sever-object'
 - `entropy/proxy-url-default-socks-sever-object'"
-  :type 'list
+  :type '(repeat sexp)
   :group 'entropy/proxy-url-group)
 
 (defcustom entropy/proxy-url-default-http-sever-object '("http://" "127.0.0.1" "1081")
@@ -320,7 +320,7 @@ protocal prefix appended.
 
 Used for `emacs-url', `emacs-w3m' and `shell-http' types when
 their proxy set is nil."
-  :type 'list
+  :type '(repeat string)
   :group 'entropy/proxy-url-group)
 
 (defcustom entropy/proxy-url-default-socks-sever-object
@@ -328,7 +328,7 @@ their proxy set is nil."
   "The default `socks-server' value injection.
 
 Used for `emacs-socks' type when its noproxy set is nil."
-  :type 'list
+  :type '(repeat sexp)
   :group 'entropy/proxy-url-group)
 
 (defcustom entropy/proxy-url-default-no-proxy-regexp-list
@@ -341,7 +341,7 @@ Used for `emacs-socks' type when its noproxy set is nil."
 
 Used for `emacs-url', `emacs-w3m' and `emacs-socks' types when
 their noproxy set is nil."
-  :type 'list
+  :type '(repeat string)
   :group 'entropy/proxy-url-group)
 
 (defcustom entropy/proxy-url-default-no-proxy-shell-env "localhost,127.0.0.1"

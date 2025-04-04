@@ -123,7 +123,7 @@ for specific buffer.
 
 Its no need to inhibit buffer read-only status because of that
 all the predicate will be wrapped into thus. "
-  :type 'list
+  :type '(repeat sexp)
   :group 'entropy/code2org-customize-group)
 
 ;; ** Internal library

@@ -1,4 +1,4 @@
-;;; entropy-portableapps.el --- Apps toggle based on portableapps.com
+;;; entropy-portableapps.el --- Apps toggle based on portableapps.com  -*- lexical-binding: t; -*-
 ;;
 ;;; Copyright (C) 20190911  Entropy
 ;; #+BEGIN_EXAMPLE

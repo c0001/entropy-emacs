@@ -310,7 +310,7 @@ Return %s when %s is a CL-X of %o or nil (error when WITH-ERROR is non-nil)."
                     ((memq (car args) '(&rest &optional))
                      (throw :break nil))
                     (t (push (pop args) cargs)))))
-               (setq ccontext-set-p t) (nreverse cargs))
+               (setq ccontext-set-p t) (setq cargs (nreverse cargs)))
               (t (push (pop args) rtn))))
       (unless context-set-p
         (funcall context-set-func))

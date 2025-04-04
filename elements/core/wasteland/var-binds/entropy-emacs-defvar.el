@@ -168,6 +168,16 @@ EEMACS_MAINTENANCE: eemacs internal used only.")
    "annex/scripts"
    entropy/emacs-user-emacs-directory)))
 
+;; ** tempo def groups
+
+(defgroup entropy/emacs-tempo-var-group nil
+  "Eemacs tempo var def group."
+  :group 'eemacs-tempo-defvar)
+
+(defgroup entropy/emacs-tempo-face-group nil
+  "Eemacs tempo face def group."
+  :group 'eemacs-tempo-defface)
+
 ;; ** byte compile refer
 
 (defvar entropy/emacs-session-in-byte-compile-emacs-core-p nil

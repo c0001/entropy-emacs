@@ -1026,8 +1026,8 @@ NOTE: any rime category backend chosen requires emacs built with
 'dynamic module' support and the system has installed the librime
 depedencies."
   :type '(choice
-          (const :tag "Use emac-rime" 'emacs-rime)
-          (const :tag "Use pyim" 'pyim)
+          (const :tag "Use emac-rime" emacs-rime)
+          (const :tag "Use pyim" pyim)
           (const :tag "disable" nil))
   :group 'entropy/emacs-customize-group-for-IME)
 
