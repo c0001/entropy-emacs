@@ -64,8 +64,17 @@
   (unless (and under (>= emacs-major-version under))
     (list :name name :pkg-desc pkg-desc)))
 
+(eval-when-compile
+  (defmacro __eemac/pkg-reqs-list-items (&rest pkgs)
+    (let ((arglist nil))
+      (dolist (el pkgs)
+        (if (symbolp el)
+            (push (list 'quote el) arglist)
+          (push el arglist)))
+      `(list ,@arglist))))
+
 (defvar entropy/emacs--base-packges
-  `(
+  (__eemac/pkg-reqs-list-items
     ac-php
     ac-php-core
     ace-window
@@ -129,18 +138,18 @@
     edit-indirect
     editorconfig
     ;; force use new version of `eglot'
-    ,(entropy/emacs-pkgreq-make-pkgreqptr
+    (entropy/emacs-pkgreq-make-pkgreqptr
       :under 30
       :name 'eglot
       :pkg-desc (lambda () (__entropy/emacs-requirements/pkgs_desc_get_statble 'eglot)))
-    ,(entropy/emacs-pkgreq-make-pkgreqptr
+    (entropy/emacs-pkgreq-make-pkgreqptr
       :under 29
       :name 'external-completion
       :pkg-desc (lambda ()
                   (__entropy/emacs-requirements/pkgs_desc_get_statble
                    'external-completion)))
     ;; force use new version of `eldoc' for new version of `eglot'
-    ,(entropy/emacs-pkgreq-make-pkgreqptr
+    (entropy/emacs-pkgreq-make-pkgreqptr
       :under 29
       :name 'eldoc
       :pkg-desc (lambda () (__entropy/emacs-requirements/pkgs_desc_get_statble 'eldoc)))
@@ -160,12 +169,12 @@
     find-file-in-project
     flycheck
     ;; force use new version of `flymake' for new version of `eglot'
-    ,(entropy/emacs-pkgreq-make-pkgreqptr
+    (entropy/emacs-pkgreq-make-pkgreqptr
       :under 29
       :name 'flymake
       :pkg-desc (lambda () (__entropy/emacs-requirements/pkgs_desc_get_statble 'flymake)))
     ;; magit/ghub require emacs version upon 29 now [2024-12-23 Mon 17:59:06]
-    ,(when (version<= "29.1" emacs-version) 'ghub)
+    (when (version<= "29.1" emacs-version) 'ghub)
     git-messenger
     git-timemachine
     git-modes
@@ -244,7 +253,7 @@
     prescient
     pretty-hydra
     ;; forcely install newer version of `project' since newer version flymake needed
-    ,(entropy/emacs-pkgreq-make-pkgreqptr
+    (entropy/emacs-pkgreq-make-pkgreqptr
       :under 29
       :name 'project
       :pkg-desc (lambda () (__entropy/emacs-requirements/pkgs_desc_get_statble 'project)))
@@ -285,7 +294,7 @@
     treepy
     trie
     ujelly-theme
-    ,(when (< emacs-major-version 29) 'use-package)
+    (when (< emacs-major-version 29) 'use-package)
     vimish-fold
     visual-ascii-mode
     visual-regexp
