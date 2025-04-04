@@ -1057,6 +1057,19 @@ posframe when available."
    editorconfig-format-buffer
    editorconfig-apply)
   :eemacs-functions (editorconfig-get-properties)
+  :preface
+  (entropy/emacs-!cl-defun
+      entropy/emacs--editorconfig-get-properties (fname)
+    (cond
+     ;; EEMACS_MAINTENANCE: for `editorconfig' version >= 0.11.0
+     ((fboundp 'editorconfig-call-get-properties-function)
+      (editorconfig-call-get-properties-function fname))
+     ((fboundp 'editorconfig-get-properties)
+      (editorconfig-get-properties fname))
+     (t
+      (entropy/emacs-!error-as-eemacs-internal-error
+       "no `editorconfig-get-properties' or \
+`editorconfig-call-get-properties-function' fboundp"))))
   :init
   (entropy/emacs-lazy-with-load-trail 'editorconf-mode-init
     :start-end t :pdumper-no-end t
@@ -1070,7 +1083,7 @@ posframe when available."
        (lambda (&optional buffer)
          (when-let* ((buff (or buffer (current-buffer)))
                      (buff-fname (buffer-file-name buff))
-                     (hash (editorconfig-get-properties buff-fname))
+                     (hash (entropy/emacs--editorconfig-get-properties buff-fname))
                      ((not (zerop (hash-table-size hash))))
                      (val (gethash prop hash))) val))
        (format "Return `editorconfig-mode' prop `%s' value for \

@@ -750,19 +750,18 @@ some LANGs if `web-mode' is featured."
 
 ;; ******* fix the bug when cjk paragraph exported to html has the auto newline space char including
   ;; This hacking refer to https://emacs-china.org/t/org-mode-html/7174#breadcrumb-0
-  ;; and raw from spacemac layer: https://github.com/syl20bnr/spacemacs/blob/develop/layers/+intl/chinese/packages.el#L104
-  (defadvice org-html-paragraph (before org-html-paragraph-advice
-                                        (paragraph contents info) activate)
+  ;; and raw from spacemacs layer: https://github.com/syl20bnr/spacemacs/blob/develop/layers/+intl/chinese/packages.el#L104
+  (defun entropy/emacs--org-html-paragraph-advice (orig-func &rest orig-args)
     "Join consecutive Chinese lines into a single long line without
 unwanted space when exporting org-mode to html."
-    (let* ((origin-contents (ad-get-arg 1))
+    (let* ((origin-contents (nth 1 orig-args))
            (fix-regexp "[[:multibyte:]]")
            (fixed-contents
             (replace-regexp-in-string
              (concat
               "\\(" fix-regexp "\\) *\n *\\(" fix-regexp "\\)") "\\1\\2" origin-contents)))
-      (ad-set-arg 1 fixed-contents)))
-
+      (apply orig-func (car orig-args) fixed-contents (cddr orig-args))))
+  (advice-add 'org-html-paragraph :around #'entropy/emacs--org-html-paragraph-advice)
 
 ;; ******* org ignore broken links
   (setq org-export-with-broken-links 'mark)
@@ -1991,7 +1990,13 @@ current inserted annotation when `org-adapt-indentation' non-nil.
            (windows-fallback-func
             (lambda ()
               (let ((link entropy/emacs-win-org-download-file-name))
-                (process-lines win-fallback-method)
+                (entropy/emacs-make-process
+                 :name "org-download-windows-port"
+                 :synchronously t
+                 :command `(,win-fallback-method)
+                 :error
+                 (entropy/emacs-error-without-debugger
+                  "org-download-windows-port:run %s with fatal" win-fallback-method))
                 (org-download-image link)
                 ;; delete the tempo capture image
                 (delete-file link)))))

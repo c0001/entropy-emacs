@@ -1205,6 +1205,13 @@ when the last form of CONNDITIONS evaluated return non-nil."
 ;; *** List manipulation
 ;; **** Basics
 ;; ***** Core
+(entropy/emacs-!cl-defmacro entropy/emacs-nreverse-var (seq-var)
+  "`nreverse' value of SEQ-VAR and reset to it."
+  (unless (symbolp seq-var)
+    (entropy/emacs-!error-as-eemacs-internal-error
+     "wrong type of argument: symbolp '%s'" seq-var))
+  `(progn (setq ,seq-var (nreverse ,seq-var))
+          (ignore ,seq-var)))
 
 (defsubst entropy/emacs-dotted-listp (object)
   "Return non-nil if OBJECT is a dotted end `listp' list and is not
@@ -12318,7 +12325,7 @@ Optional keys:
 automatically self-`fmakunbound' when loaded done."
                      ,name-sym)))
        (cond
-        (,start-end
+        ((not (null ,start-end))
          (setq entropy/emacs-startup-end-hook
                (append entropy/emacs-startup-end-hook
                        (list ,func-sym))))

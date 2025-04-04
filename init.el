@@ -287,9 +287,12 @@ dumped as well as older vers any more.")
 
 (defvar entropy/emacs-pdumper-load-hook nil
   "Hook for run with pdumper session startup.")
+(defun entropy/emacs-is-in-eemacs-batch-compile-time nil
+  (entropy/emacs-getenv-equal-eemacs-env
+   "EEMACS_MAKE" '("Compile" "Compile-Dump")))
 (defun entropy/emacs-suggest-startup-with-elisp-source-load-p nil
   (or
-   (entropy/emacs-getenv-equal-eemacs-env "EEMACS_MAKE" '("Compile" "Compile-Dump"))
+   (entropy/emacs-is-in-eemacs-batch-compile-time)
    (and noninteractive
         (not entropy/emacs-fall-love-with-pdumper)
         (not (daemonp)))

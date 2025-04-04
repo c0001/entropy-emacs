@@ -100,6 +100,7 @@ For lisp coding aim, always return the transfered buffer.
     '(defun cl-defun defalias
        cl-defgeneric cl-defmethod
        entropy/emacs-!cl-defun
+       entropy/emacs-!cl-defmacro
        entropy/emacs-defalias
        entropy/emacs-!defalias
        entropy/emacs-!defgeneric

@@ -577,7 +577,8 @@ faild with hash '%s' which must match '%s'"
           (throw :exit nil))))
     (if source-dirP
         (dolist (f (entropy/emacs-list-dir-subfiles dir-cur))
-          (unless (string-match-p "^.*-pkg\\.el$" f)
+          (unless (or (string-match-p "^.*-pkg\\.el$" f)
+                      (string-match-p "^.*test\\.el$" f))
             (when (string-match-p "^.*\\.el$" f)
               (byte-recompile-file f t 0))))
       (entropy/emacs-error-without-debugger

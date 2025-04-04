@@ -1262,8 +1262,7 @@ respectively."
             (process-file "xdg-mime" nil t t
                           "query" "filetype"
                           (expand-file-name file))
-            (when (bolp)
-              (backward-delete-char 1))
+            (and (bolp) (delete-char -1))
             (setq the-mime-type (buffer-string))
             (when kill-ring-save-p
               (kill-new the-mime-type))
@@ -7540,12 +7539,20 @@ In =:chinese= slot, is an plist only specifed for chinese input methodg:
 ;; ***** Use chinese pyim
 ;; ****** extra dependencies
 ;; ******* librime for pyim
-(use-package liberime
+(entropy/emacs--inner-use-package liberime
   :if (not sys/is-win-group)
+  ;; FIXME: we should never require this in compile time since
+  ;; liberime c module made emacs core dump at the time emacs exits
+  ;; which made the eemacs compile failure.
+  :eemacs-with-no-require
+  (or (entropy/emacs-is-in-eemacs-batch-compile-time)
+      ;; there's also no need for other occasions
+      (not (eq entropy/emacs-pyim-use-backend 'liberime)))
   :ensure nil
   :defer (or entropy/emacs-fall-love-with-pdumper (entropy/emacs-custom-enable-lazy-load/val))
   :preface
-
+  (defvar liberime-auto-build)
+  (defvar liberime-shared-data-dir)
   (defun entropy/emacs-basic--pyim-set-rime-schema ()
     "Start and set rime input schema to
 `entropy/emacs-internal-ime-use-rime-default-schema'"
@@ -7817,7 +7824,31 @@ current displayed buffer area wile
     (if (or (eq (car pyim-punctuation-translate-p) 'no)
             (eq (car pyim-punctuation-translate-p) 'auto))
         (setq pyim-punctuation-translate-p '(yes no auto))
-      (setq pyim-punctuation-translate-p '(no yes auto)))))
+      (setq pyim-punctuation-translate-p '(no yes auto))))
+
+
+;; ******** key bindings follow emacs conventions
+
+  (let ((kmp pyim-mode-map)
+        (vts
+         '(("C-v"     . pyim-next-page)
+           ("M-v"     . pyim-previous-page)
+           ("<next>"  . pyim-next-page)
+           ("<prior>" . pyim-previous-page)
+           ("M-f"     . pyim-next-word)
+           ("M-b"     . pyim-previous-word)
+           ("<down>"  . pyim-next-word)
+           ("<up>"    . pyim-previous-word)
+           ("C-f"     . pyim-forward-point)
+           ("C-b"     . pyim-backward-point)
+           ("<right>" . pyim-forward-point)
+           ("<left>"  . pyim-backward-point)
+           )))
+    (dolist (el vts)
+      (define-key kmp (kbd (car el)) (cdr el))))
+
+;; ******** end
+  )
 
 ;; ***** Use emacs rime
 

@@ -1243,6 +1243,21 @@ Use =eemacs-defn-bind= of symbol of NAME for BODY when
             ',name))
        (cl-defun ,@args) ',name)))
 
+(defmacro entropy/emacs-!cl-defmacro (&rest args)
+  "Same as `cl-defmacro' but indeed return the symbol of NAME and also
+for:
+
+Use =eemacs-defn-bind= of symbol of NAME for BODY when
+`lexical-binding' is non-nil. (see
+`entropy/emacs-inner-sym-for/current-defname')
+
+\(fn NAME ARGLIST [DOCSTRING] BODY...)"
+  (declare (doc-string 3) (indent 2))
+  (let ((name (car args)))
+    `(let ((,entropy/emacs-inner-sym-for/current-defname
+            ',name))
+       (cl-defmacro ,@args) ',name)))
+
 (defmacro entropy/emacs-!defalias (&rest args)
   "Same as `entropy/emacs-defalias' but also:
 

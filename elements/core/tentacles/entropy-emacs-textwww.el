@@ -724,13 +724,12 @@ Browser chosen based on variable
             (browse-url-browser-function
              (let (rtn choices)
                (when (functionp entropy/emacs-browse-url-function)
-                 (cl-pushnew '("personal" entropy/emacs-browse-url-user-browser)
-                             choices))
+                 (cl-pushnew `("personal" entropy/emacs-browse-url-user-browser)
+                             choices :test 'equal))
                (when (executable-find "w3m")
-                 (cl-pushnew `("w3m" ,(lambda (url &rest _)
-                                        (w3m-goto-url url)))
-                             choices))
-               (cl-pushnew '("default" browse-url-default-browser) choices)
+                 (cl-pushnew `("w3m" ,(lambda (url &rest _) (w3m-goto-url url)))
+                             choices :test 'equal))
+               (cl-pushnew `("default" browse-url-default-browser) choices :test 'equal)
                (setq rtn (completing-read "Choice external browser:  "
                                           choices nil t))
                (setq rtn (nth 1 (assoc rtn choices)))
