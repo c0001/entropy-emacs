@@ -8463,7 +8463,7 @@ consider close emacs by shut down the host terminal..."))
   (advice-add 'xterm--pasted-text :override #'__ya/xterm--pasted-text))
 
 (defvar entropy/emacs-basic-safe-terminal-bracketed-paste-norestart nil)
-(defun entropy/emacs-basic-safe-terminal-bracketed-paste
+(entropy/emacs-!cl-defun entropy/emacs-basic-safe-terminal-bracketed-paste
     (&optional rate limit)
   "A system daemon to prevent large bracketed-paste via `xterm-paste'
 event from TUI to hang current emacs terminal since the pool TUI text

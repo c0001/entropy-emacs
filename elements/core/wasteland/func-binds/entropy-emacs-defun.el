@@ -461,7 +461,7 @@ information used to distinguish this as special from others.
          (entropy/emacs-setf-by-body ,fname-sym
            (entropy/emacs-make-new-interned-symbol
             (format "__eemacs-with-lambda-%s/" ,fname-prefix-sym))))
-       (defalias ,fname-sym
+       (entropy/emacs-!defalias ,fname-sym
          ,(macroexpand-1
            `(entropy/emacs-cl-lambda-with-lcb ,@real-args)))
        (when ,(if aux-form t)
@@ -632,7 +632,7 @@ any properties set) of the defination of BODY.
     `(let ((,sym (entropy/emacs-make-new-special-variable
                   (lambda (&rest _)
                     (error "Wrong usage of this function symbol")))))
-       (defalias ,sym
+       (entropy/emacs-!defalias ,sym
          ,(macroexpand-1 `(entropy/emacs-cl-lambda-with-lcb ,@args)))
        ,sym)))
 
@@ -7399,7 +7399,7 @@ newline."
                (set-marker (process-mark proc) (point)))
              (when moving (goto-char (process-mark proc)))))))))
 
-(cl-defmacro entropy/emacs-with-make-process
+(entropy/emacs-!cl-defmacro entropy/emacs-with-make-process
     (&key name buffer command coding noquery
           stop connection-type filter sentinel
           stderr file-handler
@@ -8138,7 +8138,7 @@ this macro expanded while feature is loaded."
        (if ,has-ran-p
            ,(entropy/emacs-macroexp-progn body)
          (unless ,eval-after-loaded-p
-           (defalias ',func-name
+           (entropy/emacs-!defalias ',func-name
              (lambda (&rest _)
                ,@body
                (and (boundp ',indicate-varname)
@@ -10334,7 +10334,7 @@ return t otherwise for nil. "
 ;; *** Newtork manipulation
 ;; **** network status checker
 
-(defun entropy/emacs-network-url-canbe-connected-p
+(entropy/emacs-!cl-defun entropy/emacs-network-url-canbe-connected-p
     (url &optional timeout use-curl silent)
   "Check URL whether can be connecated and return non-nil if canbe thus.
 
@@ -11722,7 +11722,7 @@ operation or nil indicate no idle exists for."
 
 ;; ** System utils integration
 
-(defun entropy/emacs-get-file-checksum (file type &optional use-native)
+(entropy/emacs-!cl-defun entropy/emacs-get-file-checksum (file type &optional use-native)
   "Get file checksum with TYPE supported by `secure-hash', return
 the checksum sig string.
 

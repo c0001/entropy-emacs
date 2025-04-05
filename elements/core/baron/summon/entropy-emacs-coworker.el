@@ -477,7 +477,7 @@ EXIT /b
 
 ;; **** go install
 ;; ***** isolate type
-(defun entropy/emacs-coworker--coworker-isolate-bins-install-by-go
+(entropy/emacs-!cl-defun entropy/emacs-coworker--coworker-isolate-bins-install-by-go
     (server-name-string server-bins server-repo-string)
   (let ((this-gobin-prefix
          (expand-file-name (format "eemacs-go-lsp/%s" server-name-string)
@@ -550,7 +550,7 @@ EXIT /b
 
 ;; **** cargo install
 ;; ***** isolate type
-(defun entropy/emacs-coworker--coworker-isolate-bins-install-by-cargo
+(entropy/emacs-!cl-defun entropy/emacs-coworker--coworker-isolate-bins-install-by-cargo
     (server-name-string server-bins server-repo-string)
   (let ((this-cargohome-prefix
          (expand-file-name (format "eemacs-rust-lsp/%s" server-name-string)

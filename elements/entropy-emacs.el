@@ -367,12 +367,13 @@ When WITH-SAFE is non-nil, when the real body is nil, then return
 This function is useful for `cl-defmacro' BODY parsing like:
 
 #+begin_src emacs-lisp
-(cl-defmacro name &rest body
+(cl-defmacro name
+            (&rest body
              &key
              key-1
              key-2
              ...
-             &allow-other-keys)
+             &allow-other-keys))
 #+end_src
 
 To get the real-body in BODY use
@@ -1243,20 +1244,39 @@ Use =eemacs-defn-bind= of symbol of NAME for BODY when
             ',name))
        (cl-defun ,@args) ',name)))
 
+(defmacro __entropy/emacs-!cl-defmacro/wrapper (name &rest args)
+  (declare (indent 1))
+  `(prog1 ',name
+     (let ((,entropy/emacs-inner-sym-for/current-defname ',name))
+       (cl-defmacro ,name ,@args))))
+
 (defmacro entropy/emacs-!cl-defmacro (&rest args)
   "Same as `cl-defmacro' but indeed return the symbol of NAME and also
 for:
 
 Use =eemacs-defn-bind= of symbol of NAME for BODY when
-`lexical-binding' is non-nil. (see
+`entropy/emacs-inner-sym-for/current-defname' is unbound. (see
 `entropy/emacs-inner-sym-for/current-defname')
 
 \(fn NAME ARGLIST [DOCSTRING] BODY...)"
   (declare (doc-string 3) (indent 2))
-  (let ((name (car args)))
-    `(let ((,entropy/emacs-inner-sym-for/current-defname
-            ',name))
-       (cl-defmacro ,@args) ',name)))
+  (let* ((name (car args)) (arglist (cadr args))
+         (docstr (let ((val (caddr args))) (and (stringp val) val)))
+         (body (if docstr (cdddr args) (cddr args))))
+    (setq body (or body (list nil)))
+    (entropy/emacs-setf-by-body body
+      (macroexp-let2* ignore ((oname nil) (oform nil))
+        `(let ((,oname ',name) (,oform (progn ,@body)))
+           `(let ((,entropy/emacs-inner-sym-for/current-defname
+                   (or (ignore-errors
+                         ,entropy/emacs-inner-sym-for/current-defname)
+                       (quote ,,oname))))
+              ,,oform))))
+    (if docstr
+        `(__entropy/emacs-!cl-defmacro/wrapper ,name
+           ,arglist ,docstr ,body)
+      `(__entropy/emacs-!cl-defmacro/wrapper ,name
+         ,arglist ,body))))
 
 (defmacro entropy/emacs-!defalias (&rest args)
   "Same as `entropy/emacs-defalias' but also:
