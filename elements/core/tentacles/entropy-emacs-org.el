@@ -838,27 +838,9 @@ cached refer file.
 (use-package org-ctags
   :after org
   :ensure nil
-  :preface
-  (defun entropy/emacs-org--ctags-disable ()
-    "Disable `org-ctags' for reset some pollution from here."
-    (setplist
-     'org-mode
-     (let (rtn
-           (pt 0)
-           (sym-plist (symbol-plist 'org-mode)))
-       (while (< pt (- (length sym-plist) 1))
-         (when (not (eq (nth pt sym-plist) 'find-tag-default-function))
-           (setq rtn (append rtn (list (nth pt sym-plist))))
-           (unless (null (nth (+ 1 pt) sym-plist))
-             (setq rtn (append rtn (list (nth (+ 1 pt) sym-plist))))))
-         (setq pt (+ 2 pt)))
-       rtn))
-    (setq org-ctags-enabled-p nil)
-    (dolist (fn org-ctags-open-link-functions)
-      (remove-hook 'org-open-link-functions fn)))
   :init
-  (entropy/emacs-lazy-load-simple '(org org-ctags)
-    (entropy/emacs-org--ctags-disable)))
+  ;; disable annoying org ctags hints by default
+  (setq org-ctags-enabled-p nil))
 
 ;; *** org-id
 (use-package org-id
