@@ -417,12 +417,16 @@ building procedure while invoking INSTALL-COMMANDS."
     (entropy/emacs-silent-abort)))
 
 ;; *** install
-(defun entropy/emacs-package-install-all-packages ()
+(defun entropy/emacs-package-install-all-packages (&optional in-updates)
   (entropy/emacs-package-prepare-foras)
   (entropy/emacs-package-package-archive-empty-p 'refresh)
-  (entropy/emacs-message-do-message
-   (blue "Checking extensions satisfied status ...")
-   :force-message-while-eemacs-init t)
+  (if (not in-updates)
+      (entropy/emacs-message-do-message
+       (blue "Checking extensions satisfied status ...")
+       :force-message-while-eemacs-init t)
+    (entropy/emacs-message-do-message
+     (yellow "Checking prev installed extensions integration ...")
+     :force-message-while-eemacs-init t))
   (!eemacs-require 'entropy-emacs-package-requirements)
   (let ((package-check-signature
          ;; FIXME: shall we need to enable signature check for
@@ -452,17 +456,21 @@ building procedure while invoking INSTALL-COMMANDS."
       (cl-incf count)))
   ;; show fails
   (entropy/emacs-package-prompt-install-fails)
-  (entropy/emacs-message-do-message
-   (green "All packages installed, congratulations!")
-   :force-message-while-eemacs-init t))
+  (unless in-updates
+    (entropy/emacs-message-do-message
+     (green "All packages installed, congratulations!")
+     :force-message-while-eemacs-init t)))
 
 ;; *** update
 (defun entropy/emacs-package-update-all-packages ()
-  (entropy/emacs-package-prepare-foras)
-  (entropy/emacs-package-package-archive-empty-p 'refresh)
+  (entropy/emacs-package-install-all-packages t)
   (let ((current-pkgs (copy-tree package-alist))
-        (new-pkgs (progn (package-refresh-contents)
-                         (copy-tree package-archive-contents)))
+        (new-pkgs
+         (entropy/emacs-message-simple-progress-message
+             "Reload package archive contents after updater preparation"
+           (let ((inhibit-message t))
+             (package-refresh-contents)
+             (copy-tree package-archive-contents))))
         updates)
     (dolist (pkg current-pkgs)
       (let* ((pkg-id (car pkg))

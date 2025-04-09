@@ -447,7 +447,7 @@ NOTE: Just use it in `noninteractive' session."
          (inhibit-debugger (not entropy/emacs-startup-with-Debug-p)))
      (entropy/emacs-message-do-message
       ,message ,@args)
-     (user-error "")))
+     (entropy/emacs-error-without-debugger "")))
 
 (defun entropy/emacs-message-hide-popup (&optional force)
   "Hide popup window which display `entropy/emacs-message-message-buffname'."

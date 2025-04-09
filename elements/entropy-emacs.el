@@ -631,8 +631,16 @@ variable i.e. not cleared when buffer's `major-mode' changed (see
 (defun entropy/emacs-error-without-debugger (&rest args)
   "Like `error' but never trigger the emacs debugger."
   (declare (advertised-calling-convention (string &rest args) "23.1"))
-  (entropy/emacs-without-debugger
-   (signal 'error (list (apply #'format-message args)))))
+  (if (not noninteractive)
+      (entropy/emacs-without-debugger
+       (signal 'error (list (apply #'format-message args))))
+    ;; FIXME: although we suppress the debugger option but it still
+    ;; occurred in batch mode, thus we use `kill-emacs' instead in
+    ;; which case.
+    (let ((msg (apply #'format-message args)))
+      (unless (string-empty-p msg)
+        (message "Error: %s" msg))
+      (kill-emacs 1))))
 
 (defun entropy/emacs-noninteractive-exit-with-fatal ()
   "Exit current `noninteractive' emacs session with fatal exit code."
