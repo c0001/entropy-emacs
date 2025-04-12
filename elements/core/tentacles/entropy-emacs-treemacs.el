@@ -31,7 +31,7 @@
 ;;
 ;; * Code
 
-(declare treemacs--themes)
+(defvar treemacs--themes)
 (defun entropy/emacs-treemacs-toggle-show-hide/inct nil
   (interactive)
   (when (entropy/emacs-icons-displayable-p)
