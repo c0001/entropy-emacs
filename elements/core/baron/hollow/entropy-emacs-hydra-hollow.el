@@ -1659,7 +1659,7 @@ backend instead of `pretty-hydra-define+'."
     `(:title
       (entropy/emacs-pretty-hydra-make-title
        ,title-str
-       "faicon" "certificate")
+       "faicon" "nf-fa-certificate")
       :foreign-keys warn
       :color ambranth
       :quit-key "q"
@@ -2621,7 +2621,7 @@ hydra body caller) =pretty-hydra-head-command=.
          )
        '(:title
          (entropy/emacs-pretty-hydra-make-title
-          "eemacs top dispatch" "faicon" "toggle-on")
+          "eemacs top dispatch" "faicon" "nf-fa-toggle_on")
          :foreign-keys warn
          :color ambranth
          :quit-key "q"

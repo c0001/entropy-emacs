@@ -2159,90 +2159,64 @@ since `font-family-list' always return nil in TUI session."
   )
 
 ;; ** Ivy UI Enhancement
-;; *** all the icons ivy
-(use-package all-the-icons-ivy
-  :commands (all-the-icons-ivy-setup)
-  :init
-  (if (and (eq entropy/emacs-ivy-rich-type 'all-the-icons-ivy)
-           (entropy/emacs-icons-displayable-p))
-      (entropy/emacs-lazy-load-simple 'ivy
-        (all-the-icons-ivy-setup))))
 
 ;; *** ivy rich mode
 
 ;; **** all the icons ivy rich
-(use-package all-the-icons-ivy-rich
+(use-package nerd-icons-ivy-rich
   :commands
-  (all-the-icons-ivy-rich-mode)
+  (nerd-icons-ivy-rich-mode)
   :eemacs-functions
-  (all-the-icons-ivy-rich-world-clock-icon
-   all-the-icons-ivy-rich-file-icon
-   all-the-icons-ivy-rich-mode-icon
-   all-the-icons-ivy-rich-buffer-icon
-   all-the-icons-ivy-rich-company-icon
-   all-the-icons-ivy-rich-git-branch-icon
-   all-the-icons-ivy-rich-package-icon
-   all-the-icons-ivy-rich-process-icon
-   all-the-icons-ivy-rich-font-icon
-   all-the-icons-ivy-rich-dir-icon
-   all-the-icons-ivy-rich-face-icon
-   all-the-icons-ivy-rich-bookmark-icon
-   all-the-icons-ivy-rich-function-icon
-   all-the-icons-ivy-rich-imenu-icon
-   all-the-icons-ivy-rich-tramp-icon
-   all-the-icons-ivy-rich-library-icon
-   all-the-icons-ivy-rich-keybinding-icon
-   all-the-icons-ivy-rich-symbol-icon
-   all-the-icons-ivy-rich-theme-icon
-   all-the-icons-ivy-rich-variable-icon
-   all-the-icons-ivy-rich--format-icon)
+  (nerd-icons-ivy-rich-world-clock-icon
+   nerd-icons-ivy-rich-file-icon
+   nerd-icons-ivy-rich-mode-icon
+   nerd-icons-ivy-rich-buffer-icon
+   nerd-icons-ivy-rich-company-icon
+   nerd-icons-ivy-rich-git-branch-icon
+   nerd-icons-ivy-rich-package-icon
+   nerd-icons-ivy-rich-process-icon
+   nerd-icons-ivy-rich-font-icon
+   nerd-icons-ivy-rich-dir-icon
+   nerd-icons-ivy-rich-face-icon
+   nerd-icons-ivy-rich-bookmark-icon
+   nerd-icons-ivy-rich-function-icon
+   nerd-icons-ivy-rich-imenu-icon
+   nerd-icons-ivy-rich-tramp-icon
+   nerd-icons-ivy-rich-library-icon
+   nerd-icons-ivy-rich-keybinding-icon
+   nerd-icons-ivy-rich-symbol-icon
+   nerd-icons-ivy-rich-theme-icon
+   nerd-icons-ivy-rich-variable-icon)
   :preface
 
-  (defvar entropy/emacs-ivy-all-the-icon-ivy-rich-icon-funcs
-    '(all-the-icons-ivy-rich-world-clock-icon
-      all-the-icons-ivy-rich-file-icon
-      all-the-icons-ivy-rich-mode-icon
-      all-the-icons-ivy-rich-buffer-icon
-      all-the-icons-ivy-rich-company-icon
-      all-the-icons-ivy-rich-git-branch-icon
-      all-the-icons-ivy-rich-package-icon
-      all-the-icons-ivy-rich-process-icon
-      all-the-icons-ivy-rich-font-icon
-      all-the-icons-ivy-rich-dir-icon
-      all-the-icons-ivy-rich-face-icon
-      all-the-icons-ivy-rich-bookmark-icon
-      all-the-icons-ivy-rich-function-icon
-      all-the-icons-ivy-rich-imenu-icon
-      all-the-icons-ivy-rich-tramp-icon
-      all-the-icons-ivy-rich-library-icon
-      all-the-icons-ivy-rich-keybinding-icon
-      all-the-icons-ivy-rich-symbol-icon
-      all-the-icons-ivy-rich-theme-icon
-      all-the-icons-ivy-rich-variable-icon))
-  (defun ya/all-the-icon-ivy-rich-common-dir-icon
-      (_candi)
-    (all-the-icons-ivy-rich--format-icon
-     (all-the-icons-octicon "file-directory"
-                            :height 1.0 :v-adjust 0.01)))
+  (defvar entropy/emacs-ivy-nerd-icon-ivy-rich-icon-funcs
+    '(nerd-icons-ivy-rich-world-clock-icon
+      nerd-icons-ivy-rich-file-icon
+      nerd-icons-ivy-rich-mode-icon
+      nerd-icons-ivy-rich-buffer-icon
+      nerd-icons-ivy-rich-company-icon
+      nerd-icons-ivy-rich-git-branch-icon
+      nerd-icons-ivy-rich-package-icon
+      nerd-icons-ivy-rich-process-icon
+      nerd-icons-ivy-rich-font-icon
+      nerd-icons-ivy-rich-dir-icon
+      nerd-icons-ivy-rich-face-icon
+      nerd-icons-ivy-rich-bookmark-icon
+      nerd-icons-ivy-rich-function-icon
+      nerd-icons-ivy-rich-imenu-icon
+      nerd-icons-ivy-rich-tramp-icon
+      nerd-icons-ivy-rich-library-icon
+      nerd-icons-ivy-rich-keybinding-icon
+      nerd-icons-ivy-rich-symbol-icon
+      nerd-icons-ivy-rich-theme-icon
+      nerd-icons-ivy-rich-variable-icon))
+  (defun ya/nerd-icons-ivy-rich-common-dir-icon
+      (candi)
+    (nerd-icons-ivy-rich-dir-icon candi))
 
-  (defun ya/all-the-icons-ivy-rich-common-file-icon (candidate)
+  (defun ya/nerd-icons-ivy-rich-common-file-icon (candi)
     "Display file icon from CANDIDATE in `ivy-rich'."
-    (let* ((path (expand-file-name candidate ivy--directory))
-           (file (file-name-nondirectory path))
-           (icon (cond
-                  ((file-directory-p path)
-                   (all-the-icons-octicon "file-directory"
-                                          :height 1.0 :v-adjust 0.01))
-                  ((string-match-p "^/.*:$" path)
-                   (all-the-icons-octicon "radio-tower"
-                                          :height 1.0 :v-adjust 0.01))
-                  ((not (string-empty-p file))
-                   (all-the-icons-icon-for-file file :v-adjust -0.05)))))
-      (all-the-icons-ivy-rich--format-icon
-       (if (symbolp icon)
-           (all-the-icons-faicon "file-o"
-                                 :face 'all-the-icons-dsilver :v-adjust 0.0)
-         icon))))
+    (nerd-icons-ivy-rich-file-icon candi))
 
   (defun __adv/around/icon-func-empty-display
       (orig-func &rest orig-args)
@@ -2255,17 +2229,17 @@ display icon or empty string while
 
   :init
   ;; (entropy/emacs-lazy-with-load-trail
-  ;;  'all-the-icons-ivy-rich-mode
+  ;;  'nerd-icons-ivy-rich-mode
   ;;  :pdumper-no-end t
   ;;  (memoize
-  ;;   'ya/all-the-icons-ivy-rich-common-file-icon))
+  ;;   'ya/nerd-icons-ivy-rich-common-file-icon))
 
   :config
   ;; advice and memoize icon format functions
   (dolist (icon-func
-           `(ya/all-the-icon-ivy-rich-common-dir-icon
-             ya/all-the-icons-ivy-rich-common-file-icon
-             ,@entropy/emacs-ivy-all-the-icon-ivy-rich-icon-funcs
+           `(ya/nerd-icons-ivy-rich-common-dir-icon
+             ya/nerd-icons-ivy-rich-common-file-icon
+             ,@entropy/emacs-ivy-nerd-icon-ivy-rich-icon-funcs
              ))
     (advice-add icon-func
                 :around
@@ -2285,7 +2259,7 @@ display icon or empty string while
      'ivy
      ;; ensure load the :config part
      'ivy-rich
-     'all-the-icons)
+     'nerd-icons)
     ;; we must ensure that initial `ivy-rich-display-transformers-list'
     ;; after all specification are injected into
     ;; `entropy/emacs-ivy-rich-extra-display-transformers-list'.
@@ -2384,7 +2358,7 @@ currnt fontset."
       (entropy/emacs-setf-by-body rtn
         `(ivy-switch-buffer
           (:columns
-           (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-buffer-icon)
+           (,(_ivy-rich-use-icon-func 'nerd-icons-ivy-rich-buffer-icon)
             (ivy-rich-candidate
              (:width ,nwth-func))
             (ivy-rich-switch-buffer-size
@@ -2398,7 +2372,7 @@ currnt fontset."
           ;; --------------------
           entropy/emacs-popwin-shackle-popup-buffer
           (:columns
-           (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-buffer-icon)
+           (,(_ivy-rich-use-icon-func 'nerd-icons-ivy-rich-buffer-icon)
             (ivy-rich-candidate
              (:width ,nwth-func))
             (ivy-rich-switch-buffer-size
@@ -2412,7 +2386,7 @@ currnt fontset."
           ;; --------------------
           counsel-find-file
           (:columns
-           (,(_ivy-rich-use-icon-func 'ya/all-the-icons-ivy-rich-common-file-icon)
+           (,(_ivy-rich-use-icon-func 'ya/nerd-icons-ivy-rich-common-file-icon)
             (ivy-read-file-transformer)
             (ivy-rich-counsel-find-file-truename
              (:face font-lock-doc-face)))
@@ -2420,7 +2394,7 @@ currnt fontset."
           ;; --------------------
           entropy/emacs-popwin-shackle-popup-find-file
           (:columns
-           (,(_ivy-rich-use-icon-func 'ya/all-the-icons-ivy-rich-common-file-icon)
+           (,(_ivy-rich-use-icon-func 'ya/nerd-icons-ivy-rich-common-file-icon)
             (ivy-read-file-transformer)
             (ivy-rich-counsel-find-file-truename
              (:face font-lock-doc-face)))
@@ -2428,7 +2402,7 @@ currnt fontset."
           ;; --------------------
           counsel-M-x
           (:columns
-           (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-function-icon)
+           (,(_ivy-rich-use-icon-func 'nerd-icons-ivy-rich-function-icon)
             (counsel-M-x-transformer
              (:width ,(_ivy-rich-use-doc-width)))
             (,(_ivy-rich-use-doc-func-elisp-func)
@@ -2437,7 +2411,7 @@ currnt fontset."
           ;; --------------------
           counsel-describe-function
           (:columns
-           (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-function-icon)
+           (,(_ivy-rich-use-icon-func 'nerd-icons-ivy-rich-function-icon)
             (counsel-describe-function-transformer
              (:width ,(_ivy-rich-use-doc-width)))
             (,(_ivy-rich-use-doc-func-elisp-func)
@@ -2446,7 +2420,7 @@ currnt fontset."
           ;; --------------------
           counsel-describe-variable
           (:columns
-           (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-variable-icon)
+           (,(_ivy-rich-use-icon-func 'nerd-icons-ivy-rich-variable-icon)
             (counsel-describe-variable-transformer
              (:width ,(_ivy-rich-use-doc-width)))
             (,(_ivy-rich-use-doc-func-elisp-var)
@@ -2455,7 +2429,7 @@ currnt fontset."
           ;; --------------------
           counsel-recentf
           (:columns
-           (,(_ivy-rich-use-icon-func 'ya/all-the-icons-ivy-rich-common-file-icon)
+           (,(_ivy-rich-use-icon-func 'ya/nerd-icons-ivy-rich-common-file-icon)
             (ivy-rich-candidate
              (:width 0.8))
             (ivy-rich-file-last-modified-time
@@ -2464,28 +2438,28 @@ currnt fontset."
           ;; --------------------
           counsel-list-processes
           (:columns
-           (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-process-icon)
+           (,(_ivy-rich-use-icon-func 'nerd-icons-ivy-rich-process-icon)
             (ivy-rich-candidate (:width 25))
-            (all-the-icons-ivy-rich-process-id (:width 7 :face all-the-icons-ivy-rich-process-id-face))
-            (all-the-icons-ivy-rich-process-status (:width 7 :face all-the-icons-ivy-rich-process-status-face))
-            (all-the-icons-ivy-rich-process-buffer-name (:width 25 :face all-the-icons-ivy-rich-process-buffer-face))
-            (all-the-icons-ivy-rich-process-tty-name (:width 12 :face all-the-icons-ivy-rich-process-tty-face))
-            (all-the-icons-ivy-rich-process-thread (:width 12 :face all-the-icons-ivy-rich-process-thread-face))
-            (all-the-icons-ivy-rich-process-command (:face all-the-icons-ivy-rich-process-command-face)))
+            (nerd-icons-ivy-rich-process-id (:width 7 :face nerd-icons-ivy-rich-process-id-face))
+            (nerd-icons-ivy-rich-process-status (:width 7 :face nerd-icons-ivy-rich-process-status-face))
+            (nerd-icons-ivy-rich-process-buffer-name (:width 25 :face nerd-icons-ivy-rich-process-buffer-face))
+            (nerd-icons-ivy-rich-process-tty-name (:width 12 :face nerd-icons-ivy-rich-process-tty-face))
+            (nerd-icons-ivy-rich-process-thread (:width 12 :face nerd-icons-ivy-rich-process-thread-face))
+            (nerd-icons-ivy-rich-process-command (:face nerd-icons-ivy-rich-process-command-face)))
            :delimiter "\t")
           ;; --------------------
           counsel-package
           (:columns
-           (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-package-icon)
+           (,(_ivy-rich-use-icon-func 'nerd-icons-ivy-rich-package-icon)
             (ivy-rich-candidate (:width 0.3))
-            (all-the-icons-ivy-rich-package-version (:width 16 :face all-the-icons-ivy-rich-version-face))
-            (all-the-icons-ivy-rich-package-archive-summary (:width 7 :face all-the-icons-ivy-rich-archive-face))
-            (all-the-icons-ivy-rich-package-install-summary (:face all-the-icons-ivy-rich-package-status-installed-face)))
+            (nerd-icons-ivy-rich-package-version (:width 16 :face nerd-icons-ivy-rich-version-face))
+            (nerd-icons-ivy-rich-package-archive-summary (:width 7 :face nerd-icons-ivy-rich-archive-face))
+            (nerd-icons-ivy-rich-package-install-summary (:face nerd-icons-ivy-rich-package-status-installed-face)))
            :delimiter "\t")
           ;; --------------------
           package-install
           (:columns
-           (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-package-icon)
+           (,(_ivy-rich-use-icon-func 'nerd-icons-ivy-rich-package-icon)
             (ivy-rich-candidate
              (:width 30))
             (ivy-rich-package-version
@@ -2498,52 +2472,52 @@ currnt fontset."
           ;; --------------------
           package-reinstall
           (:columns
-           (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-package-icon)
+           (,(_ivy-rich-use-icon-func 'nerd-icons-ivy-rich-package-icon)
             (ivy-rich-candidate (:width 0.3))
-            (ivy-rich-package-version (:width 16 :face all-the-icons-ivy-rich-version-face))
-            (ivy-rich-package-archive-summary (:width 7 :face all-the-icons-ivy-rich-archive-face))
-            (ivy-rich-package-install-summary (:face all-the-icons-ivy-rich-package-status-installed-face)))
+            (ivy-rich-package-version (:width 16 :face nerd-icons-ivy-rich-version-face))
+            (ivy-rich-package-archive-summary (:width 7 :face nerd-icons-ivy-rich-archive-face))
+            (ivy-rich-package-install-summary (:face nerd-icons-ivy-rich-package-status-installed-face)))
            :delimiter "\t")
           ;; --------------------
           package-delete
           (:columns
-           (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-package-icon)
+           (,(_ivy-rich-use-icon-func 'nerd-icons-ivy-rich-package-icon)
             (ivy-rich-candidate))
            :delimiter "\t")
           ;; --------------------
           counsel-projectile-switch-project
           (:columns
-           ((ya/all-the-icon-ivy-rich-common-dir-icon)
+           ((ya/nerd-icons-ivy-rich-common-dir-icon)
             (ivy-rich-candidate))
            :delimiter "\t")
           ;; --------------------
           counsel-projectile-find-file
           (:columns
-           ((ya/all-the-icons-ivy-rich-common-file-icon)
+           ((ya/nerd-icons-ivy-rich-common-file-icon)
             (counsel-projectile-find-file-transformer))
            :delimiter "\t")
           ;; --------------------
           counsel-projectile-find-dir
           (:columns
-           ((all-the-icons-ivy-rich-dir-icon)
+           ((nerd-icons-ivy-rich-dir-icon)
             (counsel-projectile-find-dir-transformer))
            :delimiter "\t")
           ;; --------------------
           counsel-major
           (:columns
-           (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-mode-icon)
+           (,(_ivy-rich-use-icon-func 'nerd-icons-ivy-rich-mode-icon)
             (ivy-rich-candidate))
            :delimiter "\t")
           ;; --------------------
           counsel-minor
           (:columns
-           (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-mode-icon)
+           (,(_ivy-rich-use-icon-func 'nerd-icons-ivy-rich-mode-icon)
             (ivy-rich-candidate))
            :delimiter "\t")
           ;; --------------------
           counsel-imenu
           (:columns
-           (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-imenu-icon)
+           (,(_ivy-rich-use-icon-func 'nerd-icons-ivy-rich-imenu-icon)
             (ivy-rich-candidate))
            :delimiter "\t")
 
@@ -2552,14 +2526,14 @@ currnt fontset."
           ;; ;; EEMACS_MAINTENANCE:  need to use newer version of `company-box'
           ;; counsel-company
           ;; (:columns
-          ;;  (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-company-icon)
+          ;;  (,(_ivy-rich-use-icon-func 'nerd-icons-ivy-rich-company-icon)
           ;;   (ivy-rich-candidate))
           ;;  :delimiter "\t")
 
           ;; --------------------
           counsel-fonts
           (:columns
-           (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-font-icon)
+           (,(_ivy-rich-use-icon-func 'nerd-icons-ivy-rich-font-icon)
             (ivy-rich-candidate
              (:width 30)
              (:delimiter " "))
@@ -2573,37 +2547,37 @@ currnt fontset."
           ;; --------------------
           counsel-find-library
           (:columns
-           (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-library-icon)
+           (,(_ivy-rich-use-icon-func 'nerd-icons-ivy-rich-library-icon)
             (ivy-rich-candidate))
            :delimiter "\t")
           ;; --------------------
           counsel-load-library
           (:columns
-           (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-library-icon)
+           (,(_ivy-rich-use-icon-func 'nerd-icons-ivy-rich-library-icon)
             (ivy-rich-candidate))
            :delimiter "\t")
           ;; --------------------
           counsel-load-theme
           (:columns
-           (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-theme-icon)
+           (,(_ivy-rich-use-icon-func 'nerd-icons-ivy-rich-theme-icon)
             (ivy-rich-candidate))
            :delimiter "\t")
           ;; --------------------
           counsel-world-clock
           (:columns
-           (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-world-clock-icon)
+           (,(_ivy-rich-use-icon-func 'nerd-icons-ivy-rich-world-clock-icon)
             (ivy-rich-candidate))
            :delimiter "\t")
           ;; --------------------
           counsel-tramp
           (:columns
-           (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-tramp-icon)
+           (,(_ivy-rich-use-icon-func 'nerd-icons-ivy-rich-tramp-icon)
             (ivy-rich-candidate))
            :delimiter "\t")
           ;; --------------------
           counsel-git-checkout
           (:columns
-           (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-git-branch-icon)
+           (,(_ivy-rich-use-icon-func 'nerd-icons-ivy-rich-git-branch-icon)
             (ivy-rich-candidate))
            :delimiter "\t")
 

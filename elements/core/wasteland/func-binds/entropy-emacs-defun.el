@@ -11871,13 +11871,11 @@ true, nil for otherwise."
 (defvar entropy/emacs-icons-displayable-p--cache nil)
 (defvar entropy/emacs-icons-displayable-p--init-p nil)
 (defun entropy/emacs-icons-displayable-p (&optional reset)
-  "Return non-nil if `all-the-icons' is displayable."
+  "Return non-nil if icons is displayable."
   (if (and entropy/emacs-icons-displayable-p--init-p (not reset))
       entropy/emacs-icons-displayable-p--cache
     (entropy/emacs-setf-by-body entropy/emacs-icons-displayable-p--cache
       (and entropy/emacs-use-icon
-           (display-graphic-p)
-           ;; FIXME: `find-font' can not be used in emacs batch mode.
            (or
             (and entropy/emacs-fall-love-with-pdumper
                  entropy/emacs-do-pdumper-in-X)
@@ -11885,13 +11883,26 @@ true, nil for otherwise."
               (catch :exit
                 (dolist
                     (font-name
-                     '("github-octicons"
-                       "FontAwesome"
-                       "file-icons"
-                       "Weather Icons"
-                       "Material Icons"
-                       "all-the-icons"))
-                  (unless (find-font (font-spec :name font-name))
+                     (list "Symbols Nerd Font Mono"))
+                  (unless
+                      (if (display-graphic-p)
+                          (find-font (font-spec :name font-name))
+                        ;; FIXME: `find-font' can not be used in emacs
+                        ;; non-gui mode (i.e. TUI and batch
+                        ;; mode). thus we use sys shell utils to do
+                        ;; judgement.
+                        (cond
+                         (sys/linuxp
+                          (equal
+                           0
+                           (call-process
+                            "sh" nil nil nil "-c"
+                            (format
+                             "fc-list : family | sort | uniq | grep %s"
+                             (shell-quote-argument font-name)))))
+                         (t
+                          ;; TODO: for win/mac and other systems
+                          nil)))
                     (throw :exit (setq rtn nil)))))
               rtn))))
     (setq entropy/emacs-icons-displayable-p--init-p t)

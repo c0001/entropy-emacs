@@ -81,10 +81,6 @@
     advice-patch
     ag
     alert
-    all-the-icons
-    all-the-icons-ibuffer
-    all-the-icons-ivy
-    all-the-icons-ivy-rich
     anaconda-mode
     async
     atomic-chrome
@@ -230,6 +226,9 @@
     multiple-cursors
     names
     neotree
+    nerd-icons
+    nerd-icons-ivy-rich
+    nerd-icons-ibuffer
     olivetti
     openwith
     org-bullets
@@ -279,7 +278,6 @@
     slime-company
     smeargle
     spaceline
-    spaceline-all-the-icons
     spacemacs-theme
     separedit
     spinner
@@ -291,6 +289,8 @@
     tNFA
     toc-org
     transient
+    treemacs
+    treemacs-nerd-icons
     treepy
     trie
     ujelly-theme

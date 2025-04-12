@@ -192,143 +192,47 @@
              exec-path-from-shell-getenv
              exec-path-from-shell-getenvs))
 
-;; ** all-the-icons
-(use-package all-the-icons
+;; ** icon
+;; *** nerd icons
+
+(use-package nerd-icons
   :commands
-  (all-the-icons-octicon-family
-   all-the-icons-octicon
-   all-the-icons-icon-for-buffer
-   all-the-icons-icon-family-for-buffer
-   all-the-icons-icon-family
-   all-the-icons-fileicon-data
-   all-the-icons-insert-alltheicon
-   all-the-icons-wicon-data
-   all-the-icons-icon-for-url
-   all-the-icons-insert-material
-   all-the-icons-install-fonts
-   all-the-icons-insert-wicon
-   all-the-icons-faicon
-   all-the-icons-material-family
-   all-the-icons-material
-   all-the-icons-icon-for-weather
-   all-the-icons-fileicon-family
-   all-the-icons-insert
-   all-the-icons-icon-for-mode
-   all-the-icons-icon-for-file
-   all-the-icons-match-to-alist
-   all-the-icons-wicon
-   all-the-icons-alltheicon-family
-   all-the-icons-icon-family-for-mode
-   all-the-icons-icon-family-for-file
-   all-the-icons-wicon-family
-   all-the-icons-faicon-family
-   all-the-icons-octicon-data
-   all-the-icons-insert-octicon
-   all-the-icons-insert-icons-for
-   all-the-icons-alltheicon-data
-   all-the-icons-insert-fileicon
-   all-the-icons-insert-faicon
-   all-the-icons-ivy-setup
-   all-the-icons-dir-is-submodule
-   all-the-icons-faicon-data
-   all-the-icons-material-data
-   all-the-icons-auto-mode-match?
-   all-the-icons-fileicon
-   all-the-icons-alltheicon
-   all-the-icons-icon-for-dir)
-
-  :init
-  ;; Patching dir icon list for fix some icon filter bugs
-  (setq all-the-icons-dir-icon-alist
-        '(("^[Tt]rash$"       all-the-icons-faicon     "trash-o"        :height 1.2 :v-adjust -0.1)
-          ("dropbox"          all-the-icons-faicon     "dropbox"        :height 1.0 :v-adjust -0.1)
-          ("google[ _-]drive" all-the-icons-alltheicon "google-drive"   :height 1.0 :v-adjust -0.1)
-          ("^atom$"           all-the-icons-alltheicon "atom"           :height 1.2 :v-adjust -0.1)
-          ("^[Dd]ocuments$"   all-the-icons-faicon     "book"           :height 1.0 :v-adjust -0.1)
-          ("^[Dd]ownload$"    all-the-icons-faicon     "cloud-download" :height 0.9 :v-adjust -0.1)
-          ("^[dD]esktop$"     all-the-icons-octicon    "device-desktop" :height 1.0 :v-adjust -0.1)
-          ("^[pP]ictures$"    all-the-icons-faicon     "picture-o"      :height 0.9 :v-adjust -0.2)
-          ("^[pP]hotos$"      all-the-icons-faicon     "camera-retro"   :height 1.0 :v-adjust -0.1)
-          ("^[mM]usic$"       all-the-icons-faicon     "music"          :height 1.0 :v-adjust -0.1)
-          ("^[mM]ovies$"      all-the-icons-faicon     "film"           :height 0.9 :v-adjust -0.1)
-          ("^[Cc]ode$"        all-the-icons-octicon    "code"           :height 1.1 :v-adjust -0.1)
-          ("workspace"        all-the-icons-octicon    "code"           :height 1.1 :v-adjust -0.1)
-          ("^[Tt]est$"        all-the-icons-fileicon   "test-dir"       :height 0.9)
-          ("\\.git"           all-the-icons-alltheicon "git"            :height 1.0)
-          (".?"               all-the-icons-octicon    "file-directory" :height 1.0 :v-adjust -0.1)))
-
+  (nerd-icons-icon-for-dir
+   nerd-icons-auto-mode-match?
+   nerd-icons-faicon-data
+   nerd-icons-dir-is-submodule
+   nerd-icons-insert-faicon
+   nerd-icons-insert-icons-for
+   nerd-icons-insert-octicon
+   nerd-icons-octicon-data
+   nerd-icons-faicon-family
+   nerd-icons-wicon-family
+   nerd-icons-wicon
+   nerd-icons-match-to-alist
+   nerd-icons-icon-for-file
+   nerd-icons-icon-for-mode
+   nerd-icons-insert
+   nerd-icons-icon-for-weather
+   nerd-icons-faicon
+   nerd-icons-insert-wicon
+   nerd-icons-install-fonts
+   nerd-icons-icon-for-url
+   nerd-icons-wicon-data
+   nerd-icons-icon-for-buffer
+   nerd-icons-octicon
+   nerd-icons-octicon-family
+   )
   :config
-;; *** icons specification
-
-  (dolist (el
-           `(("\\.xpm$"     all-the-icons-octicon  "file-media"  :v-adjust 0.0 :face all-the-icons-dgreen)
-             ("\\.toml$"    all-the-icons-octicon  "settings"    :v-adjust 0.0 :face all-the-icons-dyellow)
-             ("\\.lua$"     all-the-icons-fileicon "lua"         :face all-the-icons-dblue)
-             ("\\.go$"      all-the-icons-fileicon "go"          :face all-the-icons-blue)
-             ("NEWS$"       all-the-icons-faicon   "newspaper-o" :height 0.9   :v-adjust -0.2)
-             ("Cask$"       all-the-icons-fileicon "elisp"       :height 1.0   :v-adjust -0.2 :face all-the-icons-blue)
-             (".*\\.ipynb$" all-the-icons-fileicon "jupyter"     :height 1.2   :face all-the-icons-orange)
-             ("\\.epub$"    all-the-icons-faicon   "book"        :height 1.0   :v-adjust -0.1 :face all-the-icons-green)))
-    (add-to-list 'all-the-icons-icon-alist
-                 el))
-
-  (dolist (el
-           `((cask-mode                   all-the-icons-fileicon   "elisp"       :height 1.0   :v-adjust -0.2 :face all-the-icons-blue)
-             (lua-mode                    all-the-icons-fileicon   "lua"         :face all-the-icons-dblue)
-             (conf-toml-mode              all-the-icons-octicon    "settings"    :v-adjust 0.0 :face all-the-icons-dyellow)
-             (nov-mode                    all-the-icons-faicon     "book"        :height 1.0   :v-adjust -0.1 :face all-the-icons-green)
-             (gfm-mode                    all-the-icons-octicon    "markdown"    :face all-the-icons-blue)
-             (vterm-mode                  all-the-icons-octicon    "terminal"    :v-adjust 0.2)
-             (elfeed-search-mode          all-the-icons-faicon     "rss"         :v-adjust 0.2)
-             (elfeed-show-mode            all-the-icons-material   "web"         :v-adjust 0.0)
-             (Info-mode                   all-the-icons-faicon     "info-circle" :v-adjust 0.2)
-             (w3m-mode                    all-the-icons-faicon     "chrome"      :v-adjust -0.2)
-             (gitignore-mode              all-the-icons-alltheicon "git"         :v-adjust 0.2)
-             (ein:notebooklist-mode       all-the-icons-faicon     "book"        :face all-the-icons-orange)
-             (ein:notebook-mode           all-the-icons-fileicon   "jupyter"     :height 1.2   :face all-the-icons-orange)
-             (ein:notebook-multilang-mode all-the-icons-fileicon   "jupyter"     :height 1.2   :face all-the-icons-orange)
-             (go-mode                     all-the-icons-fileicon   "go"          :face all-the-icons-blue)
-             (help-mode                   all-the-icons-faicon     "info-circle" :height 1.1   :v-adjust -0.1 :face all-the-icons-purple)
-             (Info-mode                   all-the-icons-faicon     "info-circle" :height 1.1   :v-adjust -0.1)
-             (conf-mode                   all-the-icons-octicon    "settings"    :v-adjust 0.0 :face all-the-icons-dyellow)
-             (conf-unix-mode              all-the-icons-octicon    "settings"    :v-adjust 0.0 :face all-the-icons-dyellow)
-             ,@(mapcar
-                (lambda (music-mode)
-                  (list music-mode 'all-the-icons-faicon "music" :face 'all-the-icons-blue))
-                '(mpc-mode
-                  mpc-mode-menu
-                  mpc-tagbrowser-mode
-                  mpc-songs-mode
-                  mpc-status-mode
-                  mpc-tagbrowser-dir-mode
-                  ))
-             ;; add more rules
-             ))
-
-    (add-to-list 'all-the-icons-mode-icon-alist
-                 el))
-
   ;; Set tree-sitter variant prog-modes' icon as what their traditional modes have
   (let (tr-fnm oc)
     (dolist (m entropy/emacs-ide-for-them)
-      (when (entropy/emacs-setf-by-body tr-fnm
-              (entropy/emacs-maybe-car
-               (entropy/emacs-ide-get-lang-mode-info-plist-attr
-                :traditional-mode)))
-        (when (setq oc (alist-get tr-fnm all-the-icons-mode-icon-alist))
-          (push (cons m oc) all-the-icons-mode-icon-alist)))))
-
-;; *** memoize internal icon render
-
-  ;; ;; FIXME: memoize all-the-icons-* casue emacs input lag
-  ;; (dolist (func '(all-the-icons-material
-  ;;                 all-the-icons-faicon
-  ;;                 all-the-icons-octicon
-  ;;                 all-the-icons-material
-  ;;                 all-the-icons-alltheicon
-  ;;                 ))
-  ;;   (unless (get func :memoize-original-function)
-  ;;     (memoize func)))
+      (unless (alist-get m nerd-icons-mode-icon-alist)
+        (when (entropy/emacs-setf-by-body tr-fnm
+                (entropy/emacs-maybe-car
+                 (entropy/emacs-ide-get-lang-mode-info-plist-attr
+                  :traditional-mode m)))
+          (when (setq oc (alist-get tr-fnm nerd-icons-mode-icon-alist))
+            (push (cons m oc) nerd-icons-mode-icon-alist))))))
   )
 
 ;; ** eldoc
@@ -979,7 +883,7 @@ posframe when available."
           (v-adjust (or v-adjust 0.0)))
       (concat
        (when (and (entropy/emacs-icons-displayable-p) icon-type icon-name)
-         (let ((f (intern (format "all-the-icons-%s" icon-type))))
+         (let ((f (intern (format "nerd-icons-%s" icon-type))))
            (when (fboundp f)
              (concat
               (apply f (list icon-name :face face :height height :v-adjust v-adjust))
@@ -991,14 +895,14 @@ posframe when available."
   (entropy/emacs-require-only-once 'faces)
   (let* ((icon-display-p (entropy/emacs-icons-displayable-p))
          (face (or face 'entropy/emacs-defface-face-for-hydra-orange-face))
-         (icon (if (fboundp 'all-the-icons-icon-for-mode)
+         (icon (if (fboundp 'nerd-icons-icon-for-mode)
                    (ignore-errors
-                     (all-the-icons-icon-for-mode
+                     (nerd-icons-icon-for-mode
                       mode
                       :face face :height (or height 1)
                       :v-adjust (or v-adjust 0)))
                  (when icon-display-p
-                   (error "Function <all-the-icons-icon-for-mode> not found!")))))
+                   (error "Function <nerd-icons-icon-for-mode> not found!")))))
     (concat
      (when icon-display-p
        (if (not (stringp icon))

@@ -126,12 +126,12 @@ NOTE: the projectile integration just workable when
 
 
 ;; ** ibuffer all the icons feature
-(use-package all-the-icons-ibuffer
-  :commands (all-the-icons-ibuffer-mode)
+(use-package nerd-icons-ibuffer
+  :commands (nerd-icons-ibuffer-mode)
   :init
   (entropy/emacs-lazy-initial-advice-before
    '(ibuffer)
-   "all-the-icons-ibuffer" "all-the-icons-ibuffer"
+   "nerd-icons-ibuffer" "nerd-icons-ibuffer"
    :prompt-type 'prompt-echo
    ;; We must ensure this startup while pdumpre recovery hook since in
    ;; any trail hook the `display-graphic-p' whill return nil while
@@ -139,19 +139,19 @@ NOTE: the projectile integration just workable when
    :pdumper-no-end nil
    (if (null (daemonp))
        (when (entropy/emacs-icons-displayable-p)
-         (add-hook 'ibuffer-mode-hook #'all-the-icons-ibuffer-mode))
+         (add-hook 'ibuffer-mode-hook #'nerd-icons-ibuffer-mode))
      (entropy/emacs-with-daemon-make-frame-done
-       'all-the-icons-ibuffer (&rest _)
+       'nerd-icons-ibuffer (&rest _)
        :when-tui
        (progn
-         (remove-hook 'ibuffer-mode-hook #'all-the-icons-ibuffer-mode)
+         (remove-hook 'ibuffer-mode-hook #'nerd-icons-ibuffer-mode)
          (dolist (buff (buffer-list))
            (with-current-buffer buff
              (if (and (eq major-mode 'ibuffer-mode)
-                      (bound-and-true-p all-the-icons-ibuffer-mode))
-                 (all-the-icons-ibuffer-mode 0)))))
+                      (bound-and-true-p nerd-icons-ibuffer-mode))
+                 (nerd-icons-ibuffer-mode 0)))))
        :when-gui
-       (add-hook 'ibuffer-mode-hook #'all-the-icons-ibuffer-mode)))))
+       (add-hook 'ibuffer-mode-hook #'nerd-icons-ibuffer-mode)))))
 
 ;; ** ibuffer-projectitle display
 (use-package ibuffer-projectile
@@ -172,11 +172,9 @@ NOTE: the projectile integration just workable when
   (setq ibuffer-projectile-prefix
         (if (display-graphic-p)
             (concat
-             (all-the-icons-octicon
-              "file-directory"
-              :face ibuffer-filter-group-name-face
-              :v-adjust -0.05
-              :height 1.25)
+             (nerd-icons-octicon
+              "nf-oct-file_directory"
+              :face ibuffer-filter-group-name-face)
              " ")
           "Project: ")))
 
@@ -186,11 +184,11 @@ NOTE: the projectile integration just workable when
           (and __entropy/emacs-ibuffer-use-projects-style-p
                (not __entropy/emacs-ibuffer-in-project-p)))
          ;; We set the eemacs default ibuffer style unless either
-         ;; `all-the-icons-ibuffer-mode' nor `ibuffer-projectile'
-         ;; (current project mode) was enable since collision.a
+         ;; `nerd-icons-ibuffer-mode' or `ibuffer-projectile'
+         ;; (current project mode) was enable since collision.
          (set-basic-format?
           (and (not use-all-prjs-p)
-               (not (bound-and-true-p all-the-icons-ibuffer-mode)))))
+               (not (bound-and-true-p nerd-icons-ibuffer-mode)))))
 
     (when set-basic-format?
       ;; size readable form EmacsWiki `https://www.emacswiki.org/emacs/IbufferMode'

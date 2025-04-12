@@ -336,7 +336,6 @@ You can choose below four choices:
 - origin with none modified until you do it yourself: origin
 - doom-modeline                                       doom
 
-
 Notice:
 
 - this variable's effectively was rely on the varaible
@@ -344,7 +343,6 @@ Notice:
   variable were none-effectively."
   :type '(choice
           (const :tag "spaceline-regular" "spaceline")
-          (const :tag "spaceline-all-the-icons" "spaceline-icons")
           (const :tag "powerline-default" "powerline")
           (const :tag "Origin" "origin")
           (const :tag "doom-modeline" "doom"))
@@ -523,17 +521,13 @@ feature.
 
 Two valid value defaulted by `entropy-emacs':
 
-- `all-the-icons-ivy'
-
-  The simple one for that, just ehance for `ivy-switch-buffer' and
-  `counsel-find-file'.
+- `nil': do not use any ivy-rich enhancements.
 
 - `ivy-rich-mode'
 
   The fully riched mode for that, see its document for more
   details."
   :type '(choice
-          (const :tag "Simple ivy icons" all-the-icons-ivy)
           (const :tag "Ivy rich mode" ivy-rich-mode)
           (const :tag "Neither to use" nil))
   :group 'entropy/emacs-customize-group-for-ivy-mode)
@@ -1698,8 +1692,7 @@ returned by `entropy/emacs-ide-get-lang-mode-info-plist-attr'."
   (let ((body-func
          (lambda nil
            (entropy/emacs-when-let*-firstn 2
-               ((x (entropy/emacs-ide-get-lang-mode-info
-                    (or mode major-mode)))
+               ((x (entropy/emacs-ide-get-lang-mode-info mode))
                 (y (plist-get x attr)) (cyp (consp y))
                 (z (or (and cyp (car y)) y)))
              (if (not cyp) y

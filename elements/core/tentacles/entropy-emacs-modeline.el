@@ -325,37 +325,37 @@ return nil"
              (if (stringp icon) icon (format "%s" icon)) plain)))
     (if for-mode
         (cond ((memq major-mode '(emacs-lisp-mode lisp-interaction-mode))
-               (format "%s/%s" ostr (if lexical-binding "l" "d")))
+               (format (if (display-graphic-p) "%s/%s"
+                         ;; FIXME: glyph messure siblng in TUI display, thus we add a space - -!
+                         "%s /%s")
+                       ostr (if lexical-binding "l" "d")))
               (t ostr))
       ostr)))
 
 (defun entropy/emacs-modeline--origin-mdl-get-major-mode-str ()
   (entropy/emacs-modeline--origin-mdl-use-icon-or-plain
    (cond ((string-match-p "magit" (symbol-name major-mode))
-          (all-the-icons-icon-for-mode major-mode :v-adjust 0.001))
+          (nerd-icons-icon-for-mode major-mode))
          ((and (derived-mode-p 'prog-mode)
                (not (eq major-mode 'emacs-lisp-mode)))
           (cond
            ((and (eq major-mode 'python-mode)
                  (eq entropy/emacs-theme-sticker 'doom-1337))
-            (all-the-icons-icon-for-mode
+            (nerd-icons-icon-for-mode
              major-mode
-             :v-adjust 0.001
-             :face 'all-the-icons-maroon))
+             :face 'nerd-icons-maroon))
            (t
-            (all-the-icons-icon-for-mode major-mode :v-adjust 0.001))))
+            (nerd-icons-icon-for-mode major-mode))))
          ((eq major-mode 'elfeed-search-mode)
-          (all-the-icons-icon-for-mode
+          (nerd-icons-icon-for-mode
            major-mode
-           :v-adjust -0.08
-           :face 'all-the-icons-maroon))
+           :face 'nerd-icons-maroon))
          ((eq major-mode 'elfeed-show-mode)
-          (all-the-icons-icon-for-mode
+          (nerd-icons-icon-for-mode
            major-mode
-           :v-adjust -0.15
-           :face 'all-the-icons-maroon))
+           :face 'nerd-icons-maroon))
          (t
-          (all-the-icons-icon-for-mode major-mode)))
+          (nerd-icons-icon-for-mode major-mode)))
    (entropy/emacs-modeline--origin-mdl-propertize-face
     (entropy/emacs-modeline--subr-func->escape-mdl-str-pcfmt
      (format "%s" major-mode))
@@ -399,9 +399,8 @@ eemacs origin type which reduce performance issue."
      ;; > VCS
      (when vc-mode
        (entropy/emacs-modeline--origin-mdl-use-icon-or-plain
-        (format " %s%s " (all-the-icons-octicon
-                          "git-branch"
-                          :v-adjust 0.01 :face 'all-the-icons-red)
+        (format " %s%s " (nerd-icons-octicon
+                          "nf-oct-git_branch" :face 'nerd-icons-red)
                 vc-mode)
         (format
          "%s " (entropy/emacs-modeline--origin-mdl-propertize-face
@@ -409,9 +408,8 @@ eemacs origin type which reduce performance issue."
     ;; > Buffer position
     (:eval
      (entropy/emacs-modeline--origin-mdl-use-icon-or-plain
-      (concat (all-the-icons-faicon
-               "pencil-square-o"
-               :face 'all-the-icons-yellow :v-adjust -0.1) " ")
+      (concat (nerd-icons-faicon
+               "nf-fa-pencil_square_o" :face 'nerd-icons-yellow ) " ")
       " "))
     ,@(if
           ;; NOTE: we should use the self-create binds for all emacs
@@ -1224,8 +1222,8 @@ style which defined in `entropy/emacs-modeline-style'."
           (if (entropy/emacs-ide-get-lang-mode-info-plist-attr
                :treesit-mode-p)
               (if (entropy/emacs-icons-displayable-p)
-                  (all-the-icons-faicon
-                   "tree" :height 0.8 :v-adjust 0.05 :face 'all-the-icons-green)
+                  (nerd-icons-faicon
+                   "nf-fa-tree" :height 0.8 :face 'nerd-icons-green)
                 [treesit]) ""))
         (setq modeline--miscinfo/treesit-mode-indicator/setted-p t)
         modeline--miscinfo/treesit-mode-indicator)))

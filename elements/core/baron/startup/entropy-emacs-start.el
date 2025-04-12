@@ -497,6 +497,7 @@ notation.
   ;; loaded.
   (entropy/emacs-start--require-with-duration-log 'entropy-emacs-project)
 
+  (entropy/emacs-start--require-with-duration-log 'entropy-emacs-treemacs)
   (entropy/emacs-start--require-with-duration-log 'entropy-emacs-yas)
   (entropy/emacs-start--require-with-duration-log 'entropy-emacs-codeserver)
   (entropy/emacs-start--require-with-duration-log 'entropy-emacs-company)

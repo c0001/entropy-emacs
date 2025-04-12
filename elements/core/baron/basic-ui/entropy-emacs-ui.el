@@ -690,17 +690,17 @@ window removed since we just need one welcom buffer."
     (setq
      dashboard-navigator-buttons
      `(((,(when (entropy/emacs-icons-displayable-p)
-            (all-the-icons-octicon "mark-github" :height 1.1 :v-adjust 0.0))
+            (nerd-icons-octicon "nf-oct-mark_github"))
          "Homepage" "Browse homepage"
          (lambda (&rest _) (browse-url entropy/emacs-home-page)))
 
         (,(when (entropy/emacs-icons-displayable-p)
-            (all-the-icons-octicon "tools" :height 1.0 :v-adjust 0.0))
+            (nerd-icons-octicon "nf-oct-tools"))
          "Settings" "Open custom file"
          (lambda (&rest _) (find-file custom-file)))
 
         (,(if (entropy/emacs-icons-displayable-p)
-              (all-the-icons-faicon "question" :height 1.2 :v-adjust -0.1)
+              (nerd-icons-faicon "nf-fa-question")
             "?")
          "" "Help (?/h)"
          (lambda (&rest _)
