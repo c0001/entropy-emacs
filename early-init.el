@@ -133,7 +133,7 @@ emacs upstream")
 (setq jit-lock-defer-time
       ;; FIXME: emacs upper than 28 seems always defer jit-lock? and 0
       ;; may cause font-lock not flush while idle?
-      (if (< emacs-major-version 28) 0 nil)
+      nil
 
       ;; jit-lock-stealth-time 2
       ;; jit-lock-chunk-size 100

@@ -4950,15 +4950,12 @@ displayed image as same operated mechanism as
      '(search-forward-regexp (format "^%s" (regexp-quote file)) nil t)
      '(search-forward-regexp (format "^%s" file) nil t))))
 
-(cond (
-       ;; since we use self-maintained image-28 dired ver. which has
-       ;; patched yet.
-       (< emacs-major-version 28)
-       (with-eval-after-load 'image-dired
-         (entropy/emacs-basic--patch-image-dired-db-search-regexp)))
-      ((> emacs-major-version 28)
-       (with-eval-after-load 'image-dired-tags
-         (entropy/emacs-basic--patch-image-dired-db-search-regexp))))
+(progn
+  ;; since we use self-maintained image-28 dired ver. which has
+  ;; patched yet.
+  (when (> emacs-major-version 28)
+    (with-eval-after-load 'image-dired-tags
+      (entropy/emacs-basic--patch-image-dired-db-search-regexp))))
 
 ;; *** Artist-mode
 (use-package artist
@@ -7033,11 +7030,7 @@ backtrace:
                   '<= entropy/emacs-highest-emacs-version-requirement 'noerror))
   :signal (entropy/emacs-do-error-for-emacs-version-incompatible
            '<= entropy/emacs-highest-emacs-version-requirement)
-  (when (and
-         ;; emacs 27 and lower has no problem
-         (not (< emacs-major-version 28))
-         (or (not (display-graphic-p))
-             (daemonp)))
+  (when (or (not (display-graphic-p)) (daemonp))
     (entropy/emacs-lazy-initial-advice-before
      ;; we must inject before any command really ran since the patch
      ;; must take effective before the that describe procedure run.

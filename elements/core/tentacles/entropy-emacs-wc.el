@@ -1178,7 +1178,7 @@ saved by
          ((entropy/emacs-wc--eyebrowse-init-p))
          miniw
          (minibuff
-          (if (entropy/emacs-minibufferp nil t) (current-buffer)
+          (if (minibufferp nil t) (current-buffer)
             (and (setq miniw (active-minibuffer-window))
                  (window-buffer miniw)))))
       (cond

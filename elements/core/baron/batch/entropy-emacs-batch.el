@@ -99,8 +99,7 @@ Make targets:
 
 - 'update' option update existed installed packages.
 
-- 'dump' option dump the emacs using pdumper function
-  `dump-emacs-portable' (need emacs 27 version or above).
+- 'dump' option dump the emacs using pdumper function `dump-emacs-portable'.
 
   The dumped emacs binary file is stored in
   'entropy/emacs-user-emacs-directory' (i.e. the entropy-emacs
@@ -278,10 +277,6 @@ In used emacs version is: %s
     (dump-emacs-portable dump-file)))
 
 (defun entropy/emacs-batch--dump-emacs ()
-  (unless (not (version< emacs-version "27"))
-    (entropy/emacs-message-do-error
-     (red
-      "You just can portable dump emacs while emacs version upon 27, abort")))
   (entropy/emacs-batch--dump-emacs-core))
 
 ;; **** install coworkers

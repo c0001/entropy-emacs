@@ -529,7 +529,6 @@ FRAME defaults to `selected-frame'."
               #'entropy/emacs-utils--hydra-reset-display-indicator)
   (entropy/emacs--api-restriction-uniform 'hydra--clearfun-hack
       'package-version-incompatible
-    :when (> emacs-major-version 27)
     :do-error t
     :detector
     (not (version=

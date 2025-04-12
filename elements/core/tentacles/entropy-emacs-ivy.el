@@ -315,10 +315,6 @@ based on `isearch-regexp' as filter."
      map #'eemacs/isearch--exit-minibuffer))
 
   (defvar isearch-forward-thing-at-point)
-  ;; backport to emacs-27
-  (unless (bound-and-true-p isearch-forward-thing-at-point)
-    (setq isearch-forward-thing-at-point
-          (list 'region 'url 'symbol 'sexp)))
   ;; EEMACS_MAINTENANCE: this is the hack on
   ;; `isearch-forward-thing-at-point' so we should follow the
   ;; upstream.
@@ -618,7 +614,7 @@ upstream and may be make risky follow the ivy updates.
   (defvar-local __idle/ivy-queue-exhited-done nil)
   ;; EEMACS_MAINTENANCE: patching follow upstream please!
   (entropy/emacs-define-idle-function __ya/ivy--queue-exhibit/idle-func 0.12
-    (when (entropy/emacs-minibufferp nil t)
+    (when (minibufferp nil t)
       (let* (
              ;; binding `this-command' to the
              ;; `entropy/emacs-current-session-this-command-before-idle'

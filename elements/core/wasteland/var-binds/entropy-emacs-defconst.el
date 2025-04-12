@@ -731,8 +731,7 @@ restrict the lowest and highest emacs version range for BODY."
             ob-haskell
             ob-java
             ob-js
-            ,(unless (< emacs-major-version 28)
-               'ob-julia)
+            ob-julia
             ob-latex
             ob-lilypond
             ob-awk
@@ -740,6 +739,8 @@ restrict the lowest and highest emacs version range for BODY."
             ob-comint
             ob-css
             ob-ditaa
+            ;; bypass bytecomp warn
+            ,nil
             ))
   "The org ob-* features list")
 
@@ -754,11 +755,12 @@ restrict the lowest and highest emacs version range for BODY."
             ox-man
             ox-latex
             ox-html
-            ,(unless (< emacs-major-version 28)
-               'ox-koma-letter)
+            ox-koma-letter
             ox-icalendar
             ox-ascii
             ox-beamer
+            ;; bypass bytecomp warn
+            ,nil
             ))
   "The org ox-* features list")
 

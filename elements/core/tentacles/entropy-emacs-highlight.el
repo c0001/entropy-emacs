@@ -273,15 +273,13 @@ dead and duplicated ones."
 (use-package paren
   :ensure nil
   :init
-  ;; when under emacs 28, we need to manually toggle it on since
-  ;; emacs-28 enable it defaultly
-  (when (< emacs-major-version 28)
+  (progn
     (entropy/emacs-lazy-initial-advice-before
      '(find-file switch-to-buffer)
      "show-paren-mode" "show-paren-mode"
      :prompt-type 'prompt-echo
      :pdumper-no-end t
-     (show-paren-mode t)))
+     (show-paren-mode 1)))
   :config
   (setq show-paren-when-point-inside-paren t)
   (setq show-paren-when-point-in-periphery t))

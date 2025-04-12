@@ -68,8 +68,6 @@ repository and has submodule inited."
           (expand-file-name "autogen.sh" dir))
          dir)))
 
-;; bypass byte-compile warning
-(and (< emacs-major-version 28) (defvar read-extended-command-predicate))
 (defvar entropy/emacs-read-extended-command-predicates
   '(
     ;; The default filter inspired by
@@ -106,9 +104,8 @@ version upper than 28.")
               (throw :exit nil)))
           t)
       t)))
-(unless (< emacs-major-version 28)
-  (setq read-extended-command-predicate
-        'entropy/emacs-read-extended-command-predicate-function))
+(setq read-extended-command-predicate
+      'entropy/emacs-read-extended-command-predicate-function)
 
 (defvar entropy/emacs-emacs-builtin-package-repack-flist
   (let (rtn
@@ -2780,11 +2777,7 @@ is follow their original order in this hook.")
     (let ((bn  (car orig-args))
           (ibh (or entropy/emacs-buffer-create-without-hooks
                    (cadr orig-args))))
-      (if (< emacs-major-version 28)
-          ;; 27 and lower emacs version doesn't have the
-          ;; inhibt-buffer-hooks mechanism.
-          (funcall orig-func bn)
-        (funcall orig-func bn ibh))))
+      (funcall orig-func bn ibh)))
   (advice-add 'get-buffer-create
               :around #'entropy/emacs--get-buffer-create)
 
@@ -3131,10 +3124,7 @@ for the traditional `major-mode': `%s'."
 ;; *** js-mode
 
 (defconst entropy/emacs-prog/javascript/use-major-mode/js2-mode/p
-  ;; default use `js2-mode' for emacs lower than 28 since the emacs
-  ;; builtin js utils seems weak in older emacs ver.? and that's
-  ;; suggested by `js2-mode' either.
-  (< emacs-major-version 28)
+  nil
   "Const indicator that eemacs should enable `js2-mode' as default
 `major-mode' for javascript edition.")
 
