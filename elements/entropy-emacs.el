@@ -1554,17 +1554,24 @@ byte-compile generated but source loading undeeded.")
           "undo-tree-eemacs"
           "liberime"
           "emacs-rime"
-          "eemacs-treemacs/src/elisp"
+          "^eemacs-treemacs/src/elisp"
           "with-proxy.el"
           "lsp-java-simple"))
        (cur-path (expand-file-name (file-name-directory load-file-name)))
        (core-path (expand-file-name "core" cur-path))
-       (deps-path (expand-file-name "site-lisp" cur-path)))
+       (deps-path (expand-file-name "site-lisp" cur-path))
+       (prepend-load-path nil))
   (add-to-list 'load-path cur-path)
+  (add-to-list 'package-directory-list deps-path)
   (dolist (sub-core subs-core)
     (add-to-list 'load-path (expand-file-name sub-core core-path)))
   (dolist (sub-dep subs-dep)
-    (add-to-list 'load-path (expand-file-name sub-dep deps-path))))
+    (if (string-prefix-p "^" sub-dep)
+        (push (expand-file-name (substring sub-dep 1) deps-path) prepend-load-path)
+      (add-to-list 'load-path (expand-file-name sub-dep deps-path))))
+  (defun entropy/emacs--prepend-load-path ()
+    (dolist (el prepend-load-path)
+      (add-to-list 'load-path el))))
 
 (!eemacs-require 'entropy-emacs-defcustom)
 (defvar entropy/emacs-run-startup-defcustom-load-done-timestamp (current-time)

@@ -38,13 +38,52 @@
 (defun entropy/emacs-treemacs--init-advice (&rest _)
   (entropy/emacs-treemacs--init-preface))
 
-(use-package eemacs-treemacs
+(use-package treemacs
+  :ensure nil
   :eemacs-adrequire
   ((:enable t :adfors (entropy/emacs-hydra-hollow-call-before-hook) :adtype hook :pdumper-no-end t))
   :eemacs-functions
   (treemacs-current-visibility
    treemacs-pulse-on-failure)
-  :commands (treemacs)
+  :commands
+  ;; EEMACS_MAINTENANCE: update this list since we should cover the
+  ;; autoload from `package-user-dir' where non-patched treemacs
+  ;; installed
+  (
+   treemacs
+   treemacs-add-and-display-current-project
+   treemacs-add-and-display-current-project-exclusively
+   treemacs-add-bookmark
+   treemacs-add-project-to-workspace
+   treemacs-bookmark
+   treemacs-create-workspace
+   treemacs-create-workspace-from-project
+   treemacs-decrease-width
+   treemacs-edit-workspaces
+   treemacs-follow-mode
+   treemacs-git-mode
+   treemacs-helpful-hydra
+   treemacs-hide-gitignored-files-mode
+   treemacs-indicate-top-scroll-mode
+   treemacs-load-theme
+   treemacs-next-workspace
+   treemacs-peek-mode
+   treemacs-previous-project
+   treemacs-project-follow-mode
+   treemacs-remove-project-from-workspace
+   treemacs-remove-workspace
+   treemacs-rename-project
+   treemacs-rename-workspace
+   treemacs-select-directory
+   treemacs-select-scope-type
+   treemacs-select-window
+   treemacs-set-fallback-workspace
+   treemacs-show-changelog
+   treemacs-show-extensions
+   treemacs-switch-workspace
+   treemacs-tag-follow-mode
+   treemacs-version
+   )
   :eemacs-tpha
   (((:enable t :defer t))
    ("Utils"

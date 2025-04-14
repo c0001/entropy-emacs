@@ -289,7 +289,6 @@
     tNFA
     toc-org
     transient
-    treemacs
     treemacs-nerd-icons
     treepy
     trie

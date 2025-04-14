@@ -148,7 +148,8 @@ argument."
              ;; readable `package-quickstart-file' even if it's
              ;; obsolete and we've disabled `package-quickstart'.
              (make-temp-name "__eemacs_fake_package-quickstart-file."))))
-      (package-initialize)))
+      (package-initialize)
+      (entropy/emacs--prepend-load-path)))
   (unless __package-first-initialized
     (setq entropy/emacs-package-initialize-done-timestamp
           (current-time)))
