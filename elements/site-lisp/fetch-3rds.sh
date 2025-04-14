@@ -16,6 +16,14 @@ pkg="$1"
 
 cd "$_dir_name"
 
+if [[ -n $(git status --short) ]] ; then
+    echo 'err: repo modified and/or untracked' ; exit 1
+elif [[ -n $(git diff --stat) ]] ; then
+    echo 'err: repo dirty' ; exit 1
+elif [[ -n $(git status --porcelain) ]]; then
+    echo 'err: repo dirty' ; exit 1
+fi
+
 declare -A var_prjs=(
     [emacs-rime]='80f09ed::::https://github.com/DogLooksGood/emacs-rime.git'
     [liberime]='23c0caa::::https://github.com/merrickluo/liberime.git'
@@ -32,6 +40,7 @@ for i in "${!var_prjs[@]}" ; do
         fi
     fi
     if [[ -d $i ]] ; then
+        git rm -r --cached -- "$i"
         rm -rf "$i"
     fi
     if [[ -n $i ]] ; then
@@ -40,6 +49,12 @@ for i in "${!var_prjs[@]}" ; do
         git -C "$i" submodule update --init --recursive
         cd "$i" && rm -rf .git && cd "$_dir_name"
         git add "$i"
+        git commit --gpg-sign='618277E86068F592A4F3C42842EBF24476885D91' -m "\
+fetch-3rds: add third party pkg -- $i
+
+from:   $j
+commit: $k
+"
     fi
 done
 
