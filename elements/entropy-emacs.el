@@ -1554,6 +1554,7 @@ byte-compile generated but source loading undeeded.")
           "undo-tree-eemacs"
           "liberime"
           "emacs-rime"
+          "eemacs-treemacs"
           "with-proxy.el"
           "lsp-java-simple"))
        (cur-path (expand-file-name (file-name-directory load-file-name)))

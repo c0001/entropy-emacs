@@ -558,7 +558,7 @@ faild with hash '%s' which must match '%s'"
         make-local
         ))
 
-(defun entropy/emacs-batch--byte-compile-dir (dir)
+(defun entropy/emacs-batch--byte-compile-dir/core (dir)
   (let* ((dir-cur (expand-file-name dir))
          (_ (unless (file-exists-p dir-cur)
               (entropy/emacs-error-without-debugger
@@ -579,6 +579,35 @@ faild with hash '%s' which must match '%s'"
       (entropy/emacs-error-without-debugger
        "Dir %s is not an elisp source dir"
        dir))))
+
+(defun entropy/emacs-batch--byte-compile-dir (dir)
+  (let ((ef (expand-file-name ".eemacs-pkg" dir))
+        (efdata nil) k)
+    (if (not (file-exists-p ef))
+        (entropy/emacs-batch--byte-compile-dir/core dir)
+      (entropy/emacs-setf-by-body efdata
+        (with-temp-buffer
+          (insert-file-contents ef)
+          (goto-char (point-min))
+          (condition-case err
+              (read (current-buffer))
+            (error
+             (entropy/emacs-error-without-debugger "%s" err)))))
+      (dolist (el efdata)
+        (cl-case (car el)
+          (compile
+           (dolist (i (cdr el))
+             (cl-case (car i)
+               (dir
+                (dolist (j (cdr i))
+                  (setq k (expand-file-name j dir))
+                  (message "--> compile dir: %s" k)
+                  (entropy/emacs-batch--byte-compile-dir/core k)))
+               (file
+                (dolist (j (cdr i))
+                  (setq k (expand-file-name j dir))
+                  (message "--> compile file: %s" k)
+                  (byte-recompile-file k t 0)))))))))))
 
 (defvar entropy/emacs-batch--bytecompile-eemacs-core-utils-frameworks/timestamp
   (format-time-string "%Y%m%d%H%M%S"))
@@ -745,7 +774,8 @@ faild with hash '%s' which must match '%s'"
      nil)
     (eemacs-site-lisp_liberime
      "-liberime"
-     nil)))
+     nil)
+    (eemacs-treemacs "-eemacs-treemacs" nil)))
 (setq entropy/emacs-batch--bytecompile-item-register
       (delete nil entropy/emacs-batch--bytecompile-item-register))
 

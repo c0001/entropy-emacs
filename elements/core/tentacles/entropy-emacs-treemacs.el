@@ -32,15 +32,74 @@
 ;; * Code
 
 (defvar treemacs--themes)
-(defun entropy/emacs-treemacs-toggle-show-hide/inct nil
-  (interactive)
+(defun entropy/emacs-treemacs--init-preface nil
   (when (entropy/emacs-icons-displayable-p)
-    (entropy/emacs-require-only-once 'treemacs-nerd-icons))
-  (call-interactively 'treemacs))
+    (entropy/emacs-require-only-once 'treemacs-nerd-icons)))
+(defun entropy/emacs-treemacs--init-advice (&rest _)
+  (entropy/emacs-treemacs--init-preface))
 
-(use-package treemacs
+(use-package eemacs-treemacs
+  :eemacs-adrequire
+  ((:enable t :adfors (entropy/emacs-hydra-hollow-call-before-hook) :adtype hook :pdumper-no-end t))
+  :eemacs-functions
+  (treemacs-current-visibility
+   treemacs-pulse-on-failure)
   :commands (treemacs)
-  :bind (("<f8>" . entropy/emacs-treemacs-toggle-show-hide/inct))
+  :eemacs-tpha
+  (((:enable t :defer t))
+   ("Utils"
+    (("u t"
+      (:eval
+       (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+        'treemacs-main))
+      "Treemacs Commands Map"
+      :enable t :exit t))))
+  :eemacs-indhc
+  (((:enable
+     t
+     :defer
+     (:data (:adfors (entropy/emacs-after-startup-idle-hook) :adtype hook :pdumper-no-end t)))
+    (treemacs-main nil nil (2 2 2)))
+   ("Treemacs Main"
+    (("<f8>" treemacs
+      "Initialise or toggle treemacs."
+      :enable t :global-bind t :exit t
+      :toggle (eq (treemacs-current-visibility) 'visible))
+     ("C-<f8>" treemacs-add-project-to-workspace
+      "Add a project at given PATH to the current treemacs workspace"
+      :enable t :global-bind t :exit t)
+     ("C-S-<f8>" treemacs-select-directory
+      "Add a arbitary  to open in treemacs."
+      :enable t :global-bind t :exit t))))
+  :eemacs-mmphc
+  (((:enable
+     t
+     :defer
+     (:data (:adfors (treemacs-mode-hook) :adtype hook :pdumper-no-end t)))
+    (treemacs-mode (treemacs treemacs-mode-map) t (2 2 2)))
+   ("Treemacs Help"
+    (("?" treemacs-common-helpful-hydra "common helpful hydra to treemacs keymap"
+      :enable t :exit t :map-inject t)
+     ("C-/" treemacs-advanced-helpful-hydra "advanced helpful hydra to treemacs keymap"
+      :enable t :exit t :map-inject t))
+    "Treemacs Frequently Commands"
+    (("M-<up>"  treemacs-goto-parent-node
+      "Goto prev parent_lv node"
+      :enable t :exit t :map-inject t)
+     ("M-<down>"
+      (let ((curpt (point)))
+        (progn
+          (progn (treemacs-goto-parent-node) (treemacs-next-neighbour))
+          (and (<= (point) curpt) (goto-char curpt)
+               (treemacs-pulse-on-failure "No next parent_lv sibling found!"))))
+      "Goto next parent_lv node"
+      :enable t :exit t :map-inject t)
+     ("C-M-<up>"  treemacs-move-project-up
+      "Move project position up"
+      :enable t :exit t :map-inject t)
+     ("C-M-<down>" treemacs-move-project-down
+      "Move project position down"
+      :enable t :exit t :map-inject t))))
   :config
   (setq treemacs-collapse-dirs           (if treemacs-python-executable 3 0)
         treemacs-missing-project-action  'remove
@@ -116,6 +175,11 @@ error occurred as for (let* ((depth (1+ (treemacs-button-get btn
       (t (error "%s" err))))
   (advice-add 'treemacs--apply-annotations-deferred
               :around #'entropy/emacs-treemacs--patch/apply-annotations-deferred)
+
+  ;; made treemacs core subroutine pre-invoked eemacs treemacs init config
+  (dolist (f '(treemacs-get-local-window
+               treemacs-get-local-buffer))
+    (advice-add f :before #'entropy/emacs-treemacs--init-advice))
 
   )
 
