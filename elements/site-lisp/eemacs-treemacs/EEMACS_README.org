@@ -1,0 +1,4 @@
+#+title: Eemacs treemacs
+
+This project is the specified patched version of [[https://github.com/Alexander-Miller/treemacs][treemacs]], maintained
+by and used for [[https://github.com/c0001/entropy-emacs][entropy-emacs]] only.

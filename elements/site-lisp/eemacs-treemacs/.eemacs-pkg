@@ -1,0 +1,1 @@
+((compile (dir "src/elisp")))
