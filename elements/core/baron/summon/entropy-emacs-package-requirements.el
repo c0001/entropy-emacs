@@ -117,6 +117,7 @@
     counsel-ffdata
     counsel-projectile
     counsel-world-clock
+    cfrs
     dash
     dashboard
     dash-functional
