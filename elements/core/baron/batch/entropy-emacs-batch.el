@@ -767,7 +767,7 @@ faild with hash '%s' which must match '%s'"
      "-lsp-java"
      nil)
     (eemacs-site-lisp_undo-tree-eemacs
-     "-undo-tree-eemacs"
+     "-undo-tree"
      nil)
     (eemacs-site-lisp_emacs-rime
      "-rime"
