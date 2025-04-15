@@ -764,18 +764,18 @@ faild with hash '%s' which must match '%s'"
          "-image-dired/28"
          nil))
     (eemacs-site-lisp_lsp-java-simple
-     "-lsp-java-simple"
+     "-lsp-java"
      nil)
     (eemacs-site-lisp_undo-tree-eemacs
      "-undo-tree-eemacs"
      nil)
     (eemacs-site-lisp_emacs-rime
-     "-emacs-rime"
+     "-rime"
      nil)
     (eemacs-site-lisp_liberime
      "-liberime"
      nil)
-    (eemacs-treemacs "-eemacs-treemacs" nil)))
+    (eemacs-treemacs "-treemacs" nil)))
 (setq entropy/emacs-batch--bytecompile-item-register
       (delete nil entropy/emacs-batch--bytecompile-item-register))
 
@@ -894,7 +894,7 @@ faild with hash '%s' which must match '%s'"
                           (expand-file-name
                            "annex/emacs-module"
                            entropy/emacs-user-emacs-directory))))
-        (path  (expand-file-name "emacs-rime"
+        (path  (expand-file-name "rime"
                                  entropy/emacs-site-lisp-path)))
     (entropy/emacs-message-simple-progress-message
         "Making eemacs emacs-rime"

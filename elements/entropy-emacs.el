@@ -1531,32 +1531,6 @@ byte-compile generated but source loading undeeded.")
           "baron/startup" "baron/batch" "baron/summon" "baron/utils" "baron/hollow"
           "baron/basic-ui"
           "tentacles"))
-       (subs-dep
-        '("entropy-adblockP-rule-analysis"
-          "entropy-cn-dict"
-          "entropy-code2org"
-          "entropy-dired-cp-or-mv"
-          "entropy-emacs-doc"
-          "company-en-words"
-          "entropy-global-read-only-mode"
-          "entropy-open-with"
-          "entropy-org-batch-refile"
-          "entropy-org-export-theme-toggle"
-          "entropy-org-widget"
-          "entropy-portableapps"
-          "entropy-proxy-url"
-          "entropy-s2t"
-          "entropy-sdcv"
-          "entropy-shellpop2"
-          "benchmark-init"
-          "company-tern"
-          "fakecygpty"
-          "undo-tree-eemacs"
-          "liberime"
-          "emacs-rime"
-          "^eemacs-treemacs/src/elisp"
-          "with-proxy.el"
-          "lsp-java-simple"))
        (cur-path (expand-file-name (file-name-directory load-file-name)))
        (core-path (expand-file-name "core" cur-path))
        (deps-path (expand-file-name "site-lisp" cur-path))
@@ -1564,14 +1538,7 @@ byte-compile generated but source loading undeeded.")
   (add-to-list 'load-path cur-path)
   (add-to-list 'package-directory-list deps-path)
   (dolist (sub-core subs-core)
-    (add-to-list 'load-path (expand-file-name sub-core core-path)))
-  (dolist (sub-dep subs-dep)
-    (if (string-prefix-p "^" sub-dep)
-        (push (expand-file-name (substring sub-dep 1) deps-path) prepend-load-path)
-      (add-to-list 'load-path (expand-file-name sub-dep deps-path))))
-  (defun entropy/emacs--prepend-load-path ()
-    (dolist (el prepend-load-path)
-      (add-to-list 'load-path el))))
+    (add-to-list 'load-path (expand-file-name sub-core core-path))))
 
 (!eemacs-require 'entropy-emacs-defcustom)
 (defvar entropy/emacs-run-startup-defcustom-load-done-timestamp (current-time)
