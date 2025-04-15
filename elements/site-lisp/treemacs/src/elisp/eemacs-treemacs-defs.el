@@ -1,3 +1,4 @@
+;; -*- lexical-binding: t; -*-
 (defvar eemacs-treemacs/var/func-indicator (make-symbol "eemacs-treemacs-func-indicator"))
 (defmacro eemacs-treemacs/macro/defun-with-op-indc (&rest args)
   (declare (doc-string 3) (indent 2))
