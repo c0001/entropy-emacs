@@ -1,4 +1,4 @@
-;;; company-words.el --- English words backend for company-mode  -*- lexical-binding: t; -*-
+;;; company-en-words.el --- English words backend for company-mode  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2015-2018 by Shuai Wu
 

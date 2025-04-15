@@ -727,7 +727,7 @@ faild with hash '%s' which must match '%s'"
      "-entropy-dired-cp-or-mv"
      nil)
     (eemacs-site-lisp
-     "-entropy-en-words"
+     "-company-en-words"
      nil)
     (eemacs-site-lisp_entropy-global-read-only-mode
      "-entropy-global-read-only-mode"
@@ -756,8 +756,8 @@ faild with hash '%s' which must match '%s'"
     (eemacs-site-lisp_entropy-sdcv
      "-entropy-sdcv"
      nil)
-    (eemacs-site-lisp_entropy-shellpop
-     "-entropy-shellpop"
+    (eemacs-site-lisp_entropy-shellpop2
+     "-entropy-shellpop2"
      nil)
     ,(when (= emacs-major-version 28)
        '(eemacs-site-lisp_image-dired-28-patch
