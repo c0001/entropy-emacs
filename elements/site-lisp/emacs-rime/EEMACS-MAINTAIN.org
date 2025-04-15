@@ -1,3 +1,0 @@
-- replace =(jit-lock-mode -1)= to =(jit-lock-mode nil)= since any
-  non-nil arg is enable meaning for it, so its a typo in origin
-  author's repo.
