@@ -5,11 +5,10 @@
     (popup "0.5.3")
     (f "0.20.0")
     (youdao-dictionary "0.4")
-    (bing-dict)
-    (google-translate)
+    (bing-dict "20200216.110")
+    (google-translate "2024")
     (posframe "0.5.0")
-    (pos-tip)
-    (tooltip)
+    (pos-tip "0.4.7")
     (chinese-word-at-point "0.2.3")))
 
 ;; Local Variables:

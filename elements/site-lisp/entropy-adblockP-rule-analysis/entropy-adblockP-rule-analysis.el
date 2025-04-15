@@ -1,4 +1,4 @@
-;;; entropy-adblock+-rule-analysis.el --- elisp extension to analyze adblock+ url rule set  -*- lexical-binding: t; -*-
+;;; entropy-adblockP-rule-analysis.el --- elisp extension to analyze adblock+ url rule set  -*- lexical-binding: t; -*-
 ;;
 ;;; Copyright (C) 20190530  Entropy
 ;; #+BEGIN_EXAMPLE
@@ -57,7 +57,7 @@
 ;;;;; customized variables
 (defgroup entropy/adbp-rule-group nil
   "Group variables classified identifier for
-`entropy-adblock+-rule-analysis'"
+`entropy-adblockP-rule-analysis'"
   :group 'extensions)
 
 (defcustom entropy/adbp-rule-use-upstream-rule-list nil
@@ -270,4 +270,4 @@ local cache only."
     (message "Update adbp rules done")))
 
 ;;; provide
-(provide 'entropy-adblock+-rule-analysis)
+(provide 'entropy-adblockP-rule-analysis)

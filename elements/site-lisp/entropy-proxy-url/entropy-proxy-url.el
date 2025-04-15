@@ -74,7 +74,7 @@
 ;; the webbrowser extensions for doing thus as what you have known for
 ;; the internet charging among on CHINA. Thus for that, this package
 ;; requires one =PAC= analyzer as now I use the another [[https://github.com/c0001/entropy-emacs][entropy-emacs]]
-;; included package =entropy-adblock+-rule-analysis= to role as the gfwlist
+;; included package =entropy-adblockP-rule-analysis= to role as the gfwlist
 ;; anaylizer, it will auto fetch the latest version gfwlist if possible
 ;; when you current internet environment allow the connecting for that,
 ;; or using the package built-in one which was the pre-fetched one, so it
@@ -198,7 +198,7 @@
 ;;   * Using =entropy/proxy-url-user-proxy-match-func= for more flexible
 ;;     aiming user aspect proxy method specification.
 
-;;   * Follow =entropy-adblock+-rule-analysis= updates for using more
+;;   * Follow =entropy-adblockP-rule-analysis= updates for using more
 ;;     quickly way for matching proxy matching way, and thus for that now
 ;;     support *whitelist* tunnel.
 
@@ -225,7 +225,7 @@
 (eval-when-compile (require 'cl-lib))
 (eval-when-compile (require 'macroexp))
 (declare-function eww "eww")
-(require 'entropy-adblock+-rule-analysis)
+(require 'entropy-adblockP-rule-analysis)
 (declare-function url-retrieve-internal "url")
 (declare-function w3m-goto-url "ext:w3m")
 (defvar w3m-command-arguments-alist)

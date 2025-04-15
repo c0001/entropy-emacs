@@ -25,9 +25,9 @@ elif [[ -n $(git status --porcelain) ]]; then
 fi
 
 declare -A var_prjs=(
-    [emacs-rime]='80f09ed::::https://github.com/DogLooksGood/emacs-rime.git'
-    [liberime]='23c0caa::::https://github.com/merrickluo/liberime.git'
-    [eemacs-treemacs]='b381446::::https://github.com/c0001/treemacs.git'
+    [rime]='4be1cf2::::https://github.com/c0001/emacs-rime.git'
+    [liberime]='747649a::::https://github.com/c0001/liberime.git'
+    [treemacs]='b44716a::::https://github.com/c0001/treemacs.git'
 )
 
 for i in "${!var_prjs[@]}" ; do
