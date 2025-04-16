@@ -118,6 +118,7 @@
     counsel-projectile
     counsel-world-clock
     cfrs
+    dap-mode
     dash
     dashboard
     dash-functional
@@ -208,6 +209,7 @@
     log4e
     loop
     lsp-mode
+    lsp-java
     lsp-pyright
     lsp-python-ms
     lsp-ui

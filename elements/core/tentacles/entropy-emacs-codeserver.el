@@ -1485,9 +1485,6 @@ NOTE: related to the display char height?"
 ;; ******* lsp java
 
 (use-package lsp-java
-  ;; we use eemacs spec simple lsp-java so that do not ensure it since
-  ;; we purchasing it under eemacs itself yet.
-  :ensure nil
   :defer
   (or
    ;; pdump can not dump mutex and condvar made by
