@@ -327,7 +327,7 @@ find the key a command is bound to it will show a blank instead."
               (,(cdr key-line-down)      #'treemacs-next-line-other-window)
               (,(cdr key-line-up)        #'treemacs-previous-line-other-window)
               (,(cdr key-page-down)      #'treemacs-next-page-other-window)
-              (,(cdr key-page-up)        #'treemacs-previous-previous-other-window)
+              (,(cdr key-page-up)        #'treemacs-previous-page-other-window)
               (,(cdr key-bulk-actions)   #'treemacs-bulk-file-actions)
               ("<escape>" nil "Exit"))))
         (treemacs--advanced-helpful-hydra/body))

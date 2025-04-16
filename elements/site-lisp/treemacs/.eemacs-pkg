@@ -1,1 +1,3 @@
-((compile (dir "src/elisp")))
+;;; -*- mode: lisp-data; -*-
+((compile   (dir "src/elisp"))
+ (load-path "src/elisp"))
