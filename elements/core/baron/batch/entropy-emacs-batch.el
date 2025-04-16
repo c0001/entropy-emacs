@@ -635,7 +635,7 @@ faild with hash '%s' which must match '%s'"
                      (format "elements/core/%s" host)
                    (setq label "core"))))
                entropy/emacs-user-emacs-directory))
-         (elcs (directory-files dir nil ".*\\.elc$"))
+         (elcs (directory-files-recursively dir ".*\\.elc$"))
          (log-file (expand-file-name
                     (format "%s/date-%s/eemacs-%s-compile-%s.log"
                             "eemacs-core-bytecompile-log"

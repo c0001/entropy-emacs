@@ -63,6 +63,8 @@
    treemacs-follow-mode
    treemacs-git-mode
    treemacs-helpful-hydra
+   treemacs-common-helpful-hydra
+   treemacs-advanced-helpful-hydra
    treemacs-hide-gitignored-files-mode
    treemacs-indicate-top-scroll-mode
    treemacs-load-theme
@@ -117,12 +119,27 @@
      (:data (:adfors (treemacs-mode-hook) :adtype hook :pdumper-no-end t)))
     (treemacs-mode (treemacs treemacs-mode-map) t (2 2 2)))
    ("Treemacs Help"
-    (("?" treemacs-common-helpful-hydra "common helpful hydra to treemacs keymap"
+    ;; NOTE: we wrap each map-injected commands with
+    ;; `call-interactively' since `treemacs-common-helpful-hydra' is
+    ;; generated at run time whose each hydra keybinding is dragged
+    ;; from `treemacs-mode-map' where we've did as below, but it use
+    ;; `treemacs--find-keybind' as subroutine to find same commands'
+    ;; keybingings in its keymap using their command symbol as same as
+    ;; what we want to do, but its internal mechanism include a
+    ;; key-code remap session that may break the `defhydra' wrapper
+    ;; which made it error (ps. `defhydra' just error return nil no
+    ;; force back to `top-level' so usually there's no notice for such
+    ;; hydra defination failing.) with the keybinding we defined
+    ;; e.g. it transfer kebinding M-<up> to M-UP but `defhydra' throw
+    ;; error as it's a wrong key-stroke defination.
+    (("?"            (call-interactively 'treemacs-common-helpful-hydra)
+      "common helpful hydra to treemacs keymap"
       :enable t :exit t :map-inject t)
-     ("C-/" treemacs-advanced-helpful-hydra "advanced helpful hydra to treemacs keymap"
+     ("M-?"          (call-interactively 'treemacs-advanced-helpful-hydra)
+      "advanced helpful hydra to treemacs keymap"
       :enable t :exit t :map-inject t))
     "Treemacs Frequently Commands"
-    (("M-<up>"  treemacs-goto-parent-node
+    (("M-<up>"       (call-interactively 'treemacs-goto-parent-node)
       "Goto prev parent_lv node"
       :enable t :exit t :map-inject t)
      ("M-<down>"
