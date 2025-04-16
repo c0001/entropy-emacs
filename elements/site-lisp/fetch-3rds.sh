@@ -27,7 +27,7 @@ fi
 declare -A var_prjs=(
     [rime]='4be1cf2::::https://github.com/c0001/emacs-rime.git'
     [liberime]='747649a::::https://github.com/c0001/liberime.git'
-    [treemacs]='eecc437::::https://github.com/c0001/treemacs.git'
+    [treemacs]='3966a4d::::https://github.com/c0001/treemacs.git'
 )
 
 for i in "${!var_prjs[@]}" ; do
