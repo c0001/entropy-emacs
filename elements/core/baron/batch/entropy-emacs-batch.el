@@ -635,7 +635,11 @@ faild with hash '%s' which must match '%s'"
                      (format "elements/core/%s" host)
                    (setq label "core"))))
                entropy/emacs-user-emacs-directory))
-         (elcs (directory-files-recursively dir ".*\\.elc$"))
+         (elcs (if (string-empty-p host)
+                   ;; for 'top' dir we should not use recursively lazy
+                   ;; way since all other pkgs dir is uner it.
+                   (directory-files dir t ".*\\.elc$")
+                 (directory-files-recursively dir ".*\\.elc$")))
          (log-file (expand-file-name
                     (format "%s/date-%s/eemacs-%s-compile-%s.log"
                             "eemacs-core-bytecompile-log"
@@ -650,8 +654,7 @@ faild with hash '%s' which must match '%s'"
                 (yellow "[WARN]")
                 (yellow "no compiled files need to be cleaned for dir %s"
                         (blue "%s" dir)))
-             (dolist (file elcs)
-               (delete-file (expand-file-name file dir) t))
+             (dolist (file elcs) (delete-file file t))
              (entropy/emacs-message-do-message
               "%s"
               (green "Clean compile files for dir '%s' done"
