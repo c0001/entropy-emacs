@@ -63,7 +63,17 @@
 Return of cons of the key formatted for inclusion in the hydra string, including
 a minimum PAD width for alignment, and the key itself for the hydra heads.
 Prefer evil keybinds, otherwise pick the first result."
-  (-if-let (keys (where-is-internal func))
+  (-if-let (keys (or (where-is-internal func)
+                     ;; FIXME:
+                     ;; EEMACS_MAINTENANCE:
+                     ;;
+                     ;; emacs-30's `where-is-internal' can not find
+                     ;; `treemacs-previous-page-other-window' and
+                     ;; `treemacs-next-page-other-window' in
+                     ;; `treemacs-mode-map' as in emacs-29, why? Thus
+                     ;; we need manually specified `treemacs-mode-map'
+                     ;; as its optional arg here.
+                     (where-is-internal func treemacs-mode-map)))
       (let ((key
              (key-description
               (-if-let (evil-keys (--first (eq 'treemacs-state (aref it 0)) keys))
