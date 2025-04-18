@@ -19,9 +19,17 @@ Activate benchmark-init and start collecting data." t)
 ;;; Generated autoloads from benchmark-init-modes.el
 
 (autoload 'benchmark-init/show-durations-tabulated "benchmark-init-modes" "\
-Show the benchmark results in a sorted table." t)
+Show the benchmark results in a sorted table.
+ROOT is the root of the tree to show durations for.  If nil, it
+defaults to `benchmark-init/durations-tree'.
+
+(fn &optional ROOT)" t)
 (autoload 'benchmark-init/show-durations-tree "benchmark-init-modes" "\
-Show durations in call-tree." t)
+Show durations in call-tree.
+ROOT is the root of the tree to show durations for.  If nil, it
+defaults to `benchmark-init/durations-tree'.
+
+(fn &optional ROOT)" t)
 (register-definition-prefixes "benchmark-init-modes" '("benchmark-init/"))
 
 ;;; End of scraped data

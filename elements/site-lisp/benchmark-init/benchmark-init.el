@@ -1,13 +1,15 @@
-;;; benchmark-init.el --- Benchmarks Emacs require and load calls
+;;; benchmark-init.el --- Benchmarks for require and load calls -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2021 Entropy
 ;; Copyright (C) 2013 Steve Purcell
 ;; Copyright (C) 2013-2014 David Holm
 
 ;; Author: Steve Purcell
 ;; Maintainer: David Holm <dholmster@gmail.com>
 ;; Created: 25 Apr 2013
-;; Keywords: benchmark
+;; Keywords: convenience benchmark
+;; Version: 1.2
+;; URL: https://github.com/dholm/benchmark-init-el
+;; Package-Requires: ((emacs "24.3"))
 
 ;; This file is not part of GNU Emacs.
 
@@ -73,12 +75,13 @@ Slots:
 `type' Entry type, such as 'require or 'load.
 `duration' Duration in milliseconds.
 `children' Nodes loaded by this one."
-  name type duration children)
+  name type duration gc-duration children)
 
 (defvar benchmark-init/durations-tree (make-benchmark-init/node
                                        :name 'benchmark-init/root
                                        :type nil
                                        :duration 0
+                                       :gc-duration 0
                                        :children nil)
   "Recorded durations stored in a tree.")
 
@@ -96,6 +99,7 @@ Slots:
   (let ((node-alist `((:name . ,(benchmark-init/node-name node))
                       (:type . ,(benchmark-init/node-type node))
                       (:duration . ,(benchmark-init/node-duration node))
+                      (:gc-duration-adj . ,(benchmark-init/node-gc-duration-adjusted node))
                       (:duration-adj . ,(benchmark-init/node-duration-adjusted
                                          node))))
         (children (benchmark-init/node-children node))
@@ -111,18 +115,32 @@ Slots:
 
 (defun benchmark-init/node-duration-adjusted (node)
   "Duration of NODE with child durations removed."
-  (let ((duration (benchmark-init/node-duration node))
-        (child-durations (benchmark-init/sum-node-durations
-                          (benchmark-init/node-children node))))
-    (if (benchmark-init/node-root-p node) child-durations
-      (- duration child-durations))))
+  (let* ((children (benchmark-init/node-children node))
+         (duration (benchmark-init/node-duration node))
+         (child-durations (benchmark-init/sum-node-durations children)))
+    (if (benchmark-init/node-root-p node)
+        (- child-durations (benchmark-init/sum-node-gc-durations children))
+      (- duration child-durations (benchmark-init/node-gc-duration node)))))
 
 (defun benchmark-init/sum-node-durations (nodes)
   "Return the sum of NODES durations."
-  (let ((accum 0)
-        (f (lambda (x base) (+ (benchmark-init/node-duration x) base))))
+  (let ((accum 0))
     (dolist (node nodes accum)
       (setq accum (+ (benchmark-init/node-duration node) accum)))))
+
+(defun benchmark-init/node-gc-duration-adjusted (node)
+  "GC duration of NODE with child durations removed."
+  (let ((gc-duration (benchmark-init/node-gc-duration node))
+        (child-gc-durations (benchmark-init/sum-node-gc-durations
+                             (benchmark-init/node-children node))))
+    (if (benchmark-init/node-root-p node) child-gc-durations
+      (- gc-duration child-gc-durations))))
+
+(defun benchmark-init/sum-node-gc-durations (nodes)
+  "Return the sum of NODES gc durations."
+  (let ((accum 0))
+    (dolist (node nodes accum)
+      (setq accum (+ (benchmark-init/node-gc-duration node) accum)))))
 
 ;; Benchmark helpers
 
@@ -131,6 +149,7 @@ Slots:
   (let ((parent benchmark-init/current-node)
         (node (make-benchmark-init/node :name name :type type
                                         :duration (current-time)
+                                        :gc-duration gc-elapsed
                                         :children nil)))
     (setq benchmark-init/current-node node)
     parent))
@@ -140,9 +159,14 @@ Slots:
   (let ((node benchmark-init/current-node)
         (duration (benchmark-init/time-subtract-millis
                    (current-time)
-                   (benchmark-init/node-duration benchmark-init/current-node))))
+                   (benchmark-init/node-duration benchmark-init/current-node)))
+        (gc-duration (* 1000
+                        (- gc-elapsed
+                           (benchmark-init/node-gc-duration
+                            benchmark-init/current-node)))))
     (when (funcall should-record-p)
-      (setf (benchmark-init/node-duration node) duration)
+      (setf (benchmark-init/node-duration node) duration
+            (benchmark-init/node-gc-duration node) gc-duration)
       (push node (benchmark-init/node-children parent)))
     (setq benchmark-init/current-node parent)))
 
@@ -190,8 +214,7 @@ Slots:
 ;; Obsolete functions
 
 (define-obsolete-function-alias 'benchmark-init/install
-  'benchmark-init/activate
-  "Unknown")
+  'benchmark-init/activate "2014-03-17")
 
 (provide 'benchmark-init)
 ;;; benchmark-init.el ends here
