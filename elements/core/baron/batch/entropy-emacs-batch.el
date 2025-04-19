@@ -766,9 +766,6 @@ faild with hash '%s' which must match '%s'"
        '(eemacs-site-lisp_image-dired-28-patch
          "-image-dired/28"
          nil))
-    (eemacs-site-lisp_undo-tree-eemacs
-     "-undo-tree"
-     nil)
     (eemacs-site-lisp_emacs-rime
      "-rime"
      nil)
