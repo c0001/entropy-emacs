@@ -5506,12 +5506,16 @@ formatted in American style, e.g. Tuesday, November 15, 2022."
   "Do `undo' properly with eemacs spec."
   (declare (interactive-only t))
   (interactive)
-  (if (eq major-mode 'vundo-mode)
-      (user-error "Has non meaning for this command in \
-`%s'." major-mode)
-    (if (eq buffer-undo-list t)
-        (user-error "No undo list in current buffer: %S" (current-buffer)))
-    (call-interactively 'vundo)))
+  (let ((reason nil))
+    (entropy/emacs-setf-by-body reason
+      (catch :reason
+        (and (memq major-mode '(vundo-mode treemacs-mode))
+             (throw :reason (format "in major-mode '%s'" major-mode)))
+        (and (eq buffer-undo-list t)
+             (throw :reason "undo-list empty"))
+        nil))
+    (if reason (user-error "can not do undo since: %s" reason)
+      (call-interactively 'vundo))))
 
 ;; ******* Undo tree
 
@@ -5527,8 +5531,6 @@ formatted in American style, e.g. Tuesday, November 15, 2022."
    :pdumper-no-end nil
    (dolist (k (list "C-x u" "C-/" "C-_"))
      (global-set-key (kbd k) #'entropy/emacs-basic-do-undo)
-     ;; NOTE: Disbale the same keybindings overrided by undotree
-     ;; global mode map.
      (with-eval-after-load 'vundo
        (entropy/emacs-funcall-with-lambda nil
          (define-key vundo-mode-map (kbd k) nil)))))
