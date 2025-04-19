@@ -5501,111 +5501,39 @@ formatted in American style, e.g. Tuesday, November 15, 2022."
   (insert (format-time-string "%A, %B %e, %Y")))
 
 ;; ****** Undo and Redo
+
+(defun entropy/emacs-basic-do-undo nil
+  "Do `undo' properly with eemacs spec."
+  (declare (interactive-only t))
+  (interactive)
+  (if (eq major-mode 'vundo-mode)
+      (user-error "Has non meaning for this command in \
+`%s'." major-mode)
+    (if (eq buffer-undo-list t)
+        (user-error "No undo list in current buffer: %S" (current-buffer)))
+    (call-interactively 'vundo)))
+
 ;; ******* Undo tree
-(use-package undo-tree
-  :diminish undo-tree-mode
-  :ensure nil
-  :commands (global-undo-tree-mode
-             undo-tree-visualize
-             entropy/emacs-basic-do-undo)
-  :preface
 
-  (defvar-local entropy/emacs-basic--undo-tree-stick-window-configuration nil
-    "The window configuration before calling `undo-tree-visualize'.")
-
-  (defvar-local entropy/emacs-basic--undo-tree-stick-autocenter-mode nil
-    "Whether `entropy/emacs-window-center-mode' is enabled in
-    `current-buffer'.")
-
-  (defun entropy/emacs-basic--save-window-cfg-for-undo-tree
-      (orig-func &rest orig-args)
-    ;; firstly reset the indicator (clean the previous set)
-    (setq entropy/emacs-basic--undo-tree-stick-autocenter-mode nil)
-    (when (bound-and-true-p entropy/emacs-window-center-mode)
-      (unless (entropy/emacs-window-auto-center-mode-base-condition-satisfied-judge)
-        (entropy/emacs-window-center-mode 0))
-      (setq entropy/emacs-basic--undo-tree-stick-autocenter-mode t))
-    (setq entropy/emacs-basic--undo-tree-stick-window-configuration
-          (current-window-configuration))
-    (apply orig-func orig-args))
-
-  (defun entropy/emacs-basic--restore-window-cfg-for-undo-tree
-      (orig-func &rest orig-args)
-    (let ((rtn (apply orig-func orig-args)))
-      (when (window-configuration-p
-             entropy/emacs-basic--undo-tree-stick-window-configuration)
-        (set-window-configuration
-         entropy/emacs-basic--undo-tree-stick-window-configuration))
-      (setq entropy/emacs-basic--undo-tree-stick-window-configuration nil)
-      (when entropy/emacs-basic--undo-tree-stick-autocenter-mode
-        (unless (entropy/emacs-window-auto-center-mode-base-condition-satisfied-judge)
-          (entropy/emacs-window-center-mode)))
-      rtn))
-
+(use-package vundo
+  :commands vundo
   :init
   (entropy/emacs-lazy-initial-advice-before
    '(switch-to-buffer find-file)
-   "undo-tree-enable-init"
-   "undo-tree-enable-init"
+   "vundo-enable-init"
+   "vundo-enable-init"
    :prompt-type 'prompt-echo
-   ;; undo-tree can not enabled while pdumper
+   ;; vundo can not enabled while pdumper
    :pdumper-no-end nil
-   (global-undo-tree-mode t)
    (dolist (k (list "C-x u" "C-/" "C-_"))
      (global-set-key (kbd k) #'entropy/emacs-basic-do-undo)
      ;; NOTE: Disbale the same keybindings overrided by undotree
      ;; global mode map.
-     (define-key undo-tree-map (kbd k) nil)))
-
+     (with-eval-after-load 'vundo
+       (entropy/emacs-funcall-with-lambda nil
+         (define-key vundo-mode-map (kbd k) nil)))))
   :config
-
-  ;; EEMACS_MAINTENANCE: follow upstream updates of func
-  ;; `undo-list-transfer-to-tree' by which this func inspired
-  (defun entropy/emacs-basic--undotree-shouldnt-gc-p nil
-    (or (null buffer-undo-list)
-        (undo-list-found-canary-p buffer-undo-list)))
-
-  (defun entropy/emacs-basic-do-undo nil
-    "Do `undo' properly with eemacs spec."
-    (declare (interactive-only t))
-    (interactive)
-    (if (eq major-mode 'undo-tree-visualizer-mode)
-        (user-error "Has non meaning for this command in \
-`undo-tree-visualizer-mode'.")
-      (if (eq buffer-undo-list t)
-          (user-error "No undo list in current buffer: %S" (current-buffer)))
-      (entropy/emacs-basic--do-undo-1)))
-  (defun entropy/emacs-basic--do-undo-1 nil
-    (let* ((untree-ngc-p (entropy/emacs-basic--undotree-shouldnt-gc-p))
-           (use-undotree-p
-            ;; we just use `undo-tree' when there's no need to did gc
-            ;; while `undo-tree' internally hacking on. Since thus is
-            ;; so laggy.
-            (or current-prefix-arg untree-ngc-p))
-           (undo-func
-            (lambda nil
-              (entropy/emacs-message-simple-progress-message
-               "Do undo-only 1 step"
-               (call-interactively 'undo-only))))
-           (untree-func
-            (lambda nil
-              (entropy/emacs-message-simple-progress-message
-               (unless untree-ngc-p "Undo-tree garbage collecting")
-               (call-interactively 'undo-tree-visualize)))))
-      (if use-undotree-p (funcall untree-func)
-        (condition-case nil (funcall undo-func)
-          ;; in which case native `undo' can not recognize the undo
-          ;; entry `undo-tree-canary' since we enabled
-          ;; `undo-tree-mode'.
-          (error (funcall untree-func))))))
-
-  (advice-add 'undo-tree-visualize
-              :around
-              #'entropy/emacs-basic--save-window-cfg-for-undo-tree)
-
-  (advice-add 'undo-tree-visualizer-quit
-              :around
-              #' entropy/emacs-basic--restore-window-cfg-for-undo-tree))
+  (setq vundo-glyph-alist vundo-unicode-symbols))
 
 ;; ****** Case type toggle
 ;; ******* Improve captialize function
