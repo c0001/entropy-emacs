@@ -1154,6 +1154,10 @@ It is a string used for `kbd'.")
 successfully. The meaning for startup done is that all procedure
 within `entropy/emacs-startup-end-hook' are running done.")
 
+(defvar entropy/emacs-after-startup-done nil)
+
+(defvar entropy/emacs-after-startup-idle-done nil)
+
 (defvar entropy/emacs-run-startup-duration nil
   "The object represent eemacs startup time duration")
 
@@ -1197,11 +1201,11 @@ initialize the default non-lazy configs.
 "
   (entropy/emacs-message-do-message
    "==================== eemacs trail hooks ran out ===================="
-   :force-message-while-eemacs-init t)
+   :force-message-while-eemacs-init nil)
   (run-hooks 'entropy/emacs-startup-end-hook)
   (entropy/emacs-message-do-message
    "==================== eemacs end hooks ran out ===================="
-   :force-message-while-eemacs-init t)
+   :force-message-while-eemacs-init nil)
   (setq entropy/emacs-startup-done t)
   ;; NOTE: we must hide popup after set `entropy/emacs-startup-done'
   ;; since its API commentary.
@@ -1217,6 +1221,7 @@ initialize the default non-lazy configs.
                  (or entropy/emacs-package-init-with-quick-start-p
                      (not entropy/emacs-startup-with-Debug-p))))
             (run-hooks 'entropy/emacs-after-startup-hook)
+            (setq entropy/emacs-after-startup-done t)
             (if (or entropy/emacs-fall-love-with-pdumper (daemonp))
                 (run-hooks 'entropy/emacs-after-startup-idle-hook)
               (let ((initendmsgfunc
@@ -1224,7 +1229,8 @@ initialize the default non-lazy configs.
                        (entropy/emacs-dynamic-let*
                            (window-configuration-change-hook)
                          (let (_)
-                           (run-hooks 'entropy/emacs-after-startup-idle-hook))
+                           (run-hooks 'entropy/emacs-after-startup-idle-hook)
+                           (setq entropy/emacs-after-startup-idle-done t))
                          (entropy/emacs-message-do-message
                           "%s --- %s %s"
                           (bold base-str)

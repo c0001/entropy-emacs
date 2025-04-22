@@ -12368,15 +12368,12 @@ prompts."
             (when (and entropy/emacs-lazy--initial-form-adv/feq-list/switch-to-buffer
                        (or
                         entropy/emacs-lazy--initial-form-adv/feq-list/should-run-p
-                        (string-match-p "^\\(counsel\\|ivy\\)-.+$"
-                                        (symbol-name this-command))
-                        (and (fboundp 'ivy-state-caller)
-                             (eq (ivy-state-caller ivy-last)
-                                 'counsel-M-x))))
+                        ;; if `ivy-last' is boundp then we an ensure that ivy framework is in-use.
+                        (boundp 'ivy-last)))
               (entropy/emacs-message-simple-progress-message
                   "%s"
                 :with-message-color-args
-                (list '(yellow "Injecting initial minibuffer lazy loading"))
+                (list '(yellow "🔴 initial base setups"))
                 ;; ensure prompt shown up since, minibuffer message may
                 ;; coverred by minibuffer prompts or the redisplay is
                 ;; not freshed.
@@ -12592,8 +12589,9 @@ of dynamic or lexical context."
                        (fmakunbound ,func-sym)
                        (defalias ,func-sym #'ignore)))))
                 (if (not entropy/emacs-startup-with-Debug-p)
-                    (message "Load done for '%s' , (Maybe running rest tasks ...)"
-                             ,initial-func-suffix-name-sym)
+                    (entropy/emacs-message-do-message
+                     "Load done for '%s' , (Maybe running rest tasks ...)"
+                     ,initial-func-suffix-name-sym)
                   (setq end-time (time-to-seconds))
                   (entropy/emacs-message-do-message
                    "%s '%s' %s '%s' %s"
@@ -12862,7 +12860,7 @@ eemacs context."
       ;; (e.g. undecided, unix) can’t be preferred.
       ;; #+end_quote
       (prefer-coding-system 'utf-8)
-      (message "Setting language environment to `prefer-utf-8'."))
+      (entropy/emacs-message-do-message "Setting language environment to `prefer-utf-8'."))
      ((string= lang "LOCAL")
       (when (and (not (null entropy/emacs-custom-language-environment-enable))
                  (not (null entropy/emacs-locale-language-environment))
@@ -12871,7 +12869,8 @@ eemacs context."
         (set-language-environment entropy/emacs-locale-language-environment)
         (prefer-coding-system entropy/emacs-locale-coding-system)
         (setq default-file-name-coding-system 'prefer-utf-8)
-        (message "Setting language environment to '%s'." entropy/emacs-locale-language-environment)))
+        (entropy/emacs-message-do-message
+         "Setting language environment to '%s'." entropy/emacs-locale-language-environment)))
      (t (user-error "Invalid LANG arg")))))
 
 (defun entropy/emacs-lang-set-utf-8 (&rest _)

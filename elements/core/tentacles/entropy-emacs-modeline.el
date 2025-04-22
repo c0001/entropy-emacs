@@ -1070,8 +1070,9 @@ format enabling process.
  do not duplicate such operation" ,name)
                ,@enable-form
                (setq ,enable-done-indicator t)
-               (message "Toggle modeline type to '%s' successfully"
-                        ,name))))))))
+               (entropy/emacs-message-do-message
+                "Toggle modeline type to '%s' successfully"
+                ,name))))))))
 
 ;; toggle functionn for spaceline
 (advice-add 'spaceline-spacemacs-theme

@@ -57,7 +57,8 @@ permission-denied path properly."
              entropy/emacs-project-projectile-update-project-root-cache)
   :eemacs-functions
   (projectile-project-root
-   projectile-ibuffer)
+   projectile-ibuffer
+   projectile-load-known-projects)
   :bind
   :init
   (setq
@@ -168,7 +169,10 @@ subdirectory.")
   (((:enable t :defer (:data (:adfors (entropy/emacs-after-startup-hook) :adtype hook :pdumper-no-end t)))
     (projectile-mode (projectile projectile-mode-map) nil (2)))
    ("projectile Switch"
-    (("C-c p p p" counsel-projectile-switch-project "Switch To Other Project"
+    (("C-c p p p"
+      (progn (or (bound-and-true-p projectile-known-projects) (projectile-load-known-projects))
+             (call-interactively 'counsel-projectile-switch-project))
+      "Switch To Other Project"
       :enable t :exit t :eemacs-top-bind t)
      ("C-c p p q" projectile-switch-open-project "Switch to a project we have currently opened"
       :enable t :exit t :eemacs-top-bind t)

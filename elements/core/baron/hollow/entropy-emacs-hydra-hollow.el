@@ -2625,7 +2625,7 @@ hydra body caller) =pretty-hydra-head-command=.
          :foreign-keys warn
          :color ambranth
          :quit-key "q"
-         :separator "=")
+         :separator "─")
        '((2 :width-desc "Basic & window or buffer")
          (2 :width-desc "highlight or useful utils")
          (4 :width-desc "Common knifes")

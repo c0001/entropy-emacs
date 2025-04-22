@@ -223,17 +223,29 @@ ARGS using
            nil)
           (buff-get
            (lambda nil
-             (let ((buff (get-buffer-create entropy/emacs-message-message-buffname)))
+             (let* ((obuff (get-buffer entropy/emacs-message-message-buffname))
+                    (buff (or (and (bufferp obuff) obuff)
+                              (get-buffer-create entropy/emacs-message-message-buffname t))))
+               (when (and (display-graphic-p) (not (bufferp obuff)))
+                 ;; use small font size for more handy visualization
+                 (with-current-buffer buff (text-scale-increase -1)))
                (and (or (and (bufferp buff) (buffer-live-p buff))
                         (error "eemacs message buffer can not be create!"))
                     buff))))
           the-buff the-window)
      (unless break-p
        (with-current-buffer (setq the-buff (funcall buff-get))
-         (setq mode-line-format nil cursor-type nil
+         (setq mode-line-format ""
+               cursor-type nil
                ;; we should always consider this buffer read-only as message
                ;; did for.
-               buffer-read-only t))
+               buffer-read-only t)
+         (setq-local
+          scroll-preserve-screen-position 'always
+          maximum-scroll-margin           0.0
+          next-screen-context-lines       0
+          scroll-margin                   0
+          scroll-conservatively           101))
        (unless (window-live-p (get-buffer-window the-buff))
          (save-selected-window
            (display-buffer
@@ -263,9 +275,12 @@ ARGS using
                    (error "[internal error] eemacs popup buffer is not dedicated to its window!"))
                  ;; prepare to update display
                  (force-window-update the-window)
-                 (let* ((fn-msgstr (concat "-> " message-str))
-                        (fn-insertion (concat fn-msgstr "\n")))
+                 (let* ((fn-msgstr (concat "" message-str))
+                        (fn-insertion (string-trim fn-msgstr)))
+                   ;; must goto point-max since the point from prev
+                   ;; insertion we've set it as not the eobp pos
                    (goto-char (point-max))
+                   (unless (looking-at-p "^$") (insert "\n"))
                    ;; also log startup procedures meta into message
                    ;; buffer so that we can see whole sequenced
                    ;; init context.
@@ -276,9 +291,19 @@ ARGS using
                    ;; we must set the window point since we can denote
                    ;; the current line of that window in visual way
                    ;; immediately.
+                   (and (not (= (point) (point-min))) (goto-char (1- (point))))
+                   ;; ensure we've see the current msg line head
+                   (forward-line 0)
                    (set-window-point the-window (point))
-                   (setq entropy/emacs-message--cur-buf-is-popup-p t)
-                   (redisplay t)))))
+                   (setq entropy/emacs-message--cur-buf-is-popup-p t))))
+             (with-selected-window the-window
+               (let ((recenter-redisplay t))
+                 (recenter -1)))
+             (when (bound-and-true-p entropy/emacs-startup-done)
+               (let ((window-resize-pixelwise (display-graphic-p)))
+                 (minimize-window the-window)))
+             (force-window-update the-window)
+             (redisplay t))
          (error "Can not create an `entropy/emacs-message-message-buffname' window."))
        ;; run an timer guard to force hide popuped message window
        (unless (timerp entropy/emacs-message--idle-timer-for-hide-popup)
@@ -313,6 +338,68 @@ applied."
 
 ;; ** auto load
 ;; *** common ansi message wrapper APIs
+
+(defvar entropy/emacs--msg-init-cnt 1)
+(defvar entropy/emacs--msg-init-indc-char ?▄)
+(unless (char-displayable-p entropy/emacs--msg-init-indc-char)
+  (setq entropy/emacs--msg-init-indc-char ?.))
+
+(cl-defun entropy/emacs--message-do-message-should-not-msg-verbose-p
+    (&key
+     force-message-while-eemacs-init
+     popup-while-eemacs-init-with-interactive)
+  (and
+   ;; not in eemacs pure env session
+   (not (entropy/emacs-env-init-with-pure-eemacs-env-p))
+   ;; only used in eemacs startup time
+   (not (bound-and-true-p entropy/emacs-after-startup-idle-done))
+   ;; -- not when key :force-message-while-eemacs-init is set while eemacs init
+   (not force-message-while-eemacs-init)
+   ;; BUT:
+   ;; -- not in debug mode
+   (not entropy/emacs-startup-with-Debug-p)
+   ;; -- not when non-lazy-mode enabled in interactive session
+   ;;    since we should see the long terms of init.
+   (not
+    (and (null noninteractive)
+         (not (entropy/emacs-custom-enable-lazy-load/val))))
+   ;; -- not in daemon init type
+   (not
+    (and (not (bound-and-true-p entropy/emacs-daemon-server-init-done))
+         (daemonp)))
+   ;; -- not in make session
+   (not (entropy/emacs-is-make-session))
+   ;; -- not when key :popup-while-eemacs-init-with-interactive is set while eemacs init
+   (not (and (not (bound-and-true-p entropy/emacs-after-startup-idle-done))
+             popup-while-eemacs-init-with-interactive))
+   ))
+
+(defmacro entropy/emacs--message-do-message-before-eemacs-init (msg &rest args)
+  (macroexp-let2* ignore
+      ((msg-sym nil) (str-sym nil) (ostr-sym nil))
+    `(let* ((,msg-sym
+             (entropy/emacs-message--do-message-ansi-apply
+              ,msg ,@args))
+            (message-log-max nil)
+            (,ostr-sym
+             (make-string entropy/emacs--msg-init-cnt entropy/emacs--msg-init-indc-char))
+            (,str-sym
+             (entropy/emacs-substring-to-window-max-chars-width
+              ,ostr-sym
+              :window
+              ;; FIXME: emacs-28's minibuffer-window width calc at eemacs init time not work?
+              (if-let (((> emacs-major-version 28)) (win (minibuffer-window entropy/emacs-main-frame))) win)
+              :with-rest-string-return t)))
+       (if (not (cdr ,str-sym)) (message "%s" (car ,str-sym))
+         (setq entropy/emacs--msg-init-cnt 1)
+         (message "%s" (cdr ,str-sym)))
+       (cl-incf entropy/emacs--msg-init-cnt)
+       (unless (string-empty-p ,msg-sym)
+         (with-current-buffer (get-buffer-create " *eemacs-verbose-init-log-buffer*")
+           (insert ,msg-sym)
+           (unless (looking-at-p "^$")
+             (insert "\n")))))))
+
 ;;;###autoload
 (cl-defmacro entropy/emacs-message-do-message
     (message &rest args
@@ -354,32 +441,14 @@ without respect `entropy/emacs-message-non-popup'.
   (let ((args (entropy/emacs-message--get-plist-body args)))
     `(cond (
             ;; ========== Simplifying the startup hints
-            (and
-             ;; not in eemacs pure env session
-             (not (entropy/emacs-env-init-with-pure-eemacs-env-p))
-             ;; only used in eemacs startup time
-             (not (bound-and-true-p entropy/emacs-startup-done))
-             ;; -- not when key :force-message-while-eemacs-init is set while eemacs init
-             (not ,force-message-while-eemacs-init)
-             ;; BUT:
-             ;; -- not in debug mode
-             (not entropy/emacs-startup-with-Debug-p)
-             ;; -- not when non-lazy-mode enabled in interactive session
-             ;;    since we should see the long terms of init.
-             (not
-              (and (null noninteractive)
-                   (not (entropy/emacs-custom-enable-lazy-load/val))))
-             ;; -- not in daemon init type
-             (not
-              (and (not (bound-and-true-p entropy/emacs-daemon-server-init-done))
-                   (daemonp)))
-             ;; -- not in make session
-             (not (entropy/emacs-is-make-session))
-             ;; -- not when key :popup-while-eemacs-init-with-interactive is set while eemacs init
-             (not (and (not (bound-and-true-p entropy/emacs-startup-done))
-                       ,popup-while-eemacs-init-with-interactive))
+            (entropy/emacs--message-do-message-should-not-msg-verbose-p
+             :force-message-while-eemacs-init
+             ,force-message-while-eemacs-init
+             :popup-while-eemacs-init-with-interactive
+             ,popup-while-eemacs-init-with-interactive
              )
-            (message "%s" "Loading ..."))
+            (entropy/emacs--message-do-message-before-eemacs-init
+             ,message ,@args))
            (
             ;; ========== Disable the popup feature when needed
             (or
@@ -533,8 +602,23 @@ then run BODY directly like `progn'.
         (ignmsgs-sym (make-symbol "ignmsgs"))
         (msg-max-ov-sym (make-symbol "origin-message-log-max-value"))
         (use-popup-p-sym (make-symbol "with-popup-p"))
-        (msg-color-args-sym (make-symbol "message-color-args")))
-    `(if ,without-msg ,(entropy/emacs-macroexp-progn body)
+        (msg-color-args-sym (make-symbol "message-color-args"))
+        (without-msg-p-sym (make-symbol "without-msg-p"))
+        (without-init-verbose-p-sym (make-symbol "without-init-verbose-p")))
+    `(if-let* ((,without-msg-p-sym t) (,without-init-verbose-p-sym t)
+               ((or (setq ,without-msg-p-sym ,without-msg)
+                    (setq ,without-init-verbose-p-sym
+                          (entropy/emacs--message-do-message-should-not-msg-verbose-p)))))
+         (let* ((,message-sym ,message)
+                (,msg-color-args-sym ,with-message-color-args)
+                (_ (when (and ,message-sym ,msg-color-args-sym)
+                     (setq ,message-sym
+                           (entropy/emacs-message--format-message-2
+                            ,message-sym ,msg-color-args-sym)))))
+           (when (and ,message-sym ,without-init-verbose-p-sym)
+             (eval (list 'entropy/emacs--message-do-message-before-eemacs-init
+                         "%s" ,message-sym)))
+           ,(entropy/emacs-macroexp-progn body))
        (let* ((,with-tmpmsg-sym ,with-temp-message)
               (,curmsg-sym (current-message))
               (,new-curmsg-sym ,curmsg-sym)

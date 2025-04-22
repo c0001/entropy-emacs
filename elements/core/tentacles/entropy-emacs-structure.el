@@ -117,30 +117,40 @@ prefix arg was `(4)' i.e. the single `C-u' type."
   :ensure nil
   :diminish hs-minor-mode
   :commands hs-minor-mode
-  :hook ((c-mode-common . hs-minor-mode)
-         (c++-mode . hs-minor-mode)
-         (emacs-lisp-mode . hs-minor-mode)
-         (java-mode . hs-minor-mode)
-         (lisp-mode . hs-minor-mode)
-         (perl-mode . hs-minor-mode)
-         (sh-mode . hs-minor-mode)
-         (js-mode . hs-minor-mode)
-         (css-mode . hs-minor-mode)
-         (php-mode . hs-minor-mode)
-         (python-mode . hs-minor-mode))
+  :hook
+  ((org-mode-hook prog-mode-hook) . hs-minor-mode)
   :eemacs-tpha
   (((:enable t :defer (:data (:adfors (org-mode-hook prog-mode-hook) :adtype hook :pdumper-no-end t))))
    ("Structure"
     (("M--" entropy/emacs-structure-toggle-hiding
-      "Hide Show For Hide"
+      "Hide Show For toggle Hide/Show"
       :enable t
       :exit t
       :eemacs-top-bind t)
      ("M-=" entropy/emacs-structure-toggle-selective-display
-      "Hide Show For Show"
+      "Hide Show For Show All"
       :enable t
       :exit t
-      :eemacs-top-bind t)))))
+      :eemacs-top-bind t))))
+  :config
+
+  ;; Display line counts
+  (defun entropy/emacs-structure--hs-display-code-line-counts (ov)
+    "Display line counts when hiding codes."
+    (when (eq 'code (overlay-get ov 'hs))
+      (overlay-put
+       ov 'display
+       (concat
+        " "
+        (propertize
+         (if (char-displayable-p ?⏷) "⏷" "...")
+         'face 'shadow)
+        (propertize
+         (format " (%d lines)"
+                 (count-lines (overlay-start ov) (overlay-end ov)))
+         'face '(:inherit shadow :height 0.8))
+        " "))))
+  (setq hs-set-up-overlay #'entropy/emacs-structure--hs-display-code-line-counts))
 
 ;; ** yafolding
 
@@ -152,7 +162,7 @@ prefix arg was `(4)' i.e. the single `C-u' type."
   (defvar entropy/emacs-structure--yafolding-jumping-modes '(emacs-lisp-mode lisp-interaction-mode))
   (defun entropy/emacs-structure-yaf-toggle (_column)
     (interactive "P")
-    (if (member major-mode entropy/emacs-structure--yafolding-jumping-modes)
+    (if (memq major-mode entropy/emacs-structure--yafolding-jumping-modes)
         (progn
           (hs-minor-mode 1)
           (funcall #'entropy/emacs-structure-toggle-hiding nil))
@@ -160,7 +170,7 @@ prefix arg was `(4)' i.e. the single `C-u' type."
 
   (defun entropy/emacs-structure-yaf-show-all ()
     (interactive)
-    (if (member major-mode entropy/emacs-structure--yafolding-jumping-modes)
+    (if (memq major-mode entropy/emacs-structure--yafolding-jumping-modes)
         (progn
           (hs-minor-mode 1)
           (funcall 'hs-show-all))

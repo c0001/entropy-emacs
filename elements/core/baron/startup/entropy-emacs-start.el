@@ -176,6 +176,8 @@ or manually do 'C-x C-c' immediately.")))
   (entropy/emacs-start--run-with-duration-log
    'func/entropy/emacs-package-common-start
    (entropy/emacs-package-common-start)))
+;; for waiting hints
+(entropy/emacs-message-do-message "")
 
 ;; ***** Then require top facilities
 (unless (or entropy/emacs-start--is-init-with-install
@@ -407,10 +409,10 @@ notation.
     (unless entropy/emacs-start--is-init-with-install
       (entropy/emacs-message-do-message
        "==================== eemacs trail hooks running ===================="
-       :force-message-while-eemacs-init t)
+       :force-message-while-eemacs-init nil)
       (entropy/emacs-message-do-message
        (cyan "After load initilizing ...")
-       :force-message-while-eemacs-init t)
+       :force-message-while-eemacs-init nil)
       (setq entropy/emacs-run-startup-trail-hooks-init-timestamp
             (current-time))
       (unless (and entropy/emacs-fall-love-with-pdumper
@@ -420,7 +422,7 @@ notation.
             (current-time))
       (entropy/emacs-message-do-message
        (green "After load initilized")
-       :force-message-while-eemacs-init t))
+       :force-message-while-eemacs-init nil))
     ;; append startup hook when there's no any installation detected
     (when (not entropy/emacs-start--is-init-with-install)
       (setq entropy/emacs-after-startup-hook
@@ -433,7 +435,7 @@ notation.
 (defun entropy/emacs-start-M-enable ()
   (entropy/emacs-message-do-message
    "%s %s"
-   :force-message-while-eemacs-init t
+   :force-message-while-eemacs-init nil
    (white "⮞")
    (blue "Loading minimal ......"))
 
@@ -473,7 +475,7 @@ notation.
   (fmakunbound 'entropy/emacs-start-M-enable)
   (entropy/emacs-message-do-message
    "%s %s"
-   :force-message-while-eemacs-init t
+   :force-message-while-eemacs-init nil
    (white "⮞")
    (green "Minimal start completed.")))
 
@@ -482,7 +484,7 @@ notation.
   (interactive)
   (entropy/emacs-message-do-message
    "%s %s"
-   :force-message-while-eemacs-init t
+   :force-message-while-eemacs-init nil
    (white "⮞") (blue "Loading rest ......"))
   ;; highlight
   (when entropy/emacs-use-highlight-features
@@ -538,7 +540,7 @@ notation.
   (fmakunbound 'entropy/emacs-start-X-enable)
   (entropy/emacs-message-do-message
    "%s %s"
-   :force-message-while-eemacs-init t
+   :force-message-while-eemacs-init nil
    (white "⮞")
    (green "Full start completed.")))
 
@@ -734,7 +736,7 @@ Currently detected env variables:")
                (not entropy/emacs-start--is-init-with-install))
       (entropy/emacs-message-do-message
        "%s ..."
-       :force-message-while-eemacs-init t
+       :force-message-while-eemacs-init nil
        (yellow "Cat's eye opening"))
       (setq entropy/emacs-run-startup-config-load-init-timestamp
             (current-time))
