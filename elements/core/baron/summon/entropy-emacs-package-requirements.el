@@ -302,6 +302,7 @@
     visual-regexp
     ;; --> obsolete
     ;; volatile-highlights
+    vundo
     w3m
     web-beautify
     web-completion-data
