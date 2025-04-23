@@ -340,65 +340,53 @@ applied."
 ;; *** common ansi message wrapper APIs
 
 (defvar entropy/emacs--msg-init-cnt 1)
+(defvar entropy/emacs--msg-init-cnt-total 1)
 (defvar entropy/emacs--msg-init-indc-char ?▄)
 (unless (char-displayable-p entropy/emacs--msg-init-indc-char)
   (setq entropy/emacs--msg-init-indc-char ?.))
 
-(cl-defun entropy/emacs--message-do-message-should-not-msg-verbose-p
-    (&key
-     force-message-while-eemacs-init
-     popup-while-eemacs-init-with-interactive)
-  (and
-   ;; not in eemacs pure env session
-   (not (entropy/emacs-env-init-with-pure-eemacs-env-p))
-   ;; only used in eemacs startup time
-   (not (bound-and-true-p entropy/emacs-after-startup-idle-done))
-   ;; -- not when key :force-message-while-eemacs-init is set while eemacs init
-   (not force-message-while-eemacs-init)
-   ;; BUT:
-   ;; -- not in debug mode
-   (not entropy/emacs-startup-with-Debug-p)
-   ;; -- not when non-lazy-mode enabled in interactive session
-   ;;    since we should see the long terms of init.
-   (not
-    (and (null noninteractive)
-         (not (entropy/emacs-custom-enable-lazy-load/val))))
-   ;; -- not in daemon init type
-   (not
-    (and (not (bound-and-true-p entropy/emacs-daemon-server-init-done))
-         (daemonp)))
-   ;; -- not in make session
-   (not (entropy/emacs-is-make-session))
-   ;; -- not when key :popup-while-eemacs-init-with-interactive is set while eemacs init
-   (not (and (not (bound-and-true-p entropy/emacs-after-startup-idle-done))
-             popup-while-eemacs-init-with-interactive))
-   ))
-
 (defmacro entropy/emacs--message-do-message-before-eemacs-init (msg &rest args)
   (macroexp-let2* ignore
-      ((msg-sym nil) (str-sym nil) (ostr-sym nil))
-    `(let* ((,msg-sym
-             (entropy/emacs-message--do-message-ansi-apply
-              ,msg ,@args))
-            (message-log-max nil)
-            (,ostr-sym
-             (make-string entropy/emacs--msg-init-cnt entropy/emacs--msg-init-indc-char))
-            (,str-sym
-             (entropy/emacs-substring-to-window-max-chars-width
-              ,ostr-sym
-              :window
-              ;; FIXME: emacs-28's minibuffer-window width calc at eemacs init time not work?
-              (if-let (((> emacs-major-version 28)) (win (minibuffer-window entropy/emacs-main-frame))) win)
-              :with-rest-string-return t)))
-       (if (not (cdr ,str-sym)) (message "%s" (car ,str-sym))
-         (setq entropy/emacs--msg-init-cnt 1)
-         (message "%s" (cdr ,str-sym)))
-       (cl-incf entropy/emacs--msg-init-cnt)
-       (unless (string-empty-p ,msg-sym)
-         (with-current-buffer (get-buffer-create " *eemacs-verbose-init-log-buffer*")
-           (insert ,msg-sym)
-           (unless (looking-at-p "^$")
-             (insert "\n")))))))
+      ((msg-sym nil) (str-sym nil) (ostr-sym nil)
+       (mwin-sym '(minibuffer-window entropy/emacs-main-frame)))
+    `(entropy/emacs-when-let*-firstn 2
+         ((,msg-sym
+           (entropy/emacs-message--do-message-ansi-apply
+            ,msg ,@args))
+          ((not (string-empty-p ,msg-sym)))
+          (message-log-max nil)
+          ;; FIXME: cover minor defect of our string pixel width calculation mechanism
+          (message-truncate-lines t)
+          (resize-mini-windows t))
+       ;; NOTE: emacs-28 not fbound `string-pixel-width' so we use simple way
+       (if (or (and (< emacs-major-version 29) (display-graphic-p))
+               ;; TODO: maybe more conds
+               nil)
+           (message "Loading: %.2fs ..."
+                    (entropy/emacs-time-subtract entropy/emacs-run-startup-top-init-timestamp nil t))
+         (let* ((,ostr-sym
+                 (make-string entropy/emacs--msg-init-cnt entropy/emacs--msg-init-indc-char))
+                (,str-sym
+                 ;; reduce invocation to save time
+                 (if (< entropy/emacs--msg-init-cnt 80) (cons ,ostr-sym nil)
+                   (entropy/emacs-substring-to-window-max-chars-width
+                    ,ostr-sym
+                    :window ,mwin-sym
+                    :with-rest-string-return t))))
+           (while (cdr ,str-sym)
+             (entropy/emacs-setf-by-body ,str-sym
+               (entropy/emacs-substring-to-window-max-chars-width
+                (cdr ,str-sym)
+                :window ,mwin-sym
+                :with-rest-string-return t)))
+           (setq entropy/emacs--msg-init-cnt (length (car ,str-sym)))
+           (message "%s" (car ,str-sym))
+           (cl-incf entropy/emacs--msg-init-cnt)
+           (cl-incf entropy/emacs--msg-init-cnt-total)))
+       (with-current-buffer (get-buffer-create " *Eemacs Verbose Init Log Buffer*")
+         (insert ,msg-sym)
+         (unless (looking-at-p "^$")
+           (insert "\n"))))))
 
 ;;;###autoload
 (cl-defmacro entropy/emacs-message-do-message

@@ -1146,29 +1146,6 @@ when available.
                      ,sym ,@args)))))
 
 ;; *** making procedure
-(defvar __entropy/emacs-is-make-session-check-done nil)
-(defvar __entropy/emacs-is-make-session-value-cache nil)
-(defun entropy/emacs-is-make-session ()
-  "Obtained the 'EEMACS_MAKE' env variable value if valid
-otherwise return nil.
-
-This function commonly used to judge whether start eemacs in a make
-session, where specially indicate to other subroutines to get the
-eemacs make section type according to the value of entropy emacs
-specified environment variable \"EEMACS_MAKE\".
-
-NOTE: you should always use this function to get thus variable
-value where there's no published for any of the internal entropy
-emacs specified environment variable references APIs, this is the
-only one for thus."
-  (if __entropy/emacs-is-make-session-check-done
-      __entropy/emacs-is-make-session-value-cache
-    (let ((env-p (entropy/emacs-getenv-eemacs-env "EEMACS_MAKE")))
-      (setq __entropy/emacs-is-make-session-value-cache
-            env-p
-            __entropy/emacs-is-make-session-check-done
-            t)
-      __entropy/emacs-is-make-session-value-cache)))
 
 (defun entropy/emacs-is-make-all-session ()
   "Obtained the 'EEMACS_MAKE_ALL' env variable value if valid
@@ -1591,20 +1568,6 @@ distingush setenv eemacs spec env vars")
       ((and entropy/emacs-fall-love-with-pdumper
             entropy/emacs-do-pdumping-with-lazy-load-p)
        (setq entropy/emacs-custom-enable-lazy-load t)))
-
-(defmacro entropy/emacs-custom-enable-lazy-load/val nil
-  "The inner usage of `entropy/emacs-custom-enable-lazy-load' while
-byte-comp.
-
-NOTE&EEMACS_MAINTENANCE:
-
-Any code outside this file should only use this macro to grab
-value of `entropy/emacs-custom-enable-lazy-load' since the
-`init.el' always load the custom file in normal session's startup
-in which case inner eemacs context of already byte-comped session
-should respect the value of when the byte-comp happened, or the
-eemacs loading mechanism logical messy will occurred."
-  `(quote ,entropy/emacs-custom-enable-lazy-load))
 
 (cond
  ((entropy/emacs-is-make-session)

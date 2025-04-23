@@ -77,6 +77,8 @@
       native-comp-jit-compilation-deny-list
       native-comp-deferred-compilation-deny-list)
 
+(defalias 'display-startup-echo-area-message 'ignore)
+
 ;; Take them after basic native-comp configs so that the load
 ;; procedure respect what we ordered for.
 (require 'cl-lib)
@@ -189,22 +191,97 @@ usage for eemacs defined env variable only.")
   (and (entropy/emacs-env-init-with-pure-eemacs-env-p)
        (entropy/emacs-getenv-eemacs-env "EEMACS_INIT_WITH_PURE_LCSTF")))
 
-;; ** Load custom
-
 (let ((cus entropy/emacs-custom-common-file))
-  (when (if (entropy/emacs-env-init-with-pure-eemacs-env-p)
-            (entropy/emacs-env-init-with-pure-eemacs-env/load-custom-file-p)
-          t)
+  (when (if (entropy/emacs-env-init-with-pure-eemacs-env-p) (entropy/emacs-env-init-with-pure-eemacs-env/load-custom-file-p) t)
     (when (not (file-exists-p cus))
       (copy-file entropy/emacs-custom-common-file-template
                  entropy/emacs-custom-common-file
                  nil t))
     (setq custom-file cus)
-    (message "")
-    (message "====================================")
-    (message "[Loading] custom specifications ...")
-    (message "====================================\n")
     (load cus)))
+
+;; **** Others
+
+(defvar __entropy/emacs-is-make-session-check-done nil)
+(defvar __entropy/emacs-is-make-session-value-cache nil)
+(defun entropy/emacs-is-make-session ()
+  "Obtained the 'EEMACS_MAKE' env variable value if valid
+otherwise return nil.
+
+This function commonly used to judge whether start eemacs in a make
+session, where specially indicate to other subroutines to get the
+eemacs make section type according to the value of entropy emacs
+specified environment variable \"EEMACS_MAKE\".
+
+NOTE: you should always use this function to get thus variable
+value where there's no published for any of the internal entropy
+emacs specified environment variable references APIs, this is the
+only one for thus."
+  (if __entropy/emacs-is-make-session-check-done
+      __entropy/emacs-is-make-session-value-cache
+    (let ((env-p (entropy/emacs-getenv-eemacs-env "EEMACS_MAKE")))
+      (setq __entropy/emacs-is-make-session-value-cache
+            env-p
+            __entropy/emacs-is-make-session-check-done
+            t)
+      __entropy/emacs-is-make-session-value-cache)))
+
+(defmacro entropy/emacs-custom-enable-lazy-load/val nil
+  "The inner usage of `entropy/emacs-custom-enable-lazy-load' while
+byte-comp.
+
+NOTE&EEMACS_MAINTENANCE:
+
+Any code outside this file should only use this macro to grab
+value of `entropy/emacs-custom-enable-lazy-load' since the
+`init.el' always load the custom file in normal session's startup
+in which case inner eemacs context of already byte-comped session
+should respect the value of when the byte-comp happened, or the
+eemacs loading mechanism logical messy will occurred."
+  `(quote ,entropy/emacs-custom-enable-lazy-load))
+
+(cl-defun entropy/emacs--message-do-message-should-not-msg-verbose-p
+    (&key
+     force-message-while-eemacs-init
+     popup-while-eemacs-init-with-interactive)
+  (and
+   ;; not in eemacs pure env session
+   (not (entropy/emacs-env-init-with-pure-eemacs-env-p))
+   ;; only used in eemacs startup time
+   (not (bound-and-true-p entropy/emacs-after-startup-idle-done))
+   ;; -- not when key :force-message-while-eemacs-init is set while eemacs init
+   (not force-message-while-eemacs-init)
+   ;; BUT:
+   ;; -- not in debug mode
+   (not (bound-and-true-p entropy/emacs-startup-with-Debug-p))
+   ;; -- not when non-lazy-mode enabled in interactive session
+   ;;    since we should see the long terms of init.
+   (not
+    (and (null noninteractive)
+         (not (entropy/emacs-custom-enable-lazy-load/val))))
+   ;; -- not in daemon init type
+   (not
+    (and (not (bound-and-true-p entropy/emacs-daemon-server-init-done))
+         (daemonp)))
+   ;; -- not in make session
+   (not (entropy/emacs-is-make-session))
+   ;; -- not when key :popup-while-eemacs-init-with-interactive is set while eemacs init
+   (not (and (not (bound-and-true-p entropy/emacs-after-startup-idle-done))
+             popup-while-eemacs-init-with-interactive))
+   ))
+
+(defmacro entropy/emacs--run-maybe-without-msg-verbose (&rest body)
+  `(let ((inhibit-message (entropy/emacs--message-do-message-should-not-msg-verbose-p)))
+     ,@body))
+
+(defun entropy/emacs----message (&rest args)
+  (unless (entropy/emacs--message-do-message-should-not-msg-verbose-p)
+    (apply 'message args)))
+
+(defun entropy/emacs----load    (&rest args)
+  (if (caddr args) (apply 'load args)
+    (let ((nomsg (entropy/emacs--message-do-message-should-not-msg-verbose-p)))
+      (apply 'load (car args) (cadr args) nomsg (cdddr args)))))
 
 ;; ** Top customized group
 (defgroup entropy-emacs-customize-top-group nil

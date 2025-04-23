@@ -40,6 +40,10 @@
 (!eemacs-require 'entropy-emacs-defun)
 (!eemacs-require 'entropy-emacs-message)
 
+(defun entropy/emacs-package--package-refresh-contents (&rest args)
+  (entropy/emacs--run-maybe-without-msg-verbose
+   (apply 'package-refresh-contents args)))
+
 ;; ** Prepare
 ;; *** Disable auto save `package-selected-packages'
 
@@ -137,7 +141,7 @@ argument."
           entropy/emacs-package-init-with-quick-start-p nil))
   (entropy/emacs-message-do-message
    "Custom packages initializing ......"
-   :force-message-while-eemacs-init t)
+   :force-message-while-eemacs-init nil)
   (unless __package-first-initialized
     (setq entropy/emacs-package-initialize-init-timestamp
           (current-time)))
@@ -148,7 +152,8 @@ argument."
              ;; readable `package-quickstart-file' even if it's
              ;; obsolete and we've disabled `package-quickstart'.
              (make-temp-name "__eemacs_fake_package-quickstart-file."))))
-      (package-initialize)))
+      (entropy/emacs--run-maybe-without-msg-verbose
+       (package-initialize))))
   (unless __package-first-initialized
     (setq entropy/emacs-package-initialize-done-timestamp
           (current-time)))
@@ -156,7 +161,7 @@ argument."
     (setq __package-first-initialized t))
   (entropy/emacs-message-do-message
    "Custom packages initializing done!"
-   :force-message-while-eemacs-init t))
+   :force-message-while-eemacs-init nil))
 
 ;; *** prepare main
 (defvar entropy/emacs-package-prepare-done nil)
@@ -200,7 +205,7 @@ Addtionally, if TRY-GET is `eq' to `refresh' then always refresh
 the contents whatever whether it was existed before, and the
 return is as common usage."
   (entropy/emacs-package-prepare-foras)
-  (if (eq try-get 'refresh) (progn (package-refresh-contents)
+  (if (eq try-get 'refresh) (progn (entropy/emacs-package--package-refresh-contents)
                                    (entropy/emacs-package-package-archive-empty-p))
     (let* ((pkg-archive-dir (expand-file-name "archives" package-user-dir))
            (rtn
@@ -208,7 +213,7 @@ return is as common usage."
                      (entropy/emacs-list-dir-subfiles-recursively-for-list
                       pkg-archive-dir)) nil t)))
       (cond ((and try-get (not rtn))
-             (package-refresh-contents)
+             (entropy/emacs-package--package-refresh-contents)
              (entropy/emacs-package-package-archive-empty-p))
             (t rtn)))))
 
@@ -267,7 +272,7 @@ the error msg into `entropy/emacs-package-install-failed-list'."
     ;; install package after package archvie contents refresh
     ;; when needed.
     (unless (ignore-errors (assoc pkg-name package-archive-contents))
-      (package-refresh-contents))
+      (entropy/emacs-package--package-refresh-contents))
     ;; installing/updating message
     (if print-prefix
         (entropy/emacs-message-do-message
@@ -423,10 +428,10 @@ building procedure while invoking INSTALL-COMMANDS."
   (if (not in-updates)
       (entropy/emacs-message-do-message
        (blue "Checking extensions satisfied status ...")
-       :force-message-while-eemacs-init t)
+       :force-message-while-eemacs-init nil)
     (entropy/emacs-message-do-message
      (yellow "Checking prev installed extensions integration ...")
-     :force-message-while-eemacs-init t))
+     :force-message-while-eemacs-init nil))
   (!eemacs-require 'entropy-emacs-package-requirements)
   (let ((package-check-signature
          ;; FIXME: shall we need to enable signature check for
@@ -459,7 +464,7 @@ building procedure while invoking INSTALL-COMMANDS."
   (unless in-updates
     (entropy/emacs-message-do-message
      (green "All packages installed, congratulations!")
-     :force-message-while-eemacs-init t)))
+     :force-message-while-eemacs-init nil)))
 
 ;; *** update
 (defun entropy/emacs-package-update-all-packages ()
@@ -469,7 +474,7 @@ building procedure while invoking INSTALL-COMMANDS."
          (entropy/emacs-message-simple-progress-message
              "Reload package archive contents after updater preparation"
            (let ((inhibit-message t))
-             (package-refresh-contents)
+             (entropy/emacs-package--package-refresh-contents)
              (copy-tree package-archive-contents))))
         updates)
     (dolist (pkg current-pkgs)
@@ -486,7 +491,7 @@ building procedure while invoking INSTALL-COMMANDS."
     (if (null updates)
         (entropy/emacs-message-do-message
          (green "All packages are newest!")
-         :force-message-while-eemacs-init t)
+         :force-message-while-eemacs-init nil)
       (progn
         (entropy/emacs-message-do-message
          "%s '%s' %s"
