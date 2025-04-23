@@ -84,6 +84,19 @@
 (require 'cl-lib)
 (require 'subr-x)
 
+(defgroup entropy-emacs-customize-top-group nil
+  "Eemacs customizable variables top group."
+  :group 'extensions)
+
+(defcustom entropy/emacs-custom-enable-lazy-load t
+  "Enable lazy load for entropy-emacs when non-nil.
+
+Notice: when `entropy/emacs-fall-love-with-pdumper' is non-nil or
+in daemon session, this variable will be pressed whatever init
+value assignments into."
+  :type 'boolean
+  :group 'entropy-emacs-customize-top-group)
+
 ;; ** Eemacs top declares
 ;; *** Vars
 ;; set entropy-emacs lowest emacs version requirement
@@ -284,18 +297,6 @@ eemacs loading mechanism logical messy will occurred."
       (apply 'load (car args) (cadr args) nomsg (cdddr args)))))
 
 ;; ** Top customized group
-(defgroup entropy-emacs-customize-top-group nil
-  "Eemacs customizable variables top group."
-  :group 'extensions)
-
-(defcustom entropy/emacs-custom-enable-lazy-load t
-  "Enable lazy load for entropy-emacs when non-nil.
-
-Notice: when `entropy/emacs-fall-love-with-pdumper' is non-nil or
-in daemon session, this variable will be pressed whatever init
-value assignments into."
-  :type 'boolean
-  :group 'entropy-emacs-customize-top-group)
 
 ;; *** Debug
 
