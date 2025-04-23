@@ -253,35 +253,39 @@ should respect the value of when the byte-comp happened, or the
 eemacs loading mechanism logical messy will occurred."
   `(quote ,entropy/emacs-custom-enable-lazy-load))
 
-(cl-defun entropy/emacs--message-do-message-should-not-msg-verbose-p
+;; NOTE: this must be an macro since the used
+;; `entropy/emacs-custom-enable-lazy-load/val' should be expanded
+;; while byte-comp
+(cl-defmacro entropy/emacs--message-do-message-should-not-msg-verbose-p
     (&key
      force-message-while-eemacs-init
-     popup-while-eemacs-init-with-interactive)
-  (and
-   ;; not in eemacs pure env session
-   (not (entropy/emacs-env-init-with-pure-eemacs-env-p))
-   ;; only used in eemacs startup time
-   (not (bound-and-true-p entropy/emacs-after-startup-idle-done))
-   ;; -- not when key :force-message-while-eemacs-init is set while eemacs init
-   (not force-message-while-eemacs-init)
-   ;; BUT:
-   ;; -- not in debug mode
-   (not (bound-and-true-p entropy/emacs-startup-with-Debug-p))
-   ;; -- not when non-lazy-mode enabled in interactive session
-   ;;    since we should see the long terms of init.
-   (not
-    (and (null noninteractive)
-         (not (entropy/emacs-custom-enable-lazy-load/val))))
-   ;; -- not in daemon init type
-   (not
-    (and (not (bound-and-true-p entropy/emacs-daemon-server-init-done))
-         (daemonp)))
-   ;; -- not in make session
-   (not (entropy/emacs-is-make-session))
-   ;; -- not when key :popup-while-eemacs-init-with-interactive is set while eemacs init
-   (not (and (not (bound-and-true-p entropy/emacs-after-startup-idle-done))
-             popup-while-eemacs-init-with-interactive))
-   ))
+     popup-while-eemacs-init-with-interactive
+     &allow-other-keys)
+  `(and
+    ;; not in eemacs pure env session
+    (not (entropy/emacs-env-init-with-pure-eemacs-env-p))
+    ;; only used in eemacs startup time
+    (not (bound-and-true-p entropy/emacs-after-startup-idle-done))
+    ;; -- not when key :force-message-while-eemacs-init is set while eemacs init
+    (not ,force-message-while-eemacs-init)
+    ;; BUT:
+    ;; -- not in debug mode
+    (not (bound-and-true-p entropy/emacs-startup-with-Debug-p))
+    ;; -- not when non-lazy-mode enabled in interactive session
+    ;;    since we should see the long terms of init.
+    (not
+     (and (null noninteractive)
+          (not (entropy/emacs-custom-enable-lazy-load/val))))
+    ;; -- not in daemon init type
+    (not
+     (and (not (bound-and-true-p entropy/emacs-daemon-server-init-done))
+          (daemonp)))
+    ;; -- not in make session
+    (not (entropy/emacs-is-make-session))
+    ;; -- not when key :popup-while-eemacs-init-with-interactive is set while eemacs init
+    (not (and (not (bound-and-true-p entropy/emacs-after-startup-idle-done))
+              ,popup-while-eemacs-init-with-interactive))
+    ))
 
 (defmacro entropy/emacs--run-maybe-without-msg-verbose (&rest body)
   `(let ((inhibit-message (entropy/emacs--message-do-message-should-not-msg-verbose-p)))
