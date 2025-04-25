@@ -378,8 +378,8 @@ If WITH-LEXICAL-BINDINGS is not set, this is same as
   (let* ((args-parse (entropy/emacs-parse-lambda-args-plus args))
          (bdpl-obj   (entropy/emacs-defun--get-body-without-keys
                       (plist-get args-parse :body-plist)
-                      nil :with-lexical-bindins))
-         (lcb        (plist-get (car bdpl-obj) :with-lexical-bindins))
+                      nil :with-lexical-bindings))
+         (lcb        (plist-get (car bdpl-obj) :with-lexical-bindings))
          (args       (entropy/emacs-merge-lambda-args
                       (plist-put args-parse :body-plist (cdr bdpl-obj))))
          (func-exp   (macroexpand-all `(entropy/emacs-cl-lambda ,@args))))
@@ -442,7 +442,7 @@ information used to distinguish this as special from others.
          (full-body  (plist-get body-parse :body))
          (body-trim-parse
           (entropy/emacs-defun--get-body-without-keys
-           full-body 'reverse :with-lexical-bindins))
+           full-body 'reverse :with-lexical-bindings))
          (opt-plist (car body-trim-parse))
          (opt-var-sym  (or (plist-get opt-plist :with-option-varname) 'options))
          (aux-form     (plist-get opt-plist :with-aux))
@@ -8074,7 +8074,7 @@ lexical environment."
            (,feature-sym ,feature)
            (,body-lambda-exp-sym
             (entropy/emacs-define-lambda-as-exp-with-lcb nil
-              :with-lexical-bindins ,with-lexical-bindings
+              :with-lexical-bindings ,with-lexical-bindings
               ,@body))
            (,extitem-func-sym
             (lambda (file)
@@ -12236,7 +12236,7 @@ pollute eemacs internal lazy load optimization."
             (t
              (setq ,body-lambda-exp-sym
                    (entropy/emacs-cl-lambda-with-lcb nil
-                     :with-lexical-bindins
+                     :with-lexical-bindings
                      (append
                       (list (cons ',feature-sym ,feature-sym)
                             (cons ',this-load-fname-sym ,this-load-fname-sym)
@@ -12256,7 +12256,7 @@ pollute eemacs internal lazy load optimization."
                        :when-use-gc-restrict entropy/emacs-startup-done
                        ,@body))))
              (entropy/emacs-eval-after-load ,feature-sym
-               :with-lexical-bindins
+               :with-lexical-bindings
                (list (cons ',body-lambda-exp-sym ,body-lambda-exp-sym))
                (funcall ,body-lambda-exp-sym))))))
         ((null (entropy/emacs-custom-enable-lazy-load/val))
@@ -12317,7 +12317,7 @@ Optional keys:
             ,func-lambda-sym)
        (setq ,func-lambda-sym
              (entropy/emacs-cl-lambda-with-lcb (&rest _)
-               :with-lexical-bindins
+               :with-lexical-bindings
                (list (cons ',body-lambda-sym ,body-lambda-sym)
                      (cons ',msg-str-sym ,msg-str-sym)
                      (cons ',func-sym ,func-sym))
@@ -12512,7 +12512,7 @@ of dynamic or lexical context."
          (setq
           ,func-lambda-sym
           (entropy/emacs-cl-lambda-with-lcb (&rest ad-rest-args)
-            :with-lexical-bindins
+            :with-lexical-bindings
             (list
              (cons ',func-sym ,func-sym)
              (cons ',var-sym ,var-sym)
