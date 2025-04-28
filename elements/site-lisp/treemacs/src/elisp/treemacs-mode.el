@@ -376,9 +376,9 @@ Will simply return `treemacs--eldoc-msg'."
   ;; alongside other window layout chaning commands that might delete it again
   (set-window-parameter (selected-window) 'no-delete-other-windows treemacs-no-delete-other-windows)
 
-  (face-remap-add-relative 'default 'treemacs-window-background-face)
-  (face-remap-add-relative 'fringe  'treemacs-window-background-face)
-  (face-remap-add-relative 'hl-line 'treemacs-hl-line-face)
+  ;; (face-remap-add-relative 'default 'treemacs-window-background-face)
+  ;; (face-remap-add-relative 'fringe  'treemacs-window-background-face)
+  ;; (face-remap-add-relative 'hl-line 'treemacs-hl-line-face)
 
   (when treemacs-text-scale
     (text-scale-increase treemacs-text-scale))
