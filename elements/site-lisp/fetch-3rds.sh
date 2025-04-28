@@ -27,7 +27,7 @@ fi
 declare -A var_prjs=(
     [rime]='4be1cf2::::https://github.com/c0001/emacs-rime.git'
     [liberime]='747649a::::https://github.com/c0001/liberime.git'
-    [treemacs]='ada9fce::::https://github.com/c0001/treemacs.git'
+    [treemacs]='dc34959::::https://github.com/c0001/treemacs.git'
     [benchmark-init]='4228f46::::https://github.com/c0001/benchmark-init-el'
 )
 
