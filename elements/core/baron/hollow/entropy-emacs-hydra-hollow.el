@@ -100,13 +100,13 @@ at some proper time.")
   "Hook before run any eemacs-hydra-hollow instances")
 
 (defun entropy/emacs-hydra-hollow-call-union-form-1 (&rest _)
-  ;; Firstly we run the before hook before any operations
-  (run-hooks 'entropy/emacs-hydra-hollow-call-before-hook)
   (let (
         ;; NOTE: this is important to prevent hydra hollow init failure
         (inhibit-quit t)
         (copy-union-form (copy-sequence entropy/emacs-hydra-hollow-union-form))
         use-recursive)
+    ;; Firstly we run the before hook before any operations
+    (run-hooks 'entropy/emacs-hydra-hollow-call-before-hook)
     (unless (null (cddr copy-union-form))
       (progn
         (funcall entropy/emacs-hydra-hollow-union-form)

@@ -620,6 +620,13 @@ Currently detected env variables:")
               (setq msg (format "%s\n%s=%s" (or msg "") env val)
                     rtn t))))
         (setq entropy/emacs-start--linux-DE-IME-last-check-rtn msg))
+      ;; EEMACS_MAINTENANCE: fcitx 5.1.12 seems no break for this case now
+      (when (and rtn (executable-find "fcitx5"))
+        (let* ((fv (string-trim (shell-command-to-string "fcitx5 --version")))
+               (fvp (ignore-errors (version-to-list fv)))
+               (ofvp (version-to-list "5.1.12")))
+          (when (and fvp (version-list-<= ofvp fvp))
+            (setq rtn nil))))
       (prog1 rtn
         (if (and rtn pop-warn) (warn "%s" (concat warn-head msg)))))))
 

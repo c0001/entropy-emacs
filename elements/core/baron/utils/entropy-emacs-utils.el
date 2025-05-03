@@ -463,6 +463,45 @@ hang thus (i.e. focus missed in)"
 
 (use-package transient)
 
+;; ** lv
+
+(use-package lv
+  :config
+  (entropy/emacs-api-restriction/elpkg-eemacs-ext-stable-build-repo-version
+      'lv--patch
+    :do-error t
+    :elpkg-eemacs-ext-stable-build-repo-version "3.2.0"
+    (defun entropy/emacs--lv-delete-window ()
+      "Advice for `lv-delete-window' for undeletable lv buffer window when it
+was split from a side window such as from a treemacs scope window."
+      (when (window-live-p lv-wnd)
+        (let ((buf (window-buffer lv-wnd)))
+          (condition-case err (delete-window lv-wnd)
+            (error
+             (let (ok)
+               (when (and (window-live-p lv-wnd) (window-parameter lv-wnd 'window-side))
+                 (set-window-parameter lv-wnd 'window-side nil)
+                 (setq ok t))
+               (if ok (delete-window lv-wnd)
+                 (signal 'error err)))))
+          (and (buffer-live-p buf) (kill-buffer buf)))))
+    (advice-add 'lv-delete-window
+                :override 'entropy/emacs--lv-delete-window))
+
+  ;; EEMACS_MAINTENANCE: inhibit wrapper for lv core subroutine for preventing from session messy/stuck/buggy
+  (defun entropy/emacs--lv-window-inhibit-quit (ofunc &rest oargs)
+    (let ((inhibit-quit t)) (apply ofunc oargs)))
+  (advice-add 'lv-window :around #'entropy/emacs--lv-window-inhibit-quit)
+
+  (defun entropy/emacs--lv-message-inhibit-quit (ofunc &rest oargs)
+    (let ((inhibit-quit t))
+      (entropy/emacs-unwind-protect-unless-success
+          (apply ofunc oargs)
+        (lv-delete-window))))
+  (advice-add 'lv-message :around #'entropy/emacs--lv-message-inhibit-quit)
+
+  )
+
 ;; ** hydra
 ;; *** hydra core
 (use-package hydra
@@ -630,7 +669,7 @@ function."
       `(defun ,cmd-name ()
          ,doc
          (interactive)
-         ;; (require 'hydra)
+         (let ((inhibit-quit t))
          (hydra-default-pre)
          ,@(when body-pre (list body-pre))
          ,@(cond ((eq (hydra--head-property head :exit) t)
@@ -640,7 +679,7 @@ function."
                  (t
                   `((if ,(hydra--head-property head :exit)
                         ,(entropy/emacs-macroexp-progn body-on-exit-t)
-                      ,(entropy/emacs-macroexp-progn body-on-exit-nil))))))))
+                      ,(entropy/emacs-macroexp-progn body-on-exit-nil)))))))))
 
 ;; **** __end___
   )

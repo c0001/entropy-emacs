@@ -106,6 +106,10 @@
       "Initialise or toggle treemacs."
       :enable t :global-bind t :exit t
       :toggle (eq (treemacs-current-visibility) 'visible))
+     ("C-S-e" treemacs
+      "Initialise or toggle treemacs. (graphic benefit key-binding)"
+      :enable (or (daemonp) (display-graphic-p)) :global-bind t :exit t
+      :toggle (eq (treemacs-current-visibility) 'visible))
      ("C-<f8>" treemacs-add-project-to-workspace
       "Add a project at given PATH to the current treemacs workspace"
       :enable t :global-bind t :exit t)
@@ -162,7 +166,7 @@
         treemacs-sorting                 'alphabetic-asc
         treemacs-follow-after-init       t
         treemacs-show-cursor             t
-        treemacs-width                   25
+        treemacs-width                   21
         treemacs-no-png-images           t)
 
   (setq
@@ -236,6 +240,16 @@ error occurred as for (let* ((depth (1+ (treemacs-button-get btn
   (dolist (f '(treemacs-get-local-window
                treemacs-get-local-buffer))
     (advice-add f :before #'entropy/emacs-treemacs--init-advice))
+
+  (entropy/emacs-add-hook-with-lambda
+    'eemacs/treemacs--text-size-adjust (&rest _)
+    "Made treemacs window exhibit things more wide based on small font
+size.
+
+Since TUI can not specified per-window text size, only GUI frame is
+supported for now."
+    :use-hook 'treemacs-mode-hook
+    (and (display-graphic-p) (text-scale-decrease 2)))
 
   )
 

@@ -671,6 +671,42 @@ restrict the lowest and highest emacs version range for BODY."
                 (format "require: %s to %s" ,minver ,maxver)))
          ,@body))))
 
+(cl-defmacro entropy/emacs-api-restriction/elpkg-eemacs-ext-stable-build-repo-version
+    (op-name
+     &rest body
+     &key
+     when doc do-error
+     elpkg-eemacs-ext-stable-build-repo-version
+     &allow-other-keys)
+  "Do eemacs api restriction on
+`entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-version' aspect,
+relying on
+`entropy/emacs--api-restriction-uniform'.
+
+All arguments but ELPKG-EEMACS-EXT-STABLE-BUILD-REPO-VERSION (defaults
+to `entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-version-no-v') are
+same as `entropy/emacs--api-restriction-uniform'."
+  (declare (indent 1))
+  (let ((body (entropy/emacs--get-def-body body)))
+    (macroexp-let2* ignore
+        ((elpkgver `(or ,elpkg-eemacs-ext-stable-build-repo-version
+                        entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-version)))
+      `(entropy/emacs--api-restriction-uniform ,op-name
+           'package-version-incompatible
+         :when ,when :doc ,doc
+         :do-error ,do-error
+         :detector
+         (not (version=
+               ,elpkgver
+               entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-version-no-v))
+         :signal
+         (signal
+          entropy/emacs-package-version-incompatible-error-symbol
+          (list 'entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-version
+                entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-version
+                (format "require: v%s" ,elpkgver)))
+         ,@body))))
+
 ;; ** others
 (defconst entropy/emacs-origin-load-path (copy-sequence load-path))
 

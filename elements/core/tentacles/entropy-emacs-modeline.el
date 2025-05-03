@@ -159,7 +159,9 @@
         (entropy/emacs-setf-by-body rtn
           (concat
            (propertize (concat
-                        (make-string 1 ?\x03BB)
+                        " "
+                        (if (char-displayable-p ?⦿) (make-string 1 ?⦿)
+                          (make-string 1 ?λ))
                         (let
                             ((str
                               entropy/emacs-modeline--mdl-common-eyebrowse-sysdaemon-indicator))

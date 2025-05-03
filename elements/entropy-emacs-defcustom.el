@@ -748,6 +748,12 @@ value type according to non-defined internal definition")
   "v3.2.0"
   "")
 
+(defconst entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-version-no-v
+  (substring
+   entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-version
+   1)
+  "")
+
 (defconst entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-git-tag
   (format "CI/dev/%s/20250416015101"
           entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-version)
