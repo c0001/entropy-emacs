@@ -190,7 +190,7 @@ find the key a command is bound to it will show a blank instead."
                                         (car key-open-close)
                                         (car key-close-above))))
           (eval
-           `(defhydra treemacs--common-helpful-hydra (:exit nil :hint nil :columns 4)
+           `(defhydra treemacs--common-helpful-hydra (:exit t :hint nil :columns 4)
               ,hydra-str
               (,(cdr key-adv-hydra)      #'treemacs-advanced-helpful-hydra :exit t)
               (,(cdr key-next-line)      #'treemacs-next-line)
@@ -310,7 +310,7 @@ find the key a command is bound to it will show a blank instead."
                (car key-move-file)    (car key-next-ws)                         (car key-resort)
                (car key-bulk-actions) (car key-fallback-ws)                     (car key-bookmark))))
           (eval
-           `(defhydra treemacs--advanced-helpful-hydra (:exit nil :hint nil :columns 3)
+           `(defhydra treemacs--advanced-helpful-hydra (:exit t :hint nil :columns 3)
               ,hydra-str
               (,(cdr key-common-hydra)   #'treemacs-common-helpful-hydra :exit t)
               (,(cdr key-create-file)    #'treemacs-create-file)
