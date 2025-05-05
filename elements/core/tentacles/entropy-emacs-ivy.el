@@ -2303,7 +2303,7 @@ display icon or empty string while
     "Default candi width for non-doc show, nil for disable.")
   (defvar entropy/ivy--ivy-rich-candi-width/with-docstring 60
     "Default candi width for doc show, nil for disable.")
-  (defvar entropy/emacs-ivy-rich-show-docstring-p nil
+  (defvar entropy/emacs-ivy-rich-show-docstring-p t
     "")
   (defun _ivy-rich-use-doc-width ()
     (if entropy/emacs-ivy-rich-show-docstring-p
