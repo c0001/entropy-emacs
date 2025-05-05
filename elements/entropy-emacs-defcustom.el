@@ -1074,21 +1074,15 @@ CustomizationGuide#\
   :type 'string
   :group 'entropy/emacs-customize-group-for-IME)
 
-(defcustom entropy/emacs-internal-ime-use-rime-as 'emacs-rime
-  "The 'librime' based emacs dynamic model backend choice.
+(defvar entropy/emacs-internal-ime-use-rime-as nil
+  "The 'librime' based emacs dynamic model backend indicator.
 
-Valid as:
-
-- 'emacs-rime': the modern emacs librime binding. (default)
-- 'emacs-liberime': the obsolete emacs librime binding.
-
-Leave it as nil to disable this option.
-"
-  :type '(choice
-           (const :tag "Use rime support by `emacs-rime' package" emacs-rime)
-           (const :tag "Use rime support by `pyim' package" liberime)
-           (const :tag "Disalble the rime support" nil))
-  :group 'entropy/emacs-customize-group-for-IME)
+It's nil unless associated `entropy/emacs-internal-ime-use-backend' with
+valid rime backend initialized while it'll be a symbol to indicate such
+type.
+")
+;; NOTE: must init as nil after custom spec since its a eemacs internal var
+(setq entropy/emacs-internal-ime-use-rime-as nil)
 
 (defcustom entropy/emacs-internal-ime-popup-type 'minibuffer
   "The emacs internal IME candidates show type:
@@ -1207,10 +1201,7 @@ Throw an error while noting found when trying out all methods."
 (defvar entropy/emacs-enable-pyim (eq entropy/emacs-internal-ime-use-backend 'pyim)
   "Enable pyim be the default pyin input method")
 
-(defcustom entropy/emacs-pyim-use-backend
-  (if (eq entropy/emacs-internal-ime-use-rime-as 'emacs-liberime)
-      'liberime
-    'internal)
+(defcustom entropy/emacs-pyim-use-backend 'internal
   "The pyim backend type choosing configuration."
   :type  '(choice
            (const :tag "Native pyim backend" internal)
@@ -3816,8 +3807,7 @@ that."
 (dolist (dir-obj '((entropy/emacs-internal-ime-rime-user-data-host-path
                     .
                     (lambda (dir)
-                      (and (bound-and-true-p
-                            entropy/emacs-internal-ime-use-rime-as)
+                      (and ;; TODO
                            (stringp dir)
                            (not (file-exists-p
                                  dir))))))

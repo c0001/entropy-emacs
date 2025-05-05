@@ -7418,16 +7418,31 @@ DO-KILL applied while prefix hinted."
 Each element is formed as an name cons plist of:
 
 #+begin_src #+begin_src emacs-lisp
-'(name
-  :imestr      ime-registed-name-string
-  :enable      enable-var-sym
-  :prepare     prepare-func
-  :startup     startup-func
-  :toggle      toggle-func
-  :punctuation (:toggle          punctuation-toggle-func
-                :indictor        punctuation-type-indictor)
-  :chinese     (:s2t-toggle      s2t-toggles-func
-                :s2t-indicator   s2t-type-inidicator))
+        '(name
+          :imestr      ime-registed-name-string
+          :enable      enable-var-sym
+          :prepare     prepare-func
+          :startup     startup-func
+          :toggle      toggle-func
+          :punctuation
+          (:toggle
+           punctuation-toggle-func
+           :indictor punctuation-type-indictor)
+          :chinese
+          (:s2t-toggle
+           s2t-toggles-func
+           :s2t-indicator s2t-type-inidicator)
+          :cmds
+          (cmds-keymap
+           :next-char next-char-cmd
+           :prev-char prev-char-cmd
+           :next-item next-item-cmd
+           :prev-item prev-item-cmd
+           :next-page next-page-cmd
+           :prev-page prev-page-cmd)
+          :rime-sync-cmd rime-sync-cmd
+          :rime-backend rime-backend
+          )
 #+end_src
 
 The =ime-registed-name-string= is the actual name registed to emacs by `register-input-method'.
@@ -7655,7 +7670,7 @@ This function will store the loading callback to
     (setq pyim-page-length 8))
 
   (add-to-list 'entropy/emacs-basic-intenal-ime-unified-caller-register
-               '(pyim
+               `(pyim
                  :imestr "pyim"
                  :enable entropy/emacs-enable-pyim
                  :prepare entropy/emacs-basic--pyim-prepare
@@ -7668,7 +7683,20 @@ This function will store the loading callback to
                  :chinese (:s2t-toggle
                            entropy/emacs-basic-toggle-pyim-s2t
                            :s2t-indicator
-                           (eq pyim-magic-converter 'entropy/s2t-string))))
+                           (eq pyim-magic-converter 'entropy/s2t-string))
+                 :cmds
+                 (pyim-mode-map
+                  :next-char pyim-forward-point
+                  :prev-char pyim-backward-point
+                  :next-item pyim-next-word
+                  :prev-item pyim-previous-word
+                  :next-page pyim-next-page
+                  :prev-page pyim-previous-page)
+                 :rime-sync-cmd ,(and (eq entropy/emacs-pyim-use-backend 'liberime)
+                                      'liberime-sync)
+                 :rime-backend ,(and (eq entropy/emacs-pyim-use-backend 'liberime)
+                                     'liberime)
+                 ))
 
 ;; ******* config
   :config
@@ -7915,7 +7943,19 @@ This function will store the `rime' loading callback to
                            :s2t-indicator
                            (not
                             (funcall
-                             'entropy/emacs-basic-emacs-rime-CNschema-is-simplified)))))
+                             'entropy/emacs-basic-emacs-rime-CNschema-is-simplified)))
+
+                 :cmds
+                 (rime-active-mode-map
+                  :next-char rime-send-keybinding
+                  :prev-char rime-send-keybinding
+                  :next-item rime-send-keybinding
+                  :prev-item rime-send-keybinding
+                  :next-page rime-send-keybinding
+                  :prev-page rime-send-keybinding)
+                 :rime-sync-cmd rime-sync
+                 :rime-backend emacs-rime
+                 ))
 
 ;; ****** config
   :config
@@ -8131,7 +8171,52 @@ we do not want to init as duplicated which will cause messy."
         (funcall (plist-get ime-plist :startup))
         (when (funcall core-init-juger)
           (entropy/emacs-hydra-hollow-add-for-top-dispatch
-           hydra-group))))))
+           hydra-group)
+          (entropy/emacs-when-let*-first
+              ((cmds-plist (plist-get ime-plist :cmds))
+               (cmds-keymap (car cmds-plist))
+               (_ (and (symbolp cmds-keymap) (setq cmds-keymap (symbol-value cmds-keymap))))
+               (cmds (cdr cmds-plist))
+               (ime-nc-cmd (plist-get cmds :next-char))
+               (ime-pc-cmd (plist-get cmds :prev-char))
+               (ime-ni-cmd (plist-get cmds :next-item))
+               (ime-pi-cmd (plist-get cmds :prev-item))
+               (ime-np-cmd (plist-get cmds :next-page))
+               (ime-pp-cmd (plist-get cmds :prev-page)))
+            (when ime-nc-cmd
+              (dolist (key (list "C-f" "<right>"))
+                (define-key cmds-keymap (kbd key) ime-nc-cmd)))
+            (when ime-pc-cmd
+              (dolist (key (list "C-b" "<left>"))
+                (define-key cmds-keymap (kbd key) ime-pc-cmd)))
+
+            (when ime-ni-cmd
+              (dolist (key (list "C-n" "<down>"))
+                (define-key cmds-keymap (kbd key) ime-ni-cmd)))
+            (when ime-pi-cmd
+              (dolist (key (list "C-p" "<up>"))
+                (define-key cmds-keymap (kbd key) ime-pi-cmd)))
+
+            (when ime-np-cmd
+              (dolist (key (list "C-v" "<next>"))
+                (define-key cmds-keymap (kbd key) ime-np-cmd)))
+            (when ime-pp-cmd
+              (dolist (key (list "M-v" "<prior>"))
+                (define-key cmds-keymap (kbd key) ime-pp-cmd))))
+
+          (entropy/emacs-when-let*-first
+              ((rime-backend (plist-get ime-plist :rime-backend))
+               (rime-sync-cmd (plist-get ime-plist :rime-sync-cmd)))
+            (setq entropy/emacs-internal-ime-use-rime-as rime-backend)
+            (when rime-sync-cmd
+              (run-with-idle-timer
+               60 t
+               (entropy/emacs-!defalias 'entropy/emacs--internal-ime-rime-sync-daemon
+                 (lambda nil
+                   (entropy/emacs-message-simple-progress-message
+                       (format "running eemacs internal ime rime sync for %s" rime-backend)
+                     (funcall rime-sync-cmd)))))))
+          )))))
 
 (entropy/emacs-lazy-initial-for-hook
  '(entropy/emacs-hydra-hollow-call-before-hook)
