@@ -1029,32 +1029,55 @@ The minor changing was compat for above."
   (advice-add 'elfeed-show-visit :around #'entropy/emacs-rss--elfeed-browse-url-around)
 
 ;; *** elfeed print entry function
+
+  (defun entropy/emacs-rss--elfeed-tags-to-icon (tags)
+    "Generate Nerd Font icon based on tags.
+  Returns default if no match."
+    (cond ((member "youtube" tags)   (nerd-icons-faicon "nf-fa-youtube_play" :face '(:foreground "#FF0200")))
+          ((member "instagram" tags) (nerd-icons-faicon "nf-fa-instagram" :face '(:foreground "#FF00B9")))
+          ((or (member "emacs" tags) (member "emacslife" tags) (member "mastering" tags))
+           (nerd-icons-sucicon "nf-custom-emacs" :face '(:foreground "#9A5BBE")))
+          ((member "github" tags) (nerd-icons-faicon "nf-fa-github"))
+          (t (nerd-icons-faicon "nf-fa-rss_square" :face '(:foreground "#2AB24C")))))
+
   (defun entropy/emacs-rss--elfeed-search-print-entry--default (entry)
     "Print ENTRY to the buffer."
     (let* ((date (elfeed-search-format-date (elfeed-entry-date entry)))
-           (title (or (elfeed-meta entry :title) (elfeed-entry-title entry) ""))
+           (date-width (car (cdr elfeed-search-date-format)))
+           (title (concat (or (elfeed-meta entry :title)
+                              (elfeed-entry-title entry) "")
+                          ;; NOTE: insert " " for overlay to swallow
+                          " "))
            (title-faces (elfeed-search--faces (elfeed-entry-tags entry)))
            (feed (elfeed-entry-feed entry))
-           (feed-title
-            (when feed
-              (or (elfeed-meta feed :title) (elfeed-feed-title feed))))
+           (feed-title (when feed (or (elfeed-meta feed :title) (elfeed-feed-title feed))))
            (tags (mapcar #'symbol-name (elfeed-entry-tags entry)))
-           (tags-str (mapconcat
-                      (lambda (s) (propertize s 'face 'elfeed-search-tag-face))
-                      tags ","))
-           (title-width (- (window-width) 10 elfeed-search-trailing-width))
+           (tags-str (mapconcat (lambda (s) (propertize s 'face 'elfeed-search-tag-face)) tags ","))
+           (title-width (- (frame-width)
+                           ;; (window-width (get-buffer-window (elfeed-search-buffer) t))
+                           date-width elfeed-search-trailing-width))
            (title-column (elfeed-format-column
                           title (elfeed-clamp
                                  elfeed-search-title-min-width
                                  title-width
-                                 elfeed-search-title-max-width)
-                          :left)))
+                                 elfeed-search-title-max-width) :left))
+
+           ;; Title/Feed ALIGNMENT
+           (align-to-feed-pixel (+ ;; FIXME: append few char width for
+                                   ;; preventing alignment bug even if
+                                   ;; we use emacs pixel align property
+                                 4
+                                 date-width
+                                 (max elfeed-search-title-min-width
+                                      (min title-width elfeed-search-title-max-width)))))
       (insert (propertize date 'face 'elfeed-search-date-face) " ")
-      (insert (propertize title-column 'face title-faces 'kbd-help title) "\t")
+      (insert (propertize title-column 'face title-faces 'kbd-help title))
+      (put-text-property (1- (point)) (point) 'display `(space :align-to ,align-to-feed-pixel))
+      ;; (when feed-title (insert " " (propertize feed-title 'face 'elfeed-search-feed-face) " "))
       (when feed-title
-        (insert (propertize feed-title 'face 'elfeed-search-feed-face) " "))
-      (when tags
-        (insert "(" tags-str ")"))))
+        (insert " " (concat (entropy/emacs-rss--elfeed-tags-to-icon tags) " ")
+                (propertize feed-title 'face 'elfeed-search-feed-face) " "))
+      (when tags (insert "(" tags-str ")"))))
 
   (setq elfeed-search-print-entry-function
         'entropy/emacs-rss--elfeed-search-print-entry--default)
