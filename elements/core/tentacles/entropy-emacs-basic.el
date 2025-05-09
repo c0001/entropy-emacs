@@ -6869,8 +6869,49 @@ see https://emacs-china.org/t/gnupg-2-4-1-easypg/25264 for details"
 
 ;; **** Bookmarks
 (use-package bookmark
+  :eemacs-indhc
+  (((:enable
+     t
+     :defer
+     (:data
+      (:adfors
+       (entropy/emacs-after-startup-idle-hook)
+       :adtype hook
+       :pdumper-no-end t)))
+    (bookmark-commands))
+   ("Set"
+    (("C-x r m" bookmark-set "Add current place to bookmark (no dups)."
+      :enable t :global-bind t :exit t)
+     ("C-x r M" bookmark-set-no-overwrite "Add current place to bookmark."
+      :enable t :global-bind t :exit t))
+    "Manage"
+    (("C-x r l" bookmark-bmenu-list "Display a list of existing bookmarks."
+      :enable t :global-bind t :exit t)
+     ("C-x r b" bookmark-jump "Jump to a bookmark."
+      :enable t :global-bind t :exit t))))
+  :eemacs-tpha
+  (((:enable
+     t
+     :defer
+     (:data
+      (:adfors
+       (entropy/emacs-after-startup-idle-hook)
+       :adtype hook
+       :pdumper-no-end t))))
+   ("Basic"
+    (("b b"
+      (:eval
+       (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+        'bookmark-commands))
+      "bookmark commands"
+      :enable t))))
   :init
-  (setq bookmark-save-flag 1))
+  (setq
+   bookmark-save-flag 1
+   bookmark-sort-flag t
+   bookmark-use-annotations t
+   bookmark-automatically-show-annotations t
+   ))
 
 ;; **** Description | Help mode improvement
 
