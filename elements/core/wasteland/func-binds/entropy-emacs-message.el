@@ -313,7 +313,7 @@ ARGS using
 (defmacro entropy/emacs-message-do-message-1 (message &rest args)
   "Same as`message' but also strips out ANSI codes with face
 applied."
-  `(let (_)
+  `(let ((resize-mini-windows t))
      ;; (redisplay t)
 
      ;; we shouldn't use `message' directly to touch the message in
@@ -344,6 +344,14 @@ applied."
 (defvar entropy/emacs--msg-init-indc-char ?▄)
 (unless (char-displayable-p entropy/emacs--msg-init-indc-char)
   (setq entropy/emacs--msg-init-indc-char ?.))
+
+(defmacro entropy/emacs--message-insert-msg-to-backup-log-buffer (msg)
+  (macroexp-let2* ignore
+      ((msg-sym nil))
+    `(let ((,msg-sym ,msg))
+       (with-current-buffer (get-buffer-create " *Eemacs Verbose Init Log Buffer*")
+         (goto-char (point-max)) (insert ,msg-sym)
+         (or (looking-at-p "^$") (insert "\n"))))))
 
 (defmacro entropy/emacs--message-do-message-before-eemacs-init (msg &rest args)
   (macroexp-let2* ignore
@@ -383,10 +391,7 @@ applied."
            (message "%s" (car ,str-sym))
            (cl-incf entropy/emacs--msg-init-cnt)
            (cl-incf entropy/emacs--msg-init-cnt-total)))
-       (with-current-buffer (get-buffer-create " *Eemacs Verbose Init Log Buffer*")
-         (insert ,msg-sym)
-         (unless (looking-at-p "^$")
-           (insert "\n"))))))
+       (entropy/emacs--message-insert-msg-to-backup-log-buffer ,msg-sym))))
 
 ;;;###autoload
 (cl-defmacro entropy/emacs-message-do-message
@@ -607,7 +612,8 @@ then run BODY directly like `progn'.
              (eval (list 'entropy/emacs--message-do-message-before-eemacs-init
                          "%s" ,message-sym)))
            ,(entropy/emacs-macroexp-progn body))
-       (let* ((,with-tmpmsg-sym ,with-temp-message)
+       (let* ((resize-mini-windows t)
+              (,with-tmpmsg-sym ,with-temp-message)
               (,curmsg-sym (current-message))
               (,new-curmsg-sym ,curmsg-sym)
               (,new-curmsg-np-sym t)
@@ -659,7 +665,7 @@ then run BODY directly like `progn'.
            (when (and ,progress-reporter-sym ,new-curmsg-np-sym)
              (progress-reporter-done ,progress-reporter-sym)
              (when ,with-rest-doing-msg
-               (let ((message-log-max nil)) (message "λ ... "))))
+               (let ((message-log-max nil)) (message "..."))))
            (when (and ,message-sym ,curmsg-sym)
              (let (
                    ;; we has no reason to log the old msg again since we

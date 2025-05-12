@@ -3100,6 +3100,7 @@ mechanism, so be carefully.
   "Prompt for `run-hooks' for reduce lagging nervous. It's a
 advice wrapper, do not calling it in the normal way"
   (let ((indicator (car orig-args))
+        (resize-mini-windows t)
         rtn)
     (push (cons (format-time-string "[%Y-%m-%d %a %H:%M:%S]") orig-args)
           entropy/emacs--run-hooks-cache)
