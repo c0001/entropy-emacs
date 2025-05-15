@@ -122,6 +122,8 @@ package management!"))
   (setq markdown-xhtml-header-content
         entropy/emacs-markdown-exp-header-content)
 
+  (setq markdown-live-preview-delete-export 'delete-on-export)
+
   (defun __ya/markdown-fontify-hrs (last)
     "Override advice for `makrdown-fontify-hrs' to temporally fix
 overflow hr line e.g. display in eldoc."
@@ -625,48 +627,7 @@ overflow hr line e.g. display in eldoc."
       "Preview markdown buffer using python grip"
       :enable t :exit t)))))
 
-;; *** synchronization previewing
-(use-package markdown-preview-mode
-  :after markdown-mode
-  :preface
-  (defun entropy/emacs-markdown-restart-mdp-mode ()
-    (declare (interactive-only t))
-    (interactive)
-    (entropy/emacs-message-simple-progress-message
-        (substitute-quotes
-         (format "%sing `markdown-preview-mode'"
-                 (if (bound-and-true-p markdown-preview-mode)
-                     "Restart" "Start")))
-      :with-temp-message t
-      (and (bound-and-true-p markdown-preview-mode)
-           (markdown-preview-mode -1))
-      (markdown-preview-mode)))
-
-  :commands (markdown-preview-mode)
-  :bind (:map markdown-mode-command-map
-              ("P" . markdown-preview-mode))
-  :eemacs-indhca
-  (((:enable t :defer (:data (:adfors (markdown-mode-hook) :adtype hook :pdumper-no-end t)))
-    (markdown-mode-command-map))
-   ("Preview"
-    (("p p" entropy/emacs-markdown-restart-mdp-mode
-      "Live preview markdown buffer with external browser"
-      :enable t :exit t))))
-
-  :config
-  (entropy/emacs-sync-setq
-   markdown-preview-stylesheets
-   'entropy/emacs-markdown-preview-stylesheets
-   markdown-preview-javascript
-   'entropy/emacs-markdown-preview-javascript)
-
-  (advice-add 'markdown-preview-mode
-              :around
-              #'entropy/emacs-markdown--with-eemacs-preview-browser)
-
-  (advice-add 'markdown-preview-mode
-              :around #'entropy/emacs-lang-use-utf-8-ces-around-advice))
-
+;; * Provide
 (provide 'entropy-emacs-markdown)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

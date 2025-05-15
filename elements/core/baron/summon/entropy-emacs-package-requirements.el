@@ -221,7 +221,6 @@
     major-mode-hydra
     makey
     markdown-mode
-    markdown-preview-mode
     memoize
     memory-usage
     minions
