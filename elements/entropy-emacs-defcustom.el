@@ -2168,6 +2168,16 @@ the optimization is weak. That's why we defaulty set it to nil."
   :group 'entropy/emacs-customize-group-for-org-mode)
 
 ;; **** markdown mode
+
+(defvar entropy/emacs--markdown-decorations-topdir
+  (expand-file-name "annex/decorations" entropy/emacs-user-emacs-directory))
+(defvar entropy/emacs--markdown-decorations-githubcss-dir
+  (expand-file-name "github-markdown-css" entropy/emacs--markdown-decorations-topdir))
+(defvar entropy/emacs--markdown-decorations-highlightjs-dir
+  (expand-file-name "highlight-js" entropy/emacs--markdown-decorations-topdir))
+(defvar entropy/emacs--markdown-decorations-mermaidjs-dir
+  (expand-file-name "mermaid-js" entropy/emacs--markdown-decorations-topdir))
+
 (defgroup entropy/emacs-customize-group-for-markdown-mode nil
   "Eemacs markdown-mode configuration customizable group."
   :group 'entropy/emacs-customize-group-for-major-modes)
@@ -2181,35 +2191,85 @@ When set to an empty string, this attribute is omitted.  Defaults to
   :group 'entropy/emacs-customize-group-for-markdown-mode)
 
 (defcustom entropy/emacs-markdown-exp-header-content
-  "
-        <meta name='viewport' content='width=device-width, initial-scale=1, shrink-to-fit=no'>
-        <style>
-        body {
-          box-sizing: border-box;
-          max-width: 740px;
-          width: 100%;
-          margin: 40px auto;
-          padding: 0 10px;
-        }
-        </style>
-        <script src='http://cdn.jsdelivr.net/gh/highlightjs/cdn-release/build/highlight.min.js'></script>
-        <script>
-        document.addEventListener('DOMContentLoaded', () => {
-          document.body.classList.add('markdown-body');
-          document.querySelectorAll('pre[lang] > code').forEach((code) => {
-            code.classList.add(code.parentElement.lang);
-            hljs.highlightBlock(code);
-          });
-        });
-        </script>
+  (format
+   "
+  <meta name='viewport' content='width=device-width, initial-scale=1, shrink-to-fit=no'>
+  <style>
+   body {
+       box-sizing: border-box;
+       max-width: 740px;
+       width: 100%%;
+       margin: 40px auto;
+       padding: 0 10px;
+   }
+
+   .markdown-body {
+       box-sizing: border-box;
+       margin: 0 auto;
+       max-width: 980px;
+       min-width: 200px;
+       padding: 45px;
+   }
+
+   @media (max-width: 767px) {
+       .markdown-body {
+           padding: 15px;
+       }
+  </style>
+  <!-- https://adam.kruszewski.name/2022-09-17-emacs-markdown-mode-in-browser-preview.html -->
+  <!--  -->
+  <!-- since 'markdown' didn't spec a standard body classname but githubmarkdowncss used as 'markdown-body' -->
+  <script>
+   document.addEventListener('DOMContentLoaded', () => {
+     document.body.classList.add('markdown-body');
+   });
+  </script>
+  <script src='%s'></script>
+
+  <script>
+   document.addEventListener('DOMContentLoaded', () => {
+     document.body.classList.add('markdown-body');
+     document.querySelectorAll('pre code').forEach((code) => {
+       if (code.className != 'mermaid') {
+         hljs.highlightBlock(code);
+       }
+     });
+   });
+  </script>
+
+  <script src='%s'></script>
+  <script>
+   mermaid.initialize({
+     theme: 'default',  // default, forest, dark, neutral
+     startOnLoad: true
+   });
+  </script>
 "
+   (format "file://%s"
+           (expand-file-name "highlight.js"
+                             entropy/emacs--markdown-decorations-highlightjs-dir))
+   (format "file://%s"
+           (expand-file-name "mermaid.js"
+                             entropy/emacs--markdown-decorations-mermaidjs-dir)))
   "Additional content to include in the XHTML <head> block."
   :type 'string
   :group 'entropy/emacs-customize-group-for-markdown-mode)
 
+(defcustom entropy/emacs-markdown-exp-body-epilogue
+  ""
+  "Additional content to embedded in the XHTML <body> block just before </body>."
+  :type 'string
+  :group 'entropy/emacs-customize-group-for-markdown-mode)
+
 (defcustom entropy/emacs-markdown-exp-css-paths
-  '("https://cdn.jsdelivr.net/npm/github-markdown-css/github-markdown.min.css"
-    "http://cdn.jsdelivr.net/gh/highlightjs/cdn-release/build/styles/github.min.css")
+  (list
+   (format "file://%s"
+           (expand-file-name "github-markdown-dark.css"
+                             entropy/emacs--markdown-decorations-githubcss-dir))
+   (format "file://%s"
+           (expand-file-name "styles/github-dark.css"
+                             entropy/emacs--markdown-decorations-highlightjs-dir))
+   )
   "URL of CSS file to link to in the output XHTML."
   :type '(repeat (string :tag "Css file host uri"))
   :group 'entropy/emacs-customize-group-for-markdown-mode)

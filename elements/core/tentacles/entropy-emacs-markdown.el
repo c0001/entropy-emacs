@@ -121,6 +121,8 @@ package management!"))
         entropy/emacs-markdown-exp-css-paths)
   (setq markdown-xhtml-header-content
         entropy/emacs-markdown-exp-header-content)
+  (setq markdown-xhtml-body-epilogue
+        entropy/emacs-markdown-exp-body-epilogue)
 
   (setq markdown-live-preview-delete-export 'delete-on-export)
 
