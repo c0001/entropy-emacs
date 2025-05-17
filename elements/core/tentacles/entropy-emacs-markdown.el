@@ -300,9 +300,10 @@ overflow hr line e.g. display in eldoc."
      ("p e" markdown-export-and-preview
       "Export to XHTML using 'markdown-export' and browse the resulting file"
       :enable t :exit t)
-     ("p l" markdown-live-preview-mode
-      "Toggle native previewing on save for a specific markdown file"
-      :enable t :exit t))))
+     ("p l" entropy/emacs-web-impatient-markdown-preview
+      "live preview for current markdown buffer"
+      :enable t :exit t)
+     )))
 
 ;; ***** hydra-define
 
