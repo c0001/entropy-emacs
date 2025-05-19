@@ -5535,7 +5535,15 @@ formatted in American style, e.g. Tuesday, November 15, 2022."
        (entropy/emacs-funcall-with-lambda nil
          (define-key vundo-mode-map (kbd k) nil)))))
   :config
-  (setq vundo-glyph-alist vundo-unicode-symbols))
+  (setq
+   ;; use ascii char display undo history to guarantee the alignments
+   ;; regards of any font-spec
+   vundo-glyph-alist vundo-ascii-symbols
+   ;; FIXME: we should large vundo win size to avoid tmux pseudo term
+   ;; display glitches
+   vundo-window-max-height 5
+   ;; always ensure the modification applying while enter RET
+   vundo-roll-back-on-quit t))
 
 ;; ****** Case type toggle
 ;; ******* Improve captialize function
