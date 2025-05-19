@@ -189,6 +189,8 @@ environment whether support graphic display.")
 kernel based and its environment whether support graphic
 display.")
 
+;; ** system refers
+
 ;; ** Eemacs Error Framework
 ;; *** eemacs top error
 (defconst entropy/emacs-top-error-symbol

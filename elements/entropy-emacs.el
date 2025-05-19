@@ -1481,6 +1481,113 @@ it has one of thus, otherwise same as `process-buffer'."
   (or (entropy/emacs-process-stderr-buffer process)
       (process-buffer process)))
 
+(defvar entropy/emacs-delete-process-inhibit-register ())
+(defvar entropy/emacs--delete-process-force-delete nil)
+(entropy/emacs-!cl-defun entropy/emacs--delete-process-adv (ofunc &rest oargs)
+  (let ((proc (car oargs)))
+    (if (and proc
+             (not entropy/emacs--delete-process-force-delete)
+             (processp proc)
+             (memq proc entropy/emacs-delete-process-inhibit-register))
+        (progn
+          (unless (process-live-p proc)
+            (setq entropy/emacs-delete-process-inhibit-register
+                  (delq proc entropy/emacs-delete-process-inhibit-register)))
+          (entropy/emacs-!error-as-eemacs-internal-error
+           "Eemacs session maintained proc '%s' should not be killed." proc))
+      (apply ofunc oargs))))
+(advice-add 'delete-process :around #'entropy/emacs--delete-process-adv)
+
+(entropy/emacs-!cl-defun entropy/emacs--delete-process-regist-vip (proc)
+  (when-let (((and (processp proc) (process-live-p proc))))
+    (add-to-list 'entropy/emacs-delete-process-inhibit-register proc)
+    (when-let* ((proc-stderr (get-buffer-process (entropy/emacs-process-stderr-buffer proc)))
+                ((and (processp proc-stderr) (process-live-p proc-stderr))))
+      (add-to-list 'entropy/emacs-delete-process-inhibit-register proc-stderr))))
+
+;; *** sys
+
+;; **** network
+;; ***** libs
+(entropy/emacs-!cl-defun entropy/emacs-get-available-sys-network-port (base-port)
+  "Find the nearest available sys network port based on BASE-PORT"
+  (let ((port base-port) proc)
+    (unless (featurep 'make-network-process '(:service t))
+      (entropy/emacs-!error-as-eemacs-internal-error
+       "can not select a net port in current system"))
+    (unwind-protect
+        (progn
+          (while (not (ignore-errors (setq proc (make-network-process :name " *eemacs-test*" :service port :server t))))
+            (cl-incf port))
+          (setq port (plist-get (process-contact proc t t) :service))
+          (if (numberp port) port
+            (entropy/emacs-!error-as-eemacs-internal-error
+             "can not select a net port in current system based on port %s"
+             base-port)))
+      (and (processp proc) (delete-process proc)))))
+
+;; ***** eemac cdn servlet
+(defvar httpd-port)
+(defun entropy/emacs--def-eemacs-network-cdn-servlet/set-base-name (name type)
+  (let ((bname (format "entropy/emacs-eemacs-network-cdn-servlet/%s" name)))
+    (cl-case type
+      (:base-name bname)
+      (:local_host_port-var-name (format "%s/var/local_host_port" bname))
+      (:local_host_url-var-name (format "%s/var/local_host_url" bname))
+      (:dispatch-func-name (format "%s/func/dispatch" bname))
+      (:finished-func-name (format "%s/func/finished" bname)))))
+(defmacro entropy/emacs-def-eemacs-network-cdn-servlet/get-value (name type)
+  (intern (entropy/emacs--def-eemacs-network-cdn-servlet/set-base-name name type)))
+(defmacro entropy/emacs-def-eemacs-network-cdn-servlet/get-local-uri-path (name sub-path)
+  `(let ((local-url (entropy/emacs-def-eemacs-network-cdn-servlet/get-value ,name :local_host_url-var-name)))
+     (format "%s/%s" local-url ,sub-path)))
+(cl-defmacro entropy/emacs-def-eemacs-network-cdn-servlet
+    (name &key base-port srv-root)
+  (declare (indent 1))
+  (let*
+      ((base-name    (entropy/emacs--def-eemacs-network-cdn-servlet/set-base-name name :base-name))
+       (port-varname (intern (entropy/emacs--def-eemacs-network-cdn-servlet/set-base-name name :local_host_port-var-name)))
+       (url-varname  (intern (entropy/emacs--def-eemacs-network-cdn-servlet/set-base-name name :local_host_url-var-name)))
+       (dispatch-func-name (intern (entropy/emacs--def-eemacs-network-cdn-servlet/set-base-name name :dispatch-func-name)))
+       (finished-func-name (intern (entropy/emacs--def-eemacs-network-cdn-servlet/set-base-name name :finished-func-name))))
+    `(progn
+       (defconst ,port-varname
+         (entropy/emacs-get-available-sys-network-port ,base-port))
+       (defconst ,url-varname
+         (format "http://localhost:%s/" ,port-varname))
+       (let ((promise-proc
+              ;; FIXME: we occupy the port temporarily for after-init body
+              ;; run, is there a more stable way to approach such case?
+              (make-network-process
+               :name (format " *promise <%s>*" ,base-name)
+               :service ,port-varname
+               :server t)))
+         (add-hook
+          'entropy/emacs-after-startup-hook
+          (entropy/emacs-!cl-defun ,dispatch-func-name nil
+            ;; free the port we've allocated firstly
+            (delete-process promise-proc)
+            (let ((pkgdir   package-user-dir)
+                  (pkgdlist package-directory-list)
+                  (srvroot ,srv-root)
+                  (srvport ,port-varname))
+              (entropy/emacs--delete-process-regist-vip
+               (async-start
+                (lambda (&rest _)
+                  (setq package-user-dir pkgdir package-directory-list pkgdlist)
+                  (package-initialize)
+                  (setq httpd-port srvport) (httpd-serve-directory srvroot)
+                  (while t (sleep-for 60)))
+                (entropy/emacs-!cl-defun ,finished-func-name (&rest _)
+                  (entropy/emacs-!error-as-eemacs-internal-error
+                   "Start or keep alive '%s' failed." ,base-name)))))))))))
+
+;; ******* pre defs
+(entropy/emacs-def-eemacs-network-cdn-servlet eemacs-decorations
+  :base-port 4444
+  :srv-root (expand-file-name "annex/decorations" entropy/emacs-user-emacs-directory)
+  )
+
 ;; ** INIT
 
 (entropy/emacs-defconst

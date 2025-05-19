@@ -575,6 +575,7 @@ which `major-mode' current is on."
   )
 
 ;; ***** impatient-mode
+(defvar markdown-command-needs-filename)
 (use-package impatient-mode
   :commands (impatient-mode
              entropy/emacs-web-impatient-markdown-preview)
@@ -598,12 +599,6 @@ enabled that."
 
 ;; ******** markdown preview (https://adam.kruszewski.name/2022-09-17-emacs-markdown-mode-in-browser-preview.html)
   (defvar-local entropy/emacs-web--markdown-filter-impatient-mode-content nil)
-  ;; TODO: use `entropy/emacs-markdown-exp-header-content' to unify
-  ;; the markdown visual context, the difficulties are that we should
-  ;; use httpd-servelet to host all eemacs archived decoration stuffs
-  ;; to serve the live preview in impatient-mode since it can not use
-  ;; local fsys 'file://' protocal as resource link because it's
-  ;; hosted in a web-server which is individually stand by local fsys.
   (defun entropy/emacs-web--markdown-filter-impatient-mode/format-content (obuff dbuff)
     (with-current-buffer obuff
       (setq entropy/emacs-web--markdown-filter-impatient-mode-content
@@ -612,49 +607,15 @@ enabled that."
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Markdown Preview</title>
-    <meta name='viewport' content=
-                'width=device-width, initial-scale=1'>
-    <link rel='stylesheet' href=
-               'https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.8.1/github-markdown-dark.css'>
-    <!-- https://github.com/sindresorhus/github-markdown-css -->
-    <link rel='stylesheet' href=
-               'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css'>
-    <!-- https://highlightjs.org -->
-
-    <style>
-     .markdown-body {
-         box-sizing: border-box;
-         margin: 0 auto;
-         max-width: 980px;
-         min-width: 200px;
-         padding: 45px;
-     }
-
-     @media (max-width: 767px) {
-         .markdown-body {
-             padding: 15px;
-         }
-     }
-    </style>
+   %s
   </head>
   <body class=\"markdown-body\">
     %s
-    <!-- run highlight.js -->
-    <script src='https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js'></script>
-    <script>
-     hljs.highlightAll();
-    </script>
-    <!-- run mermaid -->
-    <script src='https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.5.0/mermaid.min.js'></script>
-    <script>
-      mermaid.initialize({
-      theme: 'default',  // default, forest, dark, neutral
-      startOnLoad: true
-      });
   </body>
 </html>"
-             (with-current-buffer dbuff (buffer-string))))))
+             entropy/emacs-markdown-exp-header-content
+             (with-current-buffer dbuff (buffer-string))
+             ))))
 
   (defun entropy/emacs-web--markdown-filter-impatient-mode (buffer)
     "Markdown filter for impatient-mode"

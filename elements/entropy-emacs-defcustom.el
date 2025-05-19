@@ -2169,15 +2169,6 @@ the optimization is weak. That's why we defaulty set it to nil."
 
 ;; **** markdown mode
 
-(defvar entropy/emacs--markdown-decorations-topdir
-  (expand-file-name "annex/decorations" entropy/emacs-user-emacs-directory))
-(defvar entropy/emacs--markdown-decorations-githubcss-dir
-  (expand-file-name "github-markdown-css" entropy/emacs--markdown-decorations-topdir))
-(defvar entropy/emacs--markdown-decorations-highlightjs-dir
-  (expand-file-name "highlight-js" entropy/emacs--markdown-decorations-topdir))
-(defvar entropy/emacs--markdown-decorations-mermaidjs-dir
-  (expand-file-name "mermaid-js" entropy/emacs--markdown-decorations-topdir))
-
 (defgroup entropy/emacs-customize-group-for-markdown-mode nil
   "Eemacs markdown-mode configuration customizable group."
   :group 'entropy/emacs-customize-group-for-major-modes)
@@ -2194,28 +2185,19 @@ When set to an empty string, this attribute is omitted.  Defaults to
   (format
    "
   <meta name='viewport' content='width=device-width, initial-scale=1, shrink-to-fit=no'>
+  <!-- github css -->
+  <link rel=\"stylesheet\" type=\"text/css\" href=\"%s\">
   <style>
-   body {
-       box-sizing: border-box;
-       max-width: 740px;
-       width: 100%%;
-       margin: 40px auto;
-       padding: 0 10px;
-   }
-
+   /* cover the default github css to use middle display style */
    .markdown-body {
        box-sizing: border-box;
        margin: 0 auto;
-       max-width: 980px;
-       min-width: 200px;
-       padding: 45px;
+       max-width: 65%%;
+       min-width: 30%%;
+       padding:   0.5%%;
    }
-
-   @media (max-width: 767px) {
-       .markdown-body {
-           padding: 15px;
-       }
   </style>
+
   <!-- https://adam.kruszewski.name/2022-09-17-emacs-markdown-mode-in-browser-preview.html -->
   <!--  -->
   <!-- since 'markdown' didn't spec a standard body classname but githubmarkdowncss used as 'markdown-body' -->
@@ -2224,8 +2206,10 @@ When set to an empty string, this attribute is omitted.  Defaults to
      document.body.classList.add('markdown-body');
    });
   </script>
-  <script src='%s'></script>
 
+  <!-- highlight.js -->
+  <link rel=\"stylesheet\" type=\"text/css\" href=\"%s\">
+  <script src='%s'></script>
   <script>
    document.addEventListener('DOMContentLoaded', () => {
      document.body.classList.add('markdown-body');
@@ -2237,20 +2221,23 @@ When set to an empty string, this attribute is omitted.  Defaults to
    });
   </script>
 
+  <!-- mermaid -->
   <script src='%s'></script>
   <script>
    mermaid.initialize({
-     theme: 'default',  // default, forest, dark, neutral
+     theme: 'dark',  // default, forest, dark, neutral
      startOnLoad: true
    });
   </script>
 "
-   (format "file://%s"
-           (expand-file-name "highlight.js"
-                             entropy/emacs--markdown-decorations-highlightjs-dir))
-   (format "file://%s"
-           (expand-file-name "mermaid.js"
-                             entropy/emacs--markdown-decorations-mermaidjs-dir)))
+   (entropy/emacs-def-eemacs-network-cdn-servlet/get-local-uri-path
+    eemacs-decorations "github-markdown-css/github-markdown-dark.css")
+   (entropy/emacs-def-eemacs-network-cdn-servlet/get-local-uri-path
+    eemacs-decorations "highlight-js/styles/github-dark.css")
+   (entropy/emacs-def-eemacs-network-cdn-servlet/get-local-uri-path
+    eemacs-decorations "highlight-js/highlight.js")
+   (entropy/emacs-def-eemacs-network-cdn-servlet/get-local-uri-path
+    eemacs-decorations "mermaid-js/mermaid.js"))
   "Additional content to include in the XHTML <head> block."
   :type 'string
   :group 'entropy/emacs-customize-group-for-markdown-mode)
@@ -2261,61 +2248,10 @@ When set to an empty string, this attribute is omitted.  Defaults to
   :type 'string
   :group 'entropy/emacs-customize-group-for-markdown-mode)
 
-(defcustom entropy/emacs-markdown-exp-css-paths
-  (list
-   (format "file://%s"
-           (expand-file-name "github-markdown-dark.css"
-                             entropy/emacs--markdown-decorations-githubcss-dir))
-   (format "file://%s"
-           (expand-file-name "styles/github-dark.css"
-                             entropy/emacs--markdown-decorations-highlightjs-dir))
-   )
+(defcustom entropy/emacs-markdown-exp-css-paths nil
   "URL of CSS file to link to in the output XHTML."
   :type '(repeat (string :tag "Css file host uri"))
   :group 'entropy/emacs-customize-group-for-markdown-mode)
-
-;; ***** markdown builtin prviewer
-
-(defgroup entropy/emacs-customize-group-for-markdown-mode-builtin-preview nil
-  "Eemacs markdown-mode builtin preview configuration customizable group."
-  :group 'entropy/emacs-customize-group-for-markdown-mode)
-
-(defcustom entropy/emacs-markdown-preview-stylesheets
-  (list "https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/2.9.0/github-markdown.min.css"
-        "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"
-        "
-         <style>
-          .markdown-body {
-            box-sizing: border-box;
-            min-width: 200px;
-            max-width: 980px;
-            margin: 0 auto;
-            padding: 45px;
-          }
-
-          @media (max-width: 767px) {
-            .markdown-body {
-              padding: 15px;
-            }
-          }
-         </style>")
-  "List of client stylesheets for preview."
-  :type '(repeat (string :tag "Css file host uri or content"))
-  :group 'entropy/emacs-customize-group-for-markdown-mode-builtin-preview)
-
-(defcustom entropy/emacs-markdown-preview-javascript
-  (list "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"
-        "
-         <script>
-          $(document).on('mdContentChange', function() {
-            $('pre code').each(function(i, block) {
-              hljs.highlightBlock(block);
-            });
-          });
-         </script>")
-  "List of client javascript libs for preview."
-  :type '(repeat (string :tag "Js script host uri or content"))
-  :group 'entropy/emacs-customize-group-for-markdown-mode-builtin-preview)
 
 ;; ***** markdown grip previewer
 
@@ -2323,7 +2259,8 @@ When set to an empty string, this attribute is omitted.  Defaults to
   "Eemacs markdown-mode girp preview configuration customizable group."
   :group 'entropy/emacs-customize-group-for-markdown-mode)
 
-(defcustom entropy/emacs-markdown-preview-grip-localhost-port 6419
+(defcustom entropy/emacs-markdown-preview-grip-localhost-port
+  (entropy/emacs-get-available-sys-network-port 6419)
   "The at-least available localhost port used for 'grip' markdown
 previewer."
   :type 'number

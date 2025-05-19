@@ -1407,7 +1407,8 @@ When eq 'nil' that say the initialization is going on.")
 (defun entropy/emacs--set-indicator-before-kill-emacs
     (orig-func &rest orig-args)
   (progn
-    (setq entropy/emacs-kill-emacs-running-p t)
+    (setq entropy/emacs-kill-emacs-running-p t
+          entropy/emacs--delete-process-force-delete t)
     (apply orig-func orig-args)))
 (advice-add 'kill-emacs :around #'entropy/emacs--set-indicator-before-kill-emacs)
 
