@@ -310,21 +310,70 @@ ARGS using
          (setq entropy/emacs-message--idle-timer-for-hide-popup
                (run-with-idle-timer 0.05 t #'entropy/emacs-message-hide-popup))))))
 
+(defvar-local __eemacs-msg-mode-line-msg-str__ nil)
+(let (omwin ombuff omfmt oprefunc)
+  (ignore omwin ombuff omfmt oprefunc)
+  (defun entropy/emacs-message--message-on-modeline-maybe (format-string &rest args)
+    "Display message specified by FORMAT-STRING and ARGS on the mode-line as needed.
+This function displays the message produced by formatting ARGS
+with FORMAT-STRING on the mode line when the current buffer is a minibuffer.
+Otherwise, it displays the message like `message' would."
+    (if (or (bound-and-true-p edebug-mode) (minibufferp))
+        (let ((inhibit-quit t))
+          (with-current-buffer
+              (setq ombuff
+                    (window-buffer
+                     (setq omwin
+                           (or (window-in-direction 'above (minibuffer-window))
+                               (minibuffer-selected-window)
+                               (get-largest-window)))))
+            (setq omfmt mode-line-format
+                  __eemacs-msg-mode-line-msg-str__ nil)
+            (when (and mode-line-format
+                       (not (and (listp mode-line-format)
+                                 (assq '__eemacs-msg-mode-line-msg-str__ mode-line-format))))
+              (setq mode-line-format
+                    (append
+                     (list "" '(__eemacs-msg-mode-line-msg-str__ (" " __eemacs-msg-mode-line-msg-str__ " ")))
+                     (if (listp mode-line-format) mode-line-format
+                       (list mode-line-format)))))
+            (setq __eemacs-msg-mode-line-msg-str__
+                  (when (stringp format-string)
+                    (apply #'format-message format-string args)))
+            (entropy/emacs-setf-by-body oprefunc
+              (lambda nil
+                (let ((inhibit-quit t))
+                  (unwind-protect
+                      (with-current-buffer ombuff
+                        (setq __eemacs-msg-mode-line-msg-str__ nil)
+                        (force-mode-line-update t)
+                        (redisplay t))
+                    (remove-hook 'pre-command-hook oprefunc)))))
+            (add-hook 'pre-command-hook oprefunc)
+            ;; still log message
+            (let ((inhibit-message t)) (apply #'message format-string args))
+            (force-mode-line-update t)
+            (redisplay t)))
+      (apply #'message format-string args))))
+
+(entropy/emacs-defconst/only-allow/local __eemacs-msg-use-modeline-p__ nil)
+(advice-add
+ 'message
+ :around
+ (entropy/emacs-!cl-defun entropy/emacs-message--message-top-advice (ofunc &rest args)
+   (if __eemacs-msg-use-modeline-p__
+       (let ((__eemacs-msg-use-modeline-p__ nil))
+         (apply 'entropy/emacs-message--message-on-modeline-maybe args))
+     (apply ofunc args))))
 (defmacro entropy/emacs-message-do-message-1 (message &rest args)
   "Same as`message' but also strips out ANSI codes with face
 applied."
-  `(let ((resize-mini-windows t))
-     ;; (redisplay t)
-
+  `(let ((resize-mini-windows t)
+         (msg (entropy/emacs-message--do-message-ansi-apply ,message ,@args)))
      ;; we shouldn't use `message' directly to touch the message in
      ;; this place since any string contain format notaion will cause
      ;; it corrupt, thus we use single `%s' to format the result.
-     (prog1
-         (message "%s"
-                  (entropy/emacs-message--do-message-ansi-apply
-                   ,message ,@args))
-       ;; (redisplay t)
-       )))
+     (message "%s" msg)))
 
 (defmacro entropy/emacs-message-do-warn-1 (message &rest args)
   "Same as`warn' but also strips out ANSI codes with face
@@ -542,6 +591,7 @@ NOTE: Just use it in `noninteractive' session."
              with-either-popup
              with-message-color-args
              with-rest-doing-msg
+             with-maybe-modeline-msg
              &allow-other-keys)
   "Do BODY and return its result with progress prompt message MESSAGE
 using `make-progress-reporter'.
@@ -580,6 +630,11 @@ progressing message done, a tail *ing* like msg will be rmained to
 show as the indicator when rest jobs is running for reduce waiting
 confusion of for what is waiting.
 
+If WITH-MAYBE-MODELINE-MSG is set and return non-nil, then the message
+will prefer show on the mode-line via \"CURRENT\"
+non-minibuffer-window-buffer's `mode-line-format' if suitable, such as
+when we are typing in minibuffer.
+
 Optional WITHOUT-MSG (default nil) if set and return non-nil,
 then run BODY directly like `progn'.
 "
@@ -597,20 +652,22 @@ then run BODY directly like `progn'.
         (use-popup-p-sym (make-symbol "with-popup-p"))
         (msg-color-args-sym (make-symbol "message-color-args"))
         (without-msg-p-sym (make-symbol "without-msg-p"))
-        (without-init-verbose-p-sym (make-symbol "without-init-verbose-p")))
+        (without-init-verbose-p-sym (make-symbol "without-init-verbose-p"))
+        (with-maybe-modeline-msg-p-sym (make-symbol "with-maybe-modeline-msg-p")))
     `(if-let* ((,without-msg-p-sym t) (,without-init-verbose-p-sym t)
                ((or (setq ,without-msg-p-sym ,without-msg)
                     (setq ,without-init-verbose-p-sym
                           (entropy/emacs--message-do-message-should-not-msg-verbose-p)))))
-         (let* ((,message-sym ,message)
-                (,msg-color-args-sym ,with-message-color-args)
-                (_ (when (and ,message-sym ,msg-color-args-sym)
-                     (setq ,message-sym
-                           (entropy/emacs-message--format-message-2
-                            ,message-sym ,msg-color-args-sym)))))
-           (when (and ,message-sym ,without-init-verbose-p-sym)
-             (eval (list 'entropy/emacs--message-do-message-before-eemacs-init
-                         "%s" ,message-sym)))
+         (progn
+           (let* ((,message-sym ,message)
+                  (,msg-color-args-sym ,with-message-color-args)
+                  (_ (when (and (not ,without-msg-p-sym) ,message-sym ,msg-color-args-sym)
+                       (setq ,message-sym
+                             (entropy/emacs-message--format-message-2
+                              ,message-sym ,msg-color-args-sym)))))
+             (when (and (not ,without-msg-p-sym) ,message-sym ,without-init-verbose-p-sym)
+               (eval (list 'entropy/emacs--message-do-message-before-eemacs-init
+                           "%s" ,message-sym))))
            ,(entropy/emacs-macroexp-progn body))
        (let* ((resize-mini-windows t)
               (,with-tmpmsg-sym ,with-temp-message)
@@ -629,9 +686,12 @@ then run BODY directly like `progn'.
               (,msg-max-ov-sym message-log-max)
               (message-log-max
                (if ,with-tmpmsg-sym nil ,msg-max-ov-sym))
+              (,with-maybe-modeline-msg-p-sym ,with-maybe-modeline-msg)
               (,progmsg-sym nil)
               (,progress-reporter-sym
-               (when ,message-sym
+               (entropy/emacs-when-let*-firstn 1
+                   ((,message-sym)
+                    (__eemacs-msg-use-modeline-p__ ,with-maybe-modeline-msg-p-sym))
                  (prog1 (make-progress-reporter
                          (if (or noninteractive (not ,with-fit-window-width))
                              (format "%s ... " ,message-sym)
@@ -663,9 +723,12 @@ then run BODY directly like `progn'.
            ;; any messages, if not, we should respect the BODY's
            ;; behaviour.
            (when (and ,progress-reporter-sym ,new-curmsg-np-sym)
-             (progress-reporter-done ,progress-reporter-sym)
+             (let ((__eemacs-msg-use-modeline-p__ ,with-maybe-modeline-msg-p-sym))
+               (progress-reporter-done ,progress-reporter-sym))
              (when ,with-rest-doing-msg
-               (let ((message-log-max nil)) (message "..."))))
+               (let ((message-log-max nil)
+                     (__eemacs-msg-use-modeline-p__ ,with-maybe-modeline-msg-p-sym))
+                 (message "..."))))
            (when (and ,message-sym ,curmsg-sym)
              (let (
                    ;; we has no reason to log the old msg again since we

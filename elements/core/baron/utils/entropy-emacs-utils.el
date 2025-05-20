@@ -240,6 +240,7 @@
 (use-package eldoc
   :ensure nil
   :commands (eldoc eldoc-mode global-eldoc-mode)
+  :eemacs-functions (eldoc-minibuffer-message)
   :init
 
   ;; Use union IDE like doc delay setting

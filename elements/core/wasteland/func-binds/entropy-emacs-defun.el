@@ -12374,10 +12374,11 @@ prompts."
                   "%s"
                 :with-message-color-args
                 (list '(yellow "🔴 initial base setups"))
-                ;; ensure prompt shown up since, minibuffer message may
-                ;; coverred by minibuffer prompts or the redisplay is
-                ;; not freshed.
-                :with-either-popup 'force
+                ;; ;; ensure prompt shown up since, minibuffer message may
+                ;; ;; coverred by minibuffer prompts or the redisplay is
+                ;; ;; not freshed.
+                ;; :with-either-popup 'force
+                :with-maybe-modeline-msg t
                 (let ((inhibit-message t))
                   (run-hooks 'entropy/emacs-lazy--initial-form-adv/feq-list/switch-to-buffer)
                   (setq entropy/emacs-lazy--initial-form-adv/feq-list/switch-to-buffer

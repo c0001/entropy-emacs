@@ -300,7 +300,7 @@ before invocation."
      (error
       (message "%s" error))))
 
- (global-eldoc-mode 1)
+ (unless (bound-and-true-p global-eldoc-mode) (global-eldoc-mode 1))
 
  (entropy/emacs-hydra-hollow-add-for-top-dispatch
   '("Basic"
