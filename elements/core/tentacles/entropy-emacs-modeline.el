@@ -160,7 +160,7 @@
           (concat
            (propertize (concat
                         " "
-                        (if (char-displayable-p ?⦿) (make-string 1 ?⦿)
+                        (if (entropy/emacs-icons-displayable-p) (make-string 1 ?⦿)
                           (make-string 1 ?λ))
                         (let
                             ((str

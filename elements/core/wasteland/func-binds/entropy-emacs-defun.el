@@ -11876,6 +11876,8 @@ true, nil for otherwise."
       entropy/emacs-icons-displayable-p--cache
     (entropy/emacs-setf-by-body entropy/emacs-icons-displayable-p--cache
       (and entropy/emacs-use-icon
+           ;; FIXME: TMUX session will messy the screen while use color icon which is a pity
+           (not (and (not (display-graphic-p)) (entropy/emacs-getenv "TMUX")))
            (or
             (and entropy/emacs-fall-love-with-pdumper
                  entropy/emacs-do-pdumper-in-X)
@@ -12373,7 +12375,9 @@ prompts."
               (entropy/emacs-message-simple-progress-message
                   "%s"
                 :with-message-color-args
-                (list '(yellow "🔴 initial base setups"))
+                (list '(yellow (format "%s initial base setups"
+                                       (if (entropy/emacs-icons-displayable-p)
+                                           "🔴" ">>"))))
                 ;; ;; ensure prompt shown up since, minibuffer message may
                 ;; ;; coverred by minibuffer prompts or the redisplay is
                 ;; ;; not freshed.
