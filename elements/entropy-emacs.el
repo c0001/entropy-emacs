@@ -1012,6 +1012,7 @@ Use =eemacs-defn-bind= of symbol of NAME for BODY when
   (let ((name (car args)))
     `(let ((,entropy/emacs-inner-sym-for/current-defname
             ',name))
+       (ignore ,entropy/emacs-inner-sym-for/current-defname)
        (cl-defun ,@args) ',name)))
 
 (defmacro __entropy/emacs-!cl-defmacro/wrapper (name &rest args)

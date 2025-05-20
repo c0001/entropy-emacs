@@ -3354,6 +3354,24 @@ way."
                ,(entropy/emacs-macroexp-progn body)))
            (forward-char)))))))
 
+(defvar entropy/emacs-image-dired-thumbnail-mode-navigation-before-hook ())
+(defvar entropy/emacs-image-dired-thumbnail-mode-navigation-after-forcerun-hook ())
+(eval-and-compile
+  (defmacro entropy/emacs-image-dired-define-smooth-continuous-command
+      (name &rest args)
+    (declare (indent 2))
+    (let* ((lambda-args (entropy/emacs-parse-lambda-args-plus args))
+           (body (plist-get lambda-args :body)))
+      (entropy/emacs-setf-by-body lambda-args
+        (plist-put
+         lambda-args
+         :body
+         `((run-hooks 'entropy/emacs-image-dired-thumbnail-mode-navigation-before-hook)
+           (unwind-protect (progn ,@body)
+             (run-hooks 'entropy/emacs-image-dired-thumbnail-mode-navigation-after-forcerun-hook)))))
+      (setq lambda-args (entropy/emacs-merge-lambda-args lambda-args))
+      `(entropy/emacs-define-smooth-continuous-command ,name ,@lambda-args))))
+
 ;; NOTE: declare this since we've no-require `image-dired' which will
 ;; cause bytecomp warns.
 (defvar image-dired-thumbnail-mode-map)
@@ -4534,7 +4552,7 @@ window has no image displayed i.e. is invalid!"))
   (defvar eemacs/image-dired--hvscroll-adjinterval  0.02)
   (defvar eemacs/image-dired--hvscroll-adjlen       15)
   (defvar eemacs/image-dired--hvscroll-breakiternal 0.005)
-  (entropy/emacs-define-smooth-continuous-command
+  (entropy/emacs-image-dired-define-smooth-continuous-command
       entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer/up
       (&optional n)
     "Use `entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer' with 'up'."
@@ -4545,7 +4563,7 @@ window has no image displayed i.e. is invalid!"))
     :with-break-interval eemacs/image-dired--hvscroll-breakiternal
     (entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer
      'up n))
-  (entropy/emacs-define-smooth-continuous-command
+  (entropy/emacs-image-dired-define-smooth-continuous-command
       entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer/down
       (&optional n)
     "Use `entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer' with 'down'."
@@ -4556,7 +4574,7 @@ window has no image displayed i.e. is invalid!"))
     :with-break-interval eemacs/image-dired--hvscroll-breakiternal
     (entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer
      'down n))
-  (entropy/emacs-define-smooth-continuous-command
+  (entropy/emacs-image-dired-define-smooth-continuous-command
       entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer/left
       (&optional n)
     "Use `entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer' with 'left'."
@@ -4567,7 +4585,7 @@ window has no image displayed i.e. is invalid!"))
     :with-break-interval eemacs/image-dired--hvscroll-breakiternal
     (entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer
      'left n))
-  (entropy/emacs-define-smooth-continuous-command
+  (entropy/emacs-image-dired-define-smooth-continuous-command
       entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer/right
       (&optional n)
     "Use `entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer' with 'right'."
@@ -4581,20 +4599,63 @@ window has no image displayed i.e. is invalid!"))
 
 ;; ******** basic navigation
 
-  ;; nodups since obsolete as alias to thus
-  (if (fboundp 'image-dired-display-next)
-      (entropy/emacs-make-command-continuous-smoothing-with-common-style
-          image-dired-display-next)
-    (entropy/emacs-make-command-continuous-smoothing-with-common-style
-        image-dired-display-next-thumbnail-original))
-  ;; nodups since obsolete as alias to thus
-  (if (fboundp 'image-dired-display-previous)
-      (entropy/emacs-make-command-continuous-smoothing-with-common-style
-          image-dired-display-previous)
-    (entropy/emacs-make-command-continuous-smoothing-with-common-style
-        image-dired-display-previous-thumbnail-original))
+  (defvar-local entropy/emacs--image-dired-thumbnail-highlight-thumb-square/var/overlay nil)
+  (defun entropy/emacs-image-dired-thumbnail-mode-navigation-force-delete-highlight-ov nil
+    (when-let* ((ov entropy/emacs--image-dired-thumbnail-highlight-thumb-square/var/overlay)
+                ((overlayp ov)))
+      (delete-overlay ov)
+      (setq entropy/emacs--image-dired-thumbnail-highlight-thumb-square/var/overlay nil)))
+  (add-hook
+   'entropy/emacs-image-dired-thumbnail-mode-navigation-before-hook
+   (entropy/emacs-!cl-defun
+       entropy/emacs--image-dired-thumbnail-unhighlight-prev-thumb-square ()
+     (entropy/emacs-image-dired-thumbnail-mode-navigation-force-delete-highlight-ov)))
 
-  (entropy/emacs-define-smooth-continuous-command
+  (add-hook
+   'entropy/emacs-image-dired-thumbnail-mode-navigation-after-forcerun-hook
+   (entropy/emacs-!cl-defun
+       entropy/emacs--image-dired-thumbnail-highlight-cur-thumb-square ()
+     (entropy/emacs-image-dired-thumbnail-mode-navigation-force-delete-highlight-ov)
+     (entropy/emacs-when-let*-firstn 2
+         (((eq major-mode 'image-dired-thumbnail-mode))
+          ((image-dired-image-at-point-p))
+          pnpos pepos (cpos (point)) epos npos ov)
+       (ignore pepos epos)
+       (save-excursion
+         (and (not (eobp)) (forward-char))
+         (while (and (not (eolp)) (image-dired-image-at-point-p))
+           (forward-char))
+         (setq epos (point))
+         (while (and (not (eolp)) (not (image-dired-image-at-point-p)))
+           (forward-char))
+         (setq npos (point))
+         (goto-char cpos)
+         (and (not (bobp)) (backward-char))
+         (while (and (not (bolp)) (image-dired-image-at-point-p))
+           (backward-char))
+         ;; point at prevline end point so we should judge thus
+         (and (save-excursion (forward-char) (bolp)) (forward-char))
+         (setq pepos (point))
+         (while (and (not (bolp)) (not (image-dired-image-at-point-p)))
+           (backward-char))
+         (setq pnpos (point)))
+       (unless (eql pepos pnpos) (setq pnpos (1+ pnpos)))
+       (let ((inhibit-quit t))
+         (unwind-protect
+             (setq ov (make-overlay pnpos npos))
+           (setq entropy/emacs--image-dired-thumbnail-highlight-thumb-square/var/overlay
+                 ov)))
+       (overlay-put ov 'face 'cursor))))
+  (add-hook
+   'image-dired-thumbnail-mode-hook
+   (entropy/emacs-!cl-defun
+       entropy/emacs--image-dired-thumbnail-highlight-cur-thumb-square/at-init-time
+       ()
+     (run-with-idle-timer
+      0.2 nil
+      'entropy/emacs--image-dired-thumbnail-highlight-cur-thumb-square)))
+
+  (entropy/emacs-image-dired-define-smooth-continuous-command
       entropy/emacs-image-dired-forward-image (&optional arg)
     "Like `image-dired-forward-image' but using
 `entropy/emacs-image-dired-idle-track-orig-file' as subroutine."
@@ -4619,7 +4680,7 @@ window has no image displayed i.e. is invalid!"))
               [remap forward-char]
               #'entropy/emacs-image-dired-forward-image)
 
-  (entropy/emacs-define-smooth-continuous-command
+  (entropy/emacs-image-dired-define-smooth-continuous-command
       entropy/emacs-image-dired-backward-image (&optional arg)
     "Like `image-dired-backward-image' but using
 `entropy/emacs-image-dired-idle-track-orig-file' as subroutine."
@@ -4644,7 +4705,7 @@ window has no image displayed i.e. is invalid!"))
               [remap backward-char]
               #'entropy/emacs-image-dired-backward-image)
 
-  (entropy/emacs-define-smooth-continuous-command
+  (entropy/emacs-image-dired-define-smooth-continuous-command
       entropy/emacs-image-dired-next-line ()
     "Like `image-dired-next-line' but using
 `entropy/emacs-image-dired-idle-track-orig-file' as subroutine."
@@ -4663,7 +4724,7 @@ window has no image displayed i.e. is invalid!"))
               [remap next-line]
               #'entropy/emacs-image-dired-next-line)
 
-  (entropy/emacs-define-smooth-continuous-command
+  (entropy/emacs-image-dired-define-smooth-continuous-command
       entropy/emacs-image-dired-previous-line ()
     "Like `image-dired-previous-line' but using
 `entropy/emacs-image-dired-idle-track-orig-file' as subroutine."
@@ -4685,7 +4746,7 @@ window has no image displayed i.e. is invalid!"))
               [remap previous-line]
               #'entropy/emacs-image-dired-previous-line)
 
-  (entropy/emacs-define-smooth-continuous-command
+  (entropy/emacs-image-dired-define-smooth-continuous-command
       entropy/emacs-image-dired-display-next-thumbnail-original
       (&optional arg)
     "Like `image-dired-display-next-thumbnail-original' but using
@@ -4703,7 +4764,7 @@ window has no image displayed i.e. is invalid!"))
     (when image-dired-track-movement
       (entropy/emacs-image-dired-idle-track-orig-file)))
 
-  (entropy/emacs-define-smooth-continuous-command
+  (entropy/emacs-image-dired-define-smooth-continuous-command
       entropy/emacs-image-dired-display-previous-thumbnail-original
       (&optional arg)
     "Like `image-dired-display-next-thumbnail-original' but using
@@ -4719,7 +4780,7 @@ window has no image displayed i.e. is invalid!"))
       ;; subroutine only valid uppon emacs 29 since the defination is
       ;; born from thus.
       (> emacs-major-version 28)
-    (entropy/emacs-define-smooth-continuous-command
+    (entropy/emacs-image-dired-define-smooth-continuous-command
         entropy/emacs-image-dired-move-beginning-of-line ()
       "Like `image-dired-move-beginning-of-line' but using
 `entropy/emacs-image-dired-idle-track-orig-file' as subroutine."
@@ -4732,7 +4793,7 @@ window has no image displayed i.e. is invalid!"))
                 [remap beginning-of-line]
                 #'entropy/emacs-image-dired-move-beginning-of-line)
 
-    (entropy/emacs-define-smooth-continuous-command
+    (entropy/emacs-image-dired-define-smooth-continuous-command
         entropy/emacs-image-dired-move-end-of-line ()
       "Like `image-dired-move-end-of-line' but using
 `entropy/emacs-image-dired-idle-track-orig-file' as subroutine."
@@ -4745,7 +4806,7 @@ window has no image displayed i.e. is invalid!"))
                 [remap end-of-line]
                 #'entropy/emacs-image-dired-move-end-of-line)
 
-    (entropy/emacs-define-smooth-continuous-command
+    (entropy/emacs-image-dired-define-smooth-continuous-command
         entropy/emacs-image-dired-end-of-buffer ()
       "Like `image-dired-end-of-buffer' but using
 `entropy/emacs-image-dired-idle-track-orig-file' as subroutine."
@@ -4758,7 +4819,7 @@ window has no image displayed i.e. is invalid!"))
                 [remap end-of-buffer]
                 #'entropy/emacs-image-dired-end-of-buffer)
 
-    (entropy/emacs-define-smooth-continuous-command
+    (entropy/emacs-image-dired-define-smooth-continuous-command
         entropy/emacs-image-dired-beginning-of-buffer ()
       "Like `image-dired-beginning-of-buffer' but using
 `entropy/emacs-image-dired-idle-track-orig-file' as subroutine."
