@@ -153,6 +153,22 @@ argument."
              ;; obsolete and we've disabled `package-quickstart'.
              (make-temp-name "__eemacs_fake_package-quickstart-file."))))
       (entropy/emacs--run-maybe-without-msg-verbose
+       (message "-> \
+[%s eemacs package initialization conds]:
+forcep:                 %s
+spec from customfile:   %s
+elpkg get type:         %s
+elpkg archive repo:     %s
+elpkg package-archives: %s
+\n
+"
+                (format-time-string "%Y-%m-%d %a %H:%M:%S")
+                force
+                custom-file
+                entropy/emacs-ext-elpkg-customized-get-type
+                entropy/emacs-package-archive-repo
+                package-archives
+                )
        (package-initialize))))
   (unless __package-first-initialized
     (setq entropy/emacs-package-initialize-done-timestamp

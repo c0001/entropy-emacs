@@ -3,6 +3,8 @@
 (entropy/emacs-common-require-feature 'entropy-emacs-defvar)
 (entropy/emacs-common-require-feature 'entropy-emacs-defun)
 (entropy/emacs-common-require-feature 'entropy-emacs-package)
+(entropy/emacs-common-require-feature 'entropy-emacs-ext)
+(entropy/emacs-ext-main)
 (entropy/emacs-package-common-start)
 ;; for extra APIs
 (entropy/emacs-common-require-feature 'entropy-emacs-utils)

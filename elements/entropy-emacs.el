@@ -1556,13 +1556,15 @@ it has one of thus, otherwise same as `process-buffer'."
          (entropy/emacs-get-available-sys-network-port ,base-port))
        (defconst ,url-varname
          (format "http://localhost:%s/" ,port-varname))
-       (let ((promise-proc
-              ;; FIXME: we occupy the port temporarily for after-init body
-              ;; run, is there a more stable way to approach such case?
-              (make-network-process
-               :name (format " *promise <%s>*" ,base-name)
-               :service ,port-varname
-               :server t)))
+       (when-let
+           (((or (not noninteractive) (daemonp)))
+            (promise-proc
+             ;; FIXME: we occupy the port temporarily for after-init body
+             ;; run, is there a more stable way to approach such case?
+             (make-network-process
+              :name (format " *promise <%s>*" ,base-name)
+              :service ,port-varname
+              :server t)))
          (add-hook
           'entropy/emacs-after-startup-hook
           (entropy/emacs-!cl-defun ,dispatch-func-name nil
@@ -1570,12 +1572,15 @@ it has one of thus, otherwise same as `process-buffer'."
             (delete-process promise-proc)
             (let ((pkgdir   package-user-dir)
                   (pkgdlist package-directory-list)
+                  (pkgarchives package-archives)
                   (srvroot ,srv-root)
                   (srvport ,port-varname))
               (entropy/emacs--delete-process-regist-vip
                (async-start
                 (lambda (&rest _)
-                  (setq package-user-dir pkgdir package-directory-list pkgdlist)
+                  (setq package-user-dir       pkgdir
+                        package-directory-list pkgdlist
+                        package-archives       pkgarchives)
                   (package-initialize)
                   (setq httpd-port srvport) (httpd-serve-directory srvroot)
                   (while t (sleep-for 60)))
