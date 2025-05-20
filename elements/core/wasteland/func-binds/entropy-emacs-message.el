@@ -335,7 +335,15 @@ Otherwise, it displays the message like `message' would."
               (setq mode-line-format
                     (append
                      (list "" '(__eemacs-msg-mode-line-msg-str__ (" " __eemacs-msg-mode-line-msg-str__ " ")))
-                     (if (listp mode-line-format) mode-line-format
+                     (if (listp mode-line-format)
+                         (if (listp (car-safe mode-line-format))
+                             mode-line-format
+                           ;; NOTE: we should ensure that the origin
+                           ;; mode-line-format's structure, since for
+                           ;; example if car of such is :eval then we
+                           ;; shouldn't just append such or the
+                           ;; original format is not displayable
+                           (list mode-line-format))
                        (list mode-line-format)))))
             (setq __eemacs-msg-mode-line-msg-str__
                   (when (stringp format-string)
