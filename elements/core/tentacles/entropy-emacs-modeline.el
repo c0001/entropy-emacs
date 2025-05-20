@@ -475,11 +475,15 @@ eemacs origin type which reduce performance issue."
   (setq-default
    mode-line-format
    (copy-sequence
-    '(:eval
-      (if (entropy/emacs-modeline--subr-func->judge-current-window-focus-on-p)
-          entropy/emacs-modeline--simple-mode-line-format
-        (propertize (make-string (+ (window-width) 3) ?─ t)
-                    'face 'error))))))
+    ;; NOTE: we should not directly use a single :eval form as whole
+    ;; mode-line-format since any others' preceding injection
+    ;; modification will interrupt our spec.
+    '(""
+      (:eval
+       (if (entropy/emacs-modeline--subr-func->judge-current-window-focus-on-p)
+           entropy/emacs-modeline--simple-mode-line-format
+         (propertize (make-string (+ (window-width) 3) ?─ t)
+                     'face 'error)))))))
 
 ;; **** doom modeline
 (entropy/emacs--inner-use-package doom-modeline
@@ -810,120 +814,6 @@ entropy-emacs."
                     'entropy/emacs-defface-face-for-modeline-eyebrowse-face-main_inactive)))))
       ""))
 
-
-;; ******* idle actived =buffer position= indicator
-
-  ;; EEMACS_MAINTENANCE: update folllow upstream internal defination
-  (doom-modeline-def-segment buffer-position
-    "The buffer position information."
-    (cond ((and t ;; entropy/emacs-current-session-is-idle-p
-                (doom-modeline--active) ;EEMACS_MAINTENANCE: update folllow upstream internal defination
-                (not (bound-and-true-p company-candidates)))
-           (let* ((active (doom-modeline--active))
-                  (lc '(line-number-mode
-                        (column-number-mode
-                         (doom-modeline-column-zero-based "%l:%c" "%l:%C")
-                         "%l")
-                        (column-number-mode (doom-modeline-column-zero-based ":%c" ":%C"))))
-                  (face (if active 'mode-line 'mode-line-inactive))
-                  (mouse-face 'mode-line-highlight)
-                  (local-map mode-line-column-line-number-mode-map))
-             (concat
-              (entropy/emacs-modeline--doom-modeline-wspc)
-              (entropy/emacs-modeline--doom-modeline-wspc)
-
-              (propertize (format-mode-line lc)
-                          'face face
-                          'help-echo "Buffer position\n\
-mouse-1: Display Line and Column Mode Menu"
-                          'mouse-face mouse-face
-                          'local-map local-map)
-
-              (cond ((and active
-                          (bound-and-true-p nyan-mode)
-                          (>= (window-width) nyan-minimum-window-width))
-                     (concat
-                      (entropy/emacs-modeline--doom-modeline-wspc)
-                      (entropy/emacs-modeline--doom-modeline-wspc)
-                      (propertize (nyan-create) 'mouse-face mouse-face)))
-                    ((and active
-                          (bound-and-true-p poke-line-mode)
-                          (>= (window-width) poke-line-minimum-window-width))
-                     (concat
-                      (entropy/emacs-modeline--doom-modeline-wspc)
-                      (entropy/emacs-modeline--doom-modeline-wspc)
-                      (propertize (poke-line-create) 'mouse-face mouse-face)))
-                    (t
-                     (when doom-modeline-percent-position
-                       (concat
-                        (entropy/emacs-modeline--doom-modeline-wspc)
-                        (propertize (format-mode-line '("" doom-modeline-percent-position "%%"))
-                                    'face face
-                                    'help-echo "Buffer percentage\n\
-mouse-1: Display Line and Column Mode Menu"
-                                    'mouse-face mouse-face
-                                    'local-map local-map)))))
-              (when (or line-number-mode column-number-mode doom-modeline-percent-position)
-                (entropy/emacs-modeline--doom-modeline-wspc)))))
-          (t
-           " ......... ")))
-
-
-;; ******* idle actived =matches= indicator
-
-  (doom-modeline-def-segment matches
-    "Redefined by eemacs to run while
-`entropy/emacs-current-session-is-idle-p' is non-nill"
-    (cond
-     ((and t ;; entropy/emacs-current-session-is-idle-p
-           (doom-modeline--active))
-      (let ((meta (concat (doom-modeline--macro-recording)
-                          (doom-modeline--symbol-overlay))))
-        (or (and (not (equal meta "")) meta)
-            (doom-modeline--buffer-size))))
-     (t
-      " ... ")))
-
-;; ******* idle actived =buffer-info= indicator
-
-  (doom-modeline-def-segment buffer-info
-    "Combined information about the current buffer, including the
-current working directory, the file name, and its
-state (modified, read-only or non-existent).
-
-NOTE: this functio has been redefined by eemacs to run while idle
-while `entropy/emacs-current-session-is-idle-p' is non-nil."
-    (cond
-     ((or
-       ;; we do not inhibit show for some non frequency status
-       (or
-        (eq last-command 'entropy/grom-read-only-buffer))
-       (and t ;; entropy/emacs-current-session-is-idle-p
-            (doom-modeline--active)))
-      (concat
-       (entropy/emacs-modeline--doom-modeline-wspc)
-       (doom-modeline--buffer-mode-icon)
-       (doom-modeline--buffer-state-icon)
-       (doom-modeline--buffer-name)))
-     (t
-      "🔃")))
-
-;; ******* idle actived =major-mode= indictor
-
-  (defun __ya/doom-modeline-segment--major-mode
-      (orig-func &rest orig-args)
-    (cond ((and t ;; entropy/emacs-current-session-is-idle-p
-                (doom-modeline--active))
-           (apply orig-func orig-args))
-          (t
-           mode-name)))
-  (if (fboundp 'doom-modeline-segment--major-mode)
-      (advice-add 'doom-modeline-segment--major-mode
-                  :around
-                  #'__ya/doom-modeline-segment--major-mode)
-    (error "EEMACS_MAINTENANCE: doom-modeline-segment--major-mode \
-function name has been changed, please update internal hack of \
-`__ya/doom-modeline-segment--major-mode'."))
 
 ;; ****** eemacs doom-modeline type spec
 
