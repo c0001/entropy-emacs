@@ -1116,6 +1116,12 @@ really stop it before start a new one? \
           (apply orig-func orig-args)))))
   (advice-add 'httpd-start :around '__ya/httpd-start/safe)
 
+  (defun entropy/emacs-utils--httpd-start (ofunc &rest oargs)
+    (unless (httpd-running-p)
+      (setq httpd-port (entropy/emacs-get-available-sys-network-port httpd-port)))
+    (apply ofunc oargs))
+  (advice-add 'httpd-start :around #'entropy/emacs-utils--httpd-start)
+
   )
 
 ;; ** xclip-mode
