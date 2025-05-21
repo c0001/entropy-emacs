@@ -1869,32 +1869,27 @@ in `window-configuration-change-hook'."
 
 ;; ** Window divider
 
-(entropy/emacs-lazy-initial-for-hook
- '(window-configuration-change-hook)
- "window-divider-mode-init" "window-divider-mode-init"
- :prompt-type 'prompt-echo
- :pdumper-no-end t
- (window-divider-mode)
- (defun entropy/emacs-wc-auto-toggle-window-divider-mode ()
-   (let ((need-to-disable
-          (lambda (&rest _)
-            (or
-             (memq entropy/emacs-theme-sticker
-                   '(spacemacs-dark
-                     spacemacs-light))
-             (string-match-p
-              "^base16-"
-              (symbol-name entropy/emacs-theme-sticker))))))
-     (if (and (bound-and-true-p window-divider-mode)
-              (funcall need-to-disable))
-         (window-divider-mode 0)
-       (unless (or (bound-and-true-p window-divider-mode)
-                   (funcall need-to-disable))
-         (window-divider-mode)))))
- (run-with-idle-timer
-  1.5
-  t
-  #'entropy/emacs-wc-auto-toggle-window-divider-mode))
+(defun entropy/emacs-wc-auto-toggle-window-divider-mode ()
+  (let*
+      ((mp (bound-and-true-p window-divider-mode))
+       (need-to-disable
+        (and mp
+             (or
+              (memq entropy/emacs-theme-sticker
+                    '(spacemacs-dark spacemacs-light))
+              (string-match-p
+               "^base16-"
+               (symbol-name entropy/emacs-theme-sticker))))))
+    (if need-to-disable (window-divider-mode -1)
+      (unless (or mp need-to-disable) (window-divider-mode 1)))))
+(entropy/emacs-add-hook-with-lambda
+  'run-window-divider-guard nil
+  :use-hook 'entropy/emacs-after-startup-idle-hook
+  (window-divider-mode -1)
+  (run-with-idle-timer
+   1.5
+   t
+   #'entropy/emacs-wc-auto-toggle-window-divider-mode))
 
 ;; * provide
 (provide 'entropy-emacs-wc)
