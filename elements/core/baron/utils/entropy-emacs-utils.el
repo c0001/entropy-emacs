@@ -748,7 +748,7 @@ bindings for as.")
       (and (bufferp buff)
            (buffer-live-p buff))))
 
-  (defun __adv/around/hydra-posframe-show
+  (defun __adv/around/hydra-posframe-show/reset-internal-border
       (orig-func &rest orig-args)
     "Reset the posframe `internal-border' face background color
 since the posframe resuse the invisible old created
@@ -764,7 +764,16 @@ easily modified by others."
       rtn))
   (advice-add 'hydra-posframe-show
               :around
-              #'__adv/around/hydra-posframe-show)
+              #'__adv/around/hydra-posframe-show/reset-internal-border)
+
+  (defun __adv/around/hydra-posframe-show/set-eemacs-pretty-hdydra-posframe-indicator
+      (ofunc &rest oargs)
+    (setq entropy/emacs-pretty-hydra-posframe-visible-p t)
+    (apply ofunc oargs))
+  (advice-add 'hydra-posframe-show
+              :around
+              #'__adv/around/hydra-posframe-show/set-eemacs-pretty-hdydra-posframe-indicator)
+
   ;; FIXME: Recreate the hydra-posframe before load a new theme since
   ;; the new theme may cover someting patched yet e.g. the border
   ;; face?
@@ -887,7 +896,6 @@ posframe when available."
                    ,(format "Around advice for `%s' to show with posframe if available."
                             body-adfunc-name)
                    (let* (,@entropy/emacs-pretty-hydra--hydra-hints-let-env)
-                     (setq entropy/emacs-pretty-hydra-posframe-visible-p t)
                      (apply orig-func orig-args)))
                  (advice-add ',body-func-name
                              :around
