@@ -713,8 +713,7 @@ Add current music to queue when its not in thus."
   (bongo-switch-to-buffer
    bongo-switch-buffers
    bongo-dired-library-mode
-   entropy/emacs-music-bongo-add-dired-files
-   bongo-repeating-playlist-mode)
+   entropy/emacs-music-bongo-add-dired-files)
   :eemacs-functions
   (bongo-buffer
    bongo-library-buffer
@@ -734,13 +733,20 @@ Add current music to queue when its not in thus."
    (entropy/emacs-hydra-hollow-add-to-major-mode-hydra
     'dired-mode '(dired dired-mode-map)
     '("Bongo"
-      (("b a" entropy/emacs-music-bongo-add-dired-files
+      (("b" (if (bound-and-true-p bongo-dired-library-mode)
+                (bongo-dired-library-mode 1)
+              (bongo-dired-library-mode -1))
+        "Toggle Bongo library mode in current dired buffer"
+        :enable t :exit t :map-inject t
+        :toggle (bound-and-true-p bongo-dired-library-mode))
+       ("C-b a" entropy/emacs-music-bongo-add-dired-files
         "Add marked files to the Bongo library."
         :enable t :exit t)
-       ("b d" (if (not (bound-and-true-p bongo-dired-library-mode))
-                  (bongo-dired-library-mode 1)
-                (user-error "You are already in bongo-dired-library-mode!"))
-        "Enable Bongo library mode"
+       ("C-b C-a" (bongo-insert-directory default-directory)
+        "Add current dired directory to the Bongo library."
+        :enable t :exit t)
+       ("C-b M-a" (bongo-insert-directory-tree default-directory)
+        "Add current dired directory recursively to the Bongo library."
         :enable t :exit t)))))
 
 ;; *** config
