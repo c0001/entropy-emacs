@@ -712,6 +712,7 @@ Add current music to queue when its not in thus."
   :commands
   (bongo-switch-to-buffer
    bongo-switch-buffers
+   bongo-dired-library-mode
    entropy/emacs-music-bongo-add-dired-files)
   :eemacs-functions
   (bongo-buffer
