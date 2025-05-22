@@ -713,7 +713,8 @@ Add current music to queue when its not in thus."
   (bongo-switch-to-buffer
    bongo-switch-buffers
    bongo-dired-library-mode
-   entropy/emacs-music-bongo-add-dired-files)
+   entropy/emacs-music-bongo-add-dired-files
+   bongo-repeating-playlist-mode)
   :eemacs-functions
   (bongo-buffer
    bongo-library-buffer
@@ -775,6 +776,47 @@ jumped to the main context."
           (while (and (car (entropy/emacs-forward-line))
                       (not (bongo-track-line-p))))))
       (and (buffer-live-p lbuf) (display-buffer lbuf))))
+
+  (defun entropy/emacs--bongo-play-next-or-backto-first (&optional n)
+    "Maybe start playing the next track in the nearest playlist buffer.
+If there is no next track to play, just stop playback, if current played
+the last item in the playlist then fallback to the first one replay the
+playlist.
+
+With numerical prefix argument N, skip that many tracks.
+With \\[universal-argument] as prefix argument, just switch to \
+progressive playback.
+With \\[universal-argument] \\[universal-argument] as prefix argument, \
+insert an action track at point."
+    (interactive "P")
+    (condition-case err
+        (bongo-play-next n)
+      (error
+       (bongo-stop)
+       (let ((lps (bongo-point-at-last-track-line))
+             (cps (bongo-point-at-current-track-line)))
+         (if (and (number-or-marker-p lps) (number-or-marker-p cps)
+                  (= cps lps))
+             (bongo-play-line (bongo-point-at-first-track-line))
+           (error "%s" err))))))
+  (setq-default bongo-next-action 'entropy/emacs--bongo-play-next-or-backto-first)
+
+  (and (fboundp 'bongo-repeating-playlist-mode)
+       (entropy/emacs-!error-as-eemacs-internal-error
+        "Bongo has builtin implements func: bongo-repeating-playlist-mode"))
+  (defun bongo-repeating-playlist-mode (&optional default)
+    "Switch to repeating playlist mode in the nearest playlist buffer.
+In repeating playback mode, the current playlist is played over and over.
+With prefix argument DEFAULT, make repeating playlist the default mode.
+This function sets the buffer-local or global value of `bongo-next-action'."
+    (interactive "P")
+    (if (not default)
+        (with-bongo-playlist-buffer
+          (setq bongo-next-action 'entropy/emacs--bongo-play-next-or-backto-first)
+          (message "Switched to repeating playback mode."))
+      (setq-default bongo-next-action 'entropy/emacs--bongo-play-next-or-backto-first)
+      (message "Repeating playback is now the default mode."))
+    (force-mode-line-update))
 
 ;; *** end
   )
