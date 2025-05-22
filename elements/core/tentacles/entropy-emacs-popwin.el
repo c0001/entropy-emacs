@@ -195,7 +195,7 @@
         ("^\\*sldb"                    :regexp t   :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
 
         ;; Bongo
-        ("^\\*Bongo"                   :regexp t   :dedicated t :align left :size 0.5   :autoclose t   :select t)
+        ("^\\*Bongo"                   :regexp t   :dedicated t :align bottom :size 0.6 :autoclose t   :select t)
 
         ;; Msic.
         ("*Buffer Details*"            :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)

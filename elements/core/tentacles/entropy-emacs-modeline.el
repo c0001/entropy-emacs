@@ -334,37 +334,51 @@ return nil"
               (t ostr))
       ostr)))
 
+(defmacro entropy/emacs-modeline--origin-mdl-use-icon-or-plain/cond-macro
+    (&rest args)
+  (let (form cond pl icon plain for-mode)
+    (dolist (el args)
+      (setq cond  (car el)
+            pl    (cdr el)
+            icon  (entropy/emacs-get-plist-form pl :icon  'progn)
+            plain (entropy/emacs-get-plist-form pl :plain 'progn)
+            for-mode (entropy/emacs-get-plist-form pl :for-mode 'car))
+      (push `(,cond (entropy/emacs-modeline--origin-mdl-use-icon-or-plain
+                     ,icon ,plain ,for-mode))
+            form))
+    (setq form (nreverse form))
+    `(cond ,@form)))
+
 (defun entropy/emacs-modeline--origin-mdl-get-major-mode-str ()
-  (entropy/emacs-modeline--origin-mdl-use-icon-or-plain
-   (cond ((string-match-p "magit" (symbol-name major-mode))
-          (nerd-icons-icon-for-mode major-mode))
-         ((and (derived-mode-p 'prog-mode)
-               (not (eq major-mode 'emacs-lisp-mode)))
-          (cond
-           ((and (eq major-mode 'python-mode)
-                 (eq entropy/emacs-theme-sticker 'doom-1337))
-            (nerd-icons-icon-for-mode
-             major-mode
-             :face 'nerd-icons-maroon))
-           (t
-            (nerd-icons-icon-for-mode major-mode))))
-         ((eq major-mode 'elfeed-search-mode)
-          (nerd-icons-icon-for-mode
-           major-mode
-           :face 'nerd-icons-maroon))
-         ((eq major-mode 'elfeed-show-mode)
-          (nerd-icons-icon-for-mode
-           major-mode
-           :face 'nerd-icons-maroon))
-         (t
-          (nerd-icons-icon-for-mode major-mode)))
-   (entropy/emacs-modeline--origin-mdl-propertize-face
-    (entropy/emacs-modeline--subr-func->escape-mdl-str-pcfmt
-     (format "%s" major-mode))
-    (if (memq entropy/emacs-theme-sticker '(doom-1337))
-        'entropy/emacs-defface-simple-color-face-yellow-bold
-      'success))
-   'for-mode))
+  (let ((nface
+         (if (memq entropy/emacs-theme-sticker '(doom-1337))
+             'entropy/emacs-defface-simple-color-face-yellow-bold
+           'success)))
+    (cl-labels ((eppstr (&rest args) (apply 'entropy/emacs-modeline--origin-mdl-propertize-face args)))
+      (entropy/emacs-modeline--origin-mdl-use-icon-or-plain/cond-macro
+       ((entropy/emacs-derived-cur-major-mode-p 'dired-mode)
+        :for-mode t
+        :icon
+        (let ((icon (nerd-icons-icon-for-mode major-mode)) nicon)
+          (if (bound-and-true-p bongo-dired-library-mode)
+              (setq nicon (nerd-icons-icon-for-extension "mp3")))
+          (if nicon (format "%s：%s" icon nicon)
+            icon))
+        :plain
+        (let ((str (format "%s" major-mode)) nstr)
+          (if (bound-and-true-p bongo-dired-library-mode)
+              (setq nstr "Bongo"))
+          (if (not nstr) (eppstr str nface)
+            (format "%s : %s" (eppstr str nface) (eppstr nstr 'warning)))))
+       (t
+        :for-mode t
+        :icon
+        (nerd-icons-icon-for-mode major-mode)
+        :plain
+        (eppstr
+         (entropy/emacs-modeline--subr-func->escape-mdl-str-pcfmt
+          (format "%s" major-mode))
+         nface))))))
 
 (defvar-local entropy/emacs-modeline--origin-mdl-seg/pos-info/cache nil)
 (defun entropy/emacs-modeline--origin-mdl-seg/pos-info ()

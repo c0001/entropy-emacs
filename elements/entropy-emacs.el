@@ -325,6 +325,10 @@ doesn't has such feature.
     (comp--async-runnings))
   (defalias 'comp-async-runnings #'__entropy/emacs-comp-async-runnings))
 
+(defun entropy/emacs-derived-cur-major-mode-p (mode)
+  "Return non-nil when current `major-mode' is derived from or eq to MODE."
+  (or (eq mode major-mode) (derived-mode-p mode)))
+
 ;; *** subr*
 
 (cl-defun entropy/emacs--get-def-body (list-var &optional with-safe)

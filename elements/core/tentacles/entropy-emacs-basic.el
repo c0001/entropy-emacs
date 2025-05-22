@@ -319,6 +319,7 @@ With prefix argument binds, jump to the previous mark place."
        ("i" entropy/emacs-image-dired-init
         "Inital `image-dired' in current dired buffer"
         :enable t :exit t))
+      "Bongo" ()
       "Misc."
       (("p" entropy/emacs-basic-get-dired-fpath "Get Node Path"
         :enable t

@@ -711,11 +711,13 @@ Add current music to queue when its not in thus."
 ;; *** defines
   :commands
   (bongo-switch-to-buffer
-   bongo-switch-buffers)
+   bongo-switch-buffers
+   entropy/emacs-music-bongo-add-dired-files)
   :eemacs-functions
   (bongo-buffer
    bongo-library-buffer
-   bongo-playlist-buffer)
+   bongo-playlist-buffer
+   bongo-track-line-p)
   :eemacs-macros
   (with-bongo-library-buffer)
 
@@ -727,35 +729,16 @@ Add current music to queue when its not in thus."
    "bongo-dired-init" "bongo-dired-init"
    :prompt-type 'prompt-echo
    :pdumper-no-end t
-   ;; use eval to inhibit macra expand while eemacs startup which be
-   ;; to prevent loading extra packages.
-   (eval
-    '(defun entropy/emacs-music-bongo-add-dired-files ()
-       "Add marked files to the Bongo library and then popup the
-`bongo-library-buffer' which the buffer point position has been
-jumped to the main context."
-       (interactive nil dired-mode)
-       (let ((buffer (bongo-library-buffer)))
-         (let (file (files nil))
-           (dired-map-over-marks
-            (setq file (dired-get-filename)
-                  files (append files (list file)))
-            nil t)
-           (with-bongo-library-buffer
-             (mapc 'bongo-insert-file files)
-             (goto-char (point-min))
-             ;; go to the head of the library content which will skip
-             ;; the bongo library header
-             (re-search-forward
-              (regexp-quote "  Report bugs to <bongo-devel@nongnu.org>."))
-             (next-line 2)))
-         (display-buffer buffer))))
-
    (entropy/emacs-hydra-hollow-add-to-major-mode-hydra
     'dired-mode '(dired dired-mode-map)
-    '("Misc."
-      (("c b" entropy/emacs-music-bongo-add-dired-files
+    '("Bongo"
+      (("b a" entropy/emacs-music-bongo-add-dired-files
         "Add marked files to the Bongo library."
+        :enable t :exit t)
+       ("b d" (if (not (bound-and-true-p bongo-dired-library-mode))
+                  (bongo-dired-library-mode 1)
+                (user-error "You are already in bongo-dired-library-mode!"))
+        "Enable Bongo library mode"
         :enable t :exit t)))))
 
 ;; *** config
@@ -769,6 +752,30 @@ jumped to the main context."
   ;; will enable at the load time.
   (setq bongo-mode-line-indicator-mode nil)
 
+  (defun entropy/emacs-music-bongo-add-dired-files ()
+    "Add marked files to the Bongo library and then popup the
+`bongo-library-buffer' which the buffer point position has been
+jumped to the main context."
+    (interactive nil dired-mode)
+    (when (bound-and-true-p bongo-dired-library-mode)
+      (user-error "WARN: You are already at a bongo dired library!"))
+    (let (lbuf files)
+      (dired-map-over-marks
+       (push (dired-get-filename) files)
+       nil t)
+      (setq files (nreverse files))
+      (with-bongo-library-buffer
+        (setq lbuf (current-buffer))
+        (save-excursion
+          (goto-char (point-max))
+          (mapc 'bongo-insert-file files))
+        (unless (bongo-track-line-p)
+          (goto-char (point-min))
+          (while (and (car (entropy/emacs-forward-line))
+                      (not (bongo-track-line-p))))))
+      (and (buffer-live-p lbuf) (display-buffer lbuf))))
+
+;; *** end
   )
 
 ;; * provide
