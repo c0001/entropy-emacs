@@ -363,6 +363,7 @@ for tui emacs session when THEME is not a member of
         (setq theme 'ujelly)))
     (load-theme theme no-confirm no-enable)))
 
+(defvar entropy/emacs-themes-init-setup-user-theme-after-hook nil)
 (defun entropy/emacs-themes-init-setup-user-theme ()
   "Load theme `entropy/emacs-theme-options' in emacs initial
 progress."
@@ -379,7 +380,8 @@ progress."
               entropy/emacs-modeline-style))
     (powerline-reset))
   (entropy/emacs-theme-load-face-specifix
-   (symbol-name entropy/emacs-theme-options)))
+   (symbol-name entropy/emacs-theme-options))
+  (run-hooks 'entropy/emacs-themes-init-setup-user-theme-after-hook))
 
 (unless entropy/emacs-fall-love-with-pdumper
   (entropy/emacs-lazy-with-load-trail

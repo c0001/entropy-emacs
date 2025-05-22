@@ -1872,19 +1872,18 @@ in `window-configuration-change-hook'."
 (defun entropy/emacs-wc-auto-toggle-window-divider-mode ()
   (let*
       ((mp (bound-and-true-p window-divider-mode))
-       (need-to-disable
-        (and mp
-             (or
-              (memq entropy/emacs-theme-sticker
-                    '(spacemacs-dark spacemacs-light))
-              (string-match-p
-               "^base16-"
-               (symbol-name entropy/emacs-theme-sticker))))))
-    (if need-to-disable (window-divider-mode -1)
-      (unless (or mp need-to-disable) (window-divider-mode 1)))))
+       need-to-disable)
+    (entropy/emacs-setf-by-body need-to-disable
+      (or
+       (memq entropy/emacs-theme-sticker '(spacemacs-dark spacemacs-light))
+       (string-match-p
+        "^base16-"
+        (symbol-name entropy/emacs-theme-sticker))))
+    (cond ((and need-to-disable mp) (window-divider-mode -1))
+          (t (unless (or mp need-to-disable) (window-divider-mode 1))))))
 (entropy/emacs-add-hook-with-lambda
   'run-window-divider-guard nil
-  :use-hook 'entropy/emacs-after-startup-idle-hook
+  :use-hook 'entropy/emacs-themes-init-setup-user-theme-after-hook
   (window-divider-mode -1)
   (run-with-idle-timer
    1.5
