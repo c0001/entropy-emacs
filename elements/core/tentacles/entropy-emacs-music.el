@@ -734,10 +734,10 @@ Add current music to queue when its not in thus."
     'dired-mode '(dired dired-mode-map)
     '("Bongo"
       (("b" (if (bound-and-true-p bongo-dired-library-mode)
-                (bongo-dired-library-mode 1)
-              (bongo-dired-library-mode -1))
+                (bongo-dired-library-mode -1)
+              (bongo-dired-library-mode 1))
         "Toggle Bongo library mode in current dired buffer"
-        :enable t :exit t :map-inject t
+        :enable t :exit nil :map-inject t
         :toggle (bound-and-true-p bongo-dired-library-mode))
        ("C-b a" entropy/emacs-music-bongo-add-dired-files
         "Add marked files to the Bongo library."
