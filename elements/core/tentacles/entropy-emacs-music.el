@@ -708,6 +708,8 @@ Add current music to queue when its not in thus."
 
 ;; ** bongo
 (use-package bongo
+;; *** preface
+
 ;; *** defines
   :commands
   (bongo-switch-to-buffer
@@ -760,13 +762,19 @@ Add current music to queue when its not in thus."
   ;; will enable at the load time.
   (setq bongo-mode-line-indicator-mode nil)
 
+  (when (equal (entropy/emacs-get-symbol-defcustom-value 'bongo-enabled-backends)
+               bongo-enabled-backends)
+    ;; prefer use mplayer since it's the most compatible way for bongo
+    ;; in eemacs test.
+    (setq bongo-enabled-backends '(mplayer)))
+  (setq bongo-mpv-extra-arguments '("--mute=no" "-vo" "null")
+        bongo-mplayer-extra-arguments '("-novideo"))
+
   (defun entropy/emacs-music-bongo-add-dired-files ()
     "Add marked files to the Bongo library and then popup the
 `bongo-library-buffer' which the buffer point position has been
 jumped to the main context."
     (interactive nil dired-mode)
-    (when (bound-and-true-p bongo-dired-library-mode)
-      (user-error "WARN: You are already at a bongo dired library!"))
     (let (lbuf files)
       (dired-map-over-marks
        (push (dired-get-filename) files)
@@ -823,6 +831,198 @@ This function sets the buffer-local or global value of `bongo-next-action'."
       (setq-default bongo-next-action 'entropy/emacs--bongo-play-next-or-backto-first)
       (message "Repeating playback is now the default mode."))
     (force-mode-line-update))
+
+  (entropy/emacs-api-restriction/elpkg-eemacs-ext-stable-build-repo-version
+      'redefine/bongo-default-track
+    :do-error t
+    :elpkg-eemacs-ext-stable-build-repo-version "3.2.0"
+
+    (entropy/emacs-defconst/only-allow/local eemacs//bongo-buffer-p-either-dired-buffer-p nil)
+    (defun eemacs//bongo-buffer-p (ofunc &rest oargs)
+      "Bongo's sets of insertion should not in dired buffer."
+      (unless (and (not eemacs//bongo-buffer-p-either-dired-buffer-p)
+                   (entropy/emacs-derived-cur-major-mode-p 'dired-mode))
+        (apply ofunc oargs)))
+    (advice-add 'bongo-buffer-p :around #'eemacs//bongo-buffer-p)
+    (defun eemacs//bongo-switch-buffer (ofunc &rest oargs)
+      (let ((eemacs//bongo-buffer-p-either-dired-buffer-p t))
+        (apply ofunc oargs)))
+    (dolist (func '(bongo-switch-to-buffer bongo-switch-buffers))
+      (advice-add func :around #'eemacs//bongo-switch-buffer))
+
+    ;; FIXME: this is a bug of `bongo-player-times-last-updated' which
+    ;; will never trigger body of `bongo-player-times-changed' when
+    ;; its hint the top value of the LOW part of (current-time) value
+    ;; which is standardized as always less than 65536, in which case
+    ;; there's impossible for any current LOW part less than 65535.
+    ;;
+    ;; Obviously this bug will made the `bongo-track-length' never the
+    ;; updated via `bongo-redisplay-line' in which case since the
+    ;; track length is never obtained by `bongo-player-times-changed'
+    ;; in any backend's filter part.
+    (advice-patch 'bongo-player-times-changed
+                  '(> current-seconds
+                      (let ((ot bongo-player-times-last-updated))
+                        (if (= ot 65535) (setq bongo-player-times-last-updated 0)
+                          ot)))
+                  '(> current-seconds bongo-player-times-last-updated))
+
+    (entropy/emacs-setf-by-body bongo-infoset-from-file-name-function
+      (entropy/emacs-!cl-defun
+          eemacs//bongo-simple-infoset-from-file-name (file-name)
+        (let ((track-length-part
+               (when (and (boundp 'bongo-track-length) bongo-track-length)
+                 `((length . ,bongo-track-length)))))
+          `((track (title . ,(file-name-sans-extension
+                              (file-name-nondirectory
+                               (if (bongo-uri-p file-name)
+                                   (bongo-unescape-uri file-name)
+                                 file-name))))
+                   ,@track-length-part)))))
+
+    (defun eemacs//bongo-default-track ()
+      (let* ((other-fields-width
+              (with-temp-buffer
+                (insert (bongo-format-infoset
+                         (entropy/emacs-mapcar-without-orphans
+                          (lambda (x) (unless (eq (car x) 'track) x))
+                          bongo-infoset nil 'nil)))
+                (current-column)))
+             (indentation-width
+              (* (length bongo-indentation-string)
+                 (bongo-line-indentation bongo-line)))
+             (index-str (when bongo-index
+                          (concat bongo-index ". ")))
+             (title-width (- bongo-track-length-column
+                             (+ indentation-width other-fields-width
+                                (or (and index-str (string-width index-str)) 0))))
+             (notruncate-p
+              (not
+               (or (bongo-playlist-buffer-p bongo-target)
+                   (bongo-library-buffer-p  bongo-target)))))
+        (concat
+         index-str
+         (cl-labels ((trstr-func (str &rest args)
+                       (if notruncate-p str
+                         (apply 'truncate-string-to-width str args))))
+           (let (str (elp
+                      (cond
+                       ((bound-and-true-p truncate-string-ellipsis)
+                        (bound-and-true-p truncate-string-ellipsis))
+                       ((char-displayable-p ?…) "…")
+                       ("..."))))
+             (entropy/emacs-setf-by-body str
+               (let* ((file (bongo-line-file-name))
+                      (fdname (and file
+                                   (file-name-nondirectory
+                                    (directory-file-name (file-name-directory file))))))
+                 (when fdname
+                   (setq fdname (trstr-func
+                                 fdname (floor (/ bongo-track-length-column 2.0))
+                                 nil nil elp)))
+                 (if (not fdname) bongo-title
+                   (format "%s/%s"
+                           (propertize fdname 'face 'bongo-album-title)
+                           (file-name-nondirectory file)))))
+             (trstr-func
+              str
+              (if (> title-width 0) (min title-width (string-width str))
+                (string-width str))
+              nil nil elp)))
+         (when-let (((and bongo-display-track-lengths bongo-length
+                          (bongo-playlist-buffer-p bongo-target))))
+           (concat
+            (when-let (((> title-width 0))
+                       (lw (+
+                            ;; fine tune padding
+                            20
+                            ;; current SPC char
+                            1
+                            title-width)))
+              (if (fboundp 'string-pixel-width)
+                  (propertize
+                   " "
+                   'display
+                   `(space
+                     :align-to
+                     (,(string-pixel-width (make-string lw 32)))))
+                (propertize " " 'display `(space :align-to ,lw))))
+            bongo-length)))))
+    (setq bongo-track-function 'eemacs//bongo-default-track)
+
+    ;; mpv backend refine
+    (defvar-local eemacs//bongo-mpv-pause/resume-current-op nil)
+    (defun eemacs//bongo-mpv-player-pause/resume (player)
+      "refine due to `eemacs//bongo--mpv-socket-filter'"
+      (if (bongo-player-paused-p player)
+          (progn (bongo--run-mpv-command player
+                                         "pause"
+                                         "set_property_string"
+                                         "pause"
+                                         "no")
+                 (setq eemacs//bongo-mpv-pause/resume-current-op 'unpause))
+        (bongo--run-mpv-command player
+                                "pause"
+                                "set_property"
+                                "pause"
+                                t)
+        (setq eemacs//bongo-mpv-pause/resume-current-op 'pause)))
+    (advice-add 'bongo-mpv-player-pause/resume
+                :override #'eemacs//bongo-mpv-player-pause/resume)
+
+    (defun eemacs//bongo--mpv-socket-filter (process output)
+      "Refine to adapt new mpv version pause/resume jsonipc format"
+      (let ((player (process-get process 'bongo-player))
+            request_id_val)
+        (dolist (parsed-response (mapcar #'json-read-from-string
+                                         (split-string output "\n" t)))
+          (cond
+           ;; EEMACS_MAINTENANCE: the new mpv jsonrpc pause/resume format doesn't use event slot
+           ((progn (setq request_id_val (bongo-alist-get parsed-response 'request_id))
+                   (member request_id_val '("pause" "unpause")))
+            (if (with-bongo-playlist-buffer
+                  (eq eemacs//bongo-mpv-pause/resume-current-op 'pause))
+                (bongo-player-put player 'paused t)
+              (bongo-player-put player 'paused nil)))
+           ;; EEMACS_MAINTENANCE: the original old mpv jsonrpc pause/resume format
+           ((assoc 'event parsed-response)
+            (pcase (bongo-alist-get parsed-response 'event)
+              (`"pause" (bongo-player-put player 'paused t))
+              (`"unpause" (bongo-player-put player 'paused nil))))
+           (t
+            (pcase (bongo-alist-get parsed-response 'request_id)
+              (`"time-pos"
+               (progn
+                 (bongo-player-update-elapsed-time
+                  player (bongo-alist-get parsed-response 'data))
+                 (bongo-player-times-changed player)))
+              (`"duration"
+               (progn
+                 (bongo-player-update-total-time
+                  player (bongo-alist-get parsed-response 'data))
+                 (bongo-player-times-changed player)))
+              (`"metadata"
+               (let* ((data  (bongo-alist-get parsed-response 'data))
+                      (album (bongo-alist-get data 'album))
+                      (title (bongo-alist-get data 'title))
+                      (genre (bongo-alist-get data 'genre)))
+                 (bongo-player-put player 'metadata-fetched t)
+                 (when album
+                   (bongo-player-put player 'stream-name album))
+                 (when title
+                   (bongo-player-put player 'stream-part-title title))
+                 (when genre
+                   (bongo-player-put player 'stream-genre genre))
+                 (when (or album title genre)
+                   (bongo-player-metadata-changed player))))))))))
+    (advice-add 'bongo--mpv-socket-filter
+                :override #'eemacs//bongo--mpv-socket-filter)
+
+    )
+
+  ;; trash unsafe command directly used in keymap
+  (dolist (map (list bongo-mode-map bongo-playlist-mode-map bongo-library-mode-map))
+    (define-key map [remap bongo-rename-line] nil))
 
 ;; *** end
   )

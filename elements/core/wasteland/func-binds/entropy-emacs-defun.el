@@ -3394,29 +3394,6 @@ of the which regexp string matched STR and cdr of the origin return."
                             rtn))))
       nil)))
 
-(defun entropy/emacs-substring (string &optional from to)
-  "Like `substring' but the return SUBSTR's `string-width' is always
-less or equal than the difference DIFF between TO and FROM.
-
-This function exists since the `string-width' of SUBSTR is not
-always equal to DIFF since STRING may have non-ASCII char whose
-width is larger than 1."
-  (if (and (natnump to) (< to 0)) (substring string from to)
-    (let* ((swd (string-width string))
-           (str (substring string from to))
-           (sswd (string-width str))
-           (idfunc (lambda (x y)
-                     (if x (if (< x 0) (- swd x) x)
-                       (if y swd 0))))
-           ftwd (rtn str))
-      (setq from (funcall idfunc from nil)
-            to   (funcall idfunc   to t)
-            ftwd (- to from))
-      (while (> sswd ftwd)
-        (setq rtn (substring rtn nil -1)
-              sswd (string-width rtn)))
-      rtn)))
-
 (cl-defun entropy/emacs-substring-to-window-max-chars-width
     (string &key from to ellipsis window
             without-pixel with-rest-string-return
