@@ -762,8 +762,7 @@ Add current music to queue when its not in thus."
   ;; will enable at the load time.
   (setq bongo-mode-line-indicator-mode nil)
 
-  (when (equal (entropy/emacs-get-symbol-defcustom-value 'bongo-enabled-backends)
-               bongo-enabled-backends)
+  (when (not (entropy/emacs-custom-var-is-customized-p 'bongo-enabled-backends))
     ;; prefer use mplayer since it's the most compatible way for bongo
     ;; in eemacs test.
     (setq bongo-enabled-backends '(mplayer)))
@@ -1017,6 +1016,9 @@ This function sets the buffer-local or global value of `bongo-next-action'."
                    (bongo-player-metadata-changed player))))))))))
     (advice-add 'bongo--mpv-socket-filter
                 :override #'eemacs//bongo--mpv-socket-filter)
+
+    (defalias 'bongo-goto-current-playing-track-line 'bongo-recenter
+      "eemacs alias for `bongo-recenter' to obviously hint via minibuffer promption.")
 
     )
 

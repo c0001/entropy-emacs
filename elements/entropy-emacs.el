@@ -674,6 +674,23 @@ INITVAL."
       (if (and symbdp (equal cusval (setq symval (symbol-value symbol))))
           symval cusval))))
 
+(defun entropy/emacs-custom-var-is-customized-p
+    (symbol &optional error-when-not-customdef)
+  "Return non-nil when variable SYMBOL points to a variable is defined by
+`defcustom' and its value is used as its stand value which defined by
+its default set in its `defcustom' form. Return nil otherwise.
+
+When option ERROR-WHEN-NOT-CUSTOMDEF is non-nil, do `error' when SYMBOL
+is not of that defined by `defcustom' (or just its source not loaded
+yet)."
+  (let ((val (entropy/emacs-get-symbol-defcustom-value
+              symbol :with-eemacs-false t)))
+    (if (eq val entropy/emacs-false-symbol)
+        (if (not error-when-not-customdef) nil
+          (error "Var `%s' is not defined by `defcustom' or such source is not loaded yet"
+                 symbol))
+      (not (eq val (symbol-value symbol))))))
+
 (defun entropy/emacs-time-subtract (before &optional now use-float)
   "`time-subtract' from BEFORE to NOW (defautls to `current-time').
 Return that result.
@@ -1013,11 +1030,31 @@ Use =eemacs-defn-bind= of symbol of NAME for BODY when
 
 \(fn NAME ARGLIST [DOCSTRING] [DECL] [INTERACTIVE] BODY...)"
   (declare (doc-string 3) (indent 2))
-  (let ((name (car args)))
-    `(let ((,entropy/emacs-inner-sym-for/current-defname
-            ',name))
-       (ignore ,entropy/emacs-inner-sym-for/current-defname)
-       (cl-defun ,@args) ',name)))
+  (let* ((pos 0)
+         (name     (prog1 (car args)  (cl-incf pos)))
+         (arglist  (prog1 (cadr args) (cl-incf pos)))
+         (docstr   (let ((val (caddr args)))
+                     (and (stringp val) (progn (cl-incf pos) val))))
+         (decl     (let ((val (nth pos args)))
+                     (if (eq (car-safe val) 'declare)
+                         (progn (cl-incf pos) val))))
+         (inct     (let ((val (nth pos args)))
+                     (if (eq (car-safe val) 'interactive)
+                         (progn (cl-incf pos) val))))
+         (body     (nthcdr pos args))
+         (header-forms
+          (let (rtn)
+            (dolist (el (list docstr decl inct))
+              (and el (push el rtn)))
+            (reverse rtn))))
+    `(progn
+       (cl-defun
+           ,name ,arglist ,@header-forms
+           (let ((,entropy/emacs-inner-sym-for/current-defname
+                  ',name))
+             (ignore ,entropy/emacs-inner-sym-for/current-defname)
+             ,@body))
+       ',name)))
 
 (defmacro __entropy/emacs-!cl-defmacro/wrapper (name &rest args)
   (declare (indent 1))
@@ -1105,7 +1142,8 @@ thus is void, the bind's value is nil. Return BODY's value.
   (declare (indent defun))
   (let ((bind-sym (or with-it-as 'it)))
     `(let ((,bind-sym
-            (ignore-errors ,entropy/emacs-inner-sym-for/current-defname)))
+            (with-no-warnings
+              (ignore-errors ,entropy/emacs-inner-sym-for/current-defname))))
        ,@(entropy/emacs--get-def-body body 'with-safe))))
 
 (defmacro entropy/emacs-!message (format-string &rest args)
