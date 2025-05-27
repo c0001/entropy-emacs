@@ -387,7 +387,7 @@ specification."
               (eq it 'mode-line-position)
               '(:eval (if (entropy/emacs-current-session-is-idle 0.8)
                           mode-line-position
-                        " ⨂"))
+                        " <x> "))
               mode-line-format)))))))
 
   (defun entropy/emacs-music-mpc-mini ()
@@ -761,6 +761,7 @@ Add current music to queue when its not in thus."
   ;; We must set it after the `bongo.el' loaded to override what it
   ;; will enable at the load time.
   (setq bongo-mode-line-indicator-mode nil)
+  (entropy/emacs-defconst bongo-mode-line-indicator-mode nil)
 
   (when (not (entropy/emacs-custom-var-is-customized-p 'bongo-enabled-backends))
     ;; prefer use mplayer since it's the most compatible way for bongo
@@ -830,6 +831,8 @@ This function sets the buffer-local or global value of `bongo-next-action'."
       (setq-default bongo-next-action 'entropy/emacs--bongo-play-next-or-backto-first)
       (message "Repeating playback is now the default mode."))
     (force-mode-line-update))
+  (put 'entropy/emacs--bongo-play-next-or-backto-first
+       'bongo-playback-mode-indicator "repeat playlist")
 
   (entropy/emacs-api-restriction/elpkg-eemacs-ext-stable-build-repo-version
       'redefine/bongo-default-track

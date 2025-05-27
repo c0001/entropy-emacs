@@ -13070,6 +13070,12 @@ modeline swither."
               (kill-local-variable 'mode-line-format))))
         (buffer-list)))
 
+(entropy/emacs-defconst
+  entropy/emacs-make-space-align-to-modeline-rest//var/use-pixel-align-p
+  (version<= "30.1" emacs-version))
+(eval-and-compile
+  (unless (boundp 'mode-line-right-align-edge)
+    (defvar mode-line-right-align-edge 'window)))
 (defun entropy/emacs-make-space-align-to-modeline-rest
     (rest-mode-line-format &optional offset)
   "Return a string used for current mode-line CMDL's `mode-line-format'
@@ -13081,21 +13087,60 @@ position CPOS of CMDL.
 Where the distance of CPOS and DPOS is calculated by the
 `string-width' of a `mode-line-format' REST-MODE-LINE-FORMAT which is
 the remaining (or called rest) of current mode-line, plus the offset
-units number specfied by OFFSET (defaults to 0)."
-  (propertize
-   " "
-   'display
-   (entropy/emacs-double-list
-    'space
-    :align-to
-    `(- (+ right right-fringe right-margin scroll-bar)
-        ,(+
-          (string-width
-           (format-mode-line
-            ;; FIXME: why must be a cons or the calculation will
-            ;; not be precisely? (copied from `doom-modeline')
-            (cons "" rest-mode-line-format)))
-          (or offset 0))))))
+units number specfied by OFFSET (defaults to 0).
+
+For emacs-30.1 and above, the precision alignment is supported, the
+variable `mode-line-right-align-edge' is also token notice by this
+function either."
+  (if entropy/emacs-make-space-align-to-modeline-rest//var/use-pixel-align-p
+      ;; EEMACS_MAINTENANCE: directly modfied from emacs-30.1's `mode--line-format-right-align'
+      (let* ((rest rest-mode-line-format)
+             (rest-str (format-mode-line `("" ,@rest)))
+             (_ (if offset (setq rest-str (concat rest-str (make-string offset 32)))))
+             (rest-width
+              (progn
+                (add-face-text-property
+                 0 (length rest-str) 'mode-line t rest-str)
+                (string-pixel-width rest-str))))
+        (propertize
+         " " 'display
+         ;; The `right' spec doesn't work on TTY frames
+         ;; when windows are split horizontally (bug#59620)
+         (if (and (display-graphic-p)
+                  (not (eq mode-line-right-align-edge 'window)))
+             `(space :align-to (- ,mode-line-right-align-edge (,rest-width)))
+           `(space
+             :align-to
+             (,(- (window-pixel-width)
+                  (window-scroll-bar-width)
+                  (window-right-divider-width)
+                  (* (or (car (window-margins)) 0)
+                     (frame-char-width))
+                  ;; Manually account for value of
+                  ;; `mode-line-right-align-edge' even
+                  ;; when display is non-graphical
+                  (pcase mode-line-right-align-edge
+                    ('right-margin
+                     (or (cdr (window-margins)) 0))
+                    ('right-fringe
+                     ;; what here?
+                     (or (cadr (window-fringes)) 0))
+                    (_ 0))
+                  rest-width))))))
+    (propertize
+     " "
+     'display
+     (entropy/emacs-double-list
+      'space
+      :align-to
+      `(- (+ right right-fringe right-margin scroll-bar)
+          ,(+
+            (string-width
+             (format-mode-line
+              ;; FIXME: why must be a cons or the calculation will
+              ;; not be precisely? (copied from `doom-modeline')
+              (cons "" rest-mode-line-format)))
+            (or offset 0)))))))
 
 ;; *** Theme loading specification
 

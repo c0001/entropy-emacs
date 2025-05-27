@@ -160,7 +160,8 @@
           (concat
            (propertize (concat
                         " "
-                        (if (entropy/emacs-icons-displayable-p) (make-string 1 ?⦿)
+                        (if (entropy/emacs-icons-displayable-p)
+                            (nerd-icons-mdicon "nf-md-ember" :v-adjust -0.03)
                           (make-string 1 ?λ))
                         (let
                             ((str
@@ -293,6 +294,22 @@ enabled."
 (defvar entropy/emacs-modeline--origin-spec-done nil)
 (defvar entropy/emacs-modeline--origin-enable-done nil)
 
+;; FIXME: how to prevent font overlap in tty? for now we just insert a
+;; spc to avoid thus.
+(defvar eemacs//mdl-nerd-icons-for-tty-pend-spc-p t)
+(eval-and-compile
+  (defmacro __mdl-nerd-icons-run (func &rest args)
+    (declare (indent 1))
+    `(let ((str (,func ,@args)))
+       (if (or (not eemacs//mdl-nerd-icons-for-tty-pend-spc-p)
+               (display-graphic-p)) str
+         (format "%s " str))))
+  (defmacro __mdl-nerd-icons-identity (str)
+    `(let ((str ,str))
+       (if (or (not eemacs//mdl-nerd-icons-for-tty-pend-spc-p)
+               (display-graphic-p)) str
+         (format "%s " str)))))
+
 (defun entropy/emacs-modeline--origin-spec-clean ()
   (entropy/emacs-modeline-restore-default-mdlfmt)
   (setq entropy/emacs-modeline--origin-spec-done nil
@@ -373,7 +390,16 @@ return nil"
        (t
         :for-mode t
         :icon
-        (nerd-icons-icon-for-mode major-mode)
+        (nerd-icons-icon-for-mode
+         major-mode
+         :v-adjust
+         (let ((mstr (symbol-name major-mode)))
+           (cond
+            ((string-match-p "^org-" mstr) 0.1)
+            ((string-match-p "^java-" mstr) 0.1)
+            ((string-match-p "^php-" mstr) 0.06)
+            ((derived-mode-p 'prog-mode) 0.05)
+            (t 0))))
         :plain
         (eppstr
          (entropy/emacs-modeline--subr-func->escape-mdl-str-pcfmt
@@ -388,45 +414,101 @@ type which reduce performance issue."
       ;; FIXME: due to bug h:c5b6bd90-0662-4daa-877f-5be88c04ce2a, we
       ;; must use a string directly.
       (setq entropy/emacs-modeline--origin-mdl-seg/pos-info/cache
-            (format-mode-line "%l:%C"))
+            (entropy/emacs-modeline--subr-func->escape-mdl-str-pcfmt
+             (format-mode-line "%l:%C|")))
     (or entropy/emacs-modeline--origin-mdl-seg/pos-info/cache
-        "......")))
+        "......|")))
 
 (defvar-local entropy/emacs-modeline--origin-mdl-seg/pos-percent-info/cache nil)
 (defun entropy/emacs-modeline--origin-mdl-seg/pos-percent-info ()
   "The cached mode-line buffer position percentage segment for
 eemacs origin type which reduce performance issue."
-  (if entropy/emacs-current-session-is-idle-p
-      ;; FIXME: due to bug h:c5b6bd90-0662-4daa-877f-5be88c04ce2a, we
-      ;; must use a string directly.
-      (setq entropy/emacs-modeline--origin-mdl-seg/pos-percent-info/cache
-            (entropy/emacs-modeline--subr-func->escape-mdl-str-pcfmt
-             (format-mode-line "%p of %I")))
-    (or entropy/emacs-modeline--origin-mdl-seg/pos-percent-info/cache
-        "......")))
+  (let (str)
+    (entropy/emacs-setf-by-body str
+      (if entropy/emacs-current-session-is-idle-p
+          ;; FIXME: due to bug h:c5b6bd90-0662-4daa-877f-5be88c04ce2a, we
+          ;; must use a string directly.
+          (let ((portion (format-mode-line "%p"))
+                (size    (replace-regexp-in-string
+                          " " ""
+                          (format-mode-line "%I"))))
+            (pcase portion
+              (`"Top" (setq portion "0"))
+              (`"Bottom" (setq portion "100"))
+              (`"All" (setq portion "100"))
+              ((pred (string-match "\\([0-9]+\\)%$"))
+               (setq portion (match-string 1 portion)))
+              (_ (setq portion "0")))
+            (setq entropy/emacs-modeline--origin-mdl-seg/pos-percent-info/cache
+                  (format "%s|%s|"
+                          (propertize (concat portion "%%") 'face 'mode-line-emphasis)
+                          (propertize size 'face 'mode-line-emphasis))))
+        (or entropy/emacs-modeline--origin-mdl-seg/pos-percent-info/cache
+            "......|")))
+    str))
+
+(defun entropy/emacs-modeline--origin-mdl-seg/vcs nil
+  (let* ((str (and vc-mode (replace-regexp-in-string " " "" vc-mode)))
+         (vc-type (and str (replace-regexp-in-string "\\([^:-]+\\)[:-].*$" "\\1" str)))
+         (vc-rest (and str (replace-regexp-in-string "[^:-]*[:-]\\(.*\\)$" "\\1" str))))
+    (entropy/emacs-modeline--subr-func->escape-mdl-str-pcfmt
+     (if (not str)
+         (entropy/emacs-modeline--origin-mdl-use-icon-or-plain
+          (format "%s"
+                  (__mdl-nerd-icons-run nerd-icons-codicon
+                    "nf-cod-git_pull_request_draft"
+                    :face 'vc-state-base
+                    :v-adjust 0.1))
+          "N/A")
+       (entropy/emacs-modeline--origin-mdl-use-icon-or-plain
+        (let ((icon
+               (cond
+                ((string= vc-type "Git")
+                 (nerd-icons-mdicon
+                  "nf-md-git" :face 'nerd-icons-red))
+                ((string= vc-type "Hg")
+                 (nerd-icons-faicon
+                  "nf-fa-mercury" :face 'nerd-icons-red))
+                (t
+                 (nerd-icons-codicon
+                  "nf-cod-source_control" :face 'nerd-icons-red)))))
+          (setq icon (__mdl-nerd-icons-identity icon))
+          (if (not vc-rest) icon
+            (concat icon ":" (propertize vc-rest 'face 'mode-line-emphasis))))
+        (format
+         "%s"
+         (entropy/emacs-modeline--origin-mdl-propertize-face
+          str 'warning)))))))
+
+(defun entropy/emacs-modeline--origin-mdl-seg/mode-line-misc-info nil
+  (let ((item (format-mode-line mode-line-misc-info)))
+    (if (string-empty-p item) ""
+      (entropy/emacs-modeline--subr-func->escape-mdl-str-pcfmt
+       (format "|%s" item)))))
+(defun entropy/emacs-modeline--origin-mdl-seg/mode-line-process nil
+  (let ((item (format-mode-line mode-line-process)))
+    (if (string-empty-p item) ""
+      (entropy/emacs-modeline--subr-func->escape-mdl-str-pcfmt
+       (format "|%s" item)))))
+
+(defun entropy/emacs-modeline--origin-mdl-seg/lsp-mode-indicator nil
+  (entropy/emacs-modeline--subr-func->escape-mdl-str-pcfmt
+   (let ((mode (or
+                (and (bound-and-true-p lsp-mode) "lsp")
+                (and (bound-and-true-p eglot--managed-mode) "eglot"))))
+     (if (not mode) ""
+       (format
+        "%s|"
+        (entropy/emacs-modeline--origin-mdl-use-icon-or-plain
+         (__mdl-nerd-icons-run
+             nerd-icons-devicon "nf-dev-vscode"
+             :face 'entropy/emacs-defface-simple-color-face-green-bold)
+         (format "%s" (propertize mode 'face 'success))))))))
 
 (defvar entropy/emacs-modeline--simple-mode-line-format)
 (defvar entropy/emacs-modeline--simple-mode-line-rhs-fmt
   `(
-    ;; > Union informations
-    ("" mode-line-misc-info " ")
-    ("" mode-line-process   " ")
-    (:eval
-     ;; > VCS
-     (when vc-mode
-       (entropy/emacs-modeline--origin-mdl-use-icon-or-plain
-        (format " %s%s " (nerd-icons-octicon
-                          "nf-oct-git_branch" :face 'nerd-icons-red)
-                vc-mode)
-        (format
-         "%s " (entropy/emacs-modeline--origin-mdl-propertize-face
-                vc-mode 'warning)))))
     ;; > Buffer position
-    (:eval
-     (entropy/emacs-modeline--origin-mdl-use-icon-or-plain
-      (concat (nerd-icons-faicon
-               "nf-fa-pencil_square_o" :face 'nerd-icons-yellow ) " ")
-      " "))
     ,@(if
           ;; NOTE: we should use the self-create binds for all emacs
           ;; version since its performance saving well
@@ -439,13 +521,17 @@ eemacs origin type which reduce performance issue."
         ;;
         ;; see eemacs bug h:c5b6bd90-0662-4daa-877f-5be88c04ce2a
         (list
-         '(10 (:eval (entropy/emacs-modeline--origin-mdl-seg/pos-percent-info)))
-         " "
-         '(10 (-10 (:eval (entropy/emacs-modeline--origin-mdl-seg/pos-info))))
+         '(:eval (entropy/emacs-modeline--origin-mdl-seg/pos-info))
+         '(:eval (entropy/emacs-modeline--origin-mdl-seg/pos-percent-info))
          ;; the real-time flushed type but with more performance issued
          ;;
          ;; '(10 "%l:%c")
-         ))))
+         ))
+    (:eval (entropy/emacs-modeline--origin-mdl-seg/lsp-mode-indicator))
+    (:eval (entropy/emacs-modeline--origin-mdl-seg/vcs))
+    ;; > Union informations
+    (:eval (entropy/emacs-modeline--origin-mdl-seg/mode-line-misc-info))
+    (:eval (entropy/emacs-modeline--origin-mdl-seg/mode-line-process))))
 
 (entropy/emacs-setf-by-body entropy/emacs-modeline--simple-mode-line-format
   `("%e"
@@ -465,8 +551,12 @@ eemacs origin type which reduce performance issue."
     ;; > Buffer Narrow Status
     (:eval
      (if (buffer-narrowed-p)
-         (entropy/emacs-modeline--origin-mdl-propertize-face "><" 'warning)
-       (entropy/emacs-modeline--origin-mdl-propertize-face "<>" 'success)))
+         (entropy/emacs-modeline--origin-mdl-use-icon-or-plain
+          (nerd-icons-octicon "nf-oct-fold" :face 'warning)
+          (entropy/emacs-modeline--origin-mdl-propertize-face "><" 'warning))
+       (entropy/emacs-modeline--origin-mdl-use-icon-or-plain
+        (nerd-icons-octicon "nf-oct-unfold" :face 'success)
+        (entropy/emacs-modeline--origin-mdl-propertize-face "<>" 'success))))
     ;;"remote:" mode-line-remote " "
     ;; mode-line-frame-identification
     ;; mode-line-modes
@@ -478,10 +568,13 @@ eemacs origin type which reduce performance issue."
     entropy/emac-modeline--origin-mdl-buffer-identification " "
     ;; ---------- alignment spaces ----------
     (:eval
-     (entropy/emacs-make-space-align-to-modeline-rest
-      entropy/emacs-modeline--simple-mode-line-rhs-fmt
-      ;; NOTE: icon width commonly not fixed
-      (if (display-graphic-p) 1)))
+     (let ((mode-line-right-align-edge 'right-fringe))
+       (entropy/emacs-make-space-align-to-modeline-rest
+        entropy/emacs-modeline--simple-mode-line-rhs-fmt
+        ;; NOTE: icon width commonly not fixed
+        (and (display-graphic-p)
+             (not entropy/emacs-make-space-align-to-modeline-rest//var/use-pixel-align-p)
+             1))))
     ;; ---------- lhs ----------
     ,@entropy/emacs-modeline--simple-mode-line-rhs-fmt))
 
@@ -1121,17 +1214,16 @@ style which defined in `entropy/emacs-modeline-style'."
   (defun entropy/emacs-modeline--miscinfo/treesit-mode-indicator nil
     (if modeline--miscinfo/treesit-mode-indicator/setted-p
         modeline--miscinfo/treesit-mode-indicator
-      (entropy/emacs-when-let*-first
-          ;; only show indictor for graphical mode since TUI directly
-          ;; show in major-mode segment because it can not show icon.
-          (((display-graphic-p)))
+      (progn
         (entropy/emacs-setf-by-body modeline--miscinfo/treesit-mode-indicator
           (if (entropy/emacs-ide-get-lang-mode-info-plist-attr
                :treesit-mode-p)
               (if (entropy/emacs-icons-displayable-p)
-                  (nerd-icons-faicon
-                   "nf-fa-tree" :height 0.8 :face 'nerd-icons-green)
-                [treesit]) ""))
+                  (__mdl-nerd-icons-run nerd-icons-devicon
+                    "nf-dev-sourcetree" :height 0.8 :face 'nerd-icons-lgreen
+                    :v-adjust 0.18)
+                "[treesit]")
+            ""))
         (setq modeline--miscinfo/treesit-mode-indicator/setted-p t)
         modeline--miscinfo/treesit-mode-indicator)))
   (entropy/emacs-setf-by-body mode-line-misc-info
