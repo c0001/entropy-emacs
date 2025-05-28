@@ -520,7 +520,13 @@ building procedure while invoking INSTALL-COMMANDS."
         (sleep-for 5)
         (dolist (pkg-desc updates)
           (entropy/emacs-without-debugger
-           (entropy/emacs-package-install-package t nil pkg-desc)))
+           (if (memq (package-desc-name pkg-desc) entropy/emacs--self-maintained-packges)
+               (entropy/emacs-message-do-message
+                "%s `%s' %s"
+                (yellow "WARN: Pakcage")
+                (cyan (package-desc-name pkg-desc))
+                (yellow "is eemacs self-maintained, skip updates."))
+             (entropy/emacs-package-install-package t nil pkg-desc))))
         (entropy/emacs-package-prompt-install-fails)
           ;;; FIXME: package reinitialize after updates cause error
           ;;; for `yasnippet-snippets' that for autroload deleted old

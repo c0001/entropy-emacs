@@ -73,6 +73,8 @@
           (push el arglist)))
       `(list ,@arglist))))
 
+(defconst entropy/emacs--self-maintained-packges
+  '(treemacs benchmark-init lsp-java))
 (defvar entropy/emacs--base-packges
   (__eemac/pkg-reqs-list-items
     ac-php
