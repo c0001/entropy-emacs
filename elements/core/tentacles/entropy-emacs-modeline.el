@@ -568,13 +568,11 @@ eemacs origin type which reduce performance issue."
     entropy/emac-modeline--origin-mdl-buffer-identification " "
     ;; ---------- alignment spaces ----------
     (:eval
-     (let ((mode-line-right-align-edge 'right-fringe))
+     (let ((mode-line-right-align-edge 'window))
        (entropy/emacs-make-space-align-to-modeline-rest
         entropy/emacs-modeline--simple-mode-line-rhs-fmt
         ;; NOTE: icon width commonly not fixed
-        (and (display-graphic-p)
-             (not entropy/emacs-make-space-align-to-modeline-rest//var/use-pixel-align-p)
-             1))))
+        (and (display-graphic-p) 1))))
     ;; ---------- lhs ----------
     ,@entropy/emacs-modeline--simple-mode-line-rhs-fmt))
 
