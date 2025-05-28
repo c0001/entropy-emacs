@@ -143,15 +143,27 @@
       "advanced helpful hydra to treemacs keymap"
       :enable t :exit t :map-inject t))
     "Treemacs Frequently Commands"
-    (("M-<up>"       (call-interactively 'treemacs-goto-parent-node)
+    (("M-<up>"
+      (let ((_ (entropy/emacs-treemacs--goto-nearest-line t))
+            (curpt (point)) ncurpt)
+        (let (treemacs-pulse-on-failure)
+          (treemacs-without-messages
+           (treemacs-goto-parent-node)
+           (and (>= (point) curpt)
+                (setq ncurpt (point))
+                (treemacs-previous-neighbour))))
+        (and (and ncurpt (>= (point) ncurpt))
+             (progn (goto-char curpt)
+                    (treemacs-pulse-on-failure "No prev parent_lv sibling found!"))))
       "Goto prev parent_lv node"
       :enable t :exit t :map-inject t)
      ("M-<down>"
-      (let ((curpt (point)))
-        (progn
-          (progn (treemacs-goto-parent-node) (treemacs-next-neighbour))
-          (and (<= (point) curpt) (goto-char curpt)
-               (treemacs-pulse-on-failure "No next parent_lv sibling found!"))))
+      (let ((_ (entropy/emacs-treemacs--goto-nearest-line)) (curpt (point)))
+        (let (treemacs-pulse-on-failure)
+          (treemacs-without-messages
+           (treemacs-goto-parent-node) (treemacs-next-neighbour)))
+        (and (<= (point) curpt) (goto-char curpt)
+             (treemacs-pulse-on-failure "No next parent_lv sibling found!")))
       "Goto next parent_lv node"
       :enable t :exit t :map-inject t)
      ("C-M-<up>"  treemacs-move-project-up
@@ -251,6 +263,11 @@ supported for now."
     :use-hook 'treemacs-mode-hook
     (and (display-graphic-p) (text-scale-decrease 2)))
 
+  (defun entropy/emacs-treemacs--goto-nearest-line (&optional backward)
+    (let ((op (if backward 'backward-char 'forward-char))
+          (pop (if backward 'bobp 'eobp)))
+      (while (and (not (funcall pop)) (not (treemacs-current-button)))
+        (funcall op))))
   )
 
 (use-package treemacs-nerd-icons
