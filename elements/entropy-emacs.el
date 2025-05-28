@@ -1619,13 +1619,16 @@ it has one of thus, otherwise same as `process-buffer'."
                   (srvport ,port-varname))
               (entropy/emacs--delete-process-regist-vip
                (async-start
-                (lambda (&rest _)
-                  (setq package-user-dir       pkgdir
-                        package-directory-list pkgdlist
-                        package-archives       pkgarchives)
-                  (package-initialize)
-                  (setq httpd-port srvport) (httpd-serve-directory srvroot)
-                  (while t (sleep-for 60)))
+                ;; FIXME: emacs under 29 can not handle closure to
+                ;; async process, see
+                ;; https://github.com/jwiegley/emacs-async/issues/17
+                `(lambda (&rest _)
+                   (setq package-user-dir       ,pkgdir
+                         package-directory-list ',pkgdlist
+                         package-archives       ',pkgarchives)
+                   (package-initialize)
+                   (setq httpd-port ,srvport) (httpd-serve-directory ,srvroot)
+                   (while t (sleep-for 60)))
                 (entropy/emacs-!cl-defun ,finished-func-name (&rest _)
                   (entropy/emacs-!error-as-eemacs-internal-error
                    "Start or keep alive '%s' failed." ,base-name)))))))))))
