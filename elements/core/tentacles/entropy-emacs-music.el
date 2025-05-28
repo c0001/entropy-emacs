@@ -1074,7 +1074,7 @@ This function sets the buffer-local or global value of `bongo-next-action'."
 
   ;; trash unsafe command directly used in keymap
   (dolist (map (list bongo-mode-map bongo-playlist-mode-map bongo-library-mode-map))
-    (define-key map [remap bongo-rename-line] nil))
+    (keymap-substitute map 'bongo-rename-line 'ignore))
 
 ;; *** end
   )
