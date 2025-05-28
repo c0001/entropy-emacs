@@ -572,7 +572,9 @@ eemacs origin type which reduce performance issue."
        (entropy/emacs-make-space-align-to-modeline-rest
         entropy/emacs-modeline--simple-mode-line-rhs-fmt
         ;; NOTE: icon width commonly not fixed
-        (and (display-graphic-p) 1))))
+        (and (display-graphic-p) (entropy/emacs-icons-displayable-p)
+             (if entropy/emacs-make-space-align-to-modeline-rest//var/use-pixel-align-p
+                 1 2)))))
     ;; ---------- lhs ----------
     ,@entropy/emacs-modeline--simple-mode-line-rhs-fmt))
 

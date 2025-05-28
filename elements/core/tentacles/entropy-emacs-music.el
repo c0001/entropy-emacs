@@ -1025,6 +1025,53 @@ This function sets the buffer-local or global value of `bongo-next-action'."
 
     )
 
+  (defconst eemacs//bongo-modeline-indicator/keymap
+    (let ((map (make-sparse-keymap)))
+      (define-key map [mode-line down-mouse-1]
+        (lambda nil (interactive)
+          (bongo-pause/resume)))
+      map))
+  (defvar eemacs//bongo-modeline-indicator/cache-str nil)
+  (defun eemacs//bongo-modeline-indicator/core nil
+    (let* ((icp (entropy/emacs-icons-displayable-p))
+           (player (with-bongo-playlist-buffer (bound-and-true-p bongo-player)))
+           (upp (and player (bongo-player-paused-p player)))
+           (ppp (and player (not upp) (bongo-player-running-p player)))
+           (stp (or (null player) (bongo-player-explicitly-stopped-p player)))
+           (str
+            (if ppp
+                (if icp (nerd-icons-faicon "nf-fa-pause_circle_o")
+                  "bongo-playing")
+              (if stp nil
+                (if icp (nerd-icons-faicon "nf-fa-play_circle_o")
+                  "bongo-paused")))))
+      (if (not str) (setq str "")
+        (entropy/emacs-setf-by-body str
+          (propertize
+           str
+           'mouse-face 'mode-line-highlight
+           'help-echo
+           (format
+            "Bongo is %s (%s)%s"
+            (if ppp "playing" "paused")
+            (format "current item '%s'"
+                    (ignore-errors
+                      (bongo-alist-get
+                       (bongo-alist-get (bongo-player-get player 'infoset) 'track)
+                       'title)))
+            "\nmouse-1: pause/resume")
+           'local-map eemacs//bongo-modeline-indicator/keymap)))
+      (setq eemacs//bongo-modeline-indicator/cache-str
+            (replace-regexp-in-string "%" "%%" str))))
+  (defun eemacs//bongo-modeline-indicator nil
+    (if (not entropy/emacs-current-session-is-idle-p)
+        (or eemacs//bongo-modeline-indicator/cache-str "")
+      (eemacs//bongo-modeline-indicator/core)
+      eemacs//bongo-modeline-indicator/cache-str))
+  (add-to-list
+   'mode-line-misc-info
+   (list t '(:eval (eemacs//bongo-modeline-indicator))))
+
   ;; trash unsafe command directly used in keymap
   (dolist (map (list bongo-mode-map bongo-playlist-mode-map bongo-library-mode-map))
     (define-key map [remap bongo-rename-line] nil))
