@@ -1040,10 +1040,10 @@ This function sets the buffer-local or global value of `bongo-next-action'."
            (stp (or (null player) (bongo-player-explicitly-stopped-p player)))
            (str
             (if ppp
-                (if icp (nerd-icons-faicon "nf-fa-pause_circle_o")
+                (if icp (nerd-icons-faicon "nf-fa-pause_circle_o" :v-adjust 0.05)
                   "bongo-playing")
               (if stp nil
-                (if icp (nerd-icons-faicon "nf-fa-play_circle_o")
+                (if icp (nerd-icons-faicon "nf-fa-play_circle_o" :v-adjust 0.05)
                   "bongo-paused")))))
       (if (not str) (setq str "")
         (entropy/emacs-setf-by-body str

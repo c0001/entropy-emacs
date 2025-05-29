@@ -502,7 +502,8 @@ eemacs origin type which reduce performance issue."
         (entropy/emacs-modeline--origin-mdl-use-icon-or-plain
          (__mdl-nerd-icons-run
              nerd-icons-devicon "nf-dev-vscode"
-             :face 'entropy/emacs-defface-simple-color-face-green-bold)
+             :face 'entropy/emacs-defface-simple-color-face-green-bold
+             :v-adjust 0.05)
          (format "%s" (propertize mode 'face 'success))))))))
 
 (defvar entropy/emacs-modeline--simple-mode-line-format)
@@ -528,6 +529,10 @@ eemacs origin type which reduce performance issue."
          ;; '(10 "%l:%c")
          ))
     (:eval (entropy/emacs-modeline--origin-mdl-seg/lsp-mode-indicator))
+    (:eval
+     (let ((str (entropy/emacs-modeline--miscinfo/treesit-mode-indicator)))
+       (if (or (not str) (string-empty-p str)) ""
+         (format "%s|" str))))
     (:eval (entropy/emacs-modeline--origin-mdl-seg/vcs))
     ;; > Union informations
     (:eval (entropy/emacs-modeline--origin-mdl-seg/mode-line-misc-info))
@@ -1219,16 +1224,14 @@ style which defined in `entropy/emacs-modeline-style'."
           (if (entropy/emacs-ide-get-lang-mode-info-plist-attr
                :treesit-mode-p)
               (if (entropy/emacs-icons-displayable-p)
-                  (__mdl-nerd-icons-run nerd-icons-devicon
-                    "nf-dev-sourcetree" :height 0.8 :face 'nerd-icons-lgreen
-                    :v-adjust 0.18)
-                "[treesit]")
+                  (format "%s"
+                          (__mdl-nerd-icons-run nerd-icons-devicon
+                            "nf-dev-sourcetree" :face 'nerd-icons-lgreen
+                            :v-adjust 0.05))
+                (propertize "treesit" 'face 'nerd-icons-lgreen))
             ""))
         (setq modeline--miscinfo/treesit-mode-indicator/setted-p t)
-        modeline--miscinfo/treesit-mode-indicator)))
-  (entropy/emacs-setf-by-body mode-line-misc-info
-    (cons '(:eval (entropy/emacs-modeline--miscinfo/treesit-mode-indicator))
-          mode-line-misc-info)))
+        modeline--miscinfo/treesit-mode-indicator))))
 
 ;; ** init procedure
 (entropy/emacs-lazy-with-load-trail
