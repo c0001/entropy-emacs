@@ -557,10 +557,10 @@ eemacs origin type which reduce performance issue."
     (:eval
      (if (buffer-narrowed-p)
          (entropy/emacs-modeline--origin-mdl-use-icon-or-plain
-          (nerd-icons-octicon "nf-oct-fold" :face 'warning)
+          (nerd-icons-octicon "nf-oct-fold" :face 'warning :v-adjust 0.05)
           (entropy/emacs-modeline--origin-mdl-propertize-face "><" 'warning))
        (entropy/emacs-modeline--origin-mdl-use-icon-or-plain
-        (nerd-icons-octicon "nf-oct-unfold" :face 'success)
+        (nerd-icons-octicon "nf-oct-unfold" :face 'success :v-adjust 0.05)
         (entropy/emacs-modeline--origin-mdl-propertize-face "<>" 'success))))
     ;;"remote:" mode-line-remote " "
     ;; mode-line-frame-identification
