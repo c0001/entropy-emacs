@@ -532,7 +532,7 @@ dead and duplicated ones."
       (apply orig-func orig-args)))
   ;; EEMACS_MAINTENANCE: internally Api may need to update with
   ;; upstream.
-  (advice-add 'hl-todo--setup
+  (advice-add 'hl-todo--setup-regexp
               :around
               #'__ya/hl-todo-mode)
   (defvar entropy/emacs-highlight--global-hl-todo-mode-p nil)
