@@ -73,8 +73,10 @@
           (push el arglist)))
       `(list ,@arglist))))
 
+;; EEMACS_MAINTENANCE: don't forget to update this list when the
+;; eemacs site-lisp add new components
 (defconst entropy/emacs--self-maintained-packges
-  '(treemacs benchmark-init lsp-java))
+  '(treemacs benchmark-init))
 (defvar entropy/emacs--base-packges
   (__eemac/pkg-reqs-list-items
     ac-php
