@@ -1062,7 +1062,8 @@ This function sets the buffer-local or global value of `bongo-next-action'."
             "\nmouse-1: pause/resume")
            'local-map eemacs//bongo-modeline-indicator/keymap)))
       (setq eemacs//bongo-modeline-indicator/cache-str
-            (replace-regexp-in-string "%" "%%" str))))
+            (__eemacs//mdl-nerd-icons-identity
+             (replace-regexp-in-string "%" "%%" str)))))
   (defun eemacs//bongo-modeline-indicator nil
     (if (not entropy/emacs-current-session-is-idle-p)
         (or eemacs//bongo-modeline-indicator/cache-str "")

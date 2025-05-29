@@ -367,6 +367,14 @@ set for that messy with modeline type, default to nil."
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-modeline)
 
+(defcustom entropy/emacs-modeline-enable-icon-padding-p t
+  "Enable eemacs icon spec padding in modeline.
+
+This option exists since tty icon display usually has char overlap
+problem. Set this nil to close this pseudo enhancement."
+  :type 'boolean
+  :group 'entropy/emacs-customize-group-for-modeline)
+
 ;; **** Fonts
 (defgroup entropy/emacs-customize-group-for-eemacs-font-spec nil
   "Eemacs font specifications configuration customizable group."

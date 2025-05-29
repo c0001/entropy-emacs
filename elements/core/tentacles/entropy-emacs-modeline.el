@@ -294,22 +294,6 @@ enabled."
 (defvar entropy/emacs-modeline--origin-spec-done nil)
 (defvar entropy/emacs-modeline--origin-enable-done nil)
 
-;; FIXME: how to prevent font overlap in tty? for now we just insert a
-;; spc to avoid thus.
-(defvar eemacs//mdl-nerd-icons-for-tty-pend-spc-p t)
-(eval-and-compile
-  (defmacro __mdl-nerd-icons-run (func &rest args)
-    (declare (indent 1))
-    `(let ((str (,func ,@args)))
-       (if (or (not eemacs//mdl-nerd-icons-for-tty-pend-spc-p)
-               (display-graphic-p)) str
-         (format "%s " str))))
-  (defmacro __mdl-nerd-icons-identity (str)
-    `(let ((str ,str))
-       (if (or (not eemacs//mdl-nerd-icons-for-tty-pend-spc-p)
-               (display-graphic-p)) str
-         (format "%s " str)))))
-
 (defun entropy/emacs-modeline--origin-spec-clean ()
   (entropy/emacs-modeline-restore-default-mdlfmt)
   (setq entropy/emacs-modeline--origin-spec-done nil
@@ -455,7 +439,7 @@ eemacs origin type which reduce performance issue."
      (if (not str)
          (entropy/emacs-modeline--origin-mdl-use-icon-or-plain
           (format "%s"
-                  (__mdl-nerd-icons-run nerd-icons-codicon
+                  (__eemacs//mdl-nerd-icons-run nerd-icons-codicon
                     "nf-cod-git_pull_request_draft"
                     :face 'vc-state-base
                     :v-adjust 0.1))
@@ -472,7 +456,7 @@ eemacs origin type which reduce performance issue."
                 (t
                  (nerd-icons-codicon
                   "nf-cod-source_control" :face 'nerd-icons-red)))))
-          (setq icon (__mdl-nerd-icons-identity icon))
+          (setq icon (__eemacs//mdl-nerd-icons-identity icon))
           (if (not vc-rest) icon
             (concat icon ":" (propertize vc-rest 'face 'mode-line-emphasis))))
         (format
@@ -500,7 +484,7 @@ eemacs origin type which reduce performance issue."
        (format
         "%s|"
         (entropy/emacs-modeline--origin-mdl-use-icon-or-plain
-         (__mdl-nerd-icons-run
+         (__eemacs//mdl-nerd-icons-run
              nerd-icons-devicon "nf-dev-vscode"
              :face 'entropy/emacs-defface-simple-color-face-green-bold
              :v-adjust 0.05)
@@ -1225,7 +1209,7 @@ style which defined in `entropy/emacs-modeline-style'."
                :treesit-mode-p)
               (if (entropy/emacs-icons-displayable-p)
                   (format "%s"
-                          (__mdl-nerd-icons-run nerd-icons-devicon
+                          (__eemacs//mdl-nerd-icons-run nerd-icons-devicon
                             "nf-dev-sourcetree" :face 'nerd-icons-lgreen
                             :v-adjust 0.05))
                 (propertize "treesit" 'face 'nerd-icons-lgreen))

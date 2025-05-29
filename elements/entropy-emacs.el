@@ -1495,6 +1495,26 @@ that name as FILE later."
         (with-temp-file file
           (entropy/emacs-file-truename file))))))
 
+;; *** mode-line
+;; FIXME: how to prevent font overlap in tty? for now we just insert a
+;; spc to avoid thus.
+(defun __eemacs//mdl-nerd-icons-shouldnt-use-padding-p (str)
+  (if (bound-and-true-p entropy/emacs-modeline-enable-icon-padding-p)
+      (cond ((string-empty-p str) t)
+            ((display-graphic-p)  t)
+            (t nil))
+    t))
+(eval-and-compile
+  (defmacro __eemacs//mdl-nerd-icons-run (func &rest args)
+    (declare (indent 1))
+    `(let ((str (,func ,@args)))
+       (if (__eemacs//mdl-nerd-icons-shouldnt-use-padding-p str) str
+         (format "%s " str))))
+  (defmacro __eemacs//mdl-nerd-icons-identity (str)
+    `(let ((str ,str))
+       (if (__eemacs//mdl-nerd-icons-shouldnt-use-padding-p str) str
+         (format "%s " str)))))
+
 ;; *** process
 
 (defun entropy/emacs--make-process-top-advice (orig-func &rest orig-args)
