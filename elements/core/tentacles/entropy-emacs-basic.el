@@ -7802,7 +7802,9 @@ This function will store the loading callback to
                   :next-item pyim-next-word
                   :prev-item pyim-previous-word
                   :next-page pyim-next-page
-                  :prev-page pyim-previous-page)
+                  :prev-page pyim-previous-page
+                  :beginning-of-line pyim-beginning-of-line
+                  :end-of-line pyim-end-of-line)
                  :rime-sync-cmd ,(and (eq entropy/emacs-pyim-use-backend 'liberime)
                                       'liberime-sync)
                  :rime-backend ,(and (eq entropy/emacs-pyim-use-backend 'liberime)
@@ -8063,7 +8065,9 @@ This function will store the `rime' loading callback to
                   :next-item rime-send-keybinding
                   :prev-item rime-send-keybinding
                   :next-page rime-send-keybinding
-                  :prev-page rime-send-keybinding)
+                  :prev-page rime-send-keybinding
+                  :beginning-of-line rime-send-keybinding
+                  :end-of-line rime-send-keybinding)
                  :rime-sync-cmd rime-sync
                  :rime-backend emacs-rime
                  ))
@@ -8288,6 +8292,8 @@ we do not want to init as duplicated which will cause messy."
                (cmds-keymap (car cmds-plist))
                (_ (and (symbolp cmds-keymap) (setq cmds-keymap (symbol-value cmds-keymap))))
                (cmds (cdr cmds-plist))
+               (ime-bl-cmd (plist-get cmds :beginning-of-line))
+               (ime-el-cmd (plist-get cmds :end-of-line))
                (ime-nc-cmd (plist-get cmds :next-char))
                (ime-pc-cmd (plist-get cmds :prev-char))
                (ime-ni-cmd (plist-get cmds :next-item))
@@ -8313,7 +8319,15 @@ we do not want to init as duplicated which will cause messy."
                 (define-key cmds-keymap (kbd key) ime-np-cmd)))
             (when ime-pp-cmd
               (dolist (key (list "M-v" "<prior>"))
-                (define-key cmds-keymap (kbd key) ime-pp-cmd))))
+                (define-key cmds-keymap (kbd key) ime-pp-cmd)))
+
+            (when ime-bl-cmd
+              (dolist (key (list "C-a"))
+                (define-key cmds-keymap (kbd key) ime-bl-cmd)))
+            (when ime-el-cmd
+              (dolist (key (list "C-e"))
+                (define-key cmds-keymap (kbd key) ime-el-cmd)))
+            )
 
           (entropy/emacs-when-let*-first
               ((rime-backend (plist-get ime-plist :rime-backend))
