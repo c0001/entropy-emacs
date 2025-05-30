@@ -707,7 +707,7 @@ Add current music to queue when its not in thus."
 
 
 ;; ** bongo
-(use-package bongo
+(entropy/emacs--inner-use-package bongo
 ;; *** preface
 
 ;; *** defines

@@ -1467,7 +1467,7 @@ It's usefully for windows user to quickly switching to
 ;; ** entropy-emacs self packages
 
 ;; *** entropy-proxy-url
-(use-package entropy-proxy-url
+(entropy/emacs--inner-use-package entropy-proxy-url
   :ensure nil
   :if (plist-get entropy/emacs-union-http-proxy-plist :enable)
   :eemacs-macros

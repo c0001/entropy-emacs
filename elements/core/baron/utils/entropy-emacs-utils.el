@@ -505,7 +505,7 @@ was split from a side window such as from a treemacs scope window."
 
 ;; ** hydra
 ;; *** hydra core
-(use-package hydra
+(entropy/emacs--inner-use-package hydra
   :eemacs-macros (defhydra)
   :eemacs-functions (hydra-default-pre)
   :init

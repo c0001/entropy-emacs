@@ -627,6 +627,17 @@ keys:
 - `:eemacs-with-permanently-defer': always defer if non-nil but still
   respect `:defer' if presented.
 
+- `:eemacs-macros': list of macros of this package to autoload after
+  the use-package form run only if it's used.
+
+  Which see those macros' autoloads are invisible in any of parts of
+  use-pckage body since if not, at laod time, the package will be
+  `require' if any macro defined in this key used in place of
+  use-package body even if in the :config part, this happened because
+  use-package's :config part use `eval-after-load' which wrapped the
+  form into a lambda for with `eval' who expand any known macro at
+  evaluation time, which see why.
+
 *Exception*
 
 With this macaro, when the `:no-requrie' is indeed token effectively,
@@ -647,7 +658,8 @@ exception."
               :no-require :defer
               :eemacs-with-permanently-defer
               :eemacs-with-no-require
-              :eemacs-if))
+              :eemacs-if
+              :eemacs-macros))
          (kpl (car pl))
          (_ (setq form `(,@(cdr pl))))
          (should-use-p
@@ -677,7 +689,13 @@ exception."
                        (plist-get kpl :eemacs-with-permanently-noload))
                       lexical-binding))
                (entropy/emacs-get-plist-form
-                form :config 'list 'no-error))))
+                form :config 'list 'no-error)))
+         (eemacs-macros-list
+          (and should-use-p
+               (when-let ((src (plist-get kpl :eemacs-macros)))
+                 (if (consp (car-safe src)) (car src)
+                   src))))
+         final-usepkg-form)
     (if (not should-use-p) '(ignore)
       (if no-require-p
           (setq form `(:no-require t ,@form)))
@@ -697,7 +715,8 @@ exception."
            (nthcdr pos form) rfm
            :with-error t)))
       ;; processing other eemacs spec keys
-      (if (not perm-defer-p) `(use-package ,use-package-name ,@form)
+      (if (not perm-defer-p)
+          (setq final-usepkg-form `(use-package ,use-package-name ,@form))
         (unwind-protect
             (progn
               (setq use-package-defaults
@@ -707,8 +726,16 @@ exception."
                       (:catch t t)
                       (:defer t t)
                       (:demand nil t)))
-              (macroexpand-1 `(use-package ,use-package-name ,@form)))
-          (setq use-package-defaults old-use-package-defaults))))))
+              (setq final-usepkg-form
+                    (macroexpand-1 `(use-package ,use-package-name ,@form))))
+          (setq use-package-defaults old-use-package-defaults)))
+      (if (not eemacs-macros-list) final-usepkg-form
+        `(progn
+           ,final-usepkg-form
+           (dolist (macro '(,@eemacs-macros-list))
+             (unless (fboundp macro)
+               (autoload macro ,(symbol-name use-package-name) nil nil t)))))
+      )))
 
 ;; *** extra `use-package' keywords definition
 ;; **** :eemacs-functions
@@ -737,34 +764,6 @@ are recognized as a normal function."
             (unless (plist-get state :demand)
               `((unless (fboundp ',command)
                   (autoload #',command ,name-string))))))
-      (delete-dups arg)))
-   (use-package-process-keywords name rest state)))
-
-;; **** :eemacs-macros
-
-;; same as builtin `:functions' but for macaros and always autoload
-;; even in non-compile session
-
-(entropy/emacs-add-hook-with-lambda 'use-pakcage:eemacs-macros nil
-  :use-hook 'entropy/emacs-package-init-use-packge-after-hook
-  (entropy/emacs-package--use-package-add-keyword
-   :eemacs-macros :if))
-
-(defalias 'use-package-normalize/:eemacs-macros
-  'use-package-normalize-symlist)
-
-(defun use-package-handler/:eemacs-macros (name _keyword arg rest state)
-  "The `use-package' handler for key ':eemacs-macros' which place
-can host a macro symbol or a list of thus. All symbols are
-recognized as a normal macro."
-  (use-package-concat
-   (let ((name-string (use-package-as-string name)))
-     (cl-mapcan
-      #'(lambda (command)
-          (when (symbolp command)
-            (unless (plist-get state :demand)
-              `((unless (fboundp ',command)
-                  (autoload #',command ,name-string nil nil t))))))
       (delete-dups arg)))
    (use-package-process-keywords name rest state)))
 
