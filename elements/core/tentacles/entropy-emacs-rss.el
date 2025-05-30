@@ -411,6 +411,12 @@ Optional arg FEEDS-PLIST-NAME if nil, pruning
   (defun entropy/emacs-rss--elfeed-update/set-search-filter (type)
     (with-current-buffer (elfeed-search-buffer)
       (cond
+       ((and (not current-prefix-arg)
+             (not (eq this-command 'entropy/emacs-rss-elfeed-update)))
+        (setq entropy/emacs-rss--elfeed-update/current-filter
+              elfeed-search-filter))
+       ;; use pseudo filter buffer to reduce large feeds database
+       ;; insertion performance issue for update all feeds occasion.
        ((eq type 'before)
         (setq entropy/emacs-rss--elfeed-update/current-filter
               elfeed-search-filter)
@@ -574,11 +580,23 @@ So we automatically help you to change to `curl' mode."))
         (dolist (el feeds)
           (setq pair-list `(,(elfeed-feed-title el) . ,(elfeed-feed-id el)))
           (push pair-list rtn)))
-      (let ((mlist nil))
+      (let ((mlist nil) title item)
         (dolist (el rtn)
-          (if (car el)
-              (push `(,(concat (car el) " ↭ " (cdr el)) . ,(cdr el)) mlist)
-            (push `(,(concat "☹nil ↭ " (cdr el)) . ,(cdr el)) mlist)))
+          (setq title (car el)
+                title
+                (and title
+                     (not (string-empty-p title))
+                     (not (string-match-p "^\\s-+$" title))
+                     title)
+                title (or title (propertize "N/A" 'face 'error)))
+          (setq title
+                (truncate-string-to-width
+                 title
+                 (floor (/ (frame-width) 3.0))
+                 nil 32 "...")
+                title (format "%s - %s" title (propertize (cdr el) 'face 'link)))
+          (setq item (cons title (cdr el)))
+          (push item mlist))
         (setq rtn mlist))
       rtn))
 
@@ -628,9 +646,15 @@ the current elfeed-show-buffer."
         (kill-buffer curbuff))))
 
   (defun entropy/emacs-rss-elfeed-clean-filter ()
-    "Clean all filter for curren elfeed search buffer."
+    "Clean all filter for curren elfeed search buffer.
+
+With `current-prefix-arg' show all feed entries without date limitation,
+otherwise only entries within 3 days are displayed to reduce emacs
+performance issue."
     (interactive nil elfeed-search-mode)
-    (elfeed-search-set-filter ""))
+    (let ((filter
+           (if current-prefix-arg "" "@3-days-ago +unread")))
+      (elfeed-search-set-filter filter)))
 
   (defun entropy/emacs-rss--elfeed-build-feedname-regexp-filter (feedname)
     (replace-regexp-in-string " " ".*" feedname))
@@ -769,11 +793,13 @@ Arguments:
           choice
           rtn)
       ;; make feed title name list and matched entries list
-      (dolist (el entry-list)
-        (let ((feed-title (entropy/emacs-rss--elfeed-read-feedname el)))
-          (when feed-title
-            (cl-pushnew feed-title feedtitle-name-list)
-            (push el entries))))
+      (unless tname
+        (entropy/emacs-message-simple-progress-message "Collecting feednames"
+          (dolist (el entry-list)
+            (let ((feed-title (entropy/emacs-rss--elfeed-read-feedname el)))
+              (when feed-title
+                (cl-pushnew feed-title feedtitle-name-list :test 'string=)
+                (push el entries))))))
 
       (if tname
           (setq choice tname)
