@@ -945,6 +945,19 @@ commands.")
 
 It is a string used for `kbd'.")
 
+(eval-and-compile
+  (cl-defmacro entropy/emacs--with-top-key-dynamic-modified
+      (name &rest body &key with-it-as &allow-other-keys)
+    (declare (indent 1))
+    (let ((it (or with-it-as 'it)) (func (make-symbol "func")))
+      `(progn
+         (let ((,it entropy/emacs-top-key)) (ignore ,it) ,@body)
+         (add-variable-watcher
+          'entropy/emacs-top-key
+          (entropy/emacs-!cl-defun ,name (_sym nval op _wh)
+            (when (eq op 'set)
+              (let ((,it nval)) (ignore ,it) ,@body))))))))
+
 ;; ** unified keybinding reflects defination
 ;; *** outline
 (defvar entropy/emacs-ukrd-ouline-demote-sutree "M-S-<right>")

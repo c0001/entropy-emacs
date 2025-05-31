@@ -7880,7 +7880,10 @@ current displayed buffer area wile
       (setq pyim-magic-converter 'entropy/s2t-string)
       (message "【繁体中文】")))
   ;; Quickly change 简体 <-> 繁体
-  (define-key pyim-mode-map (kbd "C-r") #'entropy/emacs-basic-toggle-pyim-s2t)
+  (entropy/emacs--with-top-key-dynamic-modified
+      eemacs//pyim-bind-s2t-key
+    (define-key pyim-mode-map (kbd it)
+                #'entropy/emacs-basic-toggle-pyim-s2t))
 
 ;; ******** toglle punctuation between half and full way.
   (defun entropy/emacs-basic-toggle-pyim-punctuation-half-or-full ()
@@ -8151,25 +8154,30 @@ conflicts."
               :override #'__ya/rime--message-display-content)
 
 ;; ******* eemacs spec apis
-  ;; FIXME:
-  ;; TODO: we must use an unified wrapper to judge the result since
-  ;; rime support various chinese ime further than just 'luna_pyinyin'
-  ;; like 'cangjie' 'zhuyin' etc.
-  (defun __emacs-rime-is-use-cn-schema-p ()
-    (string-match-p "luna_pinyin" __emacs-rime-current-schema))
-  (defun entropy/emacs-basic-emacs-rime-CNschema-is-simplified ()
-    (string-match-p "luna_pinyin_simp" __emacs-rime-current-schema))
-  (defun entropy/emacs-basic-emacs-rime-s2t-toggle ()
+
+  (let (firstp)
+    (defun entropy/emacs-basic-emacs-rime-CNschema-is-simplified ()
+      (unless firstp
+        (entropy/emacs-message-do-warn
+         "The s2t feature for rime in eemacs is fake due to how it implemented was
+relied on the corresponding rime backend your specified in
+`entropy/emacs-internal-ime-use-rime-default-schema'"
+         )
+        (setq firstp t))
+      nil))
+  (defun entropy/emacs-basic-emacs-rime-s2t-toggle nil
     (interactive)
-    (when (__emacs-rime-is-use-cn-schema-p)
-      (if (entropy/emacs-basic-emacs-rime-CNschema-is-simplified)
-          (prog1
-              (rime-lib-select-schema "luna_pinyin")
-            (message "【繁体中文】"))
-        (message "【简体中文】")
-        (rime-lib-select-schema "luna_pinyin_simp"))))
-  ;; Quickly change 简体 <-> 繁体
-  (define-key rime-active-mode-map (kbd "C-r") #'entropy/emacs-basic-emacs-rime-s2t-toggle)
+    (if-let (((bound-and-true-p rime-mode))
+             (last-input-event
+              ;; EEMACS_MAINTENANCE: convention of rime default
+              ;; control+grave switcher keybinding, but not always.
+              67108960))
+        (rime-send-keybinding)
+      (user-error "-v-")))
+  (entropy/emacs--with-top-key-dynamic-modified
+      eemacs//rime-bind-s2t-key
+    (define-key rime-active-mode-map (kbd it)
+                #'entropy/emacs-basic-emacs-rime-s2t-toggle))
   )
 
 ;; ***** _union setup
@@ -8268,7 +8276,7 @@ we do not want to init as duplicated which will cause messy."
                 ,(when (plist-get ime-plist :chinese)
                    (list
                     "c t" (plist-get (plist-get ime-plist :chinese) :s2t-toggle)
-                    (format "'%s' use traditional chinese (quckly use'C-r' within input)"
+                    (format "'%s' use traditional chinese (quckly use 'entropy/emacs-top-key' within input)"
                             ime-name)
                     :enable t
                     :toggle (plist-get (plist-get ime-plist :chinese) :s2t-indicator)))
