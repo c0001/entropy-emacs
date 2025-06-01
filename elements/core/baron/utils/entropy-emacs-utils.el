@@ -489,6 +489,47 @@ was split from a side window such as from a treemacs scope window."
     (advice-add 'lv-delete-window
                 :override 'entropy/emacs--lv-delete-window))
 
+  (entropy/emacs-api-restriction/elpkg-eemacs-ext-stable-build-repo-version
+      'lv-window-redef
+    :do-error t :elpkg-eemacs-ext-stable-build-repo-version "3.2.0"
+    (entropy/emacs-!cl-defun entropy/emacs--lv-window-override ()
+      "The override advice for `lv-window' since its buggy of using
+`switch-to-buffer' to set buffer of `lv-wnd' which may cause origin
+`selected-window' not lived any more since it uses `pop-to-buffer' to
+handle display actions which not guarantee the original window
+layout. In other hand, `switch-to-buffer' is prefer to be used
+interactively which is not a good taste to used in progs."
+      (if (window-live-p lv-wnd) lv-wnd
+        (let ((ori (selected-window)) buf)
+          (prog1 (setq lv-wnd
+                       (select-window
+                        (let ((ignore-window-parameters t))
+                          (split-window
+                           (frame-root-window) -1 'below))
+                        'norecord))
+            (if (setq buf (get-buffer " *LV*"))
+                (set-window-buffer lv-wnd buf)
+              (set-window-buffer
+               lv-wnd (setq buf (get-buffer-create " *LV*" t))))
+            (with-current-buffer buf
+              (fundamental-mode)
+              (set-window-hscroll lv-wnd 0)
+              (setq window-size-fixed t)
+              (setq mode-line-format nil)
+              (setq header-line-format nil)
+              (setq tab-line-format nil)
+              (setq cursor-type nil)
+              (setq display-line-numbers nil)
+              (setq display-fill-column-indicator nil)
+              (set-window-dedicated-p lv-wnd t)
+              (set-window-parameter lv-wnd 'no-other-window t)
+              (run-hooks 'lv-window-hook))
+            (unless (window-live-p ori)
+              (entropy/emacs-!error-as-eemacs-internal-error
+               "orig win %s not lived anymore" ori))
+            (select-window ori 'norecord)))))
+    (advice-add 'lv-window :override #'entropy/emacs--lv-window-override))
+
   ;; EEMACS_MAINTENANCE: inhibit wrapper for lv core subroutine for preventing from session messy/stuck/buggy
   (defun entropy/emacs--lv-window-inhibit-quit (ofunc &rest oargs)
     (let ((inhibit-quit t)) (apply ofunc oargs)))
