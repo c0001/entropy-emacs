@@ -949,7 +949,7 @@ It is a string used for `kbd'.")
   (cl-defmacro entropy/emacs--with-top-key-dynamic-modified
       (name &rest body &key with-it-as &allow-other-keys)
     (declare (indent 1))
-    (let ((it (or with-it-as 'it)) (func (make-symbol "func")))
+    (let ((it (or with-it-as 'it)))
       `(progn
          (let ((,it entropy/emacs-top-key)) (ignore ,it) ,@body)
          (add-variable-watcher

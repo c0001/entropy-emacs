@@ -8168,6 +8168,7 @@ relied on the corresponding rime backend your specified in
   (defun entropy/emacs-basic-emacs-rime-s2t-toggle nil
     (interactive)
     (if-let (((bound-and-true-p rime-mode))
+             ((not (entropy/emacs-utils-cmd-call-from-hydra-p)))
              (last-input-event
               ;; EEMACS_MAINTENANCE: convention of rime default
               ;; control+grave switcher keybinding, but not always.
