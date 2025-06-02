@@ -30,6 +30,13 @@
 ;;
 
 ;;; Code:
+
+;; Disbale this before `info-initialize' invoked to guarantee the info
+;; path of emacs self documents are not the one at source directory
+;; which may not has the same `emacs-version' as for which current
+;; emacs session stands.
+(setq source-directory nil)
+
 ;;;; early defvar
 
 ;; top eemacs host
