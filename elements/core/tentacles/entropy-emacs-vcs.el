@@ -54,8 +54,8 @@
   (defun entropy/emacs-vcs--magit-init ()
     (with-eval-after-load 'magit
       ;; Force using utf-8 environment to prevent causing unicode problem in git commit.
-      (progn
-        (advice-add 'magit-status
+      (dolist (func '(magit-start-process magit-call-process))
+        (advice-add func
                     :around
                     #'entropy/emacs-lang-use-utf-8-ces-around-advice))
       ;;disabled 'M-1' key-binding with conflicated with
@@ -164,9 +164,13 @@ This function is simpley inspired from magit source as:
 files destroying."
     (if (or (not (called-interactively-p 'any))
             (yes-or-no-p
-             (format
-              "Do you really want to run the dangerous magit command `%s'?"
-              this-command)))
+             (if orig-args
+                 (format "\
+Do you really want to run the dangerous magit command `%s' \
+with args %s?"
+                         this-command orig-args)
+               (format "Do you really want to run the dangerous magit command `%s'?"
+                       this-command))))
         (apply orig-func orig-args)
       (user-error "Abort!")))
   (dolist (func '(
@@ -181,10 +185,26 @@ files destroying."
                   magit-stage-modified
                   magit-sparse-checkout-enable
                   magit-cherry-apply
-                  magit-apply))
+                  magit-apply
+                  magit-reset-quickly))
     (advice-add func
                 :around
                 #'entropy/emacs-vcs--magit-safe-command-advice))
+
+  (defun entropy/emacs-vcs--magit-annoy-command-advice (orig-func &rest orig-args)
+    "The user prompts for annoy `magit' commands like
+`magit-ediff-dwim' i.e. they may cause confusion."
+    (if (or (not (called-interactively-p 'any))
+            (yes-or-no-p
+             (format
+              "Do you really want to run the confusion magit command `%s'?"
+              this-command)))
+        (apply orig-func orig-args)
+      (user-error "Abort!")))
+  (dolist (func '(magit-ediff-dwim))
+    (advice-add func
+                :around
+                #'entropy/emacs-vcs--magit-annoy-command-advice))
 
   ;; use eemacs union http_proxy for magit swapns when available
   (advice-add 'magit-process-environment

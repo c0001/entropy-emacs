@@ -12890,7 +12890,7 @@ For temporally usage of this functional case, see
 
 
 (defun entropy/emacs-lang-use-utf-8-ces-around-advice (old-func &rest args)
-  "Common around advice for wrapper function into utf-8
+  "Common around advice for wrapper function into utf-8 preferred
 environment."
   (let* ((coding-system-for-read 'prefer-utf-8)
          (coding-system-for-write 'prefer-utf-8))
