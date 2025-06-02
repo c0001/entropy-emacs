@@ -776,9 +776,10 @@ Add current music to queue when its not in thus."
 jumped to the main context."
     (interactive nil dired-mode)
     (let (lbuf files)
-      (dired-map-over-marks
-       (push (dired-get-filename) files)
-       nil t)
+      (entropy/emacs-save-excurstion-and-mark-and-match-data
+        (dired-map-over-marks
+         (push (dired-get-filename) files)
+         nil t))
       (setq files (nreverse files))
       (with-bongo-library-buffer
         (setq lbuf (current-buffer))
@@ -846,6 +847,7 @@ This function sets the buffer-local or global value of `bongo-next-action'."
                    (entropy/emacs-derived-cur-major-mode-p 'dired-mode))
         (apply ofunc oargs)))
     (advice-add 'bongo-buffer-p :around #'eemacs//bongo-buffer-p)
+    (advice-add 'bongo-library-buffer-p :around #'eemacs//bongo-buffer-p)
     (defun eemacs//bongo-switch-buffer (ofunc &rest oargs)
       (let ((eemacs//bongo-buffer-p-either-dired-buffer-p t))
         (apply ofunc oargs)))
