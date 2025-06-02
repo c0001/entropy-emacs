@@ -862,12 +862,17 @@ This function sets the buffer-local or global value of `bongo-next-action'."
     ;; updated via `bongo-redisplay-line' in which case since the
     ;; track length is never obtained by `bongo-player-times-changed'
     ;; in any backend's filter part.
-    (advice-patch 'bongo-player-times-changed
-                  '(> current-seconds
-                      (let ((ot bongo-player-times-last-updated))
-                        (if (= ot 65535) (setq bongo-player-times-last-updated 0)
-                          ot)))
-                  '(> current-seconds bongo-player-times-last-updated))
+    ;;
+    ;; In otherhand, this also possible for some occasions that
+    ;; `current-time''s second item always less than the recorded one
+    ;; since the process filter may has regular period for making IPC
+    ;; message in such time. Thus we made a reset timer instead of
+    ;; patch in body of origin function to avoid all of thus.
+    (run-with-idle-timer
+     10 t
+     (entropy/emacs-!cl-defun
+         eemacs//bongo-reset-player-times-changed-timestamp nil
+       (setq bongo-player-times-last-updated 0)))
 
     (entropy/emacs-setf-by-body bongo-infoset-from-file-name-function
       (entropy/emacs-!cl-defun
