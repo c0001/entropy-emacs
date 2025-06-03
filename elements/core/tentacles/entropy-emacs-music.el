@@ -870,7 +870,7 @@ This function sets the buffer-local or global value of `bongo-next-action'."
     ;; since the process filter may has regular period for making IPC
     ;; message in such time. Thus we made a reset timer instead of
     ;; patch in body of origin function to avoid all of thus.
-    (run-with-idle-timer
+    (run-at-time
      10 t
      (entropy/emacs-!cl-defun
          eemacs//bongo-reset-player-times-changed-timestamp nil
