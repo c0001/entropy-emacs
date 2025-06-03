@@ -1734,7 +1734,8 @@ completion when calling: 'execute-extended-command' or
       (entropy/emacs-company--set-backends
        (cond ((eq entropy/emacs-company--minibuffer-command 'execute-extended-command)
               '(entropy/emacs-company-elisp-minibuffer))
-             (t '(entropy/emacs-company-elisp-minibuffer company-dabbrev))))
+             ;; NOTE: use :separate keywords to ensure capf candis become firstly
+             (t '(entropy/emacs-company-elisp-minibuffer :separate company-dabbrev))))
       (setq-local company-tooltip-limit 6)
       (company-mode 1)
 
