@@ -171,12 +171,15 @@
         w3m-image-animate-seconds nil
         w3m-show-graphic-icons-in-tab-line nil
         w3m-use-favicon nil
-        w3m-use-refresh nil
         w3m-use-tab nil
         w3m-use-tab-menubar nil
         w3m-process-timeout 5
         w3m-pop-up-windows nil
         )
+
+  ;; ensure quickly refresh with redirect page loading via response
+  (setq w3m-use-refresh t
+        w3m-refresh-minimum-interval 0.2)
 
   ;; disable the cursor move hook for reduce lagging
   ;; FIXME: we ensure set it after load w3m to take effecient, why?
@@ -817,38 +820,15 @@ fixing it as thus.
            (orig-render browse-url-browser-function))
       (unwind-protect
           (progn
-            (cond ((eql (car current-prefix-arg) 16)
-                   (let ((brs (completing-read
-                               "Choice browser:"
-                               '("eww" "w3m")
-                               nil t)))
-                     (setq browse-url-browser-function
-                           (cond
-                            ((string= brs "eww")
-                             'eww-browse-url)
-                            ((string= brs "w3m")
-                             'w3m-goto-url-new-session)
-                            ))))
-                  (t
-                   (setq browse-url-browser-function render)))
+            (setq browse-url-browser-function render)
             (let ((w3m-make-new-session t))
               (browse-url (format url (url-hexify-string word)))))
-        (setq-default browse-url-browser-function orig-render))))
+        (setq browse-url-browser-function orig-render))))
   (advice-add 'search-web :override #'__ya/search-web)
 
-  ;; redefine search query engine for force input comprehensive data
   (defun entropy/emacs-textwww--search-web-query-egine (type)
     (let* ((prompt "Search Engine: "))
-      (completing-read prompt search-web-engines nil t
-                       (if (string= "External" type)
-                           (let ((result nil))
-                             (dolist (el entropy/emacs-search-web-engines-external)
-                               (if (string= "google" (car el))
-                                   (setq result t)))
-                             (if result
-                                 "google"
-                               nil))
-                         nil))))
+      (completing-read prompt search-web-engines nil :require-match)))
 
   ;; Optional choosing internal or external browser to follow the searching.
 
