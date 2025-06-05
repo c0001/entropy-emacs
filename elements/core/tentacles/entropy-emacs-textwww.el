@@ -826,7 +826,7 @@ fixing it as thus.
         (setq browse-url-browser-function orig-render))))
   (advice-add 'search-web :override #'__ya/search-web)
 
-  (defun entropy/emacs-textwww--search-web-query-egine (type)
+  (defun entropy/emacs-textwww--search-web-query-egine (_type)
     (let* ((prompt "Search Engine: "))
       (completing-read prompt search-web-engines nil :require-match)))
 
