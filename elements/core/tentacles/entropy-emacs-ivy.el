@@ -2624,12 +2624,27 @@ currnt fontset."
   :commands
   (rg rg-project)
   :init
+  ;; use convenient perl regexp pattern
   (setq rg-command-line-flags (list "--pcre2"))
   :config
   (dolist (func '(rg rg-project))
     (advice-add func
                 :around
-                #'entropy/emacs-lang-use-utf-8-ces-around-advice)))
+                #'entropy/emacs-lang-use-utf-8-ces-around-advice))
+
+  (advice-add
+   'rg-project-root
+   :around
+   (entropy/emacs-!cl-defun eemacs/rg--project-root (ofunc &rest oargs)
+     (let* ((file (car oargs))
+            (trprj-root
+             (and (fboundp 'entropy/emacs-treemacs-file-in-project-p)
+                  (when-let ((prj (nth 3 (entropy/emacs-treemacs-file-in-project-p file))))
+                    (treemacs-project->path prj)))))
+       ;; NOTE: we prefer use treemacs project toolchain to guarantee
+       ;; `treemacs-follow-mode' workable for the ref jumping.
+       (or trprj-root (apply ofunc oargs)))))
+  )
 
 ;; *** hydra for searcher
 

@@ -44,7 +44,8 @@
   ((:enable t :adfors (entropy/emacs-hydra-hollow-call-before-hook) :adtype hook :pdumper-no-end t))
   :eemacs-functions
   (treemacs-current-visibility
-   treemacs-pulse-on-failure)
+   treemacs-pulse-on-failure
+   entropy/emacs-treemacs-file-in-project-p)
   :commands
   ;; EEMACS_MAINTENANCE: update this list since we should cover the
   ;; autoload from `package-user-dir' where non-patched treemacs
@@ -223,6 +224,118 @@
                   ))
       (define-key treemacs-bulk-file-actions-hydra/keymap
                   (kbd (car el)) (cdr el))))
+
+  (let ((entropy/emacs--treemacs-file-in-project-p/cache ()))
+    (defvar entropy/emacs--treemacs-file-in-project-p/cache_exposed ())
+    (ignore entropy/emacs--treemacs-file-in-project-p/cache)
+    (defun entropy/emacs--treemacs-fipp-regist-item (ofile tfile ws prj)
+      (let ((cache entropy/emacs--treemacs-file-in-project-p/cache)
+            wsp prjp)
+        (setq wsp (assoc ws cache)
+              prjp (and wsp (assoc prj (cdr wsp))))
+        (if prjp (entropy/emacs-alist-set ofile (cdr prjp) tfile)
+          (if wsp (entropy/emacs-alist-set prj (cdr wsp) (list (cons ofile tfile)))
+            (push (cons ws (list (cons prj (list (cons ofile tfile))))) cache)))
+        (setq entropy/emacs--treemacs-file-in-project-p/cache cache
+              entropy/emacs--treemacs-file-in-project-p/cache_exposed
+              (copy-sequence cache))))
+    (defun entropy/emacs--treemacs-fipp-regist-prune (ws/prj)
+      (let ((ws (and (treemacs-workspace-p ws/prj) ws/prj))
+            (prj (and (treemacs-project-p ws/prj) ws/prj)))
+        (if ws (setq entropy/emacs--treemacs-file-in-project-p/cache
+                     (assoc-delete-all ws entropy/emacs--treemacs-file-in-project-p/cache))
+          (when prj
+            (let (prjp)
+              (dolist (wsp entropy/emacs--treemacs-file-in-project-p/cache)
+                (when (setq prjp (cdr wsp))
+                  (setf (cdr wsp) (assoc-delete-all prj prjp))))))))
+      (setq entropy/emacs--treemacs-file-in-project-p/cache_exposed
+            (copy-sequence entropy/emacs--treemacs-file-in-project-p/cache)))
+    (add-hook 'treemacs-delete-workspace-functions #'entropy/emacs--treemacs-fipp-regist-prune)
+    (add-hook 'treemacs-delete-project-functions #'entropy/emacs--treemacs-fipp-regist-prune)
+    (defun entropy/emacs--treemacs-fipp-find-item (ofile ws)
+      (let ((cache (assoc ws entropy/emacs--treemacs-file-in-project-p/cache))
+            prjp relp val)
+        (catch :exit
+          (dolist (prji (cdr cache))
+            (setq prjp prji relp (cdr prjp))
+            (if (and (setq val (assoc ofile relp 'string=)) (cdr val)
+                     (entropy/emacs-existed-filesystem-nodes-equal-p
+                      ofile (cdr val) 'chase-link))
+                (throw :exit (setq val (cdr val)))
+              (when val
+                (setf (cdr val) nil)
+                (throw :exit (setq val nil))))))
+        (and val (list ofile val ws (car prjp)))))
+    (defun entropy/emacs-treemacs-file-in-project-p (file)
+      "Return a PF object of FILE when it's a member of a project of
+`treemacs-current-workspace', nil otherwise.
+
+PF is a list of:
+car: FILE
+cadr: the file path equalized with FILE in a treemacs project PRJ
+caddr: the treemacs workspace on which the PRJ stands predicated by `treemacs-workspace-p'
+cadddr: the PRJ object predicated by `treemacs-project-p'"
+      (setq file (directory-file-name (expand-file-name file)))
+      (when-let ((ws (treemacs-current-workspace)))
+        (if-let* ((cache-val
+                   (entropy/emacs--treemacs-fipp-find-item file ws))) cache-val
+          (entropy/emacs-message-simple-progress-message
+              (format "Check file '%s' whether in one of treemacs projects"
+                      file)
+            (entropy/emacs-when-let*-firstn 3
+                (((file-exists-p file))
+                 (prjs (treemacs-workspace->projects ws))
+                 (ftruepath (directory-file-name (file-truename file)))
+                 prj prj-path prj-true-path rtn)
+              (catch :exit
+                (dolist (el prjs)
+                  (setq prj el)
+                  (setq prj-path (directory-file-name (treemacs-project->path prj))
+                        prj-true-path (directory-file-name (file-truename prj-path)))
+                  (when (or (string= prj-true-path ftruepath)
+                            ;; NOTE: we must add slash to the prefix
+                            ;; pattern since it's indeed should be, or
+                            ;; as a/xxx will match a/xxx-yyy will make
+                            ;; unnecessary searching.
+                            (string-prefix-p (file-name-as-directory prj-true-path) ftruepath))
+                    (let* ((sub-fpath
+                            (string-trim ftruepath prj-true-path))
+                           (_ (setq sub-fpath (string-trim sub-fpath "/")))
+                           (new-fpath (directory-file-name
+                                       (expand-file-name sub-fpath prj-path))))
+                      (when (and (file-exists-p new-fpath)
+                                 (entropy/emacs-existed-filesystem-nodes-equal-p
+                                  new-fpath file 'chase-link))
+                        (throw :exit (setq rtn new-fpath))))
+                    (entropy/emacs-list-dir-subdirs-recursively
+                     prj-path nil
+                     :with-filter
+                     (lambda (type _ node-name)
+                       (and (eq type 'dir)
+                            (or (string-match-p "^\\.git$" node-name)
+                                ;; TODO: may user customization options here
+                                )))
+                     :map-func
+                     (lambda (attrpl &optional ecp)
+                       (unless ecp
+                         (let ((dabp   (plist-get attrpl :dir-abspath))
+                               (dfiles (plist-get attrpl :dir-subfiles-names))
+                               (ddirs  (plist-get attrpl :dir-subdirs-names)))
+                           (catch :subexit
+                             (dolist (el (append dfiles ddirs))
+                               (setq el (directory-file-name (expand-file-name el dabp)))
+                               (when (entropy/emacs-existed-filesystem-nodes-equal-p
+                                      el file 'chase-link)
+                                 (throw :subexit (setq rtn el)))))))
+                       (if rtn (list :should-not-operate-subdirs t
+                                     :should-not-operate-map-func-end-call t)
+                         (list :should-not-operate-map-func-end-call t)))))
+                  (when rtn (throw :exit nil))))
+              (when rtn
+                (setq rtn (list file rtn ws prj))
+                (apply 'entropy/emacs--treemacs-fipp-regist-item rtn))
+              rtn))))))
 
   ;; EEMACS_MAINTENANCE:
   ;; EEMACS_TEMPORALLY_HACK:

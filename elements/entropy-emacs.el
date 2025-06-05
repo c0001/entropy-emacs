@@ -1661,6 +1661,9 @@ it has one of thus, otherwise same as `process-buffer'."
 
 ;; ** INIT
 
+;; keep going on early-init.el setting protection
+(entropy/emacs-defconst/only-allow/local find-file-visit-truename nil)
+
 (entropy/emacs-defconst
   entropy/emacs-inner-preload-vars-file
   (expand-file-name ".eemacs-preload.el" entropy/emacs-stuffs-topdir)

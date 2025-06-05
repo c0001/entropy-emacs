@@ -5797,6 +5797,26 @@ if did may cause some troubles since: [%s %s]."
         (funcall mode)
         (when (eq major-mode 'org-mode) (outline-show-all))
         (goto-char point)
+        (when-let ((fname (buffer-file-name))
+                   (trpath
+                    (and (fboundp 'entropy/emacs-treemacs-file-in-project-p)
+                         (cadr (entropy/emacs-treemacs-file-in-project-p fname))))
+                   (_ (not (string=
+                            (directory-file-name fname)
+                            (directory-file-name trpath)))))
+          (when (yes-or-no-p
+                 (format "\
+Seemly current buffer's visited file is a member of a project in current treemacs workspace, \
+switch to?(%s)"
+                         trpath))
+            (let ((ro buffer-read-only))
+              (set-visited-file-name
+               trpath
+               nil
+               ;; NOTE: since indeed this two path is `file-equal-p', no
+               ;; need to forcely rised the buffer modification state.
+               t)
+              (setq buffer-read-only ro))))
         (message "Reloaded current major mode '%s'!"
                  (symbol-name major-mode))))))
 

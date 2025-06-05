@@ -5075,6 +5075,10 @@ the DIR-ROOT."
             nil))
       nil)))
 
+(entropy/emacs-defconst entropy//emacs-list-dir-subdirs-recursively/sym/:exit
+  (make-symbol ":exit"))
+(entropy/emacs-defconst entropy//emacs-list-dir-subdirs-recursively/sym/:exit-map-subdirs
+  (make-symbol ":exit-map-subdirs"))
 (cl-defun entropy/emacs-list-dir-subdirs-recursively
     (top-dir &optional not-abs
              &key
@@ -5327,7 +5331,7 @@ wrong type of :with-filter '%s'" with-filter)))
               (plist-get user-spec-attrs
                          :should-not-operate-subdirs)))))
          rtn)
-    (catch :exit
+    (catch entropy//emacs-list-dir-subdirs-recursively/sym/:exit
       (setq this-dirname
             (if root-calling-p
                 "."
@@ -5382,7 +5386,7 @@ wrong type of :with-filter '%s'" with-filter)))
         (when (and map-func
                    (funcall should-run-map-func-for-endcall-judge-func))
           (funcall map-func default-attrs 'end-call-p))
-        (throw :exit nil))
+        (throw entropy//emacs-list-dir-subdirs-recursively/sym/:exit nil))
       ;; map with this node's subdirs restricted by level ristriction
       (when (and subdirs
                  (funcall should-operate-subdirs-judge-func))
@@ -5392,7 +5396,7 @@ wrong type of :with-filter '%s'" with-filter)))
               (expand-of (when not-abs
                            this-root))
               )
-          (catch :exit-map-subdirs
+          (catch entropy//emacs-list-dir-subdirs-recursively/sym/:exit-map-subdirs
             (dolist (sub-dir subdirs)
               (push
                (entropy/emacs-list-dir-subdirs-recursively
@@ -5410,7 +5414,7 @@ wrong type of :with-filter '%s'" with-filter)))
                rtn)
               (cl-incf parenth)
               (unless (funcall should-operate-subdirs-judge-func)
-                (throw :exit-map-subdirs t))))))
+                (throw entropy//emacs-list-dir-subdirs-recursively/sym/:exit-map-subdirs t))))))
       ;; run map func end call
       (when (and map-func
                  (funcall should-run-map-func-for-endcall-judge-func))

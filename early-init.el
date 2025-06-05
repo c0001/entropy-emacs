@@ -36,6 +36,9 @@
 ;; which may not has the same `emacs-version' as for which current
 ;; emacs session stands.
 (setq source-directory nil)
+;; NOTE: eemacs prefer visit file without truename expanation with
+;; daily using convention.
+(setq find-file-visit-truename nil)
 
 ;;;; early defvar
 
