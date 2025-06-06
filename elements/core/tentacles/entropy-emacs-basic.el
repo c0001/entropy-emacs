@@ -5201,10 +5201,10 @@ specified."
 (use-package hl-line
   :ensure nil
   :commands (hl-line-mode
-             global-hl-line-mode
-             hl-line-overlay)
+             global-hl-line-mode)
   :defines (hl-line-mode
-            global-hl-line-mode))
+            global-hl-line-mode
+            hl-line-overlay))
 
 (use-package display-line-numbers
   :ensure nil
@@ -5360,17 +5360,6 @@ buffer, in that case any conditions don't match the filter then
        (hl-line-mode 0)
        (display-line-numbers-mode 0)))))
 
-(defun __bugfix/hl-line-unhighlight/for-timer-var-clean ()
-  "Bug fix for `hl-line-unhighlight' missing timer unset procedure."
-  (when hl-line-overlay
-    (delete-overlay hl-line-overlay)
-    (setq hl-line-overlay nil)))
-(entropy/emacs-lazy-load-simple 'hl-line
-  (when (fboundp 'hl-line-overlay)
-    (advice-add 'hl-line-overlay
-                :override
-                #'__bugfix/hl-line-unhighlight/for-timer-var-clean)))
-
 (defvar-local eemacs-hl-line-mode-enable nil)
 (defun entropy/emacs-basic--hl-line-mode-patcher-0
     (orig-func &rest orig-args)
@@ -5397,10 +5386,13 @@ buffer, in that case any conditions don't match the filter then
   "Timer function to recovery the `hl-line-mode' status when
 temporally shutdown by
 `entropy/emacs-basic--hl-line-disable-wrapper'."
-  (when (and (bound-and-true-p eemacs-hl-line-mode-enable)
-             (null (bound-and-true-p hl-line-mode))
-             entropy/emacs-current-session-is-idle-p)
-    (hl-line-mode 1)))
+  (let ((win-list (window-list)))
+    (dolist (win win-list)
+      (with-selected-window win
+        (when (and (bound-and-true-p eemacs-hl-line-mode-enable)
+                   (null (bound-and-true-p hl-line-mode))
+                   entropy/emacs-current-session-is-idle-p)
+          (hl-line-mode 1))))))
 (run-with-idle-timer
  (max entropy/emacs-safe-idle-minimal-secs 0.25)
  t #'entropy/emacs-basic--hl-line-mode-recover)
