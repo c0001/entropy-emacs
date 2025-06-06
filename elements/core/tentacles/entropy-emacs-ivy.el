@@ -2636,7 +2636,7 @@ currnt fontset."
    'rg-project-root
    :around
    (entropy/emacs-!cl-defun eemacs/rg--project-root (ofunc &rest oargs)
-     (let* ((file (car oargs))
+     (let* ((file (or (car oargs) default-directory))
             (trprj-root
              (and (fboundp 'entropy/emacs-treemacs-file-in-project-p)
                   (when-let ((prj (nth 3 (entropy/emacs-treemacs-file-in-project-p file))))
