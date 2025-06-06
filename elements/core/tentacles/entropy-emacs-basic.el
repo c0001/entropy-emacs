@@ -5275,21 +5275,26 @@ buffer, in that case any conditions don't match the filter then
 `hl-line-mode' will be enabled."
   (unless (or
            ;; special modes and buffers
-           (memq   major-mode
-                   '(vterm-mode
-                     shell-mode
-                     eshell-mode
-                     term-mode
-                     dashboard-mode))
+           (memq
+            major-mode
+            '(vterm-mode
+              shell-mode
+              eshell-mode
+              term-mode
+              dashboard-mode))
            (bound-and-true-p entropy/emacs-ui-init-welcom-mode)
-           (eq major-mode 'eww-mode)
+           ;; minibuffer
            (minibufferp)
            ;; large buffers
-           (let ((rtn
-                  (save-excursion
-                    (goto-char (point-max))
-                    (line-number-at-pos))))
-             (> rtn 1000))
+           (and (not (memq major-mode
+                           (list 'treemacs-mode
+                                 ;; TODO: more
+                                 )))
+                (let ((rtn
+                       (save-excursion
+                         (goto-char (point-max))
+                         (line-number-at-pos))))
+                  (> rtn 1000)))
            ;; magit related buffers, since it has its own line highlight methods
            (string-match-p "magit" (symbol-name major-mode))
            ;; TODO: add more expections
