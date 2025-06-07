@@ -1509,7 +1509,6 @@ This is for use in `ivy-re-builders-alist'."
   :bind (("M-x"     . counsel-M-x)
          ("C-s"     . counsel-grep-or-swiper)
          ("C-c M-t" . counsel-load-theme)
-         ("C-c g"   . counsel-git)
          ("C-x d"   . counsel-dired)
          ("C-x C-f" . counsel-find-file)
          ("C-h a"   . counsel-apropos)
@@ -1845,15 +1844,31 @@ window-gnu-enviroment to windows origin volum type by function
     "Temporally variable storing git repository root dir,
 this variable used to patching for origin `counsel-git'.")
 
-  (defun __ya/counsel-git-cands (&rest _)
+  (entropy/emacs-defconst/only-allow/local
+    entropy/emacs-ivy-counsel-git-only-list-dir nil)
+
+  (defun __ya/counsel-git-cands (dir)
     "Patched with eemacs used for `__ya/counsel-git-action'."
     (let ((default-directory (entropy/emacs-return-as-default-directory
-                              (counsel-locate-git-root))))
+                              (or dir (counsel-locate-git-root))))
+          rtn)
       (setq entropy/emacs-ivy-counsel-git-root default-directory)
-      (split-string
-       (shell-command-to-string counsel-git-cmd)
-       "\n"
-       t)))
+      (entropy/emacs-message-simple-progress-message
+          (format "git ls-files for %s" default-directory)
+        (entropy/emacs-setf-by-body rtn
+          (split-string
+           (shell-command-to-string counsel-git-cmd)
+           "\n"
+           t))
+        (if (not entropy/emacs-ivy-counsel-git-only-list-dir) rtn
+          (cl-delete-duplicates
+           (entropy/emacs-mapcar-without-orphans
+            (lambda (x)
+              (let ((fpath (expand-file-name x default-directory)))
+                (if (file-directory-p fpath) x
+                  (file-name-directory x))))
+            rtn nil nil)
+           :test 'string=)))))
   (advice-add 'counsel-git-cands :override #'__ya/counsel-git-cands)
 
   (defun __ya/counsel-git-action (x)
@@ -2481,22 +2496,34 @@ currnt fontset."
             (ivy-rich-candidate))
            :delimiter "\t")
           ;; --------------------
-          counsel-projectile-switch-project
+          entropy/emacs-project-find-project-file
+          (:columns
+           ((ya/nerd-icons-ivy-rich-common-file-icon)
+            (ivy-rich-candidate))
+           :delimiter "\t")
+          ;; --------------------
+          counsel-git
+          (:columns
+           ((ya/nerd-icons-ivy-rich-common-file-icon)
+            (ivy-rich-candidate))
+           :delimiter "\t")
+          ;; --------------------
+          project-switch-project
           (:columns
            ((ya/nerd-icons-ivy-rich-common-dir-icon)
             (ivy-rich-candidate))
            :delimiter "\t")
           ;; --------------------
-          counsel-projectile-find-file
+          project-find-file
           (:columns
            ((ya/nerd-icons-ivy-rich-common-file-icon)
-            (counsel-projectile-find-file-transformer))
+            (ivy-rich-candidate))
            :delimiter "\t")
           ;; --------------------
-          counsel-projectile-find-dir
+          project-find-dir
           (:columns
            ((nerd-icons-ivy-rich-dir-icon)
-            (counsel-projectile-find-dir-transformer))
+            (ivy-rich-candidate))
            :delimiter "\t")
           ;; --------------------
           counsel-major
@@ -2643,7 +2670,10 @@ currnt fontset."
                     (treemacs-project->path prj)))))
        ;; NOTE: we prefer use treemacs project toolchain to guarantee
        ;; `treemacs-follow-mode' workable for the ref jumping.
-       (or trprj-root (apply ofunc oargs)))))
+       (or trprj-root
+           ;; then prefer eeamcs project spec
+           (when-let ((prj (project-current))) (project-root prj))
+           (apply ofunc oargs)))))
   )
 
 ;; *** hydra for searcher

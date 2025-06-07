@@ -2630,7 +2630,7 @@ hydra body caller) =pretty-hydra-head-command=.
          (2 :width-desc "highlight or useful utils")
          (4 :width-desc "Common knifes")
          (2 :width-desc "Version controll and remote connection")
-         (2 :width-desc "Projectile and Org")
+         (2 :width-desc "Project and Org")
          (2 :width-desc "IME and miscellaneous")))
       (unless entropy/emacs-hydra-hollow-top-dispatch-init-done
         (setq entropy/emacs-hydra-hollow-top-dispatch-init-done t)

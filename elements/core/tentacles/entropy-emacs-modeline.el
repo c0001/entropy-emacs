@@ -700,9 +700,6 @@ eemacs origin type which reduce performance issue."
     (("p f" (setq doom-modeline-project-detection 'ffip)
       "ffip"
       :enable t :toggle (eq doom-modeline-project-detection 'ffip))
-     ("p t" (setq doom-modeline-project-detection 'projectile)
-      "projectile"
-      :enable t :toggle (eq doom-modeline-project-detection 'projectile))
      ("p p" (setq doom-modeline-project-detection 'project)
       "project"
       :enable t :toggle (eq doom-modeline-project-detection 'project))

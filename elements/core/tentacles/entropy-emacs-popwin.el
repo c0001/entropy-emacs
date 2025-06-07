@@ -159,6 +159,8 @@
         ("*vc-diff*"                   :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
         ("*vc-change-log*"             :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
 
+        ;; Project
+        ("*Buffer List*"               :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
         ;; Magit
         (magit-status-mode             :regexp nil :dedicated t :align bottom :size 0.5 :autoclose t   :select t)
         (magit-diff-mode               :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)

@@ -36,7 +36,6 @@
 (use-package project
   :ensure nil
   :config
-
   (defun __ya/project-current (fn &rest args)
     "Around advice for `project-current' only when its
 MAYBE-PROMPT arg is nil/omitted since it didn't handle
@@ -46,273 +45,77 @@ permission-denied path properly."
         (permission-denied nil))))
   (advice-add 'project-current :around #'__ya/project-current)
 
-  )
-
-;; ** projectile
-;; *** core
-(use-package projectile
-  :diminish
-  :commands (projectile-find-file
-             projectile-mode
-             entropy/emacs-project-projectile-update-project-root-cache)
-  :eemacs-functions
-  (projectile-project-root
-   projectile-ibuffer
-   projectile-load-known-projects)
-  :bind
-  :init
-  (setq
-   ;; disable projectile mode-line indicator
-   projectile-mode-line-prefix ""
-   projectile-dynamic-mode-line nil
-   ;; projectile sort spec
-   projectile-sort-order 'recentf
-   ;; disable projectile auto check git status for reduce lag
-   projectile-use-git-grep nil
-   ;; completion framework spec
-   projectile-completion-system 'ivy
-   ;; auto update detected projects and its status
-   projectile-auto-update-cache t
-   projectile-auto-discover t
-   projectile-track-known-projects-automatically t)
-
-  (entropy/emacs-lazy-load-simple 'projectile
-   (advice-add 'projectile-mode
-               :after
-               ;; FIXME:
-               (progn
-                 (defalias '__adv/after/projectile-mode/for-dired-before-readin-hook
-                   (lambda
-                     (&rest _)
-                     "Advice for `projectile-mode' which has fatal of
-using local hook injection to `dired-before-readin-hook' which
-can not globally enable that hook and WHY?."
-                     (cond
-                      ((bound-and-true-p projectile-mode)
-                       (remove-hook 'dired-before-readin-hook
-                                    #'projectile-track-known-projects-find-file-hook t)
-                       (add-hook 'dired-before-readin-hook
-                                 #'projectile-track-known-projects-find-file-hook))
-                      (t
-                       (remove-hook 'dired-before-readin-hook
-                                    #'projectile-track-known-projects-find-file-hook)))))
-                 '__adv/after/projectile-mode/for-dired-before-readin-hook))
-   (unless (bound-and-true-p counsel-projectile-mode)
-     (counsel-projectile-mode t))
-   (unless (bound-and-true-p projectile-mode)
-     (projectile-mode t)))
-
-  :config
-
-  ;; Use the faster searcher to handle project files: ripgrep `rg'.
-  (when (and (not (executable-find "fd"))
-             (executable-find "rg"))
-    (setq projectile-generic-command
-          (let ((rg-cmd ""))
-            (dolist (dir projectile-globally-ignored-directories)
-              (setq rg-cmd (format "%s --glob '!%s'" rg-cmd dir)))
-            (concat "rg -0 --files --color=never --hidden" rg-cmd))))
-
-  ;; Faster searching on Windows
-  (when sys/win32p
-    (when (or (executable-find "fd") (executable-find "rg"))
-      (setq projectile-indexing-method 'alien
-            projectile-enable-caching nil))
-    ;; FIXME: too slow while getting submodule files on Windows
-    (setq projectile-git-submodule-command nil))
-
-  ;; Support Perforce project
-  (let ((val (or (getenv "P4CONFIG") ".p4config")))
-    (add-to-list 'projectile-project-root-files-bottom-up val))
-
-  (defalias 'entropy/emacs-project-projectile-update-project-root-cache
-    'projectile-invalidate-cache
-    "Update the projects' root path hash cache in
-`projectile-project-root-cache'.
-
-This operation is needed for cases when a normal child folder
-became a new project where its project root is still cached as an
-subdirectory.")
+  (defun eemacs//project-find-file-hook nil
+    "Remember current project with project.el if it is a project."
+    (when-let ((prj (project-current)))
+      (run-with-idle-timer
+       0.2 nil
+       (lambda nil
+         (entropy/emacs-message-simple-progress-message
+             (format "eemacs project: remember project %s" prj)
+           :with-temp-message t
+           (project-remember-project prj))))))
+  (dolist (hook (list 'dired-mode-hook 'find-file-hook))
+    (add-hook hook 'eemacs//project-find-file-hook))
 
   )
 
-;; *** counsel projectile
-(use-package counsel-projectile
-  :commands
-  (counsel-projectile-mode
-   counsel-projectile-switch-to-buffer
-   counsel-projectile-switch-project
-   counsel-projectile-find-dir
-   counsel-projectile-git-grep
-   counsel-projectile-mode
-   counsel-projectile-find-file
-   counsel-projectile-org-capture
-   counsel-projectile-find-file-dwim
-   counsel-projectile-ag
-   counsel-projectile
-   counsel-projectile-rg
-   counsel-projectile-org-agenda
-   counsel-projectile-grep)
+;; ** hydra hollows
 
-;; **** eemacs hydra hollow
-  :eemacs-tpha
-  (((:enable t :defer (:data (:adfors (entropy/emacs-after-startup-hook) :adtype hook :pdumper-no-end t))))
-   ("Project"
-    (("C-c p"
-      (:eval
-       (entropy/emacs-hydra-hollow-category-common-individual-get-caller
-        'projectile-mode))
-      "Projectile Map"
-      :enable t :exit t))))
+(defvar entropy/emacs-ivy-counsel-git-only-list-dir)
+(defun entropy/emacs-project-find-project-file (&optional find-dir)
+  (interactive (list nil))
+  (let* ((prj (project-current))
+         (prj-root (and prj (project-root prj)))
+         (prj-git-p (and prj-root (file-exists-p (expand-file-name ".git" prj-root)))))
+    (if (and prj-git-p
+             (eq entropy/emacs-command-completion-use-style 'ivy)
+             (fboundp 'counsel-git))
+        (let ((entropy/emacs-ivy-counsel-git-only-list-dir (and find-dir t)))
+          (call-interactively 'counsel-git))
+      (if find-dir
+          (call-interactively 'project-find-file)
+        (call-interactively 'project-find-dir)))))
 
-  :eemacs-indhc
-  (((:enable t :defer (:data (:adfors (entropy/emacs-after-startup-hook) :adtype hook :pdumper-no-end t)))
-    (projectile-mode (projectile projectile-mode-map) nil (2)))
-   ("projectile Switch"
-    (("C-c p p p"
-      (progn (or (bound-and-true-p projectile-known-projects) (projectile-load-known-projects))
-             (call-interactively 'counsel-projectile-switch-project))
-      "Switch To Other Project"
-      :enable t :exit t :eemacs-top-bind t)
-     ("C-c p p q" projectile-switch-open-project "Switch to a project we have currently opened"
-      :enable t :exit t :eemacs-top-bind t)
-     ("C-c p p d" projectile-discover-projects-in-directory "Discover any projects in directory"
-      :enable t :exit t :eemacs-top-bind t))
-    "Projectile Filter Open"
-    (("C-c p f f" counsel-projectile-find-file "Jump to a file in the current project"
-      :enable t :exit t :eemacs-top-bind t)
-     ("C-c p f o" counsel-projectile-find-file-dwim "Jump to a file in the current project using completion based on context"
-      :enable t :exit t :eemacs-top-bind t)
-     ("C-c p f I" projectile-ibuffer "Open an IBuffer window showing all buffers in the current project"
-      :enable t :exit t :eemacs-top-bind t)
-     ("C-c p f d" counsel-projectile-find-dir "Jump to a directory in the current project"
-      :enable t :exit t :eemacs-top-bind t))
-    "Projectile Search"
-    (("C-c p s a" counsel-projectile-ag "Search the current project with ag"
-      :enable t :exit t :eemacs-top-bind t)
-     ("C-c p s r" counsel-projectile-rg "Search the current project with rg"
-      :enable t :exit t :eemacs-top-bind t)
-     ("C-c p s a" counsel-projectile-grep "Search the current project with grep"
-      :enable t :exit t :eemacs-top-bind t)
-     ("C-c p s g" counsel-projectile-git-grep "Search the current project with git grep"
-      :enable t :exit t :eemacs-top-bind t))))
-
-;; **** preface
-  :preface
-  (defun entropy/emacs-project--counsel-projectile-open-project-root-external
-      (project-dir)
-    "Open projet root dir use external explorer based on
-`counsel-loate-action-extern'."
-    (when (fboundp 'counsel-locate-action-extern)
-      (counsel-locate-action-extern
-       (expand-file-name project-dir))))
-
-;; **** init
-  :init
-   ;; use ivy native matcher reduce lagging
-   (setq counsel-projectile-find-file-matcher 'ivy--re-filter)
-   ;; disable default counsel-projectile rebinds of
-   ;; `projectile-mode-map'
-   (setq counsel-projectile-key-bindings nil)
-
-;; **** config
-   :config
-
-;; ***** extra ivy actions
-
-  (ivy-add-actions
-   'counsel-projectile-switch-project
-   '(("C-=" entropy/emacs-project--counsel-projectile-open-project-root-external
-      "Open project root with external if available")))
-
-;; ***** patches
-;; ****** Bug workarounds
-
-  (defun __ya/projectile-expand-file-name-wildcard (fn &rest args)
-    "Around advice for `projectile-expand-file-name-wildcard' since
-its lag wildcard detection mechanism."
-    (let ((name-pattern (car args)) (dir (cdr args)))
-      (or (condition-case _ (apply fn args)
-            (invalid-regexp     nil)
-            (permission-denied nil))
-          (expand-file-name name-pattern dir))))
-  (advice-add 'projectile-expand-file-name-wildcard
-              :around #'__ya/projectile-expand-file-name-wildcard)
-
-  (defun __ya/projectile-project-p (fn &rest args)
-    "Around advice for `projectile-project-p' since it didn't handle
-permission-denied path properly."
-    (condition-case _ (apply fn args)
-      (permission-denied nil)))
-  (advice-add 'projectile-project-p
-              :around #'__ya/projectile-project-p)
-
-;; ****** Make projetile candi predicates persisted
-  (defun entropy/emacs-projectile--gen-candi-persist-rule (adv-for &optional remove)
-    "Make projetile candi predicates persisted in the completion
-framework to reduce lagging.
-
-Optional arg REMOVE when non-nil, we remove all the patch by
-previous set."
-    (let ((loaded_var  (intern (format "__cspadv_of_candi_persist_%s_loaded" adv-for)))
-          (candi_var   (intern (format "__cspadv_of_candi_persist_%s_canids" adv-for)))
-          (adv_func    (intern (format "__cspadv_of_candi_persist_adv/%s" adv-for)))
-          (cancel_func (intern (format "__cspadv_of_candi_persist_reset/%s" adv-for)))
-          (cspenv_p (lambda (&rest _)
-                      ;; the predicate to ensure we should using
-                      ;; persist candi caches. In this case we just
-                      ;; using `window-minibuffer-p' to did thus
-                      ;; because that if we in minibuffer to invoke
-                      ;; such candi predicates that indeed we need
-                      ;; persists.
-                      (window-minibuffer-p))))
-      (if (not (null remove))
-          (progn
-            (advice-remove adv-for adv_func)
-            (dolist (el '(keyboard-quit ivy-done top-level))
-              (advice-remove el cancel_func))
-            (dolist (el `(,loaded_var ,candi_var ,adv_func ,cancel_func))
-              (entropy/emacs-unintern-symbol el)))
-        (entropy/emacs-eval-with-lexical
-         `(progn
-            (defvar ,loaded_var nil)
-            (defvar ,candi_var nil)
-            (defalias ',adv_func
-              (lambda (orig-func &rest orig-args)
-                (if (funcall #',cspenv_p)
-                    (if (or (null ,candi_var)
-                            (null ,loaded_var))
-                        (setq ,loaded_var t
-                              ,candi_var (apply orig-func orig-args))
-                      ,candi_var)
-                  (apply orig-func orig-args))))
-            (advice-add ',adv-for :around #',adv_func)
-            (defalias ',cancel_func
-              (lambda (&rest _)
-                (setq ,candi_var nil
-                      ,loaded_var nil)))
-            (dolist (el '(keyboard-quit ivy-done top-level))
-              (advice-add el
-                          :before
-                          #',cancel_func)))))))
-
-  ;; EEMACS_MAINTENANCE: persit common projectile list candi
-  ;; predicates for reducing lag. These context may have some bug.
-  (dolist (el '(counsel-projectile--project-buffers
-                counsel-projectile--project-buffers-and-files
-                counsel-projectile--project-directories))
-    (entropy/emacs-projectile--gen-candi-persist-rule el))
-
-;; ***** simplify ivy transformer
-  (defun counsel-projectile-find-file-transformer (str)
-    "Transform non-visited file names with `ivy-virtual' face.
-
-NOTE: this function has been redefined by eemacs to remove filter
-condition to reduce lag since `projectile-expand-root' has low
-benchmark while exhibits."
-    (propertize str 'face 'ivy-virtual))
-
-  )
+(entropy/emacs-lazy-with-load-trail 'eemacs//project-hydra-hollow-init
+  :pdumper-no-end t
+  (entropy/emacs-hydra-hollow-add-for-top-dispatch
+   '("Project"
+     (("C-c p"
+       (:eval
+        (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+         'project-mode))
+       "Project Key Map"
+       :enable t :exit t))))
+  (entropy/emacs-hydra-hollow-common-individual-hydra-define
+   'project-mode nil
+   '("Project Switch"
+     (("C-c p p p" project-switch-project
+       "Switch To Other Project"
+       :enable t :exit t :eemacs-top-bind t)
+      ("C-c p p d" project-remember-projects-under
+       "Discover any projects in directory"
+       :enable t :exit t :eemacs-top-bind t))
+     "Project Filter Open"
+     (("C-c g" entropy/emacs-project-find-project-file "Jump to a file in the current project"
+       :enable t :exit t :global-bind t)
+      ("C-c p f d"
+       (progn
+         (setq this-command 'entropy/emacs-project-find-project-file)
+         (entropy/emacs-project-find-project-file t))
+       "Jump to a dir in the current project"
+       :enable t :exit t :eemacs-top-bind t)
+      ("C-c p f l" project-list-buffers
+       "List all opened buffers in the current project"
+       :enable t :exit t :eemacs-top-bind t))
+     "Project Powerful Search"
+     (("C-c p s a"
+       (if-let ((hh (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+                     'powerful-searcher)))
+           (call-interactively hh)
+         (user-error "powerful searcher facilities not found yet."))
+       "Search the current project with eemacs powerful searcher"
+       :enable t :exit t :eemacs-top-bind t)))))
 
 ;; * provide
 (provide 'entropy-emacs-project)

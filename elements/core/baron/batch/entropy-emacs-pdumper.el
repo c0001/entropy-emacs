@@ -171,7 +171,7 @@ configuration.")
                                      "doom" "company" "entropy"
                                      "rg" "wgrep" "dashboard"
                                      "youdao" "google" "bing"
-                                     "projectile" "flycheck" "company"
+                                     "flycheck" "company"
                                      (seq line-start "slime"))
                                  (? "-")
                                  (* any)

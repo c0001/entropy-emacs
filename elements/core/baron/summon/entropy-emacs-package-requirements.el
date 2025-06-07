@@ -119,7 +119,6 @@
     counsel
     counsel-css
     counsel-ffdata
-    counsel-projectile
     counsel-world-clock
     cfrs
     dap-mode
@@ -196,7 +195,6 @@
     htmlize
     hydra
     ialign
-    ibuffer-projectile
     impatient-mode
     irony
     irony-eldoc
@@ -262,7 +260,6 @@
       :under 29
       :name 'project
       :pkg-desc (lambda () (__entropy/emacs-requirements/pkgs_desc_get_statble 'project)))
-    projectile
     pyim
     pyim-basedict
     pythonic

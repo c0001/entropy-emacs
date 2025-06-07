@@ -1316,7 +1316,7 @@ choose `entropy/emacs-enable-emacs-rime' as current chosen.")
   :group 'entropy-emacs-customize-top-group)
 
 ;; **** ibuffer
-(defcustom entropy/emacs-enable-ibuffer-projectitle t
+(defcustom entropy/emacs-enable-ibuffer-project-style t
   "Enable ibuffer-projectitle in ibuffer when proper"
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-project-management)
@@ -3738,6 +3738,7 @@ that."
                   (treemacs-persist-file            . "treemacs/treemacs-persist")
                   (treemacs-last-error-persist-file . "treemacs/treemacs-persist-at-last-error")
                   ;; projetile
+                  (project-list-file              . "project/projects.eld")
                   (projectile-known-projects-file . "projectile/projectile-bookmarks.eld")
                   (projectile-cache-file          . "projectile/projectile.cache")
                   ;; image dired

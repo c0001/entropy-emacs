@@ -33,32 +33,38 @@
 ;; ** require
 
 (entropy/emacs-defconst/only-allow/local
-  __entropy/emacs-ibuffer-in-project-p nil)
-(entropy/emacs-defconst/only-allow/local
-  __entropy/emacs-ibuffer-use-projects-style-p nil)
+  __entropy/emacs-ibuffer-current-use-project-stype-p nil)
 (defun entropy/emacs-ibuffer-main ()
-  "Call `ibuffer' or `projectile-ibuffer'.
+  "Call `ibuffer' or `project-ibuffer'.
 
 With prefix \\[universal-argument], show `projectile-ibuffer' for
 all projects, except for double \\[universal-argument] which just
 show thus of current project if it is.
 
 NOTE: the projectile integration just workable when
-`entropy/emacs-enable-ibuffer-projectitle' is enabled."
+`entropy/emacs-enable-ibuffer-project-style' is enabled."
   (declare (interactive-only t))
   (interactive)
   (let* ((pref current-prefix-arg)
          (prp (and
                pref
-               entropy/emacs-enable-ibuffer-projectitle
-               (bound-and-true-p projectile-mode)))
-         (cprp (and prp (equal pref '(16)) (projectile-project-root)))
-         (__entropy/emacs-ibuffer-use-projects-style-p prp)
-         (__entropy/emacs-ibuffer-in-project-p cprp)
+               entropy/emacs-enable-ibuffer-project-style))
+         (cprp (and prp (equal pref '(16))
+                    (when-let ((prj (project-current)))
+                      (project-root prj))))
+         (__entropy/emacs-ibuffer-current-use-project-stype-p (and prp t))
          (current-prefix-arg nil))
-    (cond
-     (cprp (projectile-ibuffer nil))
-     (t (ibuffer)))))
+    (if prp (eemacs//ibuffer-project-init-wrapper 'on)
+      (eemacs//ibuffer-project-init-wrapper 'off))
+    (let ((default-directory
+           (if cprp cprp (if prp entropy/emacs-system-temporary-file-directory
+                           default-directory))))
+      (ibuffer
+       nil
+       (if cprp (format "*Ibuffer* - project: %s" cprp)
+         (if prp "*Ibuffer* - All projects"))
+       nil nil nil
+       (and prp (ibuffer-project-generate-filter-groups))))))
 
 ;; ** ibuffer core
 (use-package ibuffer
@@ -86,7 +92,8 @@ NOTE: the projectile integration just workable when
   ;; hiden tmp buffers
   (add-hook
    'ibuffer-never-show-predicates
-   (lambda (buff)
+   (entropy/emacs-!cl-defun eemacs//ibuffer-never-show-predicate
+       (buff)
      (let ((buffnm (buffer-name buff)))
        (catch :exit
          (dolist (el
@@ -101,7 +108,7 @@ NOTE: the projectile integration just workable when
              (and (funcall el) (throw :exit t))))))))
 
   (entropy/emacs-lazy-load-simple 'counsel
-    (with-no-warnings
+    (progn
       (defun entropy/emacs-ibuffer-find-file ()
         (interactive)
         (let ((default-directory
@@ -110,8 +117,7 @@ NOTE: the projectile integration just workable when
                      (buffer-local-value 'default-directory buf)
                    default-directory))))
           (counsel-find-file default-directory)))
-      (advice-add #'ibuffer-find-file
-                  :override
+      (define-key ibuffer-mode-map [remap ibuffer-find-file]
                   #'entropy/emacs-ibuffer-find-file)))
 
   ;; Reduce nervous for redisplay rendering for huge of lines generating
@@ -123,7 +129,6 @@ NOTE: the projectile integration just workable when
    '(funcall format buffer mark))
 
   )
-
 
 ;; ** ibuffer all the icons feature
 (use-package nerd-icons-ibuffer
@@ -153,36 +158,55 @@ NOTE: the projectile integration just workable when
        :when-gui
        (add-hook 'ibuffer-mode-hook #'nerd-icons-ibuffer-mode)))))
 
-;; ** ibuffer-projectitle display
-(use-package ibuffer-projectile
-  :preface
-  (defun entropy/emacs-ibuffer--ibprjt-init ()
-    (when (and __entropy/emacs-ibuffer-use-projects-style-p
-               (not __entropy/emacs-ibuffer-in-project-p))
-      (entropy/emacs-message-simple-progress-message
-          "generate ibffer projectile groups"
-        (ibuffer-projectile-set-filter-groups))
-      (unless (eq ibuffer-sorting-mode 'alphabetic)
-        (ibuffer-do-sort-by-alphabetic))))
-
-  :init
-  (add-hook 'ibuffer-hook
-            #'entropy/emacs-ibuffer--ibprjt-init)
+;; ** ibuffer project
+(use-package ibuffer-project
+  :eemacs-functions (eemacs//ibuffer-project-init-wrapper
+                     ibuffer-project-generate-filter-groups)
+  :init (setq ibuffer-project-use-cache t)
   :config
-  (setq ibuffer-projectile-prefix
-        (if (display-graphic-p)
-            (concat
-             (nerd-icons-octicon
-              "nf-oct-file_directory"
-              :face ibuffer-filter-group-name-face)
-             " ")
-          "Project: ")))
+  (defun eemacs//ibuffer-project-ibuffer-hook nil
+    (unless (eq ibuffer-sorting-mode 'project-file-relative)
+      (ibuffer-do-sort-by-project-file-relative)))
+  (defun eemacs//ibuffer-project-group-name (root type)
+    "Return group name for project ROOT and TYPE."
+    (if (and (stringp type) (> (length type) 0))
+        (format "%s %s" type root)
+      (format "%s" root)))
+  (defun eemacs//ibuffer-project-refine-group-style (on)
+    (if (and on (entropy/emacs-icons-displayable-p))
+        (progn
+          (advice-add #'ibuffer-project-group-name
+                      :override #'eemacs//ibuffer-project-group-name)
+          (setq ibuffer-project-root-functions
+                `((ibuffer-project-project-root
+                   .
+                   ,(nerd-icons-octicon
+                     "nf-oct-repo" :height 1.2 :face ibuffer-filter-group-name-face))
+                  (file-remote-p
+                   .
+                   ,(nerd-icons-codicon
+                     "nf-cod-radio_tower"
+                     :height 1.2 :face ibuffer-filter-group-name-face)))))
+      (progn
+        (advice-remove #'ibuffer-project-group-name #'eemacs//ibuffer-project-group-name)
+        (setq ibuffer-project-root-functions
+              '((ibuffer-project-project-root . "Project")
+                (file-remote-p . "Remote"))))))
+
+  (defun eemacs//ibuffer-project-init-wrapper (on/off)
+    (cl-case on/off
+      (on
+       (add-hook 'ibuffer-hook 'eemacs//ibuffer-project-ibuffer-hook)
+       (eemacs//ibuffer-project-refine-group-style t))
+      (t
+       (remove-hook 'ibuffer-hook 'eemacs//ibuffer-project-ibuffer-hook)
+       (eemacs//ibuffer-project-refine-group-style nil)))))
 
 ;; ** common ibuffer display
 (defun entropy/emacs-ibuffer--init-common-1 ()
   (let* ((use-all-prjs-p
-          (and __entropy/emacs-ibuffer-use-projects-style-p
-               (not __entropy/emacs-ibuffer-in-project-p)))
+          (and __entropy/emacs-ibuffer-current-use-project-stype-p
+               (not (project-current))))
          ;; We set the eemacs default ibuffer style unless either
          ;; `nerd-icons-ibuffer-mode' or `ibuffer-projectile'
          ;; (current project mode) was enable since collision.
@@ -213,7 +237,7 @@ NOTE: the projectile integration just workable when
                filename-and-process))))
 
     ;; disable filter ibuffer using `major-mode' when
-    ;; `ibuffer-projectile' (all projects mode) is disable since
+    ;; `ibuffer-project' (all projects mode) is disable since
     ;; collision
     (if use-all-prjs-p
         (and set-basic-format? (ibuffer-update nil t))
