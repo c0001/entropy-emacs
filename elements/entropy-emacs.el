@@ -331,6 +331,18 @@ doesn't has such feature.
 
 ;; *** subr*
 
+(defun eemacs//default-directory (&optional buffer)
+  "Return the `default-directory' value buffer-locally of BUFFER which
+defaults to `current-buffer'.
+
+This function exists since the `with-current-buffer' wrapper can not
+avoid the value of the `let' binding of `default-directory' which
+commonly used as a mistake. But this still can not permanently avoid if
+BUFFER is `current-buffer' with a `let' binding detected since this is
+what the precedence defs for `buffer-local-value' under dynamicly
+binding."
+  (buffer-local-value 'default-directory (or buffer (current-buffer))))
+
 (cl-defun entropy/emacs--get-def-body (list-var &optional with-safe)
   "Get BODY inside of plist like list LIST-VAR, commonly is the
 last `keywordp' keypair's cdr or return LIST-VAR when the car of

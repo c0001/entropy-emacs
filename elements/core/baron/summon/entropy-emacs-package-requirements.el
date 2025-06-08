@@ -195,6 +195,7 @@
     htmlize
     hydra
     ialign
+    ibuffer-project
     impatient-mode
     irony
     irony-eldoc

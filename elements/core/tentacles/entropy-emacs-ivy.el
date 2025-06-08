@@ -2510,7 +2510,7 @@ currnt fontset."
           ;; --------------------
           project-switch-project
           (:columns
-           ((ya/nerd-icons-ivy-rich-common-dir-icon)
+           ((ya/nerd-icons-ivy-rich-common-file-icon)
             (ivy-rich-candidate))
            :delimiter "\t")
           ;; --------------------
