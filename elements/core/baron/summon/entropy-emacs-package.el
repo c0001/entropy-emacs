@@ -520,7 +520,8 @@ building procedure while invoking INSTALL-COMMANDS."
         (sleep-for 5)
         (dolist (pkg-desc updates)
           (entropy/emacs-without-debugger
-           (if (memq (package-desc-name pkg-desc) entropy/emacs--self-maintained-packges)
+           (if (memq (package-desc-name pkg-desc)
+                     (bound-and-true-p entropy/emacs--self-maintained-packges))
                (entropy/emacs-message-do-message
                 "%s `%s' %s"
                 (yellow "WARN: Pakcage")
