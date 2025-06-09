@@ -72,15 +72,18 @@ In PRJ-FILTER-MODE With prefix \\[universal-argument], show
          (__entropy/emacs-ibuffer-current-use-project-stype-p
           (and (or prp cprp) t))
          (__entropy/emacs-ibuffer-current-project (and cprp prj))
-         (current-prefix-arg nil))
+         (title
+          (if cprp (format "*Ibuffer* - project: %s" cprp)
+            (if prp "*Ibuffer* - All projects")))
+         (current-prefix-arg nil)
+         (inhibit-quit t))
     (if (or prp cprp) (eemacs//ibuffer-project-init-wrapper 'on)
       (eemacs//ibuffer-project-init-wrapper 'off))
-    (let (_)
+    (entropy/emacs-message-simple-progress-message
+        (format "Ibuffer invocation: %s" title)
       (eemacs//ibuffer-set-ibuffer-formats)
       (ibuffer
-       nil
-       (if cprp (format "*Ibuffer* - project: %s" cprp)
-         (if prp "*Ibuffer* - All projects"))
+       nil title
        nil nil nil
        (if cprp (eemacs//ibuffer-project-generate-filter-groups/only-current-prj)
          (if prp (ibuffer-project-generate-filter-groups)))))))
