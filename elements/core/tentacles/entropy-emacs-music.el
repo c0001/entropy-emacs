@@ -871,7 +871,7 @@ This function sets the buffer-local or global value of `bongo-next-action'."
     ;; message in such time. Thus we made a reset timer instead of
     ;; patch in body of origin function to avoid all of thus.
     (run-at-time
-     10 t
+     nil 10
      (entropy/emacs-!cl-defun
          eemacs//bongo-reset-player-times-changed-timestamp nil
        (setq bongo-player-times-last-updated 0)))

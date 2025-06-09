@@ -89,12 +89,18 @@ permission-denied path properly."
        :enable t :exit t))))
   (entropy/emacs-hydra-hollow-common-individual-hydra-define
    'project-mode nil
-   '("Project Switch"
+   '("Project Switch/Add/Remove"
      (("C-c p p p" project-switch-project
        "Switch To Other Project"
        :enable t :exit t :eemacs-top-bind t)
       ("C-c p p d" project-remember-projects-under
        "Discover any projects in directory"
+       :enable t :exit t :eemacs-top-bind t)
+      ("C-c p p r" project-forget-project
+       "Remove directory from the project list"
+       :enable t :exit t :eemacs-top-bind t)
+      ("C-c p p R" project-forget-projects-under
+       "Forget all known projects below a directory"
        :enable t :exit t :eemacs-top-bind t))
      "Project Filter Open"
      (("C-c g" entropy/emacs-project-find-project-file "Jump to a file in the current project"
@@ -115,7 +121,8 @@ permission-denied path properly."
            (call-interactively hh)
          (user-error "powerful searcher facilities not found yet."))
        "Search the current project with eemacs powerful searcher"
-       :enable t :exit t :eemacs-top-bind t)))))
+       :enable t :exit t :eemacs-top-bind t)))
+   nil '(2 2 2)))
 
 ;; * provide
 (provide 'entropy-emacs-project)
