@@ -40,36 +40,43 @@
   __entropy/emacs-ibuffer-current-project nil)
 (entropy/emacs-defvar-local-with-pml
   __entropy/emacs-ibuffer-current-project/pml nil)
-(defun entropy/emacs-ibuffer-main-mode-hook nil
+(defun entropy/emacs--ibuffer-hook-set-local-vars nil
   (progn
     (setq __entropy/emacs-ibuffer-current-use-project-stype-p/pml
           __entropy/emacs-ibuffer-current-use-project-stype-p)
     (setq __entropy/emacs-ibuffer-current-project/pml
           __entropy/emacs-ibuffer-current-project)))
+(defun entropy/emacs--ibuffer-hook-pre-conds nil
+  (when (bound-and-true-p nerd-icons-ibuffer-mode)
+    (nerd-icons-ibuffer-mode -1)))
 (defun entropy/emacs-ibuffer-main ()
   "Call `ibuffer' or `project-ibuffer'.
 
-With prefix \\[universal-argument], show `projectile-ibuffer' for
-all projects, except for double \\[universal-argument] which just
-show thus of current project if it is.
+If `entropy/emacs-enable-ibuffer-project-style' is non-nil then
+PRJ-FILTER-MODE is enabled as default
 
-NOTE: the projectile integration just workable when
-`entropy/emacs-enable-ibuffer-project-style' is enabled."
+In PRJ-FILTER-MODE With prefix \\[universal-argument], show
+`ibuffer-project' for all projects, except for double
+\\[universal-argument] which fullback to default mode.
+"
   (declare (interactive-only t))
   (interactive)
   (let* ((pref current-prefix-arg)
-         (prp (and
-               pref
-               entropy/emacs-enable-ibuffer-project-style))
-         prj
-         (cprp (and prp (setq prj (project-current)) (equal pref '(16))
+         (1pref (and pref (equal pref '(4))))
+         (prj (and entropy/emacs-enable-ibuffer-project-style
+                   (project-current)))
+         (prp (and 1pref entropy/emacs-enable-ibuffer-project-style))
+         (cprp (and (not pref) prj
+                    entropy/emacs-enable-ibuffer-project-style
                     (project-root prj)))
-         (__entropy/emacs-ibuffer-current-use-project-stype-p (and prp t))
+         (__entropy/emacs-ibuffer-current-use-project-stype-p
+          (and (or prp cprp) t))
          (__entropy/emacs-ibuffer-current-project (and cprp prj))
          (current-prefix-arg nil))
-    (if prp (eemacs//ibuffer-project-init-wrapper 'on)
+    (if (or prp cprp) (eemacs//ibuffer-project-init-wrapper 'on)
       (eemacs//ibuffer-project-init-wrapper 'off))
     (let (_)
+      (eemacs//ibuffer-set-ibuffer-formats)
       (ibuffer
        nil
        (if cprp (format "*Ibuffer* - project: %s" cprp)
@@ -163,10 +170,14 @@ NOTE: the projectile integration just workable when
        'nerd-icons-ibuffer (&rest _)
        :when-main
        (progn
+         (eemacs//ibuffer-set-ibuffer-formats)
          (dolist (buff (buffer-list))
            (with-current-buffer buff
              (when (eq major-mode 'ibuffer-mode)
-               (eemacs//ibuffer-set-ibuffer-formats)))))))))
+               (entropy/emacs-message-simple-progress-message
+                   (format "eemacs daemon reformat ibuffer '%s'" buff)
+                 (entropy/emacs--ibuffer-hook-pre-conds)
+                 (ibuffer-update nil t))))))))))
 
 ;; ** ibuffer project
 (use-package ibuffer-project
@@ -240,32 +251,26 @@ NOTE: the projectile integration just workable when
   )
 
 ;; ** common ibuffer display
-
 (defun eemacs//ibuffer-set-ibuffer-formats nil
   (require 'nerd-icons-ibuffer)
-  (when (bound-and-true-p nerd-icons-ibuffer-mode)
-    (nerd-icons-ibuffer-mode -1))
-  (setq-local
-   ibuffer-formats
-   `((mark modified read-only ,(if (>= emacs-major-version 26) 'locked "")
-           ;; Here you may adjust by replacing :right with :center or :left
-           ;; According to taste, if you want the icon further from the name
-           " "
-           ,(if (not (entropy/emacs-icons-displayable-p)) ""
-              '(icon 2 2))
-           (name 18 18 :left :elide)
-           " " (size-h 9 -1 :right)
-           " " (mode+ 16 16 :left :elide)
-           " " ,(if __entropy/emacs-ibuffer-current-use-project-stype-p
-                    'project-file-relative
-                  'filename-and-process+))
-     (mark " " (name 16 -1) " " filename)))
-  (ibuffer-update nil t))
+  (entropy/emacs-setf-by-body ibuffer-formats
+    `((mark modified read-only ,(if (>= emacs-major-version 26) 'locked "")
+            ;; Here you may adjust by replacing :right with :center or :left
+            ;; According to taste, if you want the icon further from the name
+            " "
+            ,(if (not (entropy/emacs-icons-displayable-p)) ""
+               '(icon 2 2))
+            (name 18 18 :left :elide)
+            " " (size-h 9 -1 :right)
+            " " (mode+ 16 16 :left :elide)
+            " " ,(if __entropy/emacs-ibuffer-current-use-project-stype-p
+                     'project-file-relative
+                   'filename-and-process+))
+      (mark " " (name 16 -1) " " filename))))
 
 (defun entropy/emacs-ibuffer--init-common-1 ()
   (let* ((use-prj-filter-p
           __entropy/emacs-ibuffer-current-use-project-stype-p))
-    (eemacs//ibuffer-set-ibuffer-formats)
     (unless use-prj-filter-p
       ;; NOTE: we don't need to manually update ibuffer since
       ;; `ibuffer-set-filter-groups-by-mode' will internally invoke
@@ -273,11 +278,12 @@ NOTE: the projectile integration just workable when
       (entropy/emacs-message-simple-progress-message
           "ibuffer filter with major-modes"
         (ibuffer-set-filter-groups-by-mode)))
-    (entropy/emacs-ibuffer-main-mode-hook)))
+    (entropy/emacs--ibuffer-hook-set-local-vars)))
 
 (defun entropy/emacs-ibuffer--init-common ()
   (entropy/emacs-message-simple-progress-message
       "Preparing eemacs ibuffer specs"
+    (entropy/emacs--ibuffer-hook-pre-conds)
     (entropy/emacs-ibuffer--init-common-1)))
 
 (add-hook 'ibuffer-hook #'entropy/emacs-ibuffer--init-common
