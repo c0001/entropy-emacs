@@ -262,7 +262,7 @@ This slot should obey the rules of:
           (define-key map (kbd "c") 'eyebrowse-create-window-config)
           map))
 
-  (dolist (bind '(("c" . entropy/emacs-basic-eyebrowse-create-window-config)
+  (dolist (bind '(("c" . entropy/emacs-wc-eyebrowse-create-window-config)
                   ("a" . eyebrowse-switch-to-window-config)))
     (define-key entropy/emacs-wc-eyebrowse-mode-map
       (kbd (car bind)) (cdr bind)))
@@ -302,7 +302,7 @@ This slot should obey the rules of:
      ((3 :width-desc "Common switch && A/R workspace && Derived workspace manipulation")
       (1 :width-desc "Quick briefly numeric switch keys"))))
    ("Common Switch"
-    (("C-o" entropy/emacs-basic-eyebrowse-switch-top
+    (("C-o" entropy/emacs-wc-eyebrowse-switch-top
       "Switch to Workspace Top"
       :enable t
       :exit t
@@ -324,29 +324,29 @@ This slot should obey the rules of:
       :map-inject t))
 
     "Create Or Delete Workspace"
-    (("C-e" entropy/emacs-basic-eyebrowse-create-workspaces
+    (("C-e" entropy/emacs-wc-eyebrowse-create-workspaces
       "Batch create workspace"
       :enable t
       :exit t
       :map-inject t)
-     ("M-e" entropy/emacs-basic-eyebrowse-delete-workspace
+     ("M-e" entropy/emacs-wc-eyebrowse-delete-workspace
       "Delete workspace"
       :enable t
       :exit t
       :map-inject t)
-     ("C-c c" entropy/emacs-basic-eyebrowse-create-window-config
+     ("C-c c" entropy/emacs-wc-eyebrowse-create-window-config
       "Create One Work-Space "
       :enable t
       :exit t
       :map-inject t))
 
     "Derived Workspace"
-    (("C-c v" entropy/emacs-basic-eyebrowse-create-derived
+    (("C-c v" entropy/emacs-wc-eyebrowse-create-derived
       "Create Derived Work-Space"
       :enable t
       :exit t
       :global-bind t)
-     ("C-c M-v" entropy/emacs-basic-eyebrowse-switch-derived
+     ("C-c M-v" entropy/emacs-wc-eyebrowse-switch-derived
       "Switch To Derived Work-Space"
       :enable t
       :exit t
@@ -604,7 +604,7 @@ the sake of obeying its rules.
               #'__ya/eyebrowse-switch-to-config)
 
 ;; ***** Create window config
-  (defun entropy/emacs-basic-eyebrowse-create-window-config ()
+  (defun entropy/emacs-wc-eyebrowse-create-window-config ()
     "Creates a window config at a yet unoccupied slot and named
     this work space."
     (interactive)
@@ -614,7 +614,7 @@ the sake of obeying its rules.
       (apply #'eyebrowse-rename-window-config `(,slot ,tag))))
 
 ;; ***** Show slot information
-  (defun entropy/emacs-basic-eyebrowse-show-current-slot ()
+  (defun entropy/emacs-wc-eyebrowse-show-current-slot ()
     "Show current eyebrowse workspace slot and tag info."
     (declare (interactive-only t))
     (interactive)
@@ -625,7 +625,7 @@ the sake of obeying its rules.
       (message "Slot:%s  Tag:%s" entropy/emacs-basic--eyebrowse-slot-result current-tag)))
 
 ;; ***** kill all eyebrowse window configs
-  (defun entropy/emacs-basic-eyebrowse-kill-all-group ()
+  (defun entropy/emacs-wc-eyebrowse-kill-all-group ()
     "Kill all eyebrowse window config"
     (interactive)
     (dolist (item (eyebrowse--get 'window-configs))
@@ -633,7 +633,7 @@ the sake of obeying its rules.
     (eyebrowse-init))
 
 ;; ***** Batch create eyerbrowse window configs
-  (defun entropy/emacs-basic-eyebrowse-create-workspaces (&optional ws-list confirm)
+  (defun entropy/emacs-wc-eyebrowse-create-workspaces (&optional ws-list confirm)
     "Batch create eyebrowse workspace with name input prompt
 powered by `entropy/emacs-read-string-repeatedly'.
 
@@ -649,7 +649,7 @@ confirmation when set as non-nil which is the default while
     (when confirm
       (unless (yes-or-no-p "Do you want to clean all workspace and buiding new workspaces? ")
         (user-error "Canceld rebuild workspaces.")))
-    (entropy/emacs-basic-eyebrowse-kill-all-group)
+    (entropy/emacs-wc-eyebrowse-kill-all-group)
     (let ((current-slot (eyebrowse--get 'current-slot ))
           (ws (if ws-list
                   ws-list
@@ -708,7 +708,7 @@ This was the one action in `ivy-read'."
       (with-selected-window (active-minibuffer-window)
         (delete-minibuffer-contents)))))
 
-  (defun entropy/emacs-basic-eyebrowse-delete-workspace ()
+  (defun entropy/emacs-wc-eyebrowse-delete-workspace ()
     "Delete eyebrowse workspace with prompt."
     (declare (interactive-only t))
     (interactive)
@@ -735,7 +735,7 @@ This was the one action in `ivy-read'."
 The specific behaviour is tmux-like.
 
 Note: this function has been redefine for
-`entropy/emacs-basic-eyebrowse-create-derived'."
+`entropy/emacs-wc-eyebrowse-create-derived'."
     (let ((min (car slots)))
       (if (> min 1)
           1
@@ -750,7 +750,7 @@ Note: this function has been redefine for
           (floor (1+ last))))))
 
 ;; ****** Create derived eyebrowse window configs
-  (defun entropy/emacs-basic-eyebrowse-create-derived ()
+  (defun entropy/emacs-wc-eyebrowse-create-derived ()
     "Create derived workspace basic from the current main workspace.
 
 The main workspace was whom have the slot without float point,
@@ -840,7 +840,7 @@ The reason for this limit was that two points follow:
              ""))))))
 
 ;; ****** Switch derived eyebrowse window configs
-  (defun entropy/emacs-basic-eyebrowse-switch-derived ()
+  (defun entropy/emacs-wc-eyebrowse-switch-derived ()
     "Switch to derived workspace rely on current basic workspace."
     (interactive)
     (let* ((window-configs (eyebrowse--get 'window-configs))
@@ -876,31 +876,7 @@ The reason for this limit was that two points follow:
       (eyebrowse-switch-to-window-config
        (cdr (assoc choice derived-named-list)))))
 
-  (defun entropy/emacs-basic-eyebrowse-switch-basic-window ()
-    "Switch to basic workspace which has the prompt candidates
-without derived slot."
-    (interactive)
-    (let* ((wcfgs (eyebrowse--get 'window-configs))
-           (slots (mapcar 'car wcfgs))
-           cons-slots
-           s-and-name
-           choice)
-
-      (dolist (el slots)                ;make cons list for candi with slot
-        (if (and (not (> el (floor el)))
-                 (not (= el (eyebrowse--get 'current-slot))))
-            (push `(,(concat (number-to-string el) ":" (nth 2 (assoc el wcfgs)))
-                    . ,el)
-                  cons-slots)))
-      (dolist (el cons-slots)           ;make candi-name list
-        (push (car el) s-and-name))
-
-      (setq choice (completing-read "Switch to WS: " s-and-name
-                                    nil t))
-      (eyebrowse-switch-to-window-config
-       (cdr (assoc choice cons-slots)))))
-
-  (defun entropy/emacs-basic-eyebrowse-switch-top ()
+  (defun entropy/emacs-wc-eyebrowse-switch-top ()
     "Back to the top workspace from current derived workspace."
     (interactive)
     (let* ((cslot (eyebrowse--get 'current-slot))

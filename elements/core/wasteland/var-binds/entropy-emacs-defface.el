@@ -131,12 +131,12 @@ With face attribtues:
 ;; ** eyebrowse faces
 (defface entropy/emacs-defface-face-for-eyebrowse-back-top-wg-message-face_body
   '((t :foreground "yellow"))
-  "Face for message body area with func `entropy/emacs-basic-eyebrowse-switch-top'"
+  "Face for message body area with func `entropy/emacs-wc-eyebrowse-switch-top'"
   :group 'entropy/emacs-defface-group)
 
 (defface entropy/emacs-defface-face-for-eyebrowse-back-top-wg-message-face_content
   '((t :foreground "green2"))
-  "Face for message content area with func `entropy/emacs-basic-eyebrowse-switch-top'"
+  "Face for message content area with func `entropy/emacs-wc-eyebrowse-switch-top'"
   :group 'entropy/emacs-defface-group)
 
 ;; ** welcome buffer
