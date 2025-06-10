@@ -1030,6 +1030,35 @@ This function sets the buffer-local or global value of `bongo-next-action'."
     (defalias 'bongo-goto-current-playing-track-line 'bongo-recenter
       "eemacs alias for `bongo-recenter' to obviously hint via minibuffer promption.")
 
+    (defun eemacs//bongo-dired-line (&optional point)
+      "Same as `bongo-dired-line' but either goto the file's line in dired
+buffer."
+      (interactive)
+      (let (file)
+        (save-excursion
+          (bongo-goto-point point)
+          (bongo-snap-to-object-line)
+          (dired (file-name-directory
+                  (entropy/emacs-setf-by-body file
+                    (save-excursion
+                      (while (bongo-header-line-p)
+                        (bongo-down-section))
+                      (if (bongo-local-file-track-line-p)
+                          (bongo-line-file-name)
+                        (error "No local file track here"))))))
+          (bongo-dired-library-mode 1)
+          (condition-case err
+              (entropy/emacs-message-simple-progress-message
+                  (format "Find file '%s' in this dired buffer" file)
+                :with-temp-message t
+                (entropy/emacs-dired-goto-file-use-re-search-forward
+                 file)
+                (recenter))
+            (error
+             (user-error "can not find file '%s' in dired buffer, maybe the file is lost (%s)"
+                         file err))))))
+    (advice-add 'bongo-dired-line :override #'eemacs//bongo-dired-line)
+
     )
 
   (defconst eemacs//bongo-modeline-indicator/keymap

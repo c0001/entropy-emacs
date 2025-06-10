@@ -141,7 +141,6 @@
                       (error (condition-case nil (windmove-up)
                                (error (windmove-left))))))))))
 
-
 (entropy/emacs-lazy-initial-for-hook
  '(
    ;; NOTE: should not regist this lazy form in
