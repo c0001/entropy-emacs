@@ -118,18 +118,17 @@ In PRJ-FILTER-MODE With prefix \\[universal-argument], show
        (buff)
      (let ((buffnm (buffer-name buff)))
        (catch :exit
-         (dolist (el
-                  (list
-                   (regexp-quote
-                    entropy/emacs-split-window-default-exhaustion-buffname)
-                   ;; "^ +\\*"    ;special buffers
-                   (lambda nil
-                     (if-let ((prj (or __entropy/emacs-ibuffer-current-project
-                                       __entropy/emacs-ibuffer-current-project/pml)))
-                         (not (equal prj (project-current nil (eemacs//default-directory buff))))
-                       (when (or __entropy/emacs-ibuffer-current-use-project-stype-p
-                                 __entropy/emacs-ibuffer-current-use-project-stype-p/pml)
-                         (not (project-current nil (eemacs//default-directory buff))))))))
+         (dolist
+             (el
+              (list
+               "^ *\\*"    ;special buffers
+               (lambda nil
+                 (if-let ((prj (or __entropy/emacs-ibuffer-current-project
+                                   __entropy/emacs-ibuffer-current-project/pml)))
+                     (not (equal prj (project-current nil (eemacs//default-directory buff))))
+                   (when (or __entropy/emacs-ibuffer-current-use-project-stype-p
+                             __entropy/emacs-ibuffer-current-use-project-stype-p/pml)
+                     (not (project-current nil (eemacs//default-directory buff))))))))
            (if (stringp el)
                (and (string-match-p el buffnm) (throw :exit t))
              (and (funcall el) (throw :exit t))))))))
