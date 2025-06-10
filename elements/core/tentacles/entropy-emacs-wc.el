@@ -225,7 +225,8 @@
              eyebrowse-switch-to-window-config-6
              eyebrowse-switch-to-window-config-7
              eyebrowse-switch-to-window-config-8
-             eyebrowse-switch-to-window-config-9)
+             eyebrowse-switch-to-window-config-9
+             entropy/emacs-wc-eyebrowse-switch-between-recent-wc)
 
 ;; **** preface
   :preface
@@ -306,6 +307,11 @@ This slot should obey the rules of:
       :enable t
       :exit t
       :map-inject t)
+     ("TAB" entropy/emacs-wc-eyebrowse-switch-between-recent-wc
+      "Switch between recent workspace of selected-frame"
+      :enable t
+      :exit t
+      :eemacs-top-bind t)
      ("."   eyebrowse-switch-to-window-config
       "Choose Work-Space And Jump into"
       :enable t
@@ -920,6 +926,25 @@ without derived slot."
            'face
            'entropy/emacs-defface-face-for-eyebrowse-back-top-wg-message-face_body))))
        (t (error "You've at top wg!")))))
+
+;; ***** Recent WC quick switch
+
+  (entropy/emacs-!cl-defun
+      entropy/emacs-wc-eyebrowse-switch-between-recent-wc nil
+    "Switch to the last-slot of eyebrowse configs of `selected-frame'."
+    (interactive)
+    (let ((last-slot (eyebrowse--get 'last-slot))
+          (slots
+           (--map (car it) (eyebrowse--get 'window-configs))))
+      (if (not last-slot)
+          (entropy/emacs-!user-error "No prev slot bound.")
+        (unless (memq last-slot slots)
+          (unless
+              (yes-or-no-p (format "\
+Slot %s seems not exists any more, really switch to?(will create it firstly)"
+                                   last-slot))
+            (entropy/emacs-!user-error "Abort!")))
+        (eyebrowse-switch-to-window-config last-slot))))
 
 ;; ***** config restore feature
 ;; ******* core

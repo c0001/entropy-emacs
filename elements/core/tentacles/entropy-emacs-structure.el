@@ -222,7 +222,8 @@ prefix arg was `(4)' i.e. the single `C-u' type."
               (throw :exit nil)))))
       rtn))
 
-  (defun entropy/emacs-structure-vimish-toggle (&optional beg end)
+  (entropy/emacs-!cl-defun
+      entropy/emacs-structure-vimish-toggle (&optional beg end)
     (interactive)
     (entropy/emacs-require-only-once 'vimish-fold)
     (if (entropy/emacs-structure--vimish-folded-p
@@ -232,6 +233,9 @@ prefix arg was `(4)' i.e. the single `C-u' type."
           (message "Vimish toggling ... ")
           (vimish-fold-toggle)
           (message "Vimish toggled!"))
+      (unless (region-active-p)
+        (entropy/emacs-!user-error
+         "No region activated, select a region firstly"))
       (let ((beg (or beg (region-beginning)))
             (end (or end (region-end))))
         (when (and beg end)
@@ -269,15 +273,15 @@ prefix arg was `(4)' i.e. the single `C-u' type."
   (((:enable t :defer (:data (:adfors (org-mode-hook prog-mode-hook) :adtype hook :pdumper-no-end t)))
     (vimish-fold (vimish-fold vimish-fold-folded-keymap) nil (2 2)))
    ("Vimish toggle"
-    (("TAB" entropy/emacs-structure-vimish-toggle
+    (("f" entropy/emacs-structure-vimish-toggle
       "Automatically vimish fold/show region"
       :enable t :eemacs-top-bind t :exit t))
     "Vimish delete"
-    (("d c" vimish-fold-delete "Delete fold at point"
-      :enable t :exit t)
-     ("d a" vimish-fold-delete-all
+    (("d" vimish-fold-delete "Delete fold at point"
+      :enable t :eemacs-top-bind t :exit t)
+     ("D" vimish-fold-delete-all
       "Delete all folds in current buffer"
-      :enable t :exit t))
+      :enable t :eemacs-top-bind t :exit t))
     "Vimish fold"
     (("f c" vimish-fold "Fold active region staring at BEG, ending at END"
       :enable t :exit t)
