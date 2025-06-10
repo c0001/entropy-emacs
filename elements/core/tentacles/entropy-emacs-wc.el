@@ -1347,8 +1347,6 @@ saved by
               "^magit[-]?\\([a-z]+\\)?:"))))
 
   :config
-  (defvar entropy/emacs-basic-winner--winner-save-old-config-should-run-orig-func-p nil)
-  (defvar entropy/emacs-basic-winner---winner-save-old-config-idler-timer nil)
   (defun entropy/emacs-basic-winner---winner-save-old-config-run-with-idle-type ()
     (cond
      (buffer-read-only 0.2)
@@ -1356,43 +1354,42 @@ saved by
       (+ 1 (or (entropy/emacs-operation-status/auto-completion-idle-delay)
                0)))
      (t 0.4)))
-  (defun entropy/emacs-wc-winner--winner-save-old-configurations/run-with-idle
-      (orig-func &rest orig-args)
-    "Trigger `winner-mode' `post-command-hook'
-`winner-save-old-configurations' with idle timer for perfomance
-issue."
-    (let (idle-delay)
-      (cond
-       (entropy/emacs-basic-winner--winner-save-old-config-should-run-orig-func-p
-        (apply orig-func orig-args))
-       ((and
-         (not (timerp entropy/emacs-basic-winner---winner-save-old-config-idler-timer))
-         ;; EEMACS_MAINTENANCE: the original post judger for
-         ;; `winner-save-old-configurations', please update with
-         ;; upstream updates.
-         (zerop (minibuffer-depth)))
-        (setq idle-delay
-              (entropy/emacs-basic-winner---winner-save-old-config-run-with-idle-type))
-        (setq entropy/emacs-basic-winner---winner-save-old-config-idler-timer
-              (run-with-idle-timer
-               idle-delay nil
-               #'(lambda nil
-                   ;; we should take the idle procedure in
-                   ;; `condition-case' since we can not guarantee the
-                   ;; patch is always worked.
-                   (condition-case err
-                       (unwind-protect
-                           (apply orig-func orig-args)
-                         (setq entropy/emacs-basic-winner---winner-save-old-config-idler-timer
-                               nil))
-                     (error (message "[winner idle save] error: %S" err)
-                            ;; FIXME: winner has bug for handling dead
-                            ;; frame properly. (see `__ya/winner-insert-if-new/with-frame-live-check')
-                            (setq winner-last-frames nil)))))))
-       (t (apply orig-func orig-args)))))
+
+  (defvar eemacs//winner-maybe-save-old-conf/var/prev-buffer nil)
+  (defvar eemacs//winner-maybe-save-old-conf/var/time-stamp nil)
+  (defvar eemacs//winner-maybe-save-old-conf/var/wcfg-changed-p nil)
+  (add-hook 'window-configuration-change-hook
+            (entropy/emacs-!cl-defun eemacs//winner-wcfg-changed-detector nil
+              (setq eemacs//winner-maybe-save-old-conf/var/wcfg-changed-p t)))
   (advice-add 'winner-save-old-configurations
               :around
-              #'entropy/emacs-wc-winner--winner-save-old-configurations/run-with-idle)
+              (entropy/emacs-!cl-defun
+                  eemacs//winner-maybe-save-old-conf
+                  (ofunc &rest oargs)
+                "Advice for `winner-save-old-configurations' to reduce its invocation
+frequency due to performance issue with minor accuracy lost."
+                (let
+                    ((ctm (current-time))
+                     (cbuff (current-buffer))
+                     ptm pbuff tmsap bufsap)
+                  (setq ptm eemacs//winner-maybe-save-old-conf/var/time-stamp
+                        pbuff eemacs//winner-maybe-save-old-conf/var/prev-buffer)
+                  (setq tmsap (and ptm
+                                   (when-let ((tmdiff (entropy/emacs-time-subtract ptm ctm t)))
+                                     (> tmdiff 2)))
+                        bufsap (and pbuff (not (eq cbuff pbuff))))
+                  (prog1
+                      (when (or eemacs//winner-maybe-save-old-conf/var/wcfg-changed-p
+                                (and (not ptm) (not pbuff))
+                                (or tmsap bufsap))
+                        (apply ofunc oargs))
+                    (setq eemacs//winner-maybe-save-old-conf/var/prev-buffer
+                          cbuff)
+                    (setq eemacs//winner-maybe-save-old-conf/var/time-stamp
+                          ctm)
+                    (setq eemacs//winner-maybe-save-old-conf/var/wcfg-changed-p
+                          nil)))))
+
   (advice-add 'winner-save-old-configurations
               :around
               ;; FIXME: winner's post command has bug for handling
@@ -1416,13 +1413,7 @@ issue."
     (progn
       (setq this-command 'winner-undo)
       (if (bound-and-true-p winner-mode)
-          (let ((entropy/emacs-basic-winner--winner-save-old-config-should-run-orig-func-p
-                 t)
-                (inhibit-quit t))
-            (entropy/emacs-cancel-timer-var
-             entropy/emacs-basic-winner---winner-save-old-config-idler-timer)
-            (winner-save-old-configurations)
-            (winner-undo))
+          (call-interactively 'winner-undo)
         (user-error "winner-mode not enabled"))))
 
   (defun entropy/emacs-wc-winner-redo ()
@@ -1431,7 +1422,7 @@ issue."
     (progn
       (setq this-command 'winner-redo)
       (if (bound-and-true-p winner-mode)
-          (winner-redo)
+          (call-interactively 'winner-redo)
         (user-error "winner-mode not enabled"))))
   )
 
