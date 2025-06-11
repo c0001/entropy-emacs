@@ -5377,10 +5377,7 @@ buffer, in that case any conditions don't match the filter then
           ;; since we use the idle timer to show hl-line, so we
           ;; disable below unneeded hooks in `post-command-hook' for
           ;; reduce redudant perfomance leak
-
-          ;; preserve this for hl-line overlay move action
-          ;; (remove-hook 'post-command-hook #'hl-line-highlight t)
-          (remove-hook 'post-command-hook #'hl-line-maybe-unhighlight t))
+          (remove-hook 'post-command-hook #'hl-line-highlight t))
       (setq-local eemacs-hl-line-mode-enable nil))
     rtn))
 (with-eval-after-load 'hl-line
@@ -5391,44 +5388,45 @@ buffer, in that case any conditions don't match the filter then
   "Timer function to recovery the `hl-line-mode' status when
 temporally shutdown by
 `entropy/emacs-basic--hl-line-disable-wrapper'."
-  (let ((win-list (window-list)))
+  (when-let (((bound-and-true-p entropy/emacs-current-session-is-idle-p))
+             ((not (entropy/emacs-operation-status/running-auto-completion-op-p)))
+             (win-list (window-list)))
     (dolist (win win-list)
       (with-selected-window win
-        (when (and (bound-and-true-p eemacs-hl-line-mode-enable)
-                   (null (bound-and-true-p hl-line-mode))
-                   entropy/emacs-current-session-is-idle-p)
-          (hl-line-mode 1))))))
+        (when (bound-and-true-p eemacs-hl-line-mode-enable)
+          (if (null (bound-and-true-p hl-line-mode)) (hl-line-mode 1)
+            ;; NOTE: for case that the `hl-line-overlay' didn't move
+            ;; along with `point' caused by the idle patch.
+            (if-let ((ov (bound-and-true-p hl-line-overlay))
+                     (ov-line (line-number-at-pos (overlay-start ov)))
+                     (pt-line (line-number-at-pos (point))))
+                (unless (eql ov-line pt-line) (hl-line-highlight))
+              (hl-line-highlight))))))))
 (run-with-idle-timer
- (max entropy/emacs-safe-idle-minimal-secs 0.25)
+ (max entropy/emacs-safe-idle-minimal-secs 0.15)
  t #'entropy/emacs-basic--hl-line-mode-recover)
 
-(defun entropy/emacs-basic--hl-line-disable-wrapper
-    (orig-func &rest orig-args)
+(entropy/emacs-!cl-defun entropy/emacs-basic--hl-line-disable-wrapper ()
   "Temporally disable `hl-line-mode' to satisfied more
 performance requests while ORIG-FUNC is called up.
 
 NOTE: this is a advice wrapper for any function."
-  (let (rtn)
-    (unwind-protect
-        (when (bound-and-true-p hl-line-mode)
-          (hl-line-mode 0)
-          (setq-local eemacs-hl-line-mode-enable t))
-      (setq rtn (apply orig-func orig-args)))
-    rtn))
-
-;; ---> Default wrapped for:
-(dolist (func '(previous-line next-line newline))
-  (advice-add func
-              :around #'entropy/emacs-basic--hl-line-disable-wrapper))
-(entropy/emacs-lazy-initial-advice-before
- '(dired-mode)
- "hl-line-spec-for-dired-init" "hl-line-spec-for-dired-init"
- :prompt-type 'prompt-echo
- :pdumper-no-end t
- (dolist (el '(dired-previous-line dired-next-line))
-   (advice-add el
-               :around
-               #'entropy/emacs-basic--hl-line-disable-wrapper)))
+  (condition-case err
+      (when (and (bound-and-true-p hl-line-mode)
+                 ;; do not trigger when do ops on current-line to
+                 ;; reduce visual blink.
+                 (not
+                  (if-let ((ov (bound-and-true-p hl-line-overlay))
+                           (pt (point)))
+                      (and (<= pt (overlay-end ov))
+                           (>= pt (overlay-start ov)))
+                    'abort)))
+        (hl-line-unhighlight)
+        (setq-local eemacs-hl-line-mode-enable t))
+    (error (entropy/emacs-!message "err: %s" err))))
+(add-hook 'post-command-hook #'entropy/emacs-basic--hl-line-disable-wrapper
+          ;; FIXME: add to tail maybe better?
+          99)
 
 ;; ***** Smooth scrolling
 ;; Force smooth mouse scroll experience
