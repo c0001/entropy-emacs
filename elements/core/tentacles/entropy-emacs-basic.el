@@ -3766,12 +3766,34 @@ this func should always ran in a `image-dired-thumbnail-mode' buffer"))
     :use-hook 'after-change-major-mode-hook
     (entropy/emacs--image-dired-update-thumbnail-buffname-core))
 
+  (defvar eemacs//image-dired-force-fit-window-width-p nil)
   (defun __ya/image-dired-display-window ()
-    (let ((buf (image-dired-create-display-image-buffer)))
-      (or (get-buffer-window buf)
-          (and entropy/emacs-basic--image-dired-diswin-wierrwnolive-p
-               (user-error "No lived image-dired image display window!"))
-          (display-buffer buf))))
+    (let* ((buf (image-dired-create-display-image-buffer))
+           (bufwin (get-buffer-window buf)))
+      (if bufwin bufwin
+        (and entropy/emacs-basic--image-dired-diswin-wierrwnolive-p
+             (user-error "No lived image-dired image display window!"))
+        (if (not eemacs//image-dired-force-fit-window-width-p)
+            (display-buffer buf)
+          (let ((newin
+                 ;; FIXME:
+                 ;;
+                 ;; Since this func is an internal api which
+                 ;; implicitly declared that it doesn't change
+                 ;; `current-buffer', thus we can not make the new
+                 ;; window as `selected-window', but there's a paradox
+                 ;; that the maxmized window is indeed the only lived
+                 ;; window in current frame which must be selected.
+                 ;;
+                 ;; Thus we simulate a "almost" maxmized window that
+                 ;; use horizontal split to guarantee we can calc
+                 ;; window height as large as possible, but sacrifice
+                 ;; minor widnow width from max window width.
+                 (save-excursion (split-window-right))))
+            (set-window-buffer newin buf)
+            (let ((window-resize-pixelwise (display-graphic-p)))
+              (maximize-window newin))
+            newin)))))
   (advice-add 'image-dired-display-window
               :override
               '__ya/image-dired-display-window)
@@ -3790,6 +3812,14 @@ this func should always ran in a `image-dired-thumbnail-mode' buffer"))
            (unless ,original-size
              (unless ,noset (setq ,original-size ,prefval)))
            (or
+            ;; forcely fit width
+            (when (and (not ,prefval) eemacs//image-dired-force-fit-window-width-p)
+              (unless ,noset
+                (setq ,original-size 3
+                      ;; the stick indicator keep original since this way is tmp
+                      __ya/image-dired-display-image-stick-fit-type
+                      __ya/image-dired-display-image-stick-fit-type))
+              t)
             ;; explicit should use dwim
             (when (not ,prefval)
               ;; inherit history dwim type when history is set
@@ -3982,19 +4012,28 @@ also."
 
   (defun entropy/emacs-basic--image-diared-display-image
       (&rest orig-args)
-    "See `__ya/image-dired-display-image'."
+    "eemacs spec `image-dired-display-image' command.
+
+Use `__ya/image-dired-display-image/use-image-mode' and
+`__ya/image-dired-display-image/use-fast-insert' as subrotine according
+to the spec of `entropy/emacs-image-dired-display-image-use-image-mode'."
     (let* ((imgf (car orig-args)) (osize (cadr orig-args))
-           func dwimp)
+           func dwimp
+           (eemacs//image-dired-force-fit-window-width-p (one-window-p))
+           (this-buffer (current-buffer))
+           (this-buffer-name (buffer-name this-buffer)))
       (progn
         ;; set dwim size indicator
         (entropy/emacs-setf-by-body dwimp
           (entropy/emacs-basic-image-dired--display-size-with-dwim-p
            osize))
         (when (entropy/emacs-debugger-is-running-p)
-          (message "--> prefix: `%S' : dwim size type `%s', size: %S, cache: %s"
+          (message "--> prefix: `%S' : dwim size type `%s', size: %S, cache: %s \
+force fit width: %s"
                    current-prefix-arg
                    dwimp osize
-                   __ya/image-dired-display-image-stick-fit-type)))
+                   __ya/image-dired-display-image-stick-fit-type
+                   eemacs//image-dired-force-fit-window-width-p)))
       (entropy/emacs-message-simple-progress-message "%s [%s]"
         :with-temp-message t
         :with-fit-window-width t
@@ -4005,7 +4044,28 @@ also."
         (if entropy/emacs-image-dired-display-image-use-image-mode
             (setq func '__ya/image-dired-display-image/use-image-mode)
           (setq func '__ya/image-dired-display-image/use-fast-insert))
-        (funcall func imgf osize dwimp))))
+        (funcall func imgf osize dwimp)
+        (when-let ((eemacs//image-dired-force-fit-window-width-p)
+                   (inhibit-quit t))
+          (save-excursion
+            (select-window (image-dired-display-window))
+            (delete-other-windows)
+            (let* ((sym (make-symbol
+                         (format "\
+*eemacs//image-dired-display-image-force-fit-width-func/quit/for-origin-buffer_%s*"
+                                 this-buffer-name)))
+                   (cmd
+                    (entropy/emacs-defalias sym
+                      (lambda nil (interactive)
+                        (if (buffer-live-p this-buffer)
+                            (set-window-buffer (selected-window) this-buffer)
+                          (user-error "Origin buffer '%s' not alived anymore"
+                                      this-buffer-name)))
+                      (format "Go backto original buffer '%s'." this-buffer-name))))
+              (dolist (key (list [remap quit-window] [remap bury-buffer]))
+                (entropy/emacs-local-set-key
+                 key cmd)))))
+        )))
   (advice-add 'image-dired-display-image
               :override #'entropy/emacs-basic--image-diared-display-image)
 
