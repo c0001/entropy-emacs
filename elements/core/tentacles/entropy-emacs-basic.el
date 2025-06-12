@@ -4044,7 +4044,7 @@ force fit width: %s"
         (if entropy/emacs-image-dired-display-image-use-image-mode
             (setq func '__ya/image-dired-display-image/use-image-mode)
           (setq func '__ya/image-dired-display-image/use-fast-insert))
-        (funcall func imgf osize dwimp)
+        (funcall func imgf osize dwimp) (redisplay t)
         (when-let ((eemacs//image-dired-force-fit-window-width-p)
                    (inhibit-quit t))
           (save-excursion
