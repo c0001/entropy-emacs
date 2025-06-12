@@ -4058,7 +4058,31 @@ force fit width: %s"
                     (entropy/emacs-defalias sym
                       (lambda nil (interactive)
                         (if (buffer-live-p this-buffer)
-                            (set-window-buffer (selected-window) this-buffer)
+                            (let ((tmp-buffer
+                                   (get-buffer-create " *eemacs-image-dired-tmp-buffer*" t))
+                                  (win (selected-window)))
+                              (unwind-protect
+                                  ;; FIXME: bug of emacs times of
+                                  ;; seconds for redisplay-internal
+                                  ;; back from a large size image
+                                  ;; displayed buffer to
+                                  ;; image-dired-thumbnail buffer,
+                                  ;; thus we use a tmp buffer to
+                                  ;; reduce redisplay lag
+                                  ;;
+                                  ;; The profiler of cpu seems as:
+                                  ;; ```
+                                  ;;   12385  99%   redisplay_internal (C function)
+                                  ;;      91   0% + command-execute
+                                  ;;      17   0% + timer-event-handler
+                                  ;;       0   0%   ...
+                                  ;; ```
+                                  (progn
+                                    (set-window-buffer win tmp-buffer)
+                                    (redisplay t)
+                                    (set-window-buffer win this-buffer))
+                                (unless (eq (current-buffer) tmp-buffer)
+                                  (kill-buffer tmp-buffer))))
                           (user-error "Origin buffer '%s' not alived anymore"
                                       this-buffer-name)))
                       (format "Go backto original buffer '%s'." this-buffer-name))))
