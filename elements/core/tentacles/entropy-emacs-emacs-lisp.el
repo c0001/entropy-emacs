@@ -344,12 +344,31 @@ for function '%s', eval and compile its defination instead?"
              ,rtn-sym)))))
 
   (defun entropy/emacs-lisp-elisp-eval-defun ()
-    "Like `eval-defun' but in safety way."
+    "Use `eval-defun' to evaluate current def*form in safety way."
     (declare (interactive-only t))
     (interactive)
-    (entropy/emacs-lisp--elisp-inct-eval-safaty-wrap
-     defun
-     (call-interactively 'eval-defun)))
+    (if-let* ((region
+               (entropy/emacs-syntax-get-top-list-region-around-buffer-point
+                t #'__eemacs-elisp-lambda-keywords-look-at-p 'nomove))
+              (beginning-of-defun-function
+               (lambda (&rest _) (goto-char (car region))))
+              (end-of-defun-function
+               (lambda (&rest _) (goto-char (cdr region)))))
+        (progn
+          (save-excursion
+            (let (ov)
+              (unwind-protect
+                  (progn
+                    (goto-char (car region))
+                    (setq ov (make-overlay (line-beginning-position) (1+ (line-end-position))))
+                    (overlay-put
+                     ov 'face
+                     'entropy/emacs-defface-simple-inverse-bold-underline-extend-face)
+                    (unless (yes-or-no-p "Eval this highlight top-level defun form?")
+                      (user-error "Abort!")))
+                (and (overlayp ov) (delete-overlay ov)))))
+          (save-excursion (eval-defun nil)))
+      (user-error "No defun region found here")))
 
   (defun entropy/emacs-lisp-elisp-eval-buffer ()
     "Like `eval-buffer' but in safety way."

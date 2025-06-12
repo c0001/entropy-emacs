@@ -128,6 +128,15 @@ With face attribtues:
    nil
    (plist-get color-spec :attrs)))
 
+(defface entropy/emacs-defface-simple-inverse-bold-underline-face
+  '((t :underline t :inverse-video t :weight bold :extend nil))
+  "eemacs simple face for inverse&bold&underline visual."
+  :group 'basic-faces)
+(defface entropy/emacs-defface-simple-inverse-bold-underline-extend-face
+  '((t :underline t :inverse-video t :weight bold :extend t))
+  "eemacs simple face for inverse&bold&underline&extend visual."
+  :group 'basic-faces)
+
 ;; ** eyebrowse faces
 (defface entropy/emacs-defface-face-for-eyebrowse-back-top-wg-message-face_body
   '((t :foreground "yellow"))
