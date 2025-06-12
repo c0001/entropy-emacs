@@ -5397,9 +5397,10 @@ temporally shutdown by
           (if (null (bound-and-true-p hl-line-mode)) (hl-line-mode 1)
             ;; NOTE: for case that the `hl-line-overlay' didn't move
             ;; along with `point' caused by the idle patch.
-            (if-let ((ov (bound-and-true-p hl-line-overlay))
-                     (ov-line (line-number-at-pos (overlay-start ov)))
-                     (pt-line (line-number-at-pos (point))))
+            (if-let* ((ov (bound-and-true-p hl-line-overlay))
+                      ((entropy/emacs-is-valid-overlay-p ov :in-buffer (current-buffer)))
+                      (ov-line (line-number-at-pos (overlay-start ov)))
+                      (pt-line (line-number-at-pos (point))))
                 (unless (eql ov-line pt-line) (hl-line-highlight))
               (hl-line-highlight))))))))
 (run-with-idle-timer
@@ -5411,13 +5412,15 @@ temporally shutdown by
 performance requests while ORIG-FUNC is called up.
 
 NOTE: this is a advice wrapper for any function."
-  (condition-case err
+  (condition-case-unless-debug err
       (when (and (bound-and-true-p hl-line-mode)
                  ;; do not trigger when do ops on current-line to
                  ;; reduce visual blink.
                  (not
-                  (if-let ((ov (bound-and-true-p hl-line-overlay))
-                           (pt (point)))
+                  (if-let* ((ov (bound-and-true-p hl-line-overlay))
+                            ((entropy/emacs-is-valid-overlay-p
+                              ov :in-buffer (current-buffer)))
+                            (pt (point)))
                       (and (<= pt (overlay-end ov))
                            (>= pt (overlay-start ov)))
                     'abort)))
