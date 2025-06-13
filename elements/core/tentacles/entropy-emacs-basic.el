@@ -8822,11 +8822,25 @@ respectively. Otherwise `current-buffer's `point-min' and
             (buffer-substring-no-properties
              beg end))) new-str)
     (entropy/emacs-setf-by-body new-str
+      ;; NOTE: https://lists.gnu.org/archive/html/help-gnu-emacs/2012-04/msg00173.html
+      ;;
+      ;; > I get error "Multibyte character in data for base64 encoding" when I
+      ;; > try to base64 encoding some utf-8 text.
+      ;;
+      ;; base64 is an encoding which applies to *bytes*, not chars.  So you first
+      ;; need to encode your sequence of chars into a sequence of bytes using
+      ;; some coding-system.  I.e. apply `encode-coding-string/region'.
+      ;; And after that, you can use base64-encode-string/region.
+      ;;
+      ;;
+      ;;         Stefan
       (cl-case method
         (decode
-         (base64-decode-string base-str))
+         (let ((rtn (base64-decode-string base-str)))
+           (decode-coding-string rtn 'utf-8-unix)))
         (encode
-         (base64-encode-string base-str))
+         (let ((raw (encode-coding-string base-str 'utf-8-unix)))
+           (base64-encode-string raw)))
         (t (error "wrong type of method: `%S'" method))))
     (let ((inhibit-read-only t) omark)
       (with-current-buffer buff
