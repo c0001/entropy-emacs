@@ -30,7 +30,15 @@
 ;;
 ;; * Code:
 
-;; ** require
+(defvar eemacs//structure--show-region-funcs nil)
+(defun eemacs//structure--show-region-all (&optional beg end)
+  (let* ((regp (region-active-p))
+         (beg (or beg (if regp (region-beginning) (line-beginning-position))))
+         (end (or end (if regp (region-end) (line-end-position)))))
+    (mapc (lambda (x) (funcall x beg end))
+          eemacs//structure--show-region-funcs)))
+
+;; ** outline
 (use-package outline
   :ensure nil
 ;; *** preface
@@ -58,6 +66,12 @@ prefix arg was `(4)' i.e. the single `C-u' type."
   ;; based on thus so that we can invoke some eemacs outline specs for
   ;; markdown as well.
   (add-hook 'markdown-mode-hook #'outline-minor-mode)
+
+  (add-to-list
+   'eemacs//structure--show-region-funcs
+   (entropy/emacs-!cl-defun
+       eemacs//outline--show-region-all (beg end)
+     (outline-flag-region beg end nil)))
 
 ;; *** config
   :config
@@ -132,6 +146,16 @@ prefix arg was `(4)' i.e. the single `C-u' type."
       :enable t
       :exit t
       :eemacs-top-bind t))))
+  :init
+
+  (add-to-list
+   'eemacs//structure--show-region-funcs
+   (entropy/emacs-!cl-defun
+       eemacs//hideshow--show-region-all (beg end)
+     (when (bound-and-true-p hs-minor-mode)
+       (let ((hs-allow-nesting nil))
+         (hs-discard-overlays beg end)))))
+
   :config
 
   ;; Display line counts
@@ -188,8 +212,17 @@ prefix arg was `(4)' i.e. the single `C-u' type."
       "yafold show all"
       :enable t
       :exit t
-      :eemacs-top-bind t)))))
+      :eemacs-top-bind t))))
+  :init
 
+  (add-to-list
+   'eemacs//structure--show-region-funcs
+   (entropy/emacs-!cl-defun
+       eemacs//yafolding--show-region-all (beg end)
+     (progn
+       (let (_)
+         (yafolding-show-region beg end)))))
+  )
 
 ;; ** vimish
 (use-package vimish-fold
@@ -226,21 +259,32 @@ prefix arg was `(4)' i.e. the single `C-u' type."
       entropy/emacs-structure-vimish-toggle (&optional beg end)
     (interactive)
     (entropy/emacs-require-only-once 'vimish-fold)
-    (if (entropy/emacs-structure--vimish-folded-p
-         (line-beginning-position)
-         (line-end-position))
-        (progn
-          (message "Vimish toggling ... ")
-          (vimish-fold-toggle)
-          (message "Vimish toggled!"))
-      (unless (region-active-p)
-        (entropy/emacs-!user-error
-         "No region activated, select a region firstly"))
-      (let ((beg (or beg (region-beginning)))
-            (end (or end (region-end))))
-        (when (and beg end)
-          (vimish-fold beg end)
-          (message "Vimish folded current region.")))))
+    (let ((reg (or
+                (and beg end (cons beg end))
+                (and (region-active-p)
+                     (cons (region-beginning) (region-end))))))
+      (if (entropy/emacs-structure--vimish-folded-p
+           (line-beginning-position)
+           (line-end-position))
+          (progn
+            (entropy/emacs-message-simple-progress-message "Vimish showing"
+              (vimish-fold-toggle)))
+        (unless
+            (or
+             reg
+             (entropy/emacs-setf-by-body reg
+               (or
+                (entropy/emacs-syntax-buffer-pos-at->
+                    'string nil 'region-get)
+                (entropy/emacs-syntax-buffer-pos-at->
+                    'comment nil 'region-get))))
+          (entropy/emacs-!user-error
+           "No region activated, select a region firstly"))
+        (let ((beg (car reg)) (end (cdr reg)))
+          (when (and beg end)
+            (entropy/emacs-message-simple-progress-message "Vimish hiding"
+              (vimish-fold beg end))))
+        )))
 
   (defun entropy/emacs-structure-vimish-fold-double-quote-string ()
     "Fold lisp type doc string block using `vimish'."
@@ -296,6 +340,15 @@ prefix arg was `(4)' i.e. the single `C-u' type."
       :enable t :exit t)
      ("u a" vimish-fold-unfold-all "Unfold all folds in current buffer"
       :enable t :exit t))))
+
+  :init
+
+  (add-to-list
+   'eemacs//structure--show-region-funcs
+   (entropy/emacs-!cl-defun
+       eemacs//vimish--show-region-all (beg end)
+     (mapc #'vimish-fold--unfold
+           (vimish-fold--folds-in beg end))))
 
   :config
   ;; Disable vimish native kemap that conflict with eemacs
@@ -1279,6 +1332,17 @@ This function is an around advice for `outshine-mode'."
 
 ;; *** __end__
   )
+
+;; ** eemacs patches
+(defun eemacs//structure--indent-for-tab-command/show-region-all
+    (ofunc &rest oargs)
+  "advice for preventing indentation ops taken mistake on invisible
+portion."
+  (progn
+    (eemacs//structure--show-region-all)
+    (apply ofunc oargs)))
+(advice-add 'indent-for-tab-command
+            :around #'eemacs//structure--indent-for-tab-command/show-region-all)
 
 ;; ** benefit interactively functions
 ;; *** subtree parse
