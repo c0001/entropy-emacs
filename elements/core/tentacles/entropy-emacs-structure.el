@@ -353,14 +353,21 @@ prefix arg was `(4)' i.e. the single `C-u' type."
   :config
   ;; Disable vimish native kemap that conflict with eemacs
   ;; specification
-  (define-key vimish-fold-folded-keymap [67108960] nil)
-  (define-key vimish-fold-unfolded-keymap [67108960] nil)
-
-  ;; fake advice for 'vimish-fold--read-only for text replaceable
-  (advice-add 'vimish-fold--read-only
-              :around
-              (lambda (&rest _)
-                t)))
+  (keymap-unset
+   vimish-fold-folded-keymap
+   entropy/emacs-top-key t)
+  (keymap-unset
+   vimish-fold-unfolded-keymap
+   entropy/emacs-top-key t)
+  (add-variable-watcher
+   'entropy/emacs-top-key
+   (entropy/emacs-!cl-defun
+       eemacs//vimish--along-with-eemacs-top-key-change
+       (_sym nval op _wh)
+     (when (eq op 'set)
+       (keymap-unset vimish-fold-folded-keymap nval t)
+       (keymap-unset vimish-fold-unfolded-keymap nval t))))
+  )
 
 ;; ** outorg
 (use-package outorg
