@@ -514,7 +514,8 @@ eemacs origin type which reduce performance issue."
          ))
     (:eval (entropy/emacs-modeline--origin-mdl-seg/lsp-mode-indicator))
     (:eval
-     (let ((str (entropy/emacs-modeline--miscinfo/treesit-mode-indicator)))
+     (let ((str (and (fboundp 'entropy/emacs-modeline--miscinfo/treesit-mode-indicator)
+                     (entropy/emacs-modeline--miscinfo/treesit-mode-indicator))))
        (if (or (not str) (string-empty-p str)) ""
          (format "%s|" str))))
     (:eval (entropy/emacs-modeline--origin-mdl-seg/vcs))
