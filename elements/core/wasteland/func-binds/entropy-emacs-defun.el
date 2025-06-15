@@ -8293,6 +8293,20 @@ Example to generate a IPv4 address mask range defined as 192.x.x.x
 ;; *** Buffer manipulation
 ;; **** Basic
 
+(defun entropy/emacs-buffer-live-p (object)
+  "Like `buffer-live-p' but OBJECT can either be a buffer name string.
+
+Value is nil if it isn't thus.
+
+This function exists since many package user buffer name as *buffer*
+argument to its apis but they often confuse ended usages in invocation
+with `buffer-live-p' which always return nil for such case."
+  (when-let ((object))
+    (if (bufferp object) (buffer-live-p object)
+      (and (stringp object)
+           (setq object (get-buffer object))
+           (buffer-live-p object)))))
+
 (defmacro entropy/emacs-use-marker-position (place)
   "`setf' PLACE with its position value only when PLACE is
 `markerp' marker."

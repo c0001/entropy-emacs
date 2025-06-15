@@ -2754,10 +2754,10 @@ mechanism."
     entropy/emacs-image-dired-find-thumbnails-buffer ()
   (or
    (let ((buf entropy/emacs--image-dired-global-current-thumbnails-buffer))
-     (and (buffer-live-p buf) buf))
+     (and (entropy/emacs-buffer-live-p buf) buf))
    (and (eq major-mode 'image-dired-thumbnail-mode) (current-buffer))
    (let ((buf entropy/emacs--image-dired-current-thumbnails-buffer))
-     (and (buffer-live-p buf) buf))
+     (and (entropy/emacs-buffer-live-p buf) buf))
    (entropy/emacs-!error
     "can not find lived image-dired thumbnails buffer")))
 
@@ -3766,6 +3766,25 @@ this func should always ran in a `image-dired-thumbnail-mode' buffer"))
     :use-hook 'after-change-major-mode-hook
     (entropy/emacs--image-dired-update-thumbnail-buffname-core))
 
+  (when (< emacs-major-version 29)
+    (defun eemacs//image-dired-display-thumbnail-original-image/adv/use-29^-ver
+        (&optional arg)
+      "Advice for using emacs-29^ designation to create window inside of
+`image-dired-display-image' so that our patch
+`__ya/image-dired-display-window' workable."
+      (interactive "P")
+      (unless (string-equal major-mode "image-dired-thumbnail-mode")
+        (user-error "Not in `image-dired-thumbnail-mode'"))
+      (let ((file (image-dired-original-file-name)))
+        (cond ((not (image-dired-image-at-point-p))
+               (message "No thumbnail at point"))
+              ((not file)
+               (message "No original file name found"))
+              (t
+               (image-dired-display-image file arg)))))
+    (advice-add 'image-dired-display-thumbnail-original-image
+                :override
+                #'eemacs//image-dired-display-thumbnail-original-image/adv/use-29^-ver))
   (defvar eemacs//image-dired-force-fit-window-width-p nil)
   (defun __ya/image-dired-display-window ()
     (let* ((buf (image-dired-create-display-image-buffer))
@@ -4049,7 +4068,7 @@ force fit width: %s"
                    (inhibit-quit t))
           (save-excursion
             (select-window (image-dired-display-window))
-            (delete-other-windows)
+            (and (not (one-window-p)) (delete-other-windows))
             (let* ((sym (make-symbol
                          (format "\
 *eemacs//image-dired-display-image-force-fit-width-func/quit/for-origin-buffer_%s*"
@@ -4085,10 +4104,36 @@ force fit width: %s"
                                   (kill-buffer tmp-buffer))))
                           (user-error "Origin buffer '%s' not alived anymore"
                                       this-buffer-name)))
-                      (format "Go backto original buffer '%s'." this-buffer-name))))
+                      (format "Go backto original buffer '%s'." this-buffer-name)))
+                   (n-img-cmd
+                    (entropy/emacs-defalias (make-symbol (format "\
+*eemacs//image-dired-display-image-force-fit-width-func/quit/for-origin-buffer_%s*/next-image"
+                                                                 this-buffer-name))
+                      (lambda nil (interactive)
+                        (with-current-buffer this-buffer
+                          (when-let (((eq major-mode 'image-dired-thumbnail-mode)))
+                            (call-interactively
+                             'entropy/emacs-image-dired-display-next-thumbnail-original))))
+                      (format "display next image of image dired thumbnail buffer %s"
+                              this-buffer-name)))
+                   (p-img-cmd
+                    (entropy/emacs-defalias (make-symbol (format "\
+*eemacs//image-dired-display-image-force-fit-width-func/quit/for-origin-buffer_%s*/prev-image"
+                                                                 this-buffer-name))
+                      (lambda nil (interactive)
+                        (with-current-buffer this-buffer
+                          (when-let (((eq major-mode 'image-dired-thumbnail-mode)))
+                            (call-interactively
+                             'entropy/emacs-image-dired-display-previous-thumbnail-original))))
+                      (format "display previous image of image dired thumbnail buffer %s"
+                              this-buffer-name)))
+                   )
               (dolist (key (list [remap quit-window] [remap bury-buffer]))
                 (entropy/emacs-local-set-key
-                 key cmd)))))
+                 key cmd))
+              (entropy/emacs-local-set-key (kbd "SPC") n-img-cmd)
+              (entropy/emacs-local-set-key (kbd "DEL") p-img-cmd)
+              )))
         )))
   (advice-add 'image-dired-display-image
               :override #'entropy/emacs-basic--image-diared-display-image)
@@ -4918,6 +4963,41 @@ window has no image displayed i.e. is invalid!"))
                 #'entropy/emacs-image-dired-beginning-of-buffer)
     )
 
+  (entropy/emacs-!cl-defun
+      eemacs//image-dired-scroll-adv (ofunc &rest oargs)
+    (let (rtn)
+      (when (eq major-mode 'image-dired-thumbnail-mode)
+        (run-hooks
+         'entropy/emacs-image-dired-thumbnail-mode-navigation-before-hook))
+      (unwind-protect
+          (progn
+            (if (eq major-mode 'image-dired-thumbnail-mode)
+                (let ((image-dired-track-movement nil))
+                  (setq rtn (apply ofunc oargs)))
+              (setq rtn (apply ofunc oargs)))
+            (when (and (eq major-mode 'image-dired-thumbnail-mode)
+                       image-dired-track-movement)
+              (entropy/emacs-image-dired-idle-track-orig-file)))
+        (when (eq major-mode 'image-dired-thumbnail-mode)
+          (run-hooks
+           'entropy/emacs-image-dired-thumbnail-mode-navigation-after-forcerun-hook)))
+      rtn))
+  (dolist (func (list
+                 'image-dired-scroll
+                 'scroll-up-command
+                 'scroll-down-command
+                 (cons 'pixel-scroll 'pixel-scroll-interpolate-up)
+                 (cons 'pixel-scroll 'pixel-scroll-interpolate-down)))
+    (if (not (consp func))
+        (advice-add func :around #'eemacs//image-dired-scroll-adv)
+      (with-eval-after-load (car func)
+        (advice-add (cdr func) :around #'eemacs//image-dired-scroll-adv))))
+
+  (entropy/emacs-make-command-continuous-smoothing-with-common-style
+      image-dired-scroll-up)
+  (entropy/emacs-make-command-continuous-smoothing-with-common-style
+      image-dired-scroll-down)
+
 ;; ******** mark/unmark
 
   (defun entropy/emacs-image-dired-mark-thumb-original-file (&optional no-forward)
@@ -5048,7 +5128,8 @@ displayed image as same operated mechanism as
     (let ((file __ya/image-dired-display-image-buffer-image-file))
       (unless (and file (file-exists-p file))
         (user-error "No image displayed in this buffer"))
-      (image-dired-display-image file arg)))
+      (with-current-buffer (entropy/emacs-image-dired-find-thumbnails-buffer)
+        (image-dired-display-image file arg))))
 
   (defun entropy/emacs-image-dired-enable-image-mode-in-display-buffer ()
     "Enable `image-mode' in `image-dired-display-image-buffer'"
