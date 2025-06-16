@@ -67,14 +67,15 @@ prefix arg was `(4)' i.e. the single `C-u' type."
   ;; markdown as well.
   (add-hook 'markdown-mode-hook #'outline-minor-mode)
 
+;; *** config
+  :config
+
   (add-to-list
    'eemacs//structure--show-region-funcs
    (entropy/emacs-!cl-defun
        eemacs//outline--show-region-all (beg end)
      (outline-flag-region beg end nil)))
 
-;; *** config
-  :config
 ;; **** keybinding
   (define-key outline-mode-map
               (kbd "C-c C-p")
@@ -146,7 +147,7 @@ prefix arg was `(4)' i.e. the single `C-u' type."
       :enable t
       :exit t
       :eemacs-top-bind t))))
-  :init
+  :config
 
   (add-to-list
    'eemacs//structure--show-region-funcs
@@ -155,8 +156,6 @@ prefix arg was `(4)' i.e. the single `C-u' type."
      (when (bound-and-true-p hs-minor-mode)
        (let ((hs-allow-nesting nil))
          (hs-discard-overlays beg end)))))
-
-  :config
 
   ;; Display line counts
   (defun entropy/emacs-structure--hs-display-code-line-counts (ov)
@@ -213,7 +212,8 @@ prefix arg was `(4)' i.e. the single `C-u' type."
       :enable t
       :exit t
       :eemacs-top-bind t))))
-  :init
+
+  :config
 
   (add-to-list
    'eemacs//structure--show-region-funcs
@@ -341,7 +341,7 @@ prefix arg was `(4)' i.e. the single `C-u' type."
      ("u a" vimish-fold-unfold-all "Unfold all folds in current buffer"
       :enable t :exit t))))
 
-  :init
+  :config
 
   (add-to-list
    'eemacs//structure--show-region-funcs
@@ -350,7 +350,6 @@ prefix arg was `(4)' i.e. the single `C-u' type."
      (mapc #'vimish-fold--unfold
            (vimish-fold--folds-in beg end))))
 
-  :config
   ;; Disable vimish native kemap that conflict with eemacs
   ;; specification
   (keymap-unset
