@@ -2570,9 +2570,9 @@ overwrited.
       (1 :width-desc "Resize")
       (1 :width-desc "Animation"))))
    ("Navigation & View"
-    (("gn" image-next-file "Visit the next image in the same directory"
+    (("SPC" image-next-file "Visit the next image in the same directory"
       :enable t :map-inject t :exit t)
-     ("gN" image-previous-file "Visit the preceding image in the same directory"
+     ("DEL" image-previous-file "Visit the preceding image in the same directory"
       :enable t :map-inject t :exit t)
      ("C-<return>" entropy/emacs-image-mode-open-as-external
       "Display current image with external app"
@@ -4025,13 +4025,70 @@ also."
         (setq buffer-read-only t))
       (select-window cur-win)))
 
-  (defun entropy/emacs-basic--image-diared-display-image
+  (entropy/emacs-defvar-local-with-pml
+    eemacs//image-dired-display-buffer-local-map-mode-map/bindings/next-image
+    nil)
+  (entropy/emacs-defvar-local-with-pml
+    eemacs//image-dired-display-buffer-local-map-mode-map/bindings/prev-image
+    nil)
+  (entropy/emacs-defvar-local-with-pml
+    eemacs//image-dired-display-buffer-local-map-mode-map/bindings/quit
+    nil)
+  (entropy/emacs-defvar-local-with-pml
+    eemacs//image-dired-display-buffer-local-map-mode-map/bindings/bury-buffer
+    nil)
+  (defvar eemacs//image-dired-display-buffer-local-map-mode-map
+    (let ((map (make-sparse-keymap))
+          (bindings
+           `(("SPC" eemacs//image-dired-display-buffer-local-map-mode-map/bindings/next-image
+              "show next image in original image dired thumbnail buffer")
+             ("DEL"  eemacs//image-dired-display-buffer-local-map-mode-map/bindings/prev-image
+              "show prev image in original image dired thumbnail buffer")
+             ([remap quit-window]  eemacs//image-dired-display-buffer-local-map-mode-map/bindings/quit
+              "switch to original image dired thumbnail buffer")
+             ([remap bury-buffer]  eemacs//image-dired-display-buffer-local-map-mode-map/bindings/bury-buffer
+              "bury current image display buffer")))
+          key def doc)
+      (dolist (bd bindings)
+        (setq key (car   bd)
+              key (if (stringp key) (kbd key) key)
+              def (cadr  bd)
+              doc (caddr bd))
+        (define-key
+         map key
+         (let ((def def))
+           (entropy/emacs-defalias (intern (format "__%s" def))
+             (lambda nil (interactive)
+               (let ((func (buffer-local-value def (current-buffer))))
+                 (or (and (commandp func)
+                          (if (entropy/emacs-debugger-is-running-p)
+                              (message "command: %s" func) t))
+                     (error "not a command: %s" func))
+                 (call-interactively func)))
+             doc))))
+      map))
+  (define-minor-mode eemacs//image-dired-display-buffer-local-map-mode
+    "Enalbe eemacs unified specified keybindings for image display buffer which to:
+
+1) SPC - next-image
+2) DEL - prev-image
+3) q   - bury-buffer
+4) q   - quit-window"
+    :keymap eemacs//image-dired-display-buffer-local-map-mode-map
+    :global nil
+    :init-value nil
+    :lighter nil)
+
+  (entropy/emacs-!cl-defun entropy/emacs-basic--image-diared-display-image
       (&rest orig-args)
     "eemacs spec `image-dired-display-image' command.
 
 Use `__ya/image-dired-display-image/use-image-mode' and
 `__ya/image-dired-display-image/use-fast-insert' as subrotine according
 to the spec of `entropy/emacs-image-dired-display-image-use-image-mode'."
+    (unless (eq major-mode 'image-dired-thumbnail-mode)
+      (entropy/emacs-!error "\
+this func should always ran in a `image-dired-thumbnail-mode' buffer"))
     (let* ((imgf (car orig-args)) (osize (cadr orig-args))
            func dwimp
            (eemacs//image-dired-force-use-one-window-p
@@ -4066,12 +4123,18 @@ force fit width: %s"
           (save-excursion
             (select-window (image-dired-display-window))
             (progn (delete-other-windows))
-            (let* ((sym (make-symbol
+            (unless (eq (current-buffer)
+                        (get-buffer
+                         (with-current-buffer this-buffer
+                           (image-dired-create-display-image-buffer))))
+              (error "current buffer is not the display buffer spawning from %s"
+                     this-buffer-name))
+            (let* ((cmd
+                    (entropy/emacs-defalias
+                        (make-symbol
                          (format "\
 *eemacs//image-dired-display-image-force-fit-width-func/quit/for-origin-buffer_%s*"
-                                 this-buffer-name)))
-                   (cmd
-                    (entropy/emacs-defalias sym
+                                 this-buffer-name))
                       (lambda nil (interactive)
                         (if (buffer-live-p this-buffer)
                             (let ((tmp-buffer
@@ -4125,11 +4188,15 @@ force fit width: %s"
                       (format "display previous image of image dired thumbnail buffer %s"
                               this-buffer-name)))
                    )
-              (dolist (key (list [remap quit-window] [remap bury-buffer]))
-                (entropy/emacs-local-set-key
-                 key cmd))
-              (entropy/emacs-local-set-key (kbd "SPC") n-img-cmd)
-              (entropy/emacs-local-set-key (kbd "DEL") p-img-cmd)
+              (setq eemacs//image-dired-display-buffer-local-map-mode-map/bindings/bury-buffer
+                    cmd
+                    eemacs//image-dired-display-buffer-local-map-mode-map/bindings/quit
+                    cmd
+                    eemacs//image-dired-display-buffer-local-map-mode-map/bindings/next-image
+                    n-img-cmd
+                    eemacs//image-dired-display-buffer-local-map-mode-map/bindings/prev-image
+                    p-img-cmd)
+              (eemacs//image-dired-display-buffer-local-map-mode 1)
               )))
         )))
   (advice-add 'image-dired-display-image
@@ -5149,6 +5216,8 @@ displayed image as same operated mechanism as
       (setq-local line-number-mode nil)
       (add-hook 'file-name-at-point-functions
                 #'image-dired-file-name-at-point nil t)
+      ;; bind unified local map to guarantee consistent keybindings
+      (eemacs//image-dired-display-buffer-local-map-mode 1)
       (with-selected-window
           (or (get-buffer-window)
               (error "image dired image display window not lived"))
