@@ -1624,7 +1624,8 @@ This is for use in `ivy-re-builders-alist'."
 
   (setq counsel-find-file-at-point nil)
   (setq counsel-yank-pop-separator
-        "\n────────\n")
+        "\n────────\n"
+        counsel-yank-pop-preselect-last t)
 
   ;; increasing swiper limit to has more convention
   (setq counsel-grep-swiper-limit 10000000)
