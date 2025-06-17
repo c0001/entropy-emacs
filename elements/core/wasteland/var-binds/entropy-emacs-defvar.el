@@ -2106,9 +2106,13 @@ followed by `entropy/emacs-font-setting-enable'.")
 followed by `entropy/emacs-font-setting-enable'.")
 
 (defvar entropy/emacs-fontsets-fonts-collection-alias
-  '((sarasa :latin "Sarasa Mono SC" :sc "Sarasa Mono SC" :tc "Sarasa Mono TC"
+  `((sarasa :latin "Sarasa Mono SC" :sc "Sarasa Mono SC" :tc "Sarasa Mono TC"
             :jp "Sarasa Mono J" :kr "Sarasa Mono K")
-    (maple  :latin "Maple Mono SC NF" :sc "Maple Mono SC NF" :tc "Maple Mono SC NF")
+    ,(let* ((of
+             ;; the old font family name of maple mono nerd cn font
+             (find-font (font-spec :family "Maple Mono SC NF")))
+            (name (if of "Maple Mono SC NF" "Maple Mono NF CN")))
+       `(maple  :latin ,name :sc ,name :tc ,name))
     (google :latin "Noto Sans Mono" :sc "Noto Sans Mono CJK SC" :tc "Noto Sans Mono CJK TC"
             :jp "Noto Sans Mono CJK JP" :kr "Noto Sans Mono CJK KR"
             :symbol "Noto Sans Symbols")
