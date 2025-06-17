@@ -1497,6 +1497,35 @@ There're three valid key slots:
                  ((const :tag "Socks Version" :socks-version) integer)))
   :group 'entropy/emacs-customize-group-for-internet-proxy)
 
+(defvar entropy/emacs-union-proxy-reset-hook nil)
+(defvar entropy/emacs--union-proxy-reset-hook-timer nil)
+(defvar entropy/emacs--union-proxy-reset-top-hook nil)
+(defun  entropy/emacs-union-proxy-reset-varguard
+    (sym nval op wh)
+  (when (and (null wh) (eq op 'set))
+    (let ((type (cl-case sym
+                  (entropy/emacs-union-proxy-noproxy-list 'noproxy)
+                  (entropy/emacs-union-http-proxy-plist   'http)
+                  (entropy/emacs-union-socks-proxy-plist  'socks)))
+          (inhibit-quit t))
+      (run-hook-with-args 'entropy/emacs--union-proxy-reset-top-hook type nval)
+      (and (timerp entropy/emacs--union-proxy-reset-hook-timer)
+           (cancel-timer entropy/emacs--union-proxy-reset-hook-timer))
+      (entropy/emacs-setf-by-body entropy/emacs--union-proxy-reset-hook-timer
+        (run-with-idle-timer
+         0.2 nil
+         (lambda nil
+           (let ((inhibit-quit t))
+             (entropy/emacs-message-simple-progress-message
+                 "Updating eemacs union proxy configs"
+               (setq entropy/emacs--union-proxy-reset-hook-timer nil)
+               (run-hook-with-args 'entropy/emacs-union-proxy-reset-hook
+                                   type nval)))))))))
+(dolist (var (list 'entropy/emacs-union-proxy-noproxy-list
+                   'entropy/emacs-union-http-proxy-plist
+                   'entropy/emacs-union-socks-proxy-plist))
+  (add-variable-watcher var #'entropy/emacs-union-proxy-reset-varguard))
+
 ;; *** Coworkers
 (defgroup entropy/emacs-customize-group-for-coworkers nil
   "Eemacs coworkers integrated configuration customizable group."

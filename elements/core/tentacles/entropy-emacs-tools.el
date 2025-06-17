@@ -1512,36 +1512,49 @@ It's usefully for windows user to quickly switching to
        :enable t :map-inject t :exit t)))))
 
   :init
+  (defun eemacs//tools--set-entropy-proxy-url-server-alist (&optional type nval)
+    (let* ((httpval (or (and (eq type 'http) nval)
+                        entropy/emacs-union-http-proxy-plist))
+           (socksval (or (and (eq type 'socks) nval)
+                         entropy/emacs-union-socks-proxy-plist))
+           (nproxyval (or (and (eq type 'noproxy) nval)
+                          entropy/emacs-union-proxy-noproxy-list))
+           (http_proxy_host
+            (or (plist-get httpval :host) "127.0.0.1"))
+           (http_proxy_port
+            (or (plist-get httpval :port) 7890)))
+      (setq entropy/proxy-url-default-proxy-server-alist
+            `((emacs-url   "http://" ,http_proxy_host ,http_proxy_port)
+              (shell-http  "http://" ,http_proxy_host ,http_proxy_port)
+              (emacs-w3m   "http://" ,http_proxy_host ,http_proxy_port)))
 
-  (let ((http_proxy_host (or (plist-get entropy/emacs-union-http-proxy-plist :host) "127.0.0.1"))
-        (http_proxy_port (or (plist-get entropy/emacs-union-http-proxy-plist :port) 7890)))
-    (setq entropy/proxy-url-default-proxy-server-alist
-          `((emacs-url   "http://" ,http_proxy_host ,http_proxy_port)
-            (shell-http  "http://" ,http_proxy_host ,http_proxy_port)
-            (emacs-w3m   "http://" ,http_proxy_host ,http_proxy_port)))
+      (setq entropy/proxy-url-default-no-proxy-regexp-list
+            (mapcar (lambda (ip) (concat "^\\([hH][tT][tT][pP][sS]?://\\)?" (regexp-quote ip)))
+                    (entropy/emacs-gen-eemacs-union-proxy-noproxy-envs
+                     (or nproxyval
+                         '("127.0.0.1" "localhost"))
+                     t)))
+      (setq entropy/proxy-url-default-no-proxy-shell-env
+            (entropy/emacs-gen-eemacs-union-proxy-noproxy-envs
+             (or nproxyval
+                 '("127.0.0.1" "localhost"))))
 
-    (setq entropy/proxy-url-default-no-proxy-regexp-list
-          (mapcar (lambda (ip) (concat "^\\([hH][tT][tT][pP][sS]?://\\)?" (regexp-quote ip)))
-                  (entropy/emacs-gen-eemacs-union-proxy-noproxy-envs
-                   (or entropy/emacs-union-proxy-noproxy-list
-                       '("127.0.0.1" "localhost"))
-                   t)))
-    (setq entropy/proxy-url-default-no-proxy-shell-env
-          (entropy/emacs-gen-eemacs-union-proxy-noproxy-envs
-           (or entropy/emacs-union-proxy-noproxy-list
-               '("127.0.0.1" "localhost")))))
+      (when (plist-get socksval :enable)
+        (add-to-list
+         'entropy/proxy-url-default-proxy-server-alist
+         `(emacs-socks
+           ""
+           ,(or (plist-get socksval :host) "127.0.0.1")
+           ,(or (plist-get socksval :port) 7890)
+           ,(or (number-to-string
+                 (plist-get socksval
+                            :socks-version))
+                "5")
+           )))))
+  (eemacs//tools--set-entropy-proxy-url-server-alist)
+  (add-hook 'entropy/emacs-union-proxy-reset-hook
+            #'eemacs//tools--set-entropy-proxy-url-server-alist)
 
-  (when (plist-get entropy/emacs-union-socks-proxy-plist :enable)
-    (add-to-list 'entropy/proxy-url-default-proxy-server-alist
-                 `(emacs-socks
-                   ""
-                   ,(or (plist-get entropy/emacs-union-socks-proxy-plist :host) "127.0.0.1")
-                   ,(or (plist-get entropy/emacs-union-socks-proxy-plist :port) 7890)
-                   ,(or (number-to-string
-                         (plist-get entropy/emacs-union-socks-proxy-plist
-                                    :socks-version))
-                        "5")
-                   )))
 
   (defun entropy/emacs-tools--proxy-url-w3m-specific ()
     ;; recorde current retrieve url

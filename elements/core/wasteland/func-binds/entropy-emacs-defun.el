@@ -14064,6 +14064,18 @@ by `entropy/emacs-funcall-with-eemacs-union-http-internet-proxy'."
    (lambda (&rest _) (not entropy/emacs-union-http-proxy-internal-enable-p))
    orig-func orig-args))
 
+(add-hook
+ 'entropy/emacs--union-proxy-reset-top-hook
+ (entropy/emacs-!cl-defun
+     eemacs//defun-reset-union-proxy-cache (_type _nval)
+   (dolist (var (list
+                 'entropy/emacs--noproxy-list-cache
+                 'entropy/emacs--noproxy-string-cache
+                 'entropy/emacs--proxy-env-cache
+                 'entropy/emacs--url-proxy-services-cache
+                 ))
+     (set var nil))))
+
 ;; ** Major-modes' eemacs extra APIs
 ;; *** dired mode
 
