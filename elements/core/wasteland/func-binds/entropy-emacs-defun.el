@@ -3267,6 +3267,30 @@ using one of other specified types as see:
                   (t `(entropy/emacs-cl-lambda-with-lcb nil
                         ,@(entropy/emacs-macroexp-rest it-val)))))))))
 
+(entropy/emacs-!cl-defmacro entropy/emacs-setf-from-plist
+    (plist-var predicate &rest args)
+  "Set value of each PLACE (generalized as `setf') got from KEY's value of
+PLIST.
+
+Each KEY is predicated via PREDICATE used for `plist-get'.
+
+\(fn PLIST PREDICATE &rest KEY PLACE...)"
+  (declare (indent 2))
+  (if (null args) nil
+    (macroexp-let2* ignore
+        ((pred predicate) (plval plist-var))
+      (let (key var (form ()))
+        (while (and (consp args)
+                    ;; a general valid setf place
+                    (or (cdr args)
+                        (entropy/emacs-!error
+                         "orphan key of plist args: %s -- %s"
+                         (car args) args)))
+          (setq key (pop args)
+                var (pop args))
+          (push `(setf ,var (plist-get ,plval ,key ,pred)) form))
+        (cons 'progn (reverse form))))))
+
 ;; *** Ring manipulation
 
 (cl-defmacro entropy/emacs--with-ring-p-check

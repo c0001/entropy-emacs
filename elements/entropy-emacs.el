@@ -1085,8 +1085,13 @@ Use =eemacs-defn-bind= of symbol of NAME for BODY when
 \(fn NAME ARGLIST [DOCSTRING] BODY...)"
   (declare (doc-string 3) (indent 2))
   (let* ((name (car args)) (arglist (cadr args))
-         (docstr (let ((val (caddr args))) (and (stringp val) val)))
-         (body (if docstr (cdddr args) (cddr args))))
+         (docstr (let ((val (caddr args)))  (and (stringp val) val)))
+         (decl   (let ((val (if docstr (cadddr args) (caddr args))))
+                   (and (eq (car-safe val) 'declare) val)))
+         (hform (and (or docstr decl) (delete nil (list docstr decl))))
+         (body (if docstr
+                   (if decl (cddddr args) (cdddr args))
+                 (if decl (cdddr args) (cddr args)))))
     (setq body (or body (list nil)))
     (entropy/emacs-setf-by-body body
       (macroexp-let2* ignore ((oname nil) (oform nil))
@@ -1096,9 +1101,9 @@ Use =eemacs-defn-bind= of symbol of NAME for BODY when
                          ,entropy/emacs-inner-sym-for/current-defname)
                        (quote ,,oname))))
               ,,oform))))
-    (if docstr
+    (if hform
         `(__entropy/emacs-!cl-defmacro/wrapper ,name
-           ,arglist ,docstr ,body)
+           ,arglist ,@hform ,body)
       `(__entropy/emacs-!cl-defmacro/wrapper ,name
          ,arglist ,body))))
 

@@ -48,27 +48,27 @@
 (use-package gnus
   :ensure nil
   :config
-  ;; gnus home setting
-  (setq gnus-home-directory (plist-get entropy/emacs-gnus-init-config :gnus-home))
-  ;; gnus news dir
-  (setq gnus-directory (plist-get entropy/emacs-gnus-init-config :gnus-news-dir))
-  (setq gnus-kill-files-directory (plist-get entropy/emacs-gnus-init-config :gnus-news-dir))
-  ;; gnus mail dir
-  (setq mail-source-directory (plist-get entropy/emacs-gnus-init-config :mail-dir))
-  (setq mail-default-directory (plist-get entropy/emacs-gnus-init-config :mail-temp-dir))
-  (setq message-directory (plist-get entropy/emacs-gnus-init-config :mail-dir))
-  (setq nnfolder-directory (plist-get entropy/emacs-gnus-init-config :mail-dir))
-  ;; gnus-init config file
-  (setq gnus-init-file (plist-get entropy/emacs-gnus-init-config :init-file))
-  ;; newrc source file
-  (setq gnus-startup-file (plist-get entropy/emacs-gnus-init-config :startup-file))
-  (setq gnus-read-newsrc-file (plist-get entropy/emacs-gnus-init-config :read-newsrc))
-  (setq gnus-save-newsrc-file (plist-get entropy/emacs-gnus-init-config :save-newsrc))
-  ;; dribble file (The update cache)
-  (setq gnus-use-dribble-file (plist-get entropy/emacs-gnus-init-config :use-dribble))
-  ;; fetch updat sources type, defualt be 'some' recommended set it to 't'
-  (setq gnus-read-active-file (plist-get entropy/emacs-gnus-init-config :read-active-file))
-
+  (entropy/emacs-setf-from-plist entropy/emacs-gnus-init-config nil
+    ;; gnus home setting
+    :gnus-home        gnus-home-directory
+    ;; gnus news dir
+    :gnus-news-dir    gnus-directory
+    :gnus-news-dir    gnus-kill-files-directory
+    ;; gnus mail dir
+    :mail-dir         mail-source-directory
+    :mail-dir         message-directory
+    :mail-dir         nnfolder-directory
+    :mail-temp-dir    mail-default-directory
+    ;; gnus-init config file
+    :init-file        gnus-init-file
+    ;; newrc source file
+    :startup-file     gnus-startup-file
+    :read-newsrc      gnus-read-newsrc-file
+    :save-newsrc      gnus-save-newsrc-file
+    ;; dribble file (The update cache)
+    :use-dribble      gnus-use-dribble-file
+    ;; fetch updat sources type, defualt be 'some' recommended set it to 't'
+    :read-active-file gnus-read-active-file)
 
   ;; Unbind `message-kill-address' when in gnus mail `message-mode-map'.
   ;; Because of that this will cover `browse-kill-ring' default keybinding.
