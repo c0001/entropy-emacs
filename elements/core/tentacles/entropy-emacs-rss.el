@@ -411,17 +411,16 @@ Optional arg FEEDS-PLIST-NAME if nil, pruning
   (defun entropy/emacs-rss--elfeed-update/set-search-filter (type)
     (with-current-buffer (elfeed-search-buffer)
       (cond
-       ((and (not current-prefix-arg)
-             (not (eq this-command 'entropy/emacs-rss-elfeed-update)))
-        (setq entropy/emacs-rss--elfeed-update/current-filter
-              elfeed-search-filter))
        ;; use pseudo filter buffer to reduce large feeds database
        ;; insertion performance issue for update all feeds occasion.
        ((eq type 'before)
-        (setq entropy/emacs-rss--elfeed-update/current-filter
-              elfeed-search-filter)
-        (elfeed-search-set-filter
-         "*----------during update, please wait----------*"))
+        (if (and (not current-prefix-arg)
+                 (not (eq this-command 'entropy/emacs-rss-elfeed-update)))
+            (setq entropy/emacs-rss--elfeed-update/current-filter nil)
+          (setq entropy/emacs-rss--elfeed-update/current-filter
+                elfeed-search-filter)
+          (elfeed-search-set-filter
+           "*----------during update, please wait----------*")))
        ((eq type 'after)
         (when entropy/emacs-rss--elfeed-update/current-filter
           (elfeed-search-set-filter
