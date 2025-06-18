@@ -166,9 +166,10 @@ This func divided this string into the return list as:
     ;; inspection
     (when (and port (equal port "8022"))
       (setq ssh-on-termux-p
-            (yes-or-no-p "\
+            (yes-or-no-p
+             (format "\
 It seems '%s:%s' is hosted on termux emulator, did it? "
-                         host-address port))
+                     host-address port)))
       (and ssh-on-termux-p
            (setq init-path ":/data/data/com.termux/files/home")))
     (if (not host-address)
