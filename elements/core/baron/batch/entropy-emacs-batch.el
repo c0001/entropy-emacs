@@ -788,7 +788,11 @@ faild with hash '%s' which must match '%s'"
                        (:default-directory
                         "build"
                         :command
-                        ("sh" "-c" "cmake -G 'Unix Makefiles' ..;"))
+                        ("sh" "-c" "\
+cmake \
+-D FETCHCONTENT_UPDATES_DISCONNECTED=ON \
+-G 'Unix Makefiles' \
+.. ;"))
                        (:default-directory
                         "build"
                         :command ("make")))))))))
