@@ -1352,7 +1352,8 @@ saved by
              (regexp "\\*ivy-occur.+*$" )
              (regexp "^\\*godoc.+*$")
              (regexp
-              "^magit[-]?\\([a-z]+\\)?:"))))
+              "^magit[-]?\\([a-z]+\\)?:")
+             "*macro expansion*")))
 
   :config
   (defun entropy/emacs-basic-winner---winner-save-old-config-run-with-idle-type ()
