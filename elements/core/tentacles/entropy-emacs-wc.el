@@ -462,8 +462,17 @@ This slot should obey the rules of:
     'eyebrowse-enable (eyebrowse-mode +1))
 
   ;; simply prettify the slot chosen candi format
-  (setq eyebrowse-tagged-slot-format "🏠 %-4s:%20t"
-        eyebrowse-slot-format "🏠 %-4s")
+  (defun eemacs//eyebrowse-set-slot-format nil
+    (let ((icon (if (entropy/emacs-icons-displayable-p)
+                    (nerd-icons-faicon "nf-fa-squarespace")
+                  ">>")))
+      (setq eyebrowse-tagged-slot-format (concat icon " %-4s:%20t")
+            eyebrowse-slot-format (concat icon " %-4s"))))
+  (entropy/emacs-with-daemon-make-frame-done
+    'eemacs//eyebrowse-set-slot-format/daemon-guard nil
+    :when-main
+    (eemacs//eyebrowse-set-slot-format))
+  (eemacs//eyebrowse-set-slot-format)
 
 ;; **** config
   :config
