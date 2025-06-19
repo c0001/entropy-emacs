@@ -13768,7 +13768,8 @@ stored the error log in
 `entropy/emacs-with-daemon-make-frame-done-error-log'.
 
 \(fn SYMBOL ARGLIST [DOCSTRING] [DECL] [INCT] &key \
-WHEN-GUI WHEN-GUI-EACH WHEN-TUI WHEN-TUI-EACH WITH-LEXICAL-BINDINGS &rest BODY)"
+WHEN-GUI WHEN-GUI-EACH WHEN-TUI WHEN-TUI-EACH \
+WHEN-DIFF WHEN-MAIN WITH-LEXICAL-BINDINGS &rest BODY)"
   (declare (doc-string 3) (indent defun))
   (let* ((name (car args))
          (func-name-sym (make-symbol "func-name"))
