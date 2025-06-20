@@ -61,26 +61,26 @@ In PRJ-FILTER-MODE With prefix \\[universal-argument], show
 "
   (declare (interactive-only t))
   (interactive)
-  (let* ((pref current-prefix-arg)
-         (1pref (and pref (equal pref '(4))))
-         (prj (and entropy/emacs-enable-ibuffer-project-style
-                   (project-current)))
-         (prp (and 1pref entropy/emacs-enable-ibuffer-project-style))
-         (cprp (and (not pref) prj
-                    entropy/emacs-enable-ibuffer-project-style
-                    (project-root prj)))
-         (__entropy/emacs-ibuffer-current-use-project-stype-p
-          (and (or prp cprp) t))
-         (__entropy/emacs-ibuffer-current-project (and cprp prj))
-         (title
-          (if cprp (format "*Ibuffer* - project: %s" cprp)
-            (if prp "*Ibuffer* - All projects")))
-         (current-prefix-arg nil)
-         (inhibit-quit t))
-    (if (or prp cprp) (eemacs//ibuffer-project-init-wrapper 'on)
-      (eemacs//ibuffer-project-init-wrapper 'off))
-    (entropy/emacs-message-simple-progress-message
-        (format "Ibuffer invocation: %s" title)
+  (entropy/emacs-message-simple-progress-message "Ibuffer invocation"
+    :with-maybe-modeline-msg 'force
+    (let* ((pref current-prefix-arg)
+           (1pref (and pref (equal pref '(4))))
+           (prj (and entropy/emacs-enable-ibuffer-project-style
+                     (project-current)))
+           (prp (and 1pref entropy/emacs-enable-ibuffer-project-style))
+           (cprp (and (not pref) prj
+                      entropy/emacs-enable-ibuffer-project-style
+                      (project-root prj)))
+           (__entropy/emacs-ibuffer-current-use-project-stype-p
+            (and (or prp cprp) t))
+           (__entropy/emacs-ibuffer-current-project (and cprp prj))
+           (title
+            (if cprp (format "*Ibuffer* - project: %s" cprp)
+              (if prp "*Ibuffer* - All projects")))
+           (current-prefix-arg nil)
+           (inhibit-quit t))
+      (if (or prp cprp) (eemacs//ibuffer-project-init-wrapper 'on)
+        (eemacs//ibuffer-project-init-wrapper 'off))
       (eemacs//ibuffer-set-ibuffer-formats)
       (ibuffer
        nil title

@@ -310,6 +310,7 @@ ARGS using
          (setq entropy/emacs-message--idle-timer-for-hide-popup
                (run-with-idle-timer 0.05 t #'entropy/emacs-message-hide-popup))))))
 
+(entropy/emacs-defconst/only-allow/local __eemacs-msg-use-modeline-p__ nil)
 (defvar-local __eemacs-msg-mode-line-msg-str__ nil)
 (let (omwin ombuff omfmt oprefunc)
   (ignore omwin ombuff omfmt oprefunc)
@@ -318,7 +319,8 @@ ARGS using
 This function displays the message produced by formatting ARGS
 with FORMAT-STRING on the mode line when the current buffer is a minibuffer.
 Otherwise, it displays the message like `message' would."
-    (if (or (bound-and-true-p edebug-mode) (minibufferp))
+    (if (or (bound-and-true-p edebug-mode) (minibufferp)
+            (eq (cdr-safe __eemacs-msg-use-modeline-p__) 'force))
         (let ((inhibit-quit t))
           (with-current-buffer
               (setq ombuff
@@ -358,19 +360,19 @@ Otherwise, it displays the message like `message' would."
                         (redisplay t))
                     (remove-hook 'pre-command-hook oprefunc)))))
             (add-hook 'pre-command-hook oprefunc)
-            ;; still log message
+            ;; NOTE: still need to keep consistency with original
+            ;; `message's return value.
             (let ((inhibit-message t)) (apply #'message format-string args))
             (force-mode-line-update t)
             (redisplay t)))
       (apply #'message format-string args))))
 
-(entropy/emacs-defconst/only-allow/local __eemacs-msg-use-modeline-p__ nil)
 (advice-add
  'message
  :around
  (entropy/emacs-!cl-defun entropy/emacs-message--message-top-advice (ofunc &rest args)
-   (if __eemacs-msg-use-modeline-p__
-       (let ((__eemacs-msg-use-modeline-p__ nil))
+   (if (car-safe __eemacs-msg-use-modeline-p__)
+       (let ((__eemacs-msg-use-modeline-p__ (cons nil (cdr __eemacs-msg-use-modeline-p__))))
          (apply 'entropy/emacs-message--message-on-modeline-maybe args))
      (apply ofunc args))))
 (defmacro entropy/emacs-message-do-message-1 (message &rest args)
@@ -641,7 +643,8 @@ confusion of for what is waiting.
 If WITH-MAYBE-MODELINE-MSG is set and return non-nil, then the message
 will prefer show on the mode-line via \"CURRENT\"
 non-minibuffer-window-buffer's `mode-line-format' if suitable, such as
-when we are typing in minibuffer.
+when we are typing in minibuffer. When the value is `force' then
+always show it on mode line.
 
 Optional WITHOUT-MSG (default nil) if set and return non-nil,
 then run BODY directly like `progn'.
@@ -699,7 +702,7 @@ then run BODY directly like `progn'.
               (,progress-reporter-sym
                (entropy/emacs-when-let*-firstn 1
                    ((,message-sym)
-                    (__eemacs-msg-use-modeline-p__ ,with-maybe-modeline-msg-p-sym))
+                    (__eemacs-msg-use-modeline-p__ (cons t ,with-maybe-modeline-msg-p-sym)))
                  (prog1 (make-progress-reporter
                          (if (or noninteractive (not ,with-fit-window-width))
                              (format "%s ... " ,message-sym)
@@ -731,11 +734,11 @@ then run BODY directly like `progn'.
            ;; any messages, if not, we should respect the BODY's
            ;; behaviour.
            (when (and ,progress-reporter-sym ,new-curmsg-np-sym)
-             (let ((__eemacs-msg-use-modeline-p__ ,with-maybe-modeline-msg-p-sym))
+             (let ((__eemacs-msg-use-modeline-p__ (cons t ,with-maybe-modeline-msg-p-sym)))
                (progress-reporter-done ,progress-reporter-sym))
              (when ,with-rest-doing-msg
                (let ((message-log-max nil)
-                     (__eemacs-msg-use-modeline-p__ ,with-maybe-modeline-msg-p-sym))
+                     (__eemacs-msg-use-modeline-p__ (cons t ,with-maybe-modeline-msg-p-sym)))
                  (message "..."))))
            (when (and ,message-sym ,curmsg-sym)
              (let (
