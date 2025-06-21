@@ -94,28 +94,9 @@
     (entropy/emacs-vcs--magit-init))
 
   ;; Disabled vc.el key bindings for prevent to accidental activation
-  (progn
-    (define-key global-map (kbd "C-x v =") nil)
-    (define-key global-map (kbd "C-x v +") nil)
-    (define-key global-map (kbd "C-x v D") nil)
-    (define-key global-map (kbd "C-x v G") nil)
-    (define-key global-map (kbd "C-x v I") nil)
-    (define-key global-map (kbd "C-x v L") nil)
-    (define-key global-map (kbd "C-x v O") nil)
-    (define-key global-map (kbd "C-x v P") nil)
-    (define-key global-map (kbd "C-x v a") nil)
-    (define-key global-map (kbd "C-x v b") nil)
-    (define-key global-map (kbd "C-x v d") nil)
-    (define-key global-map (kbd "C-x v g") nil)
-    (define-key global-map (kbd "C-x v h") nil)
-    (define-key global-map (kbd "C-x v j") nil)
-    (define-key global-map (kbd "C-x v l") nil)
-    (define-key global-map (kbd "C-x v m") nil)
-    (define-key global-map (kbd "C-x v u") nil)
-    (define-key global-map (kbd "C-x v v") nil)
-    (define-key global-map (kbd "C-x v x") nil)
-    (define-key global-map (kbd "C-x v ~") nil)
-    (define-key global-map (kbd "C-x v i") nil))
+  ;; which be conflict with magit keybindings from user habits
+  ;; inertia.
+  (fset 'vc-prefix-map (make-sparse-keymap))
 
   :config
 
