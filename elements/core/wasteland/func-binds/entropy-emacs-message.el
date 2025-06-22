@@ -697,13 +697,13 @@ then run BODY directly like `progn'.
               (,msg-max-ov-sym message-log-max)
               (message-log-max
                (if ,with-tmpmsg-sym nil ,msg-max-ov-sym))
-              (,with-maybe-modeline-msg-p-sym ,with-maybe-modeline-msg)
+              (,with-maybe-modeline-msg-p-sym
+               (let ((val ,with-maybe-modeline-msg)) (cons (and val t) val)))
               (,progmsg-sym nil)
               (,progress-reporter-sym
                (entropy/emacs-when-let*-firstn 1
                    ((,message-sym)
-                    (__eemacs-msg-use-modeline-p__
-                     (cons ,with-maybe-modeline-msg-p-sym ,with-maybe-modeline-msg-p-sym)))
+                    (__eemacs-msg-use-modeline-p__ ,with-maybe-modeline-msg-p-sym))
                  (prog1 (make-progress-reporter
                          (if (or noninteractive (not ,with-fit-window-width))
                              (format "%s ... " ,message-sym)
@@ -735,13 +735,11 @@ then run BODY directly like `progn'.
            ;; any messages, if not, we should respect the BODY's
            ;; behaviour.
            (when (and ,progress-reporter-sym ,new-curmsg-np-sym)
-             (let ((__eemacs-msg-use-modeline-p__
-                    (cons ,with-maybe-modeline-msg-p-sym ,with-maybe-modeline-msg-p-sym)))
+             (let ((__eemacs-msg-use-modeline-p__ ,with-maybe-modeline-msg-p-sym))
                (progress-reporter-done ,progress-reporter-sym))
              (when ,with-rest-doing-msg
                (let ((message-log-max nil)
-                     (__eemacs-msg-use-modeline-p__
-                      (cons ,with-maybe-modeline-msg-p-sym ,with-maybe-modeline-msg-p-sym)))
+                     (__eemacs-msg-use-modeline-p__ ,with-maybe-modeline-msg-p-sym))
                  (message "..."))))
            (when (and ,message-sym ,curmsg-sym)
              (let (
