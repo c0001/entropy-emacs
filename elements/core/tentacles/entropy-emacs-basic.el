@@ -6030,7 +6030,7 @@ if did may cause some troubles since: [%s %s]."
                    (trpath
                     (and (fboundp 'entropy/emacs-treemacs-file-in-project-p)
                          (cadr (entropy/emacs-treemacs-file-in-project-p fname))))
-                   (_ (not (string=
+                   (  (not (string=
                             (directory-file-name fname)
                             (directory-file-name trpath)))))
           (when (yes-or-no-p
