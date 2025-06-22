@@ -37,7 +37,10 @@
   :commands (dockerfile-ts-mode)
   :mode
   ("\\(?:Dockerfile\\(?:\\..*\\)?\\|\\.[Dd]ockerfile\\)\\'")
-  :eemacs-if (>= emacs-major-version 29))
+  :eemacs-if (and (>= emacs-major-version 29)
+                  (and (fboundp 'treesit-available-p)
+                       (treesit-available-p))
+                  (treesit-language-available-p 'dockerfile)))
 
 ;; * provide
 (provide 'entropy-emacs-docker)
