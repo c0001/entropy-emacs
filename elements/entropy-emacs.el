@@ -1070,9 +1070,7 @@ Use =eemacs-defn-bind= of symbol of NAME for BODY when
 
 (defmacro __entropy/emacs-!cl-defmacro/wrapper (name &rest args)
   (declare (indent 1))
-  `(prog1 ',name
-     (let ((,entropy/emacs-inner-sym-for/current-defname ',name))
-       (cl-defmacro ,name ,@args))))
+  `(prog1 ',name (cl-defmacro ,name ,@args)))
 
 (defmacro entropy/emacs-!cl-defmacro (&rest args)
   "Same as `cl-defmacro' but indeed return the symbol of NAME and also
@@ -1098,8 +1096,10 @@ Use =eemacs-defn-bind= of symbol of NAME for BODY when
         `(let ((,oname ',name) (,oform (progn ,@body)))
            `(let ((,entropy/emacs-inner-sym-for/current-defname
                    (or (ignore-errors
-                         ,entropy/emacs-inner-sym-for/current-defname)
+                         (with-no-warnings
+                           ,entropy/emacs-inner-sym-for/current-defname))
                        (quote ,,oname))))
+              (ignore ,entropy/emacs-inner-sym-for/current-defname)
               ,,oform))))
     (if hform
         `(__entropy/emacs-!cl-defmacro/wrapper ,name
