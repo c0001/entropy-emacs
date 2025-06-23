@@ -1218,8 +1218,12 @@ saved by
                   (message "Not restore eyebrowse config for current daemon client (%s)"
                            log))
                 ;; handling daemon edit buffer request
-                (when-let ((buff (entropy/emacs-daemon-get-initial-buffer)))
-                  (unless (eq (current-buffer) buff) (switch-to-buffer buff)))
+                (when-let* ((buff (entropy/emacs-daemon-get-initial-buffer))
+                            ((buffer-live-p buff)))
+                  (entropy/emacs-message-simple-progress-message
+                      (format "daemon set initial buffer %s" buff)
+                    (if (not (eq (window-buffer) buff)) (switch-to-buffer buff)
+                      (message "daemon already set initial buffer %s" buff))))
                 ))))))))
 
 ;; ***** daemon injection

@@ -2497,10 +2497,19 @@ entropy-emacs.
                 ;; FIXME: why there's multi timer for same frame?
                 (assoc frame entropy/emacs-daemon--client-initialize-main-register))
       (set var-sym
-           (run-with-idle-timer
-            0.001 t
+           ;; FIXME: use `run-at-time' instead of
+           ;; `run-with-idle-timer' since its already idle state when
+           ;; run `server-after-make-frame-hook' upon emacs-29?
+           (run-at-time
+            0.001 0.5
             #'entropy/emacs-daemon--client-initialize
             frame var-sym))
+      (setq entropy/emacs-daemon--client-initialize-main-register
+            (entropy/emacs-mapcar-without-orphans
+             (lambda (x)
+               (and (frame-live-p (car x)) x))
+             entropy/emacs-daemon--client-initialize-main-register
+             nil nil))
       (push (cons frame (symbol-value var-sym))
             entropy/emacs-daemon--client-initialize-main-register))))
 
