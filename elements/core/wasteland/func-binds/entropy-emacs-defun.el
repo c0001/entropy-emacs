@@ -11739,6 +11739,18 @@ operation or nil indicate no idle exists for."
     (error "wrong type of eemacs auto-completion type '%s'"
            entropy/emacs-auto-completion-use-backend-as))))
 
+;; *** Misc.
+
+(defun entropy/emacs-maybe-redisplay ()
+  "Like `redisplay' but for eemacs maintaining only.
+
+The return is undefined."
+  (if (bound-and-true-p sys/is-built-with-pgtk-p)
+      ;; FIXME: pgtk's redisplay lags of visual feeling against with
+      ;; x11, thus this func designed to use tiny sleep to give
+      ;; wayland window system more obviously visual feedback.
+      (sleep-for 0.0000000001)))
+
 ;; ** System utils integration
 
 (entropy/emacs-!cl-defun entropy/emacs-get-file-checksum (file type &optional use-native)

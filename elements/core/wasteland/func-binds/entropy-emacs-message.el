@@ -356,21 +356,20 @@ Otherwise, it displays the message like `message' would."
                   (unwind-protect
                       (with-current-buffer ombuff
                         (setq __eemacs-msg-mode-line-msg-str__ nil)
-                        (force-mode-line-update t)
-                        (redisplay t))
+                        (force-mode-line-update t))
                     (remove-hook 'pre-command-hook oprefunc)))))
             (add-hook 'pre-command-hook oprefunc)
             ;; NOTE: still need to keep consistency with original
             ;; `message's return value.
             (let ((inhibit-message t)) (apply #'message format-string args))
-            (force-mode-line-update t)
-            (redisplay t)))
+            (force-mode-line-update t)))
       (apply #'message format-string args))))
 
 (advice-add
  'message
  :around
  (entropy/emacs-!cl-defun entropy/emacs-message--message-top-advice (ofunc &rest args)
+   (entropy/emacs-maybe-redisplay)
    (if (car-safe __eemacs-msg-use-modeline-p__)
        (let ((__eemacs-msg-use-modeline-p__ (cons nil (cdr __eemacs-msg-use-modeline-p__))))
          (apply 'entropy/emacs-message--message-on-modeline-maybe args))

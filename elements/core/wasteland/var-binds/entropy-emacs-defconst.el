@@ -189,6 +189,10 @@ environment whether support graphic display.")
 kernel based and its environment whether support graphic
 display.")
 
+(defconst sys/is-built-with-pgtk-p
+  (string-match-p "--with-pgtk" system-configuration-options)
+  "Return non-nil when current emacs is built with PGTK.")
+
 ;; ** system refers
 
 ;; ** Eemacs Error Framework
