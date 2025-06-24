@@ -118,8 +118,7 @@ it.
 
 (eval-when-compile
   ;; nox missing this var
-  (unless (boundp 'use-default-font-for-symbols)
-    (defvar use-default-font-for-symbols)))
+  (defvar use-default-font-for-symbols))
 
 (defun entropy/emacs-font-set-setfont-core (&optional frame)
   (interactive)
