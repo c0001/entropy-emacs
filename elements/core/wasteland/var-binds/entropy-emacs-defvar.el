@@ -1696,7 +1696,8 @@ indicate the false meaning."
                (throw :exit 'no-live-win))
              (when (get-buffer-process buff-buff)
                (throw :exit 'is-proc-buffer))
-             (unless (or (entropy/emacs-frame-is-fullscreen-p)
+             (unless (or (entropy/emacs-frame-is-large-p)
+                         (entropy/emacs-frame-is-fullscreen-p)
                          (entropy/emacs-frame-is-maximized-p))
                (when (and (not noninteractive) (not (display-graphic-p)))
                  ;; forcely disable auto window center mode in cli
