@@ -1554,7 +1554,8 @@ externally add below features:
 
 ;; *** window center mode
 
-(defvar entropy/emacs-window-force-inhibit-auto-center nil
+(entropy/emacs-defvar-local-with-pml
+  entropy/emacs-window-force-inhibit-auto-center nil
   "Force inhibit `entropy/emacs-window-center-mode' auto mode even
 if `entropy/emacs-window-center-auto-mode-enable-p' is non-nil.")
 
