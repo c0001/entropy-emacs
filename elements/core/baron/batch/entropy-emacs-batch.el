@@ -138,6 +138,21 @@ Make targets:
   and running performance. Use 'compile-clean' to clean the
   bytecompile files.
 
+  Within compilation, each package specified dynamic module is built
+  at mean time, currenty follow ones are known be did:
+
+  1) *emacs-vterm*: it relies on the dynamic module =vterm-module=
+     which requires =libvterm= as its dependency, which need be git
+     cloned at built time on first compilation, or may need to
+     re-clone at next compilation time according to make procedure
+     which may remove the old cloned repo according to file modtime
+     which is its main build mechanism.
+
+     Thus for no need to clone the =libvterm= project at each
+     compilation time, we recommend to install =libvterm= as a system
+     library on your host system, where *emacs-vterm* preferred to use
+     it as deps.
+
 - 'liberime' option compile 'liberime' emacs-module based on your
   system, note that you should have 'librime' and its develop headers
   installed on your system e.g. in debian `apt install librime-dev'.
@@ -784,7 +799,7 @@ faild with hash '%s' which must match '%s'"
                nil
                `(,(when (entropy/emacs-vterm-support-p)
                     `(vterm
-                      (("mkdir" "-p" "build")
+                      (("sh" "-c" "if [ ! -d build ];then  mkdir -p build; fi")
                        (:default-directory
                         "build"
                         :command
