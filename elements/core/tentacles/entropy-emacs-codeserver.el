@@ -1206,7 +1206,11 @@ predicate when run it, see
         lsp-ui-sideline-enable nil
         lsp-ui-sideline-delay entropy/emacs-ide-doc-delay
         lsp-ui-sideline-diagnostic-max-line-length 50
-        lsp-ui-sideline-diagnostic-max-lines 1)
+        lsp-ui-sideline-diagnostic-max-lines 1
+        ;; FIXME: truncate peek uri shown path since the
+        ;; `lsp-ui--workspace-path' not always return the relative
+        ;; path.
+        lsp-ui-peek-show-directory nil)
 
 ;; ******* config
   :config
@@ -1244,6 +1248,24 @@ EEMACS_BUG: h-c02794e4-bdb8-4510-84cb-d668873b02fc
   (advice-add 'lsp-ui-doc-frame-mode
               :around
               #'entropy/emacs-codeserver--lsp-ui-doc-frame-mode-disable-mouse)
+
+  ;; EEMACS_MAINTENANCE: follow upstream updates
+  (defun eemacs//lsp-ui-peek--truncate (len s)
+    ;; FIXME: although we can no found logical bug of original def,
+    ;; but the string width displayed indeed be overeflow of trimmed
+    ;; `lsp-ui-peek-list-width' widnow-width, thus we put a
+    ;; temporarily preserved padding width to avoid this.
+    (let ((top-trim-len 5))
+      (and (> len top-trim-len) (setq len (- len top-trim-len)))
+      (let* ((sw (string-width s)) (es "..") (elen (string-width es))
+             (tlen (- len elen)))
+        (if (> sw len)
+            (if (> tlen 0)
+                (concat (truncate-string-to-width s tlen) es)
+              (concat (truncate-string-to-width s (1- len)) "^"))
+          s))))
+  (advice-add 'lsp-ui-peek--truncate
+              :override #'eemacs//lsp-ui-peek--truncate)
 
 ;; ******** Doc timer
   (defvar-local entropy/emacs-codeserver--lsp-ui-doc--bounds nil)
@@ -1434,7 +1456,9 @@ NOTE: related to the display char height?"
               ;; use lsp native references finding mechanism which
               ;; use `completing-read' framwork which has more rich
               ;; search functioal.
-              (lambda nil (interactive)
+              (entropy/emacs-!cl-defun
+                  eemacs//lsp-ui-peek-use-lsp-find-reference nil
+                (interactive)
                 (lsp-ui-peek--disable)
                 (call-interactively #'lsp-find-references)))
   )
