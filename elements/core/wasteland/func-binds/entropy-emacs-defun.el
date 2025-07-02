@@ -12120,14 +12120,15 @@ save the excursion."
 (defun entropy/emacs-sync-var-dynamic-value--regist
     (avar bvar guard-func)
   (let* ((rp (assoc bvar entropy/emacs-sync-var-dynamic-value--cache))
-         (val (and
-               rp
-               (alist-get bvar entropy/emacs-sync-var-dynamic-value--cache)))
-         (arp (and val (assoc avar val))))
+         (val (cdr-safe rp))
+         (arp (and val (assoc avar val)))
+         (item (cons avar guard-func)))
     (if arp (progn
               (remove-variable-watcher bvar (cdr arp))
               (setf (cdr arp) guard-func))
-      (if rp (setf (cdr rp) (list (cons avar guard-func)))
+      (if rp (setf (cdr rp)
+                   (if (cdr rp) (append (cdr rp) (list item))
+                     (list item)))
         (push (cons bvar (list (cons avar guard-func)))
               entropy/emacs-sync-var-dynamic-value--cache)))
     (when (functionp guard-func)

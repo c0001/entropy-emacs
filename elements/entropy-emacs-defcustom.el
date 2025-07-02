@@ -2220,7 +2220,7 @@ When set to an empty string, this attribute is omitted.  Defaults to
   :type 'string
   :group 'entropy/emacs-customize-group-for-markdown-mode)
 
-(defcustom entropy/emacs-markdown-exp-header-content
+(defun entropy/emacs-markdown-exp-header-content/set nil
   (format
    "
   <meta name='viewport' content='width=device-width, initial-scale=1, shrink-to-fit=no'>
@@ -2276,7 +2276,10 @@ When set to an empty string, this attribute is omitted.  Defaults to
    (entropy/emacs-def-eemacs-network-cdn-servlet/get-local-uri-path
     eemacs-decorations "highlight-js/highlight.js")
    (entropy/emacs-def-eemacs-network-cdn-servlet/get-local-uri-path
-    eemacs-decorations "mermaid-js/mermaid.js"))
+    eemacs-decorations "mermaid-js/mermaid.js")))
+
+(defcustom entropy/emacs-markdown-exp-header-content
+  (entropy/emacs-markdown-exp-header-content/set)
   "Additional content to include in the XHTML <head> block."
   :type 'string
   :group 'entropy/emacs-customize-group-for-markdown-mode)

@@ -270,7 +270,6 @@ configuration.")
       ;; the pdumper session procedure
       (run-hooks 'entropy/emacs-pdumper-load-hook)
       ;; trail dealing
-      (setq entropy/emacs-fall-love-with-pdumper nil)
       (entropy/emacs-message-do-message (green "Initialized pdumper session"))
       (when entropy/emacs-pdumper--rec-timer
         (cancel-timer entropy/emacs-pdumper--rec-timer)
@@ -283,7 +282,10 @@ configuration.")
       ;; finally run start-end hook
       (setq entropy/emacs-pdumper--recovery-ending t)
       (entropy/emacs-run-startup-end-hook)
-      (setq entropy/emacs-pdumper--recovery-ending nil))))
+      (setq entropy/emacs-pdumper--recovery-ending nil
+            ;; NOTE: put this at the tail of pdumper recover since its
+            ;; value affects `entropy/emacs-message-do-message'.
+            entropy/emacs-fall-love-with-pdumper nil))))
 
 ;; ** load-files
 (defun entropy/emacs-pdumper--load-files-core (top-dir files)

@@ -117,12 +117,13 @@ package management!"))
   ;; seting export html styl-sheet
   (setq markdown-command-needs-filename t)
   (setq markdown-content-type entropy/emacs-markdown-exp-header-context-type)
-  (setq markdown-css-paths
-        entropy/emacs-markdown-exp-css-paths)
-  (setq markdown-xhtml-header-content
-        entropy/emacs-markdown-exp-header-content)
-  (setq markdown-xhtml-body-epilogue
-        entropy/emacs-markdown-exp-body-epilogue)
+  (entropy/emacs-sync-setq
+   markdown-css-paths
+   'entropy/emacs-markdown-exp-css-paths
+   markdown-xhtml-header-content
+   'entropy/emacs-markdown-exp-header-content
+   markdown-xhtml-body-epilogue
+   'entropy/emacs-markdown-exp-body-epilogue)
 
   (setq markdown-live-preview-delete-export 'delete-on-export)
 

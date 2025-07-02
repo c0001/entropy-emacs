@@ -1597,7 +1597,14 @@ it has one of thus, otherwise same as `process-buffer'."
        "can not select a net port in current system"))
     (unwind-protect
         (progn
-          (while (not (ignore-errors (setq proc (make-network-process :name " *eemacs-test*" :service port :server t))))
+          (while (not
+                  (and
+                   (ignore-errors
+                     (setq proc
+                           (make-network-process
+                            :name " *eemacs-test*" :service port :server t)))
+                   (processp proc) (process-live-p proc)))
+            (and (processp proc) (delete-process proc))
             (cl-incf port))
           (setq port (plist-get (process-contact proc t t) :service))
           (if (numberp port) port
@@ -1630,25 +1637,41 @@ it has one of thus, otherwise same as `process-buffer'."
        (url-varname  (intern (entropy/emacs--def-eemacs-network-cdn-servlet/set-base-name name :local_host_url-var-name)))
        (dispatch-func-name (intern (entropy/emacs--def-eemacs-network-cdn-servlet/set-base-name name :dispatch-func-name)))
        (finished-func-name (intern (entropy/emacs--def-eemacs-network-cdn-servlet/set-base-name name :finished-func-name))))
-    `(progn
+    `(let* (promise-proc
+            (tmp-port-bind-func
+             (lambda nil
+               ;; FIXME: we occupy the port temporarily for after-init body
+               ;; run, is there a more stable way to approach such case?
+               (setq promise-proc
+                     (make-network-process
+                      :name (format " *promise <%s>*" ,base-name)
+                      :service ,port-varname
+                      :server t)))))
        (defconst ,port-varname
          (entropy/emacs-get-available-sys-network-port ,base-port))
        (defconst ,url-varname
          (format "http://localhost:%s/" ,port-varname))
+       (when entropy/emacs-fall-love-with-pdumper
+         (add-hook 'entropy/emacs-pdumper-load-hook
+                   (lambda nil
+                     (setq ,port-varname
+                           (entropy/emacs-get-available-sys-network-port ,base-port))
+                     (setq ,url-varname
+                           (format "http://localhost:%s/" ,port-varname))
+                     (funcall tmp-port-bind-func))))
        (when-let
-           (((or (not noninteractive) (daemonp)))
-            (promise-proc
-             ;; FIXME: we occupy the port temporarily for after-init body
-             ;; run, is there a more stable way to approach such case?
-             (make-network-process
-              :name (format " *promise <%s>*" ,base-name)
-              :service ,port-varname
-              :server t)))
+           (((or (not noninteractive)
+                 entropy/emacs-fall-love-with-pdumper
+                 (daemonp))))
+         (unless entropy/emacs-fall-love-with-pdumper
+           (funcall tmp-port-bind-func))
          (add-hook
           'entropy/emacs-after-startup-hook
           (entropy/emacs-!cl-defun ,dispatch-func-name nil
             ;; free the port we've allocated firstly
-            (delete-process promise-proc)
+            (and (and (processp promise-proc)
+                      (process-live-p promise-proc))
+                 (delete-process promise-proc))
             (let ((pkgdir   package-user-dir)
                   (pkgdlist package-directory-list)
                   (pkgarchives package-archives)

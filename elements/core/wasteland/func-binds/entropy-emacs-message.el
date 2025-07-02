@@ -523,8 +523,10 @@ without respect `entropy/emacs-message-non-popup'.
                   (and (not (bound-and-true-p entropy/emacs-startup-done))
                        entropy/emacs-startup-with-Debug-p)
                   ;; allow popup when non-lazy interative init session
-                  (and (null noninteractive)
-                       (not (entropy/emacs-custom-enable-lazy-load/val))
+                  (and (not (entropy/emacs-custom-enable-lazy-load/val))
+                       ;; but not a pdumper session since pdumper
+                       ;; session always non lazy load.
+                       (not entropy/emacs-fall-love-with-pdumper)
                        (not (bound-and-true-p entropy/emacs-startup-done)))
                   ;; allow popup when key :popup-while-eemacs-init-with-interactive is set
                   ;; while eemacs init time
