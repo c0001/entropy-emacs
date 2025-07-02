@@ -109,7 +109,11 @@
       :toggle (eq (treemacs-current-visibility) 'visible))
      ("C-S-e" treemacs
       "Initialise or toggle treemacs. (graphic benefit key-binding)"
-      :enable (or (daemonp) (display-graphic-p)) :global-bind t :exit t
+      :enable (or (daemonp)
+                  (and entropy/emacs-fall-love-with-pdumper
+                       entropy/emacs-do-pdumper-in-X)
+                  (display-graphic-p))
+      :global-bind t :exit t
       :toggle (eq (treemacs-current-visibility) 'visible))
      ("C-<f8>" treemacs-add-project-to-workspace
       "Add a project at given PATH to the current treemacs workspace"
