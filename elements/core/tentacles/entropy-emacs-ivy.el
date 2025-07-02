@@ -2126,7 +2126,7 @@ since `font-family-list' always return nil in TUI session."
   :commands
   (avy-goto-line avy-goto-char)
   :eemacs-indhc
-  (((:enable t :defer (:data (:adfors (counsel-mode-hook window-configuration-change-hook) :adtype hook :pdumper-no-end t)))
+  (((:enable t :defer (:data (:adfors (entropy/emacs-after-startup-idle-hook) :adtype hook :pdumper-no-end t)))
     (avy))
    ("Avy Core Actions"
     (("M-g l" avy-goto-line "Jump to a line start in current buffer"
