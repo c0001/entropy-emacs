@@ -1236,7 +1236,8 @@ initialize the default non-lazy configs.
             (run-hooks 'entropy/emacs-after-startup-hook)
             (setq entropy/emacs-after-startup-done t)
             (if (or entropy/emacs-fall-love-with-pdumper (daemonp))
-                (run-hooks 'entropy/emacs-after-startup-idle-hook)
+                (progn (run-hooks 'entropy/emacs-after-startup-idle-hook)
+                       (setq entropy/emacs-after-startup-idle-done t))
               (let ((initendmsgfunc
                      (lambda nil
                        (entropy/emacs-dynamic-let*

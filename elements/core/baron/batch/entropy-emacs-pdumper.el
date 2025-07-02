@@ -239,18 +239,18 @@ configuration.")
 (defvar bookmark-watch-bookmark-file)
 
 (defvar entropy/emacs-pdumper--recovery-ending nil)
+(defvar entropy/emacs-pdumper--doing-recover-p nil)
 (defun entropy/emacs-pdumper--recovery ()
-  (setq entropy/emacs-run-startup-pdumper-hooks-init-timestamp
-        (current-time))
   (let (
         ;; silent bookmark reload prompt prevent session load fatal.
         (bookmark-watch-bookmark-file 'silent))
     (unless (entropy/emacs-in-pdumper-procedure-p)
-
       ;; reset main frame indicator to current session follow eemacs
       ;; internal api.
       (setq entropy/emacs-main-frame (selected-frame))
-
+      (setq entropy/emacs-run-startup-pdumper-hooks-init-timestamp
+            (current-time)
+            entropy/emacs-pdumper--doing-recover-p t)
       ;; FIXME: restore the saved `load-path' sicne pdumper session
       ;; will lost the `load-path' within the dump procedure
       (entropy/emacs-pdumper--recover-load-path)
@@ -285,7 +285,8 @@ configuration.")
       (setq entropy/emacs-pdumper--recovery-ending nil
             ;; NOTE: put this at the tail of pdumper recover since its
             ;; value affects `entropy/emacs-message-do-message'.
-            entropy/emacs-fall-love-with-pdumper nil))))
+            entropy/emacs-fall-love-with-pdumper nil
+            entropy/emacs-pdumper--doing-recover-p nil))))
 
 ;; ** load-files
 (defun entropy/emacs-pdumper--load-files-core (top-dir files)

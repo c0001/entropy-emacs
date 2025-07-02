@@ -215,8 +215,6 @@ usage for eemacs defined env variable only.")
 
 ;; **** Others
 
-(defvar __entropy/emacs-is-make-session-check-done nil)
-(defvar __entropy/emacs-is-make-session-value-cache nil)
 (defun entropy/emacs-is-make-session ()
   "Obtained the 'EEMACS_MAKE' env variable value if valid
 otherwise return nil.
@@ -230,14 +228,8 @@ NOTE: you should always use this function to get thus variable
 value where there's no published for any of the internal entropy
 emacs specified environment variable references APIs, this is the
 only one for thus."
-  (if __entropy/emacs-is-make-session-check-done
-      __entropy/emacs-is-make-session-value-cache
     (let ((env-p (entropy/emacs-getenv-eemacs-env "EEMACS_MAKE")))
-      (setq __entropy/emacs-is-make-session-value-cache
-            env-p
-            __entropy/emacs-is-make-session-check-done
-            t)
-      __entropy/emacs-is-make-session-value-cache)))
+      env-p))
 
 (defmacro entropy/emacs-custom-enable-lazy-load/val nil
   "The inner usage of `entropy/emacs-custom-enable-lazy-load' while
@@ -262,29 +254,27 @@ eemacs loading mechanism logical messy will occurred."
      popup-while-eemacs-init-with-interactive
      &allow-other-keys)
   `(and
+    (not noninteractive)
+    ;; -- not in debug mode
+    (not (bound-and-true-p entropy/emacs-startup-with-Debug-p))
+    ;; -- not in make session
+    (not (entropy/emacs-is-make-session))
     ;; not in eemacs pure env session
     (not (entropy/emacs-env-init-with-pure-eemacs-env-p))
     ;; only used in eemacs startup time
     (not (bound-and-true-p entropy/emacs-after-startup-idle-done))
     ;; -- not when key :force-message-while-eemacs-init is set while eemacs init
     (not ,force-message-while-eemacs-init)
-    ;; BUT:
-    ;; -- not in debug mode
-    (not (bound-and-true-p entropy/emacs-startup-with-Debug-p))
+    ;; -- not when key :popup-while-eemacs-init-with-interactive is set while eemacs init
+    (if (not ,popup-while-eemacs-init-with-interactive) t
+      (bound-and-true-p entropy/emacs-after-startup-idle-done))
     ;; -- not when non-lazy-mode enabled in interactive session
     ;;    since we should see the long terms of init.
-    (not
-     (and (null noninteractive)
-          (not (entropy/emacs-custom-enable-lazy-load/val))))
+    (or entropy/emacs-fall-love-with-pdumper
+        (entropy/emacs-custom-enable-lazy-load/val))
     ;; -- not in daemon init type
-    (not
-     (and (not (bound-and-true-p entropy/emacs-daemon-server-init-done))
-          (daemonp)))
-    ;; -- not in make session
-    (not (entropy/emacs-is-make-session))
-    ;; -- not when key :popup-while-eemacs-init-with-interactive is set while eemacs init
-    (not (and (not (bound-and-true-p entropy/emacs-after-startup-idle-done))
-              ,popup-while-eemacs-init-with-interactive))
+    (if (not (daemonp)) t
+      (not (bound-and-true-p entropy/emacs-daemon-server-init-done)))
     ))
 
 (defmacro entropy/emacs--run-maybe-without-msg-verbose (&rest body)

@@ -356,13 +356,15 @@ Otherwise, it displays the message like `message' would."
                   (unwind-protect
                       (with-current-buffer ombuff
                         (setq __eemacs-msg-mode-line-msg-str__ nil)
-                        (force-mode-line-update t))
+                        (force-mode-line-update t)
+                        (redisplay))
                     (remove-hook 'pre-command-hook oprefunc)))))
             (add-hook 'pre-command-hook oprefunc)
             ;; NOTE: still need to keep consistency with original
             ;; `message's return value.
             (let ((inhibit-message t)) (apply #'message format-string args))
-            (force-mode-line-update t)))
+            (force-mode-line-update t)
+            (redisplay)))
       (apply #'message format-string args))))
 
 (advice-add
@@ -414,7 +416,7 @@ applied."
 (defmacro entropy/emacs--message-do-message-before-eemacs-init (msg &rest args)
   (macroexp-let2* ignore
       ((msg-sym nil) (str-sym nil) (ostr-sym nil)
-       (mwin-sym '(minibuffer-window entropy/emacs-main-frame)))
+       (mwin-sym '(minibuffer-window)))
     `(entropy/emacs-when-let*-firstn 2
          ((,msg-sym
            (entropy/emacs-message--do-message-ansi-apply

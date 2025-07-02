@@ -747,6 +747,10 @@ Does not distinguish between functions implemented in machine code
 or byte-code."
     (or (subrp object) (byte-code-function-p object))))
 
+(defun entropy/emacs-use-frame-maybe (frame)
+  "Return FRAME if it's valid and lived or `selected-frame'."
+  (if (and (framep frame) (frame-live-p frame)) frame
+    (selected-frame)))
 (defun entropy/emacs-child-frame-p (&optional frame)
   "Return FRAME's parent frame if it is a child-frame (See Info node
 `(elisp) Child Frames' for what is child-frame), nil if it is not
