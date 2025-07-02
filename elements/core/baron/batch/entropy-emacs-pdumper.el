@@ -266,7 +266,7 @@ configuration.")
       (entropy/emacs-themes-init-setup-user-theme)
       (entropy/emacs-pdumper--recover-font-lock)
 
-      (message "****** Run intial hooks *****")
+      (entropy/emacs-message-do-message "****** Run pdumper recovery hooks *****")
       ;; the pdumper session procedure
       (run-hooks 'entropy/emacs-pdumper-load-hook)
       ;; trail dealing
