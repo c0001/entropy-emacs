@@ -241,7 +241,7 @@ configuration.")
 (defvar entropy/emacs-pdumper--recovery-ending nil)
 (defvar entropy/emacs-pdumper--doing-recover-p nil)
 (defun entropy/emacs-pdumper--recovery ()
-  (let (
+  (let ((inhibit-quit t)
         ;; silent bookmark reload prompt prevent session load fatal.
         (bookmark-watch-bookmark-file 'silent))
     (unless (entropy/emacs-in-pdumper-procedure-p)
