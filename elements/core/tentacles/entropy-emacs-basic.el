@@ -3237,7 +3237,16 @@ since all images' thumbs had already generated of dir: %s"
                               dir))))
                 (throw :break nil))
               (image-dired-thumb-queue-run)
-              (entropy/emacs-sleep-while image-dired-queue)
+              (entropy/emacs-sleep-while
+               (or image-dired-queue
+                   ;; although the image proc queue var is empty but
+                   ;; remaining proc may still not finished since the
+                   ;; var is set before the proc ran.
+                   (let ((pcl (process-list)))
+                     (catch :exit
+                       (dolist (el pcl)
+                         (when (string-match-p "^image-dired" (process-name el))
+                           (throw :exit t)))) nil)))
               (entropy/emacs-setf-by-body cbk
                 (cons
                  (or ccht t)
