@@ -1775,13 +1775,18 @@ returned by `entropy/emacs-ide-get-lang-mode-info-plist-attr'."
 (defun entropy/emacs-get-ide-prefer-use-treesit-symbol (for-major-mode)
   (and (memq for-major-mode entropy/emacs-ide-for-them/classic)
        (intern (format "entropy/emacs-%s-prefer-use-treesit-p" for-major-mode))))
-(defun entropy/emacs-ide-prefer-use-treesit-p (for-major-mode)
+(defun entropy/emacs-ide-prefer-use-treesit-p (for-major-mode &optional buffer)
   (unless entropy/emacs-ide-suppressed
     (when-let ((sym (entropy/emacs-get-ide-prefer-use-treesit-symbol
                      for-major-mode))
                ((and (boundp sym)
-                     (eq (symbol-value sym) 'treesit))))
+                     (eq (symbol-value sym) 'treesit)))
+               (local-mmd
+                (with-current-buffer (or buffer (current-buffer))
+                  (or (hack-local-variables t) t))))
       (cond
+       ;; NOTE: honor user local mode spec firstly
+       ((not (eq local-mmd t)) nil)
        ((and (version< emacs-version "29.1") (eq for-major-mode 'java-mode))
         (set sym 'traditional)
         (entropy/emacs-run-body-only-once

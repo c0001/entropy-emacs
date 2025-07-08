@@ -3073,7 +3073,7 @@ any of them return non-nil.")
           ;; main
           (if (or
                (not tsm-nm)
-               (not (entropy/emacs-ide-prefer-use-treesit-p prog-mode-name))
+               (not (entropy/emacs-ide-prefer-use-treesit-p prog-mode-name curbuff))
                ;; NOTE: prevent nested invocation from `tsm-nm'
                ;; function like what `bash-ts-mode' did which has
                ;; an advice for fallbacking to `sh-mode' for some
@@ -3116,6 +3116,8 @@ any of them return non-nil.")
       (format "The eemacs treesit variant `major-mode' \
 for the traditional `major-mode': `%s'."
               prog-mode-name))
+    (entropy/emacs-setf-by-body entropy/emacs--treesit-mode-map-alist
+      (assq-delete-all prog-mode-name entropy/emacs--treesit-mode-map-alist))
     (add-to-list 'entropy/emacs--treesit-mode-map-alist
                  (cons prog-mode-name adv-func-name))
     ;; ensure return the adv funcname
