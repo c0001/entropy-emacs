@@ -3239,6 +3239,7 @@ since all images' thumbs had already generated of dir: %s"
               (image-dired-thumb-queue-run)
               (entropy/emacs-sleep-while
                (or image-dired-queue
+                   (not (= 0 image-dired-queue-active-jobs))
                    ;; although the image proc queue var is empty but
                    ;; remaining proc may still not finished since the
                    ;; var is set before the proc ran.
