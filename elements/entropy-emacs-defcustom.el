@@ -3479,7 +3479,7 @@ pinentry passphrase prompt."
            (insert-file-contents conf)
            (goto-char (point-min))
            (and
-            (re-search-forward "^pinentry-program \\(.*pinentry-emacs\\)$")
+            (re-search-forward "^pinentry-program \\(.*pinentry-emacs\\)$" nil t)
             (file-exists-p (match-string 1)))))))
 
 (defun pinentry-emacs-gpg-agent-conf-patch-func (&rest _)

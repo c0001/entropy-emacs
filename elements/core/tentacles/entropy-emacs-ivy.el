@@ -2651,10 +2651,10 @@ currnt fontset."
   :if (string= entropy/emacs-search-program "rg")
   :commands
   (rg rg-project)
-  :init
-  ;; use convenient perl regexp pattern
-  (setq rg-command-line-flags (list "--pcre2"))
   :config
+  ;; use convenient perl regexp pattern when support
+  (when (zerop (call-process-shell-command "echo hello | rg --pcre2 hello"))
+    (setq rg-command-line-flags (list "--pcre2")))
   (dolist (func '(rg rg-project))
     (advice-add func
                 :around
