@@ -10955,21 +10955,25 @@ for otherwise."
       'maximized))
 
 (defun entropy/emacs-frame-is-large-p (&optional frame just)
-  "Judge whether FRAME is human visualized as \"large\". Return t for yes,
-nil otherwise. Always return nil when FRAME is not a graphic frame.
+  "Judge whether FRAME is human visualized as \"large\". Return non-nil for
+yes, nil otherwise.
 
-If JUST specified, when it's `width' then just judge the
-`frame-pixel-width', or `height' for `frame-pixel-height'."
-  (let ((frame (or frame (selected-frame)))
-        fw fh)
-    (when (display-graphic-p frame)
-      (setq fw (frame-pixel-width frame)
-            fh (frame-pixel-height frame))
-      (cl-case just
-        (height (>= fh 900))
-        (width  (>= fw 1600))
-        (t (and (entropy/emacs-frame-is-large-p frame 'height)
-                (entropy/emacs-frame-is-large-p frame 'width)))))))
+If JUST specified, when it's `width' then just judge the frame width
+refer, or `height' for frame height refer."
+  (let ((frame  (or frame (selected-frame)))
+        (fwfunc (lambda nil
+                  (if (display-graphic-p)
+                      (>= (frame-pixel-width frame) 1600)
+                    (>= (frame-width frame) 90))))
+        (fhfunc (lambda nil
+                  (if (display-graphic-p)
+                      (>= (frame-pixel-height frame) 900)
+                    (>= (frame-width frame) 26)))))
+    (cl-case just
+      (height (and (funcall fhfunc) t))
+      (width  (and (funcall fwfunc) t))
+      (t (and (entropy/emacs-frame-is-large-p frame 'height)
+              (entropy/emacs-frame-is-large-p frame 'width))))))
 
 ;; *** Window manipulation
 ;; **** Basic
