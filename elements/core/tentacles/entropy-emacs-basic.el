@@ -2474,6 +2474,7 @@ window point not shown in nice place e.g. at window bottom."
 ;; **** union framework
 
 (use-package image
+  :ensure nil
   :config
   (when entropy/emacs-imagemagick-feature-p
     (add-to-list 'imagemagick-enabled-types
