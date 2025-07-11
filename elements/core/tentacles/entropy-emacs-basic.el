@@ -2473,13 +2473,20 @@ window point not shown in nice place e.g. at window bottom."
 
 ;; **** union framework
 
+(use-package image
+  :config
+  (when entropy/emacs-imagemagick-feature-p
+    (add-to-list 'imagemagick-enabled-types
+                 'AVIF)))
+
 (use-package image-file
   :ensure nil
   :commands (image-file-name-regexp
              auto-image-file-mode)
   :config
   ;; Support webp file
-  (add-to-list 'image-file-name-extensions "webp"))
+  (add-to-list 'image-file-name-extensions "webp")
+  (add-to-list 'image-file-name-extensions "avif"))
 
 (defun entropy/emacs-image-mode-external-view-union (image-file)
   "Use `entropy/open-with-port' to open IMAGE-FILE in external app.
