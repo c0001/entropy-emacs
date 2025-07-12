@@ -1064,6 +1064,24 @@ upon emacs 28.2 due to emacs new minibuffer resize mechanism while
 
     (advice-add 'ivy--insert-prompt :override '__ya/ivy--insert-prompt))
 
+;; **** user experience patches
+
+  (defun eemacs//ivy--switch-buffer-matcher/with-progress-msg
+      (ofunc &rest oargs)
+    "Use progress msg to prompt user that current `ivy-switch-buffer' is
+filtering buffers.
+
+This advice exists since `ivy--switch-buffer-matcher' will take long
+time to wait sys disk I/O while deep sleep hardisk is hosted on current
+system, for scanning the `default-directory' of each buffer. Or with
+large of buffers opened session, the filter is significantly slow."
+    (entropy/emacs-message-simple-progress-message "ivy filter buffers"
+      :with-maybe-modeline-msg 'force
+      (apply ofunc oargs)))
+  (advice-add 'ivy--switch-buffer-matcher
+              :around
+              #'eemacs//ivy--switch-buffer-matcher/with-progress-msg)
+
 ;; **** __end___
   )
 
