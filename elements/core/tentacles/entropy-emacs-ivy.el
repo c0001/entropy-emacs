@@ -1077,6 +1077,8 @@ system, for scanning the `default-directory' of each buffer. Or with
 large of buffers opened session, the filter is significantly slow."
     (entropy/emacs-message-simple-progress-message "ivy filter buffers"
       :with-maybe-modeline-msg 'force
+      ;; no msg while typing in minibuffer window while ivy-read
+      :without-msg (minibuffer-window-active-p (selected-window))
       (apply ofunc oargs)))
   (advice-add 'ivy--switch-buffer-matcher
               :around
