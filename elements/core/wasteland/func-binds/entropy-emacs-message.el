@@ -737,7 +737,9 @@ then run BODY directly like `progn'.
            ;; NOTE: we just update the reporter when body doesn't yield
            ;; any messages, if not, we should respect the BODY's
            ;; behaviour.
-           (when (and ,progress-reporter-sym ,new-curmsg-np-sym)
+           (when (and ,progress-reporter-sym
+                      (or ,new-curmsg-np-sym
+                          ,with-maybe-modeline-msg-p-sym))
              (let ((__eemacs-msg-use-modeline-p__ ,with-maybe-modeline-msg-p-sym))
                (progress-reporter-done ,progress-reporter-sym))
              (when ,with-rest-doing-msg
