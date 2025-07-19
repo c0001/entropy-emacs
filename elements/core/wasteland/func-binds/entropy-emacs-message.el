@@ -739,7 +739,7 @@ then run BODY directly like `progn'.
            ;; behaviour.
            (when (and ,progress-reporter-sym
                       (or ,new-curmsg-np-sym
-                          ,with-maybe-modeline-msg-p-sym))
+                          (car-safe ,with-maybe-modeline-msg-p-sym)))
              (let ((__eemacs-msg-use-modeline-p__ ,with-maybe-modeline-msg-p-sym))
                (progress-reporter-done ,progress-reporter-sym))
              (when ,with-rest-doing-msg
