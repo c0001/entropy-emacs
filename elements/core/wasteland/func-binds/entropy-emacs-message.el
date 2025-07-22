@@ -362,9 +362,9 @@ Otherwise, it displays the message like `message' would."
             (add-hook 'pre-command-hook oprefunc)
             ;; NOTE: still need to keep consistency with original
             ;; `message's return value.
-            (let ((inhibit-message t)) (apply #'message format-string args))
-            (force-mode-line-update t)
-            (redisplay)))
+            (prog1 (let ((inhibit-message t)) (apply #'message format-string args))
+              (force-mode-line-update t)
+              (redisplay))))
       (apply #'message format-string args))))
 
 (advice-add
