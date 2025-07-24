@@ -1350,6 +1350,39 @@ portion."
 (advice-add 'indent-for-tab-command
             :around #'eemacs//structure--indent-for-tab-command/show-region-all)
 
+(defun eemacs//structure--indent-for-tab-command/persist-outline-header
+    (ofunc &rest oargs)
+  "Advice for preventing outline-header being indented."
+  (let* ((oreg (and (bound-and-true-p outline-regexp)
+                    (if (string-match-p "^\\^" outline-regexp) outline-regexp
+                      (concat "^" outline-regexp))))
+         (reg-mks
+          (when oreg
+            (if (region-active-p)
+                (save-excursion
+                  (cons
+                   (set-marker (make-marker) (region-beginning))
+                   (set-marker (make-marker) (region-end))))
+              (cons (set-marker (make-marker) (line-beginning-position))
+                    (set-marker (make-marker) (line-end-position))))))
+         hmks)
+    (when reg-mks
+      (entropy/emacs-save-excurstion-and-mark-and-match-data
+        (goto-char (marker-position (car reg-mks)))
+        (while (re-search-forward oreg (marker-position (cdr reg-mks)) t)
+          (push (set-marker (make-marker) (line-beginning-position))
+                hmks))))
+    (prog1 (apply ofunc oargs)
+      (when (and hmks (buffer-modified-p))
+        (dolist (mk hmks)
+          (entropy/emacs-save-excurstion-and-mark-and-match-data
+            (goto-char (marker-position mk))
+            (and (or (looking-at "^\\s-+")
+                     (looking-back "^\\s-+" (line-beginning-position)))
+                 (indent-line-to 0))))))))
+(advice-add 'indent-for-tab-command
+            :around #'eemacs//structure--indent-for-tab-command/persist-outline-header)
+
 ;; ** benefit interactively functions
 ;; *** subtree parse
 (defun entropy/emacs-structure-parse-subtree-simple (cur-prefix &optional calc-depth-1?)
