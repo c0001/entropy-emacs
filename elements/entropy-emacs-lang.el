@@ -826,3 +826,6 @@ for dynamic libraries for this system, because `dynamic-library-suffixes' is nil
     :repo-url "https://github.com/tree-sitter/tree-sitter-toml"
     :modes
     (eemacs/lang/class/modes :list this/var/treesit-modes)))
+
+;; * provide
+(provide 'entropy-emacs-lang)
