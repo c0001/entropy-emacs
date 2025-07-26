@@ -509,7 +509,7 @@ which `major-mode' current is on."
           ("CSS"
            (funcall enable-func 'skewer-css-mode)
            (setq entropy/emacs-web--skewer-mode-selector-enabled-p t))
-          (t (warn
+          (_ (warn
               "No suitable skewer minor mode can be used for `%s'"
               major-mode))))))
   (dolist (f '(skewer-mode skewer-html-mode skewer-css-mode))
@@ -522,7 +522,7 @@ which `major-mode' current is on."
         ("Javascript" 'skewer-mode)
         ("HTML"       'skewer-html-mode)
         ("CSS"        'skewer-css-mode)
-        (t (user-error
+        (_ (user-error
             "No suitable skewer minor mode can be used for `%s'"
             mode)))))
 
