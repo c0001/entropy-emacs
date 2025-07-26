@@ -130,6 +130,11 @@ Make targets:
   Currently =entropy-emacs-extensions-project-build= in used version
   is =%s=. (you can review it by manually download in via [[%s]])
 
+- 'install-treesit-parsers' option will install all eemacs defined
+  treesit parser dynamic modules, where those *-ts-mode will be
+  automatically enabled while available. (NOTE: this option only worked
+  for those emacs session support treesit features)
+
 - 'install-eemacs-fonts' option download and install entropy-emacs
   suggested free copyright fonts (NOTE: auto-install in *nix system
   but WINDOWS etc. on which show the prompts for manually installing.)
