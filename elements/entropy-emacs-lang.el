@@ -449,8 +449,15 @@ for dynamic libraries for this system, because `dynamic-library-suffixes' is nil
                       (entropy/emacs-message-simple-progress-message
                           (format "Installing treesit grammer parser '%s'" ,name)
                         :with-maybe-modeline-msg 'force
-                        (treesit-install-language-grammar
-                         (intern id) libdir)))))
+                        (if (< emacs-major-version 30)
+                            ;; FIXME: emacs 29's
+                            ;; `treesit-install-language-grammar' not
+                            ;; support customized outdir spec
+                            (apply 'treesit--install-language-grammar-1
+                                   libdir
+                                   (assoc (intern id) treesit-language-source-alist))
+                          (treesit-install-language-grammar
+                           (intern id) libdir))))))
                  (when subrecs
                    (dolist (sc subrecs)
                      (funcall (oref (oref sc treesit) installer)))))))
