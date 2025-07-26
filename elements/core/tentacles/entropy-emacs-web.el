@@ -498,15 +498,15 @@ which `major-mode' current is on."
               (lambda (main-func)
                 (funcall enable-js2) (funcall main-func)
                 (run-skewer))))
-        (cl-case
-            (entropy/emacs-ide-get-lang-mode-info-plist-attr :lang)
-          (javascript
+        (pcase
+            (eemacs/lang/func/bof/lang-name (current-buffer))
+          ("JavaScript"
            (funcall enable-func 'skewer-mode)
            (setq entropy/emacs-web--skewer-mode-selector-enabled-p t))
-          (html
+          ("HTML"
            (funcall enable-func 'skewer-html-mode)
            (setq entropy/emacs-web--skewer-mode-selector-enabled-p t))
-          (css
+          ("CSS"
            (funcall enable-func 'skewer-css-mode)
            (setq entropy/emacs-web--skewer-mode-selector-enabled-p t))
           (t (warn
@@ -517,11 +517,11 @@ which `major-mode' current is on."
 
   (defun entropy/emacs-web--skewer-return-proper-mode (&optional mode)
     (let ((mode (or mode major-mode)))
-      (cl-case
-          (entropy/emacs-ide-get-lang-mode-info-plist-attr :lang)
-        (javascript 'skewer-mode)
-        (html       'skewer-html-mode)
-        (css        'skewer-css-mode)
+      (pcase
+          (eemacs/lang/func/bof/lang-name (current-buffer))
+        ("Javascript" 'skewer-mode)
+        ("HTML"       'skewer-html-mode)
+        ("CSS"        'skewer-css-mode)
         (t (user-error
             "No suitable skewer minor mode can be used for `%s'"
             mode)))))

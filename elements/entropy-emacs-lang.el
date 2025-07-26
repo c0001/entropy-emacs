@@ -4,7 +4,6 @@
 (eval-when-compile
   (require 'eieio)
   (require 'rx))
-(!eemacs-require 'entropy-emacs-message)
 
 ;; ** libs
 (cl-defmacro eemacs/lang/macro/oset (obj &rest slots)
@@ -16,6 +15,30 @@
       (push `(oset ,obj ,key ,val) form))
     (when form
       (cons 'progn (nreverse form)))))
+
+(cl-defmacro eemacs/lang/macro/oref (obj &rest slots)
+  (declare (indent 1))
+  (macroexp-let2* ignore
+      ((oobj nil) (ooform nil) (obj obj))
+    (let (slts form sltmp)
+      (dolist (slt slots)
+        (if (not (keywordp slt))
+            (push slt slts)
+          (push (intern (substring (symbol-name slt) 1)) slts)))
+      (and slts (setq slts (nreverse slts)))
+      (while slts
+        (setq sltmp (pop slts))
+        (setq form (if (not form)
+                       `(let ((,oobj (and (eieio-object-p ,obj)
+                                          (slot-boundp ,obj ',sltmp)
+                                          (oref ,obj ,sltmp))))
+                          ,oobj)
+                     `(let* ((,ooform ,form)
+                             (,oobj (and (eieio-object-p ,ooform)
+                                         (slot-boundp ,ooform ',sltmp)
+                                         (oref ,ooform ,sltmp))))
+                        ,oobj))))
+      form)))
 
 (cl-defmacro eemacs/lang/func/define-general-probe
     (&rest body &key with-this-as
@@ -106,14 +129,19 @@
 (defclass eemacs/lang/class//list-probe ()
   ((_))
   :abstract t)
-(cl-defmethod eemacs/lang/class//list-probe/method/call
-  ((obj eemacs/lang/class//list-probe) &optional buffer-or-file)
-  (let ((l  (and (slot-boundp obj 'list)
-                 (slot-value  obj 'list)))
-        (pb (and (slot-boundp obj 'probe)
-                 (slot-value  obj 'probe))))
-    (if pb (funcall pb buffer-or-file)
-      (and (consp l) (not (cdr l)) (car l)))))
+(defun eemacs/lang/class//list-probe/method/call
+    (obj &optional buffer-or-file)
+  (if (or (not (eieio-object-p obj))
+          (not (memq (eieio-object-class obj)
+                     (eieio-class-children
+                      'eemacs/lang/class//list-probe))))
+      nil
+    (let ((l  (and (slot-boundp obj 'list)
+                   (slot-value  obj 'list)))
+          (pb (and (slot-boundp obj 'probe)
+                   (slot-value  obj 'probe))))
+      (if pb (funcall pb buffer-or-file)
+        (and (consp l) (not (cdr l)) (car l))))))
 (defclass eemacs/lang/class/modes (eemacs/lang/class//list-probe)
   ((list          :initarg :list :type (or null (satisfies consp))
                   :initform nil)
@@ -172,16 +200,19 @@
                :initform nil)))
 
 (defvar eemacs/lang/var/recipe-alist nil)
+(defun eemacs/lang/func/get-recipe-modes (lang-recipe &optional type)
+  (if (not (eemacs/lang/class/recipe-p lang-recipe)) nil
+    (cl-case type
+      (treesit (eemacs/lang/macro/oref lang-recipe :treesit :modes :list))
+      (prog    (eemacs/lang/macro/oref lang-recipe :modes :list))
+      (all     (append (eemacs/lang/func/get-recipe-modes lang-recipe 'prog)
+                       (eemacs/lang/func/get-recipe-modes lang-recipe 'treesit)))
+      (t (eemacs/lang/func/get-recipe-modes lang-recipe 'prog)))))
 (defun eemacs/lang/func/get-recipes-modes (&optional type)
   (let (rtn mds)
     (dolist (rec eemacs/lang/var/recipe-alist)
-      (setq rec (cdr rec))
-      (let ((obj/modes (oref rec modes))
-            (obj/treesit/modes (and (eq type 'treesit) (oref rec treesit)
-                                    (oref (oref rec treesit) modes))))
-        (if (eq type 'treesit) (setq mds (oref obj/treesit/modes list))
-          (setq mds (oref obj/modes list)))
-        (and mds (setq rtn (append rtn mds)))))
+      (setq mds (eemacs/lang/func/get-recipe-modes (cdr rec) type))
+      (and  mds (setq rtn (append rtn mds))))
     rtn))
 (defun eemacs/lang/func/bof/lang-recipe (buffer-or-file)
   (let (lang-name lang-rec lang-fnm-regexp)
@@ -191,39 +222,114 @@
       (catch :exit
         (dolist (rec eemacs/lang/var/recipe-alist)
           (setq lang-name (car rec) lang-rec (cdr rec)
-                lang-fnm-regexp (oref (oref lang-rec core) fnm-regexp))
+                lang-fnm-regexp
+                (eemacs/lang/macro/oref lang-rec :core :fnm-regexp))
           (when
               (and the/var/file
+                   lang-fnm-regexp
                    (string-match-p
                     lang-fnm-regexp
                     (file-name-nondirectory the/var/file)))
             (throw :exit rec))
           (when (and the/var/buffer
                      (memq (buffer-local-value 'major-mode the/var/buffer)
-                           (oref (oref lang-rec modes) list)))
+                           (eemacs/lang/macro/oref lang-rec :modes :list)))
             (throw :exit rec)))
         nil))
      buffer-or-file)))
+(defun eemacs/lang/func/bof/lang-name (buffer-or-file)
+  (when-let ((rec (eemacs/lang/func/bof/lang-recipe buffer-or-file)))
+    (car rec)))
 (defun eemacs/lang/func/bof/modes (buffer-or-file &optional type)
   (let ((rec (eemacs/lang/func/bof/lang-recipe buffer-or-file)))
     (when rec
       (setq rec (cdr rec))
       (eemacs/lang/class//list-probe/method/call
        (cl-case type
-         (treesit (oref (oref rec treesit) modes))
-         (t (oref rec modes)))
+         (treesit (eemacs/lang/macro/oref rec :treesit :modes))
+         (t (eemacs/lang/macro/oref rec :modes)))
        buffer-or-file))))
-(defun eemacs/lang/func/prog-mode/treesit-modes (the-prog-mode &rest buffer-or-file)
-  (let (lang-name lang-rec lang-modes)
+(defun eemacs/lang/func/mode/treesit-mode-p (mode)
+  (let (lang-name lang-rec lang-ts-obj lang-ts-modes)
     (catch :exit
       (dolist (rec eemacs/lang/var/recipe-alist)
         (setq lang-name (car rec) lang-rec (cdr rec))
-        (setq lang-modes (oref (oref lang-rec modes) list))
-        (when (memq the-prog-mode lang-modes)
+        (setq lang-ts-modes
+              (eemacs/lang/macro/oref
+                  (setq lang-ts-obj
+                        (eemacs/lang/macro/oref lang-rec :treesit))
+                :modes :list))
+        (if (memq mode lang-ts-modes) (throw :exit t)))
+      nil)))
+(defun eemacs/lang/func/mode/prog-mode-p (mode)
+  (let (lang-name lang-rec lang-modes lang-ts-obj lang-ts-modes)
+    (catch :exit
+      (dolist (rec eemacs/lang/var/recipe-alist)
+        (setq lang-name (car rec) lang-rec (cdr rec))
+        (setq lang-modes (eemacs/lang/macro/oref lang-rec :modes :list))
+        (if (memq mode lang-modes) (throw :exit t))
+        (setq lang-ts-modes
+              (eemacs/lang/macro/oref
+                  (setq lang-ts-obj (eemacs/lang/macro/oref lang-rec :treesit))
+                :modes :list))
+        (if (memq mode lang-ts-modes) (throw :exit nil)))
+      ;; FIXME: fine-tune default judgement
+      (and (fboundp mode)
+           (string-match-p "-mode\\'" (symbol-name mode))))))
+(defun eemacs/lang/func/mode/prog-modes (mode &optional buffer-or-file)
+  (let (lang-name lang-rec lang-ts-obj lang-modes lang-ts-modes)
+    (catch :exit
+      (dolist (rec eemacs/lang/var/recipe-alist)
+        (setq lang-name (car rec) lang-rec (cdr rec))
+        (setq lang-modes (eemacs/lang/macro/oref lang-rec :modes :list)
+              lang-ts-modes
+              (eemacs/lang/macro/oref
+                  (setq lang-ts-obj (eemacs/lang/macro/oref lang-rec :treesit))
+                :modes :list))
+        (when (memq mode (append lang-modes lang-ts-modes))
+          (throw :exit (if buffer-or-file
+                           (eemacs/lang/class//list-probe/method/call
+                            (eemacs/lang/macro/oref lang-rec :modes) buffer-or-file)
+                         lang-modes))))
+      nil)))
+(defun eemacs/lang/func/mode/treesit-modes (mode &optional buffer-or-file)
+  (let (lang-name lang-rec lang-ts-obj lang-modes lang-ts-modes)
+    (catch :exit
+      (dolist (rec eemacs/lang/var/recipe-alist)
+        (setq lang-name (car rec) lang-rec (cdr rec))
+        (setq lang-modes (eemacs/lang/macro/oref lang-rec :modes :list)
+              lang-ts-modes
+              (eemacs/lang/macro/oref
+                  (setq lang-ts-obj (eemacs/lang/macro/oref lang-rec :treesit))
+                :modes :list))
+        (when (memq mode lang-ts-modes)
+          (throw :exit (if buffer-or-file
+                           (eemacs/lang/class//list-probe/method/call
+                            (eemacs/lang/macro/oref lang-ts-obj :modes)
+                            buffer-or-file)
+                         lang-ts-modes)))
+        (when (memq mode lang-modes)
+          (and (not lang-ts-obj) (throw :exit nil))
           (throw :exit
-                 (eemacs/lang/class//list-probe/method/call
-                  (oref (oref lang-rec treesit) modes)
-                  buffer-or-file))))
+                 (if buffer-or-file
+                     (eemacs/lang/class//list-probe/method/call
+                      (eemacs/lang/macro/oref lang-ts-obj :modes)
+                      buffer-or-file)
+                   lang-ts-modes))))
+      nil)))
+(defun eemacs/lang/func/mode/treesit-id (mode &rest buffer-or-file)
+  (let (lang-name lang-rec lang-ts-obj lang-modes lang-ts-modes)
+    (catch :exit
+      (dolist (rec eemacs/lang/var/recipe-alist)
+        (setq lang-name (car rec) lang-rec (cdr rec))
+        (setq lang-modes (eemacs/lang/macro/oref lang-rec :modes :list)
+              lang-ts-modes
+              (eemacs/lang/macro/oref
+                  (setq lang-ts-obj (eemacs/lang/macro/oref lang-rec :treesit))
+                :modes :list))
+        (when (and lang-ts-obj (memq mode (append lang-modes lang-ts-modes)))
+          (throw :exit
+                 (eemacs/lang/macro/oref lang-ts-obj :id))))
       nil)))
 (cl-defmacro eemacs/lang/macro/with-make-recipe
     (name &rest slots &key with-this-as with-modes-assoc-plist &allow-other-keys)
@@ -434,6 +540,18 @@ for dynamic libraries for this system, because `dynamic-library-suffixes' is nil
          :id "css"
          :repo-url "https://github.com/tree-sitter/tree-sitter-css"
          :modes (eemacs/lang/class/modes :list this-css/var/treesit-modes)))
+
+;; **** XML
+     (eemacs/lang/macro/with-make-recipe "XML"
+       :with-this-as this-xml
+       :with-modes-assoc-plist
+       '((:prog-modes (xml-mode nxml-mode)))
+       (eemacs/lang/macro/oset this-xml/obj/core
+         :fnm-regexp "\\.xml\\'")
+       (eemacs/lang/macro/oset this-xml/obj/modes
+         :list this-xml/var/prog-modes)
+       (eemacs/lang/macro/oset this-xml/obj/ids
+         :list "xml"))
      )))
 
 ;; *** Javascript
@@ -469,6 +587,22 @@ for dynamic libraries for this system, because `dynamic-library-suffixes' is nil
   (eemacs/lang/macro/oset this/obj/subrecipes
     :list
     (list
+;; **** JSON
+     (eemacs/lang/macro/with-make-recipe "JSON"
+       :with-this-as this-json
+       :with-modes-assoc-plist
+       '((:prog-modes (json-mode js-json-mode) :treesit-modes json-ts-mode))
+       (eemacs/lang/macro/oset this-json/obj/core
+         :fnm-regexp "\\.json\\'")
+       (eemacs/lang/macro/oset this-json/obj/modes
+         :list this-json/var/prog-modes)
+       (eemacs/lang/macro/oset this-json/obj/ids
+         :list "json")
+       (eemacs/lang/macro/oset this-json/obj/treesit
+         :id "json"
+         :repo-url "https://github.com/tree-sitter/tree-sitter-json"
+         :modes (eemacs/lang/class/modes :list this-json/var/treesit-modes)))
+
 ;; **** Typescript
      (eemacs/lang/macro/with-make-recipe "TypeScript"
        :with-this-as this-ts

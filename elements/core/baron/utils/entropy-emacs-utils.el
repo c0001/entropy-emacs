@@ -228,11 +228,13 @@
     (dolist (m entropy/emacs-ide-for-them)
       (unless (alist-get m nerd-icons-mode-icon-alist)
         (when (entropy/emacs-setf-by-body tr-fnm
-                (entropy/emacs-maybe-car
-                 (entropy/emacs-ide-get-lang-mode-info-plist-attr
-                  :traditional-mode m)))
-          (when (setq oc (alist-get tr-fnm nerd-icons-mode-icon-alist))
-            (push (cons m oc) nerd-icons-mode-icon-alist))))))
+                (and (eemacs/lang/func/mode/treesit-mode-p m)
+                     (ensure-list (eemacs/lang/func/mode/prog-modes m))))
+          (catch :exit
+            (dolist (el tr-fnm)
+              (when (setq oc (alist-get el nerd-icons-mode-icon-alist))
+                (push (cons m oc) nerd-icons-mode-icon-alist)
+                (throw :exit nil))))))))
   )
 
 ;; ** eldoc

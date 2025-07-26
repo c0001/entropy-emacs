@@ -3058,28 +3058,27 @@ any of them return non-nil.")
     (defalias adv-func-name
       (lambda (&rest args)
         (let* ((curbuff (current-buffer))
-               (lnm (entropy/emacs-ide-get-lang-mode-info-plist-attr
-                     :lang prog-mode-name))
+               (lnm (intern (eemacs/lang/func/mode/treesit-id prog-mode-name)))
                (tsm-nm
                 (or
                  ;; TODO: add support for various treesit modes support
                  (entropy/emacs-maybe-car
-                  (entropy/emacs-ide-get-lang-mode-info-plist-attr
-                   :treesit-variant-mode prog-mode-name))
+                  (eemacs/lang/func/mode/treesit-modes
+                   prog-mode-name curbuff))
                  (when entropy/emacs-startup-with-Debug-p
                    (warn "treesit variant for major-mode `%s' of lang `%s' is not find"
                          prog-mode-name lnm)
                    nil))))
           ;; main
           (if (or
-               (not tsm-nm)
+               (not tsm-nm) (not (fboundp tsm-nm))
                (not (entropy/emacs-ide-prefer-use-treesit-p prog-mode-name curbuff))
                ;; NOTE: prevent nested invocation from `tsm-nm'
                ;; function like what `bash-ts-mode' did which has
                ;; an advice for fallbacking to `sh-mode' for some
                ;; cases.
                (entropy/emacs-bound-and-true-p adv-avar-name)
-               (not (entropy/emacs-treesit-ready-p lnm 'message))
+               (not (treesit-ready-p lnm 'message))
                ;; fore more justify
                (and (bound-and-true-p entropy/emacs-prefer-use-traditional-prog-mode-filters)
                     (let ((major-mode prog-mode-name))
