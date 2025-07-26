@@ -235,6 +235,14 @@ In used emacs version is: %s
                (yes-or-no-p "Install them? "))
        ,@body)))
 
+(defmacro entropy/emacs-batch--prompts-for-treesit-parsers-installing-section
+    (&rest body)
+  `(entropy/emacs-batch--with-prompts-msg "Section for treesit parser installing"
+     (when (or (entropy/emacs-is-make-all-session)
+               (entropy/emacs-is-make-with-all-yes-session)
+               (yes-or-no-p "Install them? "))
+       ,@body)))
+
 (defmacro entropy/emacs-batch--prompts-for-native-compile
     (&rest body)
   `(entropy/emacs-batch--with-prompts-msg
@@ -962,6 +970,9 @@ since we solved deps broken")))))
      ((equal type "Install-Coworkers")
       (entropy/emacs-batch--prompts-for-coworkers-installing-section
        (entropy/emacs-batch--install-coworkers)))
+     ((equal type "Install-Treesit-Parsers")
+      (entropy/emacs-batch--prompts-for-treesit-parsers-installing-section
+       (eemacs/lang/func/install/all-treesit-parsers)))
      ((equal type "Install-Eemacs-Ext-Build")
       (entropy/emacs-batch--prompts-for-eemacs-ext-build-repo-install
        (entropy/emacs-batch--install-eemacs-ext-stable-build-repo)))

@@ -341,6 +341,8 @@
           (throw :exit
                  (eemacs/lang/macro/oref lang-ts-obj :id))))
       nil)))
+
+(defvar eemacs/lang/var//treesit-parser-install-ok-exists nil)
 (cl-defmacro eemacs/lang/macro/with-make-recipe
     (name &rest slots &key with-this-as with-modes-assoc-plist &allow-other-keys)
   (declare (indent 1))
@@ -398,8 +400,9 @@
               core-func)
            (entropy/emacs-setf-by-body core-func
              (lambda ()
-               (entropy/emacs-when-let*-firstn 4
-                   ((trobj (oref ,this treesit)) (id (oref trobj id))
+               (entropy/emacs-when-let*-firstn 3
+                   ((trobj (oref ,this treesit))
+                    (id (eemacs/lang/macro/oref trobj id))
                     (ids (ensure-list id))
                     (libnames
                      (let (l (tmpvar ids)
@@ -410,32 +413,44 @@
 for dynamic libraries for this system, because `dynamic-library-suffixes' is nil"
                                             )))))
                        (while tmpvar
-                         (push (concat "libtree-sitter-" (pop tmpvar) soext) l))
+                         (push
+                          (let ((the-id (pop tmpvar)))
+                            (cons
+                             the-id
+                             (concat "libtree-sitter-" the-id
+                                     soext)))
+                          l))
                        (nreverse l)))
                     (libdir entropy/emacs-treesit-libs-default-load-path)
-                    (subrecs (oref (oref ,this subrecipes) list)))
+                    (subrecs (oref (oref ,this subrecipes) list))
+                    (should-not-install-list nil)
+                    nid)
                  (when libnames
                    (dolist (lb libnames)
-                     (setq lb (expand-file-name lb libdir))
+                     (setq nid (car lb) lb (expand-file-name (cdr lb) libdir))
                      (when (file-exists-p lb)
-                       (let ((inhibit-quit t)
-                             (lb-bk (make-backup-file-name lb)))
-                         (and (file-exists-p lb-bk) (delete-file lb-bk))
-                         (rename-file lb lb-bk)))))
-                 (let ((treesit-language-source-alist
-                        `((,(intern id)
-                           ,(oref trobj repo-url)
-                           ,(oref trobj repo-revision)
-                           ,(oref trobj repo-src-dir)
-                           ,(oref trobj compile-cc)
-                           ,(oref trobj compile-c++))))
-                       (inhibit-quit t))
-                   (entropy/emacs-with-eemacs-union-http-internet-proxy
-                    (entropy/emacs-message-simple-progress-message
-                        (format "Installing treesit grammer parser '%s'" ,name)
-                      :with-maybe-modeline-msg 'force
-                      (treesit-install-language-grammar
-                       (intern id) libdir))))
+                       (if eemacs/lang/var//treesit-parser-install-ok-exists
+                           (push nid should-not-install-list)
+                         (let ((inhibit-quit t)
+                               (lb-bk (make-backup-file-name lb)))
+                           (and (file-exists-p lb-bk) (delete-file lb-bk))
+                           (rename-file lb lb-bk))))))
+                 (if (memq id should-not-install-list)
+                     (message "warn: treesit-parser '%s' already installed." id)
+                   (let ((treesit-language-source-alist
+                          `((,(intern id)
+                             ,(oref trobj repo-url)
+                             ,(oref trobj repo-revision)
+                             ,(oref trobj repo-src-dir)
+                             ,(oref trobj compile-cc)
+                             ,(oref trobj compile-c++))))
+                         (inhibit-quit t))
+                     (entropy/emacs-with-eemacs-union-http-internet-proxy
+                      (entropy/emacs-message-simple-progress-message
+                          (format "Installing treesit grammer parser '%s'" ,name)
+                        :with-maybe-modeline-msg 'force
+                        (treesit-install-language-grammar
+                         (intern id) libdir)))))
                  (when subrecs
                    (dolist (sc subrecs)
                      (funcall (oref (oref sc treesit) installer)))))))
@@ -443,6 +458,20 @@ for dynamic libraries for this system, because `dynamic-library-suffixes' is nil
              (lambda nil (interactive) (funcall core-func)))
            (oset ,this/obj/treesit :installer func-sym))
          ,this))))
+
+(defun eemacs/lang/func/install/all-treesit-parsers nil
+  (when (file-directory-p entropy/emacs-treesit-libs-default-load-path)
+    (when-let ((files (directory-files entropy/emacs-treesit-libs-default-load-path
+                                       t "\\`libtree-sitter-")))
+      (dolist (el files) (delete-file el))))
+  (let ((eemacs/lang/var//treesit-parser-install-ok-exists t))
+    (dolist (rec eemacs/lang/var/recipe-alist)
+      (when-let ((func
+                  (eemacs/lang/macro/oref (cdr rec)
+                    :treesit :installer)))
+        (entropy/emacs-message-simple-progress-message
+            (format "Install treesit parsers for lang %s" (car rec))
+          (funcall func))))))
 
 (defun eemacs/lang/assoc-plist/func/match
     (assoc-plist key-match match-val key-against)

@@ -22,12 +22,12 @@
 # ** os detecting
 # OS detected method obtained by https://stackoverflow.com/questions/714100/os-detecting-makefile
 ifeq '$(findstring ;,$(PATH))' ';'
-    detected_OS := Windows
+	detected_OS := Windows
 else
-    detected_OS := $(shell uname 2>/dev/null || echo Unknown)
-    detected_OS := $(patsubst CYGWIN%,Cygwin,$(detected_OS))
-    detected_OS := $(patsubst MSYS%,MSYS,$(detected_OS))
-    detected_OS := $(patsubst MINGW%,MSYS,$(detected_OS))
+	detected_OS := $(shell uname 2>/dev/null || echo Unknown)
+	detected_OS := $(patsubst CYGWIN%,Cygwin,$(detected_OS))
+	detected_OS := $(patsubst MSYS%,MSYS,$(detected_OS))
+	detected_OS := $(patsubst MINGW%,MSYS,$(detected_OS))
 endif
 
 # ** variable
@@ -56,61 +56,79 @@ endif
 
 # ** main
 
-.PHONY:help install compile compile-clean install-coworkers install-eemacs-ext-build install-eemacs-fonts update dump native-comp liberime all debug
 
+.PHONY:help
 help:
 	@$(EchoEmpty)
 	@$(EMACS_MAKE:MAKE_TYPE="Help")
 
+.PHONY:install
 install:
 	@$(EchoEmpty)
 	@$(EMACS_MAKE:MAKE_TYPE="Install")
 
+.PHONY:compile
 compile:
 	@$(EchoEmpty)
 	@$(EMACS_MAKE:MAKE_TYPE="Compile")
 
+.PHONY:compile-dump
 compile-dump:
 	@$(EchoEmpty)
 	@$(EMACS_MAKE:MAKE_TYPE="Compile-Dump")
 
+.PHONY:compile-clean
 compile-clean:
 	@$(EchoEmpty)
 	@$(EMACS_MAKE:MAKE_TYPE="Compile-Clean")
 
+.PHONY:install-coworkers
 install-coworkers:
 	@$(EchoEmpty)
 	@$(EMACS_MAKE:MAKE_TYPE="Install-Coworkers")
 
+.PHONY:install-treesit-parsers
+install-treesit-parsers:
+	@$(EchoEmpty)
+	@$(EMACS_MAKE:MAKE_TYPE="Install-Treesit-Parsers")
+
+.PHONY:install-eemacs-ext-build
 install-eemacs-ext-build:
 	@$(EchoEmpty)
 	@$(EMACS_MAKE:MAKE_TYPE="Install-Eemacs-Ext-Build")
 
+.PHONY:install-eemacs-fonts
 install-eemacs-fonts:
 	@$(EchoEmpty)
 	@$(TERMINATE_WARN)
 	@$(EMACS_MAKE:MAKE_TYPE="Install-Eemacs-Fonts")
 
+.PHONY:update
 update:
 	@$(EchoEmpty)
 	@$(EMACS_MAKE:MAKE_TYPE="Update")
 
+.PHONY:dump
 dump: export EEMACS_MAKE_WITH_ALL_YES=1
 dump: compile-dump
 	@$(EchoEmpty)
 	@$(EMACS_MAKE:MAKE_TYPE="Dump")
 
+.PHONY:native-comp
 native-comp:
 	@$(EchoEmpty)
 	@$(EMACS_MAKE:MAKE_TYPE="Native-Comp")
 
+.PHONY:liberime
 liberime:
 	@$(EchoEmpty)
 	@$(EMACS_MAKE:MAKE_TYPE="Liberime")
 
+.PHONY:all
 all: export EEMACS_MAKE_ALL=1
 all: install compile-clean compile liberime install-coworkers
 
+.PHONY:install-systemd-service
 install-systemd-service:
 	awk "{gsub(\"<<<<INIT>>>>\",  \"$(EEMACS_TOP_DIR)/init.el\")}1"   \
 		annex/eemacs-daemon/eemacs-daemon.service.template      | \
@@ -123,10 +141,12 @@ install-systemd-service:
 	systemctl --user daemon-reload
 	@echo "Install to $(EEMACS_SERVICE_FILE) done"
 
+.PHONY:debug
 debug:
 	@$(EchoEmpty)
 	@$(EMACS_DEBUG)
 
+.PHONY:dev_and_debug
 dev_and_debug:
 	@$(EchoEmpty)
 	@$(EMACS_DEV_AND_DEBUG)
