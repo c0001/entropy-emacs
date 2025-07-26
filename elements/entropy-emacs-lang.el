@@ -205,11 +205,11 @@
 (defun eemacs/lang/func/get-recipe-modes (lang-recipe &optional type)
   (if (not (eemacs/lang/class/recipe-p lang-recipe)) nil
     (cl-case type
-      (treesit (eemacs/lang/macro/oref lang-recipe :treesit :modes :list))
-      (prog    (eemacs/lang/macro/oref lang-recipe :modes :list))
-      (all     (append (eemacs/lang/func/get-recipe-modes lang-recipe 'prog)
-                       (eemacs/lang/func/get-recipe-modes lang-recipe 'treesit)))
-      (t (eemacs/lang/func/get-recipe-modes lang-recipe 'prog)))))
+      (treesit-modes  (eemacs/lang/macro/oref lang-recipe :treesit :modes :list))
+      (prog-modes     (eemacs/lang/macro/oref lang-recipe :modes :list))
+      (all            (append (eemacs/lang/func/get-recipe-modes lang-recipe 'prog-modes)
+                              (eemacs/lang/func/get-recipe-modes lang-recipe 'treesit-modes)))
+      (t (eemacs/lang/func/get-recipe-modes lang-recipe 'prog-modes)))))
 (defun eemacs/lang/func/get-recipes-modes (&optional type)
   (let (rtn mds)
     (dolist (rec eemacs/lang/var/recipe-alist)
