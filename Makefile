@@ -126,7 +126,7 @@ liberime:
 
 .PHONY:all
 all: export EEMACS_MAKE_ALL=1
-all: install compile-clean compile liberime install-coworkers
+all: install compile-clean compile liberime install-coworkers install-treesit-parsers
 
 .PHONY:install-systemd-service
 install-systemd-service:
