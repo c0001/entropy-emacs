@@ -126,11 +126,27 @@
    (and (symbolp sym) (functionp sym)
         (eq (get sym :is-eemacs/lang/probe-func-p) t))))
 (defclass eemacs/lang/class/core ()
-  ((name          :initarg :name :type string)
+  ((name          :initarg :name :type string
+                  :documentation
+                  "Language Name standard via language server
+protocol (See: https://code.visualstudio.com/docs/languages/identifiers).
+
+For those langauge has no defined in which case, please following
+programer forum convention i.e. as conventional as possible")
    (fnm-regexp    :initarg :fnm-regexp :type string)))
 (defclass eemacs/lang/class//list-probe ()
   ((_))
-  :abstract t)
+  :abstract t
+  :documentation
+  "The empty top abstraction of a eemacs specified language object class
+for defined a list of possible value and a probe function to extract an
+accelerated one for a buffer or file from unified api
+`eemacs/lang/class//list-probe/method/call'.
+
+This at least, any children class inherit from this interface should
+declare two slots, i.e. the :list and :probe where the value of :list
+should be a list of elements, and a function defined via
+`eemacs/lang/macro/define-probe' for :probe.")
 (defun eemacs/lang/class//list-probe/method/call
     (obj &optional buffer-or-file)
   (if (or (not (eieio-object-p obj))
@@ -345,6 +361,12 @@
 (defvar eemacs/lang/var//treesit-parser-install-ok-exists nil)
 (cl-defmacro eemacs/lang/macro/with-make-recipe
     (name &rest slots &key with-this-as with-modes-assoc-plist &allow-other-keys)
+  "Define a `eemacs/lang/class/recipe' use let bounded sets of interned
+symbols THIS-BINDING prefixed by WITH-THIS-AS (defaults to `this') that
+is a explicit symbol name.
+
+WITH-MODES-ASSOC-PLIST used as meaning as `eemacs/lang/assoc-plist/func/match'.
+"
   (declare (indent 1))
   (let* ((this (or with-this-as 'this))
          (body (entropy/emacs--get-def-body slots 'with-safe))
@@ -481,17 +503,31 @@ for dynamic libraries for this system, because `dynamic-library-suffixes' is nil
           (funcall func))))))
 
 (defun eemacs/lang/assoc-plist/func/match
-    (assoc-plist key-match match-val key-against)
+    (assoc-plists key-match match-member key-against)
+  "Find value based on key KEY-MATCH according to the wanted from an
+ASSOC-PLIST from list of thus in ASSOC-PLISTS.
+
+ASSOC-PLIST is a plist whose each key's value treated as a list as
+default, `ensure-list' it if not thus. In general any key's value of it
+are considerred as equal rights, in which case if MATCH-MEMBER is a
+member of KEY-MATCH's value, then the key KEY-AGAINST's value in this
+ASSOC-PLIST is returned, and ensured as a list.
+
+If matches occurrence, returned immediately, thus the order of
+ASSOC-PLISTS is respected."
   (let (mval aval rtn)
     (catch :exit
-      (dolist (el assoc-plist)
+      (dolist (el assoc-plists)
         (when (and (setq mval (ensure-list (plist-get el key-match)))
                    (setq aval (plist-get el key-against))
-                   (member match-val mval))
-          (throw :exit (setq rtn aval)))))
+                   (member match-member mval))
+          (throw :exit (setq rtn (ensure-list aval))))))
     rtn))
 
 ;; ** recipes
+
+;; NOTE: metas of recipes can be grabbed from package `treesit-auto'.
+
 ;; *** Clojure
 (eemacs/lang/macro/with-make-recipe "Clojure"
   :with-modes-assoc-plist
