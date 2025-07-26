@@ -1550,7 +1550,6 @@ are pre-defined for preserving the namespace update possible:
   :group 'entropy/emacs-customize-group-for-coworkers)
 
 ;; *** IDE
-(require 'entropy-emacs-lang)
 (defgroup entropy/emacs-customize-group-for-IDE-configuration nil
   "Eemacs IDE integrated configuration customizable group."
   :group 'entropy-emacs-customize-top-group)

@@ -14030,8 +14030,8 @@ Return nil when `entropy/emacs-union-http-proxy-plist''s
 `entropy/emacs-funcall-with-eemacs-union-http-internet-proxy'
 when the proxy env wrapping enabled")
 
-(defvar entropy/proxy-url-user-proxy-match-func)
-(defvar entropy/proxy-url-inhbit-all-proxy)
+(defvar entropy/proxy-url-user-proxy-match-func nil)
+(defvar entropy/proxy-url-inhbit-all-proxy nil)
 (defmacro entropy/emacs-with-eemacs-union-http-internet-proxy (&rest body)
   "Run BODY with `let' bindings of eemacs union http proxy via
 `entropy/emacs-union-http-proxy-plist' when its `:enable' set

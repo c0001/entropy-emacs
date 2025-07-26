@@ -1741,6 +1741,7 @@ byte-compile generated but source loading undeeded.")
   (dolist (sub-core subs-core)
     (add-to-list 'load-path (expand-file-name sub-core core-path))))
 
+(!eemacs-require 'entropy-emacs-lang)
 (!eemacs-require 'entropy-emacs-defcustom)
 (defvar entropy/emacs-run-startup-defcustom-load-done-timestamp (current-time)
   "Time-stamp eemacs load defcustom config done done")

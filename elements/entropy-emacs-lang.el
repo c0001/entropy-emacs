@@ -5,6 +5,10 @@
   (require 'eieio)
   (require 'rx))
 
+(if (and (fboundp 'treesit-available-p) (treesit-available-p))
+    (require 'treesit)
+  (defvar treesit-language-source-alist))
+
 ;; ** libs
 (cl-defmacro eemacs/lang/macro/oset (obj &rest slots)
   (declare (indent 1))
@@ -64,10 +68,10 @@
                           ,bofarg)))
                   (,probe/var/fext
                    (and ,probe/var/file
-                        (file-name-extension ,probe/var/file))))
+                        (file-name-extension ,probe/var/file)))
+                  ,bop)
              (ignore ,probe/var/buffer ,probe/var/file ,probe/var/fext)
-             (let (,bop
-                   (,probe/var/buffer (or ,probe/var/buffer
+             (let ((,probe/var/buffer (or ,probe/var/buffer
                                           (when ,probe/var/file
                                             (or (find-buffer-visiting ,probe/var/file)
                                                 (prog1 (find-file-noselect ,probe/var/file)
@@ -79,7 +83,7 @@
        (put fnm :is-eemacs/lang/probe-func-p t)
        fnm)))
 
-(defun eemacs/lang/func//cond-match-p (cond cond-map &optional extractor)
+(defun eemacs/lang/func//cond-match-p (cond cond-map)
   (let (extractor elt)
     (when (setq elt (alist-get cond cond-map nil nil 'equal))
       (setq
@@ -87,15 +91,13 @@
        elt       (plist-get elt :val))
       (funcall extractor elt))))
 (cl-defmacro eemacs/lang/macro/define-probe
-    (&rest
-     _
-     &key
+    (&key
      with-this-as
      with-conds-pattern
      &allow-other-keys)
   (let* ((it (or with-this-as 'probe))
          (probe/var/buffer (intern (concat (symbol-name it) "/var/buffer")))
-         (probe/var/file (intern (concat (symbol-name it) "/var/file")))
+         ;; (probe/var/file (intern (concat (symbol-name it) "/var/file")))
          (probe/var/fext (intern (concat (symbol-name it) "/var/fext"))))
     (macroexp-let2* ignore ((cods nil))
       `(eemacs/lang/func/define-general-probe
@@ -215,13 +217,15 @@
       (and  mds (setq rtn (append rtn mds))))
     rtn))
 (defun eemacs/lang/func/bof/lang-recipe (buffer-or-file)
-  (let (lang-name lang-rec lang-fnm-regexp)
+  (let (;; lang-name
+        lang-rec lang-fnm-regexp)
     (funcall
      (eemacs/lang/func/define-general-probe
       :with-this-as the
       (catch :exit
         (dolist (rec eemacs/lang/var/recipe-alist)
-          (setq lang-name (car rec) lang-rec (cdr rec)
+          (setq ;; lang-name (car rec)
+                lang-rec (cdr rec)
                 lang-fnm-regexp
                 (eemacs/lang/macro/oref lang-rec :core :fnm-regexp))
           (when
@@ -250,42 +254,44 @@
          (t (eemacs/lang/macro/oref rec :modes)))
        buffer-or-file))))
 (defun eemacs/lang/func/mode/treesit-mode-p (mode)
-  (let (lang-name lang-rec lang-ts-obj lang-ts-modes)
+  (let (;; lang-name
+        lang-rec lang-ts-modes)
     (catch :exit
       (dolist (rec eemacs/lang/var/recipe-alist)
-        (setq lang-name (car rec) lang-rec (cdr rec))
+        (setq ;; lang-name (car rec)
+              lang-rec (cdr rec))
         (setq lang-ts-modes
-              (eemacs/lang/macro/oref
-                  (setq lang-ts-obj
-                        (eemacs/lang/macro/oref lang-rec :treesit))
-                :modes :list))
+              (eemacs/lang/macro/oref lang-rec
+                :treesit :modes :list))
         (if (memq mode lang-ts-modes) (throw :exit t)))
       nil)))
 (defun eemacs/lang/func/mode/prog-mode-p (mode)
-  (let (lang-name lang-rec lang-modes lang-ts-obj lang-ts-modes)
+  (let (;; lang-name
+        lang-rec lang-modes lang-ts-modes)
     (catch :exit
       (dolist (rec eemacs/lang/var/recipe-alist)
-        (setq lang-name (car rec) lang-rec (cdr rec))
+        (setq ;; lang-name (car rec)
+              lang-rec (cdr rec))
         (setq lang-modes (eemacs/lang/macro/oref lang-rec :modes :list))
         (if (memq mode lang-modes) (throw :exit t))
         (setq lang-ts-modes
-              (eemacs/lang/macro/oref
-                  (setq lang-ts-obj (eemacs/lang/macro/oref lang-rec :treesit))
-                :modes :list))
+              (eemacs/lang/macro/oref lang-rec
+                :treesit :modes :list))
         (if (memq mode lang-ts-modes) (throw :exit nil)))
       ;; FIXME: fine-tune default judgement
       (and (fboundp mode)
            (string-match-p "-mode\\'" (symbol-name mode))))))
 (defun eemacs/lang/func/mode/prog-modes (mode &optional buffer-or-file)
-  (let (lang-name lang-rec lang-ts-obj lang-modes lang-ts-modes)
+  (let (;; lang-name
+        lang-rec lang-modes lang-ts-modes)
     (catch :exit
       (dolist (rec eemacs/lang/var/recipe-alist)
-        (setq lang-name (car rec) lang-rec (cdr rec))
+        (setq ;; lang-name (car rec)
+              lang-rec (cdr rec))
         (setq lang-modes (eemacs/lang/macro/oref lang-rec :modes :list)
               lang-ts-modes
-              (eemacs/lang/macro/oref
-                  (setq lang-ts-obj (eemacs/lang/macro/oref lang-rec :treesit))
-                :modes :list))
+              (eemacs/lang/macro/oref lang-rec
+                :treesit :modes :list))
         (when (memq mode (append lang-modes lang-ts-modes))
           (throw :exit (if buffer-or-file
                            (eemacs/lang/class//list-probe/method/call
@@ -293,10 +299,12 @@
                          lang-modes))))
       nil)))
 (defun eemacs/lang/func/mode/treesit-modes (mode &optional buffer-or-file)
-  (let (lang-name lang-rec lang-ts-obj lang-modes lang-ts-modes)
+  (let (;; lang-name
+        lang-rec lang-ts-obj lang-modes lang-ts-modes)
     (catch :exit
       (dolist (rec eemacs/lang/var/recipe-alist)
-        (setq lang-name (car rec) lang-rec (cdr rec))
+        (setq ;; lang-name (car rec)
+              lang-rec (cdr rec))
         (setq lang-modes (eemacs/lang/macro/oref lang-rec :modes :list)
               lang-ts-modes
               (eemacs/lang/macro/oref
@@ -317,11 +325,13 @@
                       buffer-or-file)
                    lang-ts-modes))))
       nil)))
-(defun eemacs/lang/func/mode/treesit-id (mode &rest buffer-or-file)
-  (let (lang-name lang-rec lang-ts-obj lang-modes lang-ts-modes)
+(defun eemacs/lang/func/mode/treesit-id (mode)
+  (let (;; lang-name
+        lang-rec lang-ts-obj lang-modes lang-ts-modes)
     (catch :exit
       (dolist (rec eemacs/lang/var/recipe-alist)
-        (setq lang-name (car rec) lang-rec (cdr rec))
+        (setq ;; lang-name (car rec)
+              lang-rec (cdr rec))
         (setq lang-modes (eemacs/lang/macro/oref lang-rec :modes :list)
               lang-ts-modes
               (eemacs/lang/macro/oref
@@ -437,11 +447,12 @@ for dynamic libraries for this system, because `dynamic-library-suffixes' is nil
 (defun eemacs/lang/assoc-plist/func/match
     (assoc-plist key-match match-val key-against)
   (let (mval aval rtn)
-    (dolist (el assoc-plist)
-      (when (and (setq mval (ensure-list (plist-get el key-match)))
-                 (setq aval (plist-get el key-against))
-                 (member key-match mval))
-        (setq rtn aval)))
+    (catch :exit
+      (dolist (el assoc-plist)
+        (when (and (setq mval (ensure-list (plist-get el key-match)))
+                   (setq aval (plist-get el key-against))
+                   (member match-val mval))
+          (throw :exit (setq rtn aval)))))
     rtn))
 
 ;; ** recipes
