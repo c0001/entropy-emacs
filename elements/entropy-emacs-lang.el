@@ -44,7 +44,7 @@
                         ,oobj))))
       form)))
 
-(cl-defmacro eemacs/lang/func/define-general-probe
+(cl-defmacro eemacs/lang/macro/define-general-probe
     (&rest body &key with-this-as
            &allow-other-keys)
   (let* ((body (entropy/emacs--get-def-body body 'with-safe))
@@ -100,7 +100,7 @@
          ;; (probe/var/file (intern (concat (symbol-name it) "/var/file")))
          (probe/var/fext (intern (concat (symbol-name it) "/var/fext"))))
     (macroexp-let2* ignore ((cods nil))
-      `(eemacs/lang/func/define-general-probe
+      `(eemacs/lang/macro/define-general-probe
         :with-this-as ,with-this-as
         (let ((,cods ,with-conds-pattern) extp)
           (catch :exit
@@ -233,40 +233,44 @@ should be a list of elements, and a function defined via
       (and  mds (setq rtn (append rtn mds))))
     rtn))
 (defun eemacs/lang/func/bof/lang-recipe (buffer-or-file)
+  "Get the `eemaca/lang/class/recipe' for BUFFER-OR-FILE, the return is a
+cons of LANG-NAME and LANG-RECIPE, or nil that not found."
   (let (;; lang-name
         lang-rec lang-fnm-regexp)
     (funcall
-     (eemacs/lang/func/define-general-probe
+     (eemacs/lang/macro/define-general-probe
       :with-this-as the
       (catch :exit
         (dolist (rec eemacs/lang/var/recipe-alist)
           (setq ;; lang-name (car rec)
-                lang-rec (cdr rec)
-                lang-fnm-regexp
-                (eemacs/lang/macro/oref lang-rec :core :fnm-regexp))
-          (when
-              (and the/var/file
-                   lang-fnm-regexp
-                   (string-match-p
-                    lang-fnm-regexp
-                    (file-name-nondirectory the/var/file)))
-            (throw :exit rec))
-          (when (and the/var/buffer
-                     (memq (buffer-local-value 'major-mode the/var/buffer)
-                           (eemacs/lang/macro/oref lang-rec :modes :list)))
-            (throw :exit rec)))
+           lang-rec (cdr rec)
+           lang-fnm-regexp
+           (eemacs/lang/macro/oref lang-rec :core :fnm-regexp))
+          ;; prefer recognized via file name regexp
+          (if (and the/var/file lang-fnm-regexp)
+              (when (string-match-p
+                     lang-fnm-regexp
+                     (file-name-nondirectory the/var/file))
+                (throw :exit rec))
+            (when (and the/var/buffer
+                       (memq (buffer-local-value 'major-mode the/var/buffer)
+                             (eemacs/lang/func/get-recipe-modes lang-rec 'all)))
+              (throw :exit rec))))
         nil))
      buffer-or-file)))
 (defun eemacs/lang/func/bof/lang-name (buffer-or-file)
   (when-let ((rec (eemacs/lang/func/bof/lang-recipe buffer-or-file)))
     (car rec)))
+(defun eemacs/lang/func/bof/treesit-id (buffer-or-file)
+  (when-let ((rec (eemacs/lang/func/bof/lang-recipe buffer-or-file)))
+    (eemacs/lang/macro/oref (cdr rec) :treesit :id)))
 (defun eemacs/lang/func/bof/modes (buffer-or-file &optional type)
   (let ((rec (eemacs/lang/func/bof/lang-recipe buffer-or-file)))
     (when rec
       (setq rec (cdr rec))
       (eemacs/lang/class//list-probe/method/call
        (cl-case type
-         (treesit (eemacs/lang/macro/oref rec :treesit :modes))
+         (treesit-modes (eemacs/lang/macro/oref rec :treesit :modes))
          (t (eemacs/lang/macro/oref rec :modes)))
        buffer-or-file))))
 (defun eemacs/lang/func/mode/treesit-mode-p (mode)

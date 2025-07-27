@@ -3058,13 +3058,11 @@ any of them return non-nil.")
     (defalias adv-func-name
       (lambda (&rest args)
         (let* ((curbuff (current-buffer))
-               (lnm (intern (eemacs/lang/func/mode/treesit-id prog-mode-name)))
+               (lnm (intern (eemacs/lang/func/bof/treesit-id curbuff)))
                (tsm-nm
                 (or
-                 ;; TODO: add support for various treesit modes support
                  (entropy/emacs-maybe-car
-                  (eemacs/lang/func/mode/treesit-modes
-                   prog-mode-name curbuff))
+                  (eemacs/lang/func/bof/modes curbuff 'treesit-modes))
                  (when entropy/emacs-startup-with-Debug-p
                    (warn "treesit variant for major-mode `%s' of lang `%s' is not find"
                          prog-mode-name lnm)
@@ -3078,7 +3076,17 @@ any of them return non-nil.")
                ;; an advice for fallbacking to `sh-mode' for some
                ;; cases.
                (entropy/emacs-bound-and-true-p adv-avar-name)
-               (not (treesit-ready-p lnm 'message))
+               (if (treesit-ready-p lnm 'message) nil
+                 ;; suggest installation for such missiing ts parser
+                 (if-let* ((rec (eemacs/lang/func/bof/lang-recipe curbuff))
+                           (ts-id (eemacs/lang/macro/oref (cdr rec) :treesit :id))
+                           (ts-installer (eemacs/lang/macro/oref (cdr rec) :treesit :installer)))
+                     (if (yes-or-no-p
+                          (format "It seems missing treesit parser for lang '%s', install it to enable '%s'"
+                                  ts-id tsm-nm))
+                         (progn (funcall ts-installer)
+                                (not (treesit-ready-p lnm 'message)))
+                       t) t))
                ;; fore more justify
                (and (bound-and-true-p entropy/emacs-prefer-use-traditional-prog-mode-filters)
                     (let ((major-mode prog-mode-name))
@@ -3181,7 +3189,9 @@ for the traditional `major-mode': `%s'."
     end_of_line
     charset
     )
-  "List of =eemacs-editor-convention= property symbols.")
+  "List of =eemacs-editor-convention= property symbols.
+
+EEMACS_MAINTENANCE: all the symbol names should same as editor-config standards.")
 
 (defun entropy/emacs-editor-convention-register-property-value
     (prop op &optional sym)
@@ -3268,6 +3278,7 @@ to set =eemacs-editor-convention= referred specs in BODY.
 
 ;; *** dir-local branch
 
+;; EEMACS_MAINTENANCE: follow updates with `editorconfig-indentation-alist'
 (defvar entropy/emacs-editor-convention-indentation-alist
   ;; For contributors: Sort modes in alphabetical order
   '((apache-mode apache-indent-level)
@@ -3411,13 +3422,14 @@ to set =eemacs-editor-convention= referred specs in BODY.
     (when-let ((vars (alist-get
                       major-mode
                       entropy/emacs-editor-convention-indentation-alist))
-               (dvals file-local-variables-alist))
+               (dvals file-local-variables-alist)
+               rtn)
       ;; FIXME: how we deal with multi spec of meaningful usage of
       ;; those variables i.e. TODO make the judgement more accurate
       ;; thru per-mode `cond' analyzing.
       (catch :exit
         (dolist (var vars)
-          (and (assoc var dvals) (throw :exit t)))))))
+          (and (setq rtn (assoc var dvals)) (throw :exit rtn)))))))
 (entropy/emacs-editor-convention-register-property-value
  'indent_size #'entropy/emacs-editor-convention/dir-local-get/indent_size)
 
