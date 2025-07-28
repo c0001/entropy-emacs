@@ -1199,7 +1199,7 @@ Throw an error while noting found when trying out all methods."
           (cond
            ((and (entropy/emacs-getenv "TERMUX_VERSION")
                  (setq termux-prefix (entropy/emacs-getenv "PREFIX")))
-            (expand-file-name "share/rime-data"))
+            (expand-file-name "share/rime-data" termux-prefix))
            (t nil)))))
     (unless (and entropy/emacs-internal-ime-rime-system-share-data-host-path
                  (file-exists-p
