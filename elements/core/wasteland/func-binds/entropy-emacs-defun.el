@@ -1134,6 +1134,38 @@ and all `print' restrictions are supported via horizontal print style.
                         val)))))
                (funcall insert-group-end-delmi-func)
                (funcall insert-func ")"))))))
+     ((eieio-object-p object)
+      `(eieio-object
+        :print-func
+        ,(lambda (&optional x)
+           (if level-overflow-p (funcall insert-omit-func)
+             (unless x (setq x object))
+             (funcall insert-group-begin-delmi-func)
+             (if boundp (funcall boundp-print x)
+               (funcall insert-func "#s(")
+               (let* ((class (eieio-object-class x))
+                      (slots (mapcar 'cl--slot-descriptor-name (eieio-class-slots class)))
+                      (len (length slots)))
+                 (funcall insert-func class)
+                 (catch :exit
+                   (dotimes (i len)
+                     (when (and print-length (= i print-length))
+                       (funcall insert-omit-func 'as-sub)
+                       (throw :exit t))
+                     (let* ((slot (nth i slots))
+                            (val  (if (slot-boundp x slot) (slot-value x slot)
+                                    eieio-unbound)))
+                       (funcall insert-group-begin-delmi-func 'as-sub)
+                       (funcall insert-func ":" slot)
+                       (funcall
+                        (plist-get
+                         (cdr (funcall
+                               #'entropy/emacs-get-object-eemacs-print-method
+                               val (1+ depth) vstyle-most-level))
+                         :print-func)
+                        val)))))
+               (funcall insert-group-end-delmi-func)
+               (funcall insert-func ")"))))))
      ((hash-table-p object)
       `(hash-table
         :print-func
