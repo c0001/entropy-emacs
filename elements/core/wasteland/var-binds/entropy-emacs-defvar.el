@@ -3428,13 +3428,14 @@ to set =eemacs-editor-convention= referred specs in BODY.
                       major-mode
                       entropy/emacs-editor-convention-indentation-alist))
                (dvals file-local-variables-alist)
-               rtn)
+               (rtn t)) (setq rtn nil)
       ;; FIXME: how we deal with multi spec of meaningful usage of
       ;; those variables i.e. TODO make the judgement more accurate
       ;; thru per-mode `cond' analyzing.
       (catch :exit
         (dolist (var vars)
-          (and (setq rtn (assoc var dvals)) (throw :exit rtn)))))))
+          (and (setq rtn (assoc var dvals)) (throw :exit rtn)))
+        rtn))))
 (entropy/emacs-editor-convention-register-property-value
  'indent_size #'entropy/emacs-editor-convention/dir-local-get/indent_size)
 
