@@ -70,6 +70,8 @@
                    (and ,probe/var/file
                         (file-name-extension ,probe/var/file)))
                   ,bop)
+             (and ,probe/var/fext (string-empty-p ,probe/var/fext)
+                  (setq ,probe/var/fext nil))
              (ignore ,probe/var/buffer ,probe/var/file ,probe/var/fext)
              (let ((,probe/var/buffer (or ,probe/var/buffer
                                           (when ,probe/var/file
@@ -247,15 +249,21 @@ cons of LANG-NAME and LANG-RECIPE, or nil that not found."
            lang-fnm-regexp
            (eemacs/lang/macro/oref lang-rec :core :fnm-regexp))
           ;; prefer recognized via file name regexp
-          (if (and the/var/file lang-fnm-regexp)
-              (when (string-match-p
-                     lang-fnm-regexp
-                     (file-name-nondirectory the/var/file))
-                (throw :exit rec))
-            (when (and the/var/buffer
-                       (memq (buffer-local-value 'major-mode the/var/buffer)
-                             (eemacs/lang/func/get-recipe-modes lang-rec 'all)))
-              (throw :exit rec))))
+          (when (and the/var/file lang-fnm-regexp)
+            (if (string-match-p
+                 lang-fnm-regexp
+                 (file-name-nondirectory the/var/file))
+                (throw :exit rec)
+              ;; if a regular file we should not check thru other ways
+              ;; since if fname match failed then it's indeed not
+              ;; match.
+              (when the/var/fext (throw :exit nil))))
+          ;; for those only buffer or file name not regularized as
+          ;; convention fallback to use mode match.
+          (when (and the/var/buffer
+                     (memq (buffer-local-value 'major-mode the/var/buffer)
+                           (eemacs/lang/func/get-recipe-modes lang-rec 'all)))
+            (throw :exit rec)))
         nil))
      buffer-or-file)))
 (defun eemacs/lang/func/bof/lang-name (buffer-or-file)

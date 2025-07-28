@@ -3055,14 +3055,19 @@ any of them return non-nil.")
                         prog-mode-name))))
     (eval `(defvar ,adv-avar-name nil))
     (eval `(defvar-local ,adv-rvar-name nil))
-    (defalias adv-func-name
+    (entropy/emacs-!defalias adv-func-name
       (lambda (&rest args)
         (let* ((curbuff (current-buffer))
-               (lnm (intern (eemacs/lang/func/bof/treesit-id curbuff)))
+               (lnm (intern (or (eemacs/lang/func/bof/treesit-id curbuff)
+                                (eemacs/lang/func/mode/treesit-id prog-mode-name)
+                                (entropy/emacs-!error-as-eemacs-internal-error
+                                 "No treesit id found for buffer %s" curbuff))))
                (tsm-nm
                 (or
                  (entropy/emacs-maybe-car
                   (eemacs/lang/func/bof/modes curbuff 'treesit-modes))
+                 (entropy/emacs-maybe-car
+                  (eemacs/lang/func/mode/treesit-modes prog-mode-name))
                  (when entropy/emacs-startup-with-Debug-p
                    (warn "treesit variant for major-mode `%s' of lang `%s' is not find"
                          prog-mode-name lnm)
