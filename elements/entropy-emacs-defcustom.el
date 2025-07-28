@@ -1189,7 +1189,18 @@ Throw an error while noting found when trying out all methods."
              (if (getenv "MSYSTEM_PREFIX")
                  (concat (getenv "MSYSTEM_PREFIX") "/share/rime-data")
                (if (getenv "LIBRIME_ROOT")
-                   (expand-file-name (concat (getenv "LIBRIME_ROOT") "/share/rime-data")))))))
+                   (expand-file-name (concat (getenv "LIBRIME_ROOT") "/share/rime-data")))))
+            (t nil)))
+    (unless entropy/emacs-internal-ime-rime-system-share-data-host-path
+      (entropy/emacs-setf-by-body entropy/emacs-internal-ime-rime-system-share-data-host-path
+        (entropy/emacs-when-let*-firstn 1
+            (((and (eq system-type 'android)))
+             termux-prefix)
+          (cond
+           ((and (entropy/emacs-getenv "TERMUX_VERSION")
+                 (setq termux-prefix (entropy/emacs-getenv "PREFIX")))
+            (expand-file-name "share/rime-data"))
+           (t nil)))))
     (unless (and entropy/emacs-internal-ime-rime-system-share-data-host-path
                  (file-exists-p
                   entropy/emacs-internal-ime-rime-system-share-data-host-path))

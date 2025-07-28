@@ -7903,10 +7903,12 @@ by run command \"make liberime\" in eemacs root place")
         (setq entropy/emacs-IME-specs-initialized 'liberime-no-build))))
 
   :init
-  (setq liberime-shared-data-dir
-        (expand-file-name entropy/emacs-pyim-liberime-scheme-data)
-        liberime-user-data-dir
-        (expand-file-name entropy/emacs-pyim-liberime-cache-dir)))
+  (and entropy/emacs-pyim-liberime-scheme-data
+       (setq liberime-shared-data-dir
+             (expand-file-name entropy/emacs-pyim-liberime-scheme-data)))
+  (and entropy/emacs-pyim-liberime-cache-dir
+       (setq liberime-user-data-dir
+             (expand-file-name entropy/emacs-pyim-liberime-cache-dir))))
 
 ;; ******* pyim-basic
 (use-package pyim-basedict
