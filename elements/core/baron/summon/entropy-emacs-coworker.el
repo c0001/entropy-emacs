@@ -974,8 +974,9 @@ latest/download/rust-analyzer-%s-%s.gz"
           (cond (sys/macp  "osx")
                 (sys/linuxp "linux")
                 (sys/is-win-group "win")
-                (t (entropy/emacs-error-without-debugger
-                    "Unsupported system: %s" system-type)))))
+                (t (warn "[entropy/emacs-coworker--pyls-ms-release-name]: \
+Unsupported system: %s, fallback to use linux type" system-type)
+                   "linux"))))
 
 (defvar entropy/emacs-coworker--pyls-ms-exec-path
   (expand-file-name
