@@ -3244,7 +3244,8 @@ PROP should be one of `entropy/emacs-editor-convention-properties'."
       (catch :exit
         (dolist (el funcs)
           (when (setq val (funcall el))
-            (throw :exit val)))))))
+            (throw :exit val)))
+        nil))))
 
 (defmacro entropy/emacs-editor-convention/wrapper/do-unless-prop-is-set
     (prop &optional buffer &rest form)
