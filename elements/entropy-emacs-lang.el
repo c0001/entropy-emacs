@@ -269,8 +269,8 @@ cons of LANG-NAME and LANG-RECIPE, or nil that not found."
                    (when (memq (buffer-local-value 'major-mode probe/var/buffer)
                                (eemacs/lang/func/get-recipe-modes lang-rec 'all))
                      (throw :exit rec)))
-                 nil)
-               buffer-or-file))))))
+                 nil))
+              buffer-or-file)))))
 
 (defun eemacs/lang/func/bof/lang-name (buffer-or-file)
   (when-let ((rec (eemacs/lang/func/bof/lang-recipe buffer-or-file)))
