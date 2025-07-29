@@ -237,35 +237,40 @@ should be a list of elements, and a function defined via
 (defun eemacs/lang/func/bof/lang-recipe (buffer-or-file)
   "Get the `eemaca/lang/class/recipe' for BUFFER-OR-FILE, the return is a
 cons of LANG-NAME and LANG-RECIPE, or nil that not found."
-  (let (;; lang-name
-        lang-rec lang-fnm-regexp)
-    (funcall
-     (eemacs/lang/macro/define-general-probe
-      :with-this-as the
-      (catch :exit
-        (dolist (rec eemacs/lang/var/recipe-alist)
-          (setq ;; lang-name (car rec)
-           lang-rec (cdr rec)
-           lang-fnm-regexp
-           (eemacs/lang/macro/oref lang-rec :core :fnm-regexp))
-          ;; prefer recognized via file name regexp
-          (when (and the/var/file lang-fnm-regexp)
-            (if (string-match-p
-                 lang-fnm-regexp
-                 (file-name-nondirectory the/var/file))
-                (throw :exit rec)
-              ;; if a regular file we should not check thru other ways
-              ;; since if fname match failed then it's indeed not
-              ;; match.
-              (when the/var/fext (throw :exit nil))))
-          ;; for those only buffer or file name not regularized as
-          ;; convention fallback to use mode match.
-          (when (and the/var/buffer
-                     (memq (buffer-local-value 'major-mode the/var/buffer)
-                           (eemacs/lang/func/get-recipe-modes lang-rec 'all)))
-            (throw :exit rec)))
-        nil))
-     buffer-or-file)))
+  (let (lang-rec lang-fnm-regexp rtn)
+    (when (or (and (stringp buffer-or-file)
+                   (file-exists-p buffer-or-file))
+              (and (bufferp buffer-or-file)
+                   (buffer-file-name buffer-or-file)))
+      (entropy/emacs-setf-by-body rtn
+        (funcall
+         (eemacs/lang/macro/define-general-probe
+          (catch :exit
+            (dolist (rec eemacs/lang/var/recipe-alist)
+              (setq lang-rec (cdr rec))
+              (when (and probe/var/fext probe/var/file
+                         (setq lang-fnm-regexp
+                               (eemacs/lang/macro/oref lang-rec
+                                 :core :fnm-regexp))
+                         (string-match-p lang-fnm-regexp probe/var/file))
+                (throw :exit rec)))
+            nil))
+         buffer-or-file)))
+    ;; NOTE: we preferred the fname regexp match, then use mode
+    ;; matching, since a regular named file may be opened with wrong
+    ;; `prog-mode'.
+    (or rtn
+        (and (bufferp buffer-or-file)
+             (funcall
+              (eemacs/lang/macro/define-general-probe
+               (catch :exit
+                 (dolist (rec eemacs/lang/var/recipe-alist)
+                   (setq lang-rec (cdr rec))
+                   (when (memq (buffer-local-value 'major-mode probe/var/buffer)
+                               (eemacs/lang/func/get-recipe-modes lang-rec 'all))
+                     (throw :exit rec)))
+                 nil)))))))
+
 (defun eemacs/lang/func/bof/lang-name (buffer-or-file)
   (when-let ((rec (eemacs/lang/func/bof/lang-recipe buffer-or-file)))
     (car rec)))
