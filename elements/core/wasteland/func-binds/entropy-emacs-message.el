@@ -312,8 +312,7 @@ ARGS using
 
 (entropy/emacs-defconst/only-allow/local __eemacs-msg-use-modeline-p__ nil)
 (defvar-local __eemacs-msg-mode-line-msg-str__ nil)
-(let (omwin ombuff omfmt oprefunc)
-  (ignore omwin ombuff omfmt oprefunc)
+(let (_)
   (defun entropy/emacs-message--message-on-modeline-maybe (format-string &rest args)
     "Display message specified by FORMAT-STRING and ARGS on the mode-line as needed.
 This function displays the message produced by formatting ARGS
@@ -321,14 +320,16 @@ with FORMAT-STRING on the mode line when the current buffer is a minibuffer.
 Otherwise, it displays the message like `message' would."
     (if (or (bound-and-true-p edebug-mode) (minibufferp)
             (eq (cdr-safe __eemacs-msg-use-modeline-p__) 'force))
-        (let ((inhibit-quit t))
+        (let ((inhibit-quit t)
+              omwin ombuff omfmt oprefunc oprefunc-idle)
+          (ignore omwin ombuff omfmt oprefunc)
           (with-current-buffer
               (setq ombuff
                     (window-buffer
                      (setq omwin
-                           (or (window-in-direction 'above (minibuffer-window))
-                               (minibuffer-selected-window)
-                               (get-largest-window)))))
+                           (or (minibuffer-selected-window)
+                               (get-largest-window)
+                               (window-in-direction 'above (minibuffer-window))))))
             (setq omfmt mode-line-format
                   __eemacs-msg-mode-line-msg-str__ nil)
             (when (and mode-line-format
@@ -351,15 +352,36 @@ Otherwise, it displays the message like `message' would."
                   (when (stringp format-string)
                     (apply #'format-message format-string args)))
             (entropy/emacs-setf-by-body oprefunc
-              (lambda nil
-                (let ((inhibit-quit t))
-                  (unwind-protect
-                      (with-current-buffer ombuff
-                        (setq __eemacs-msg-mode-line-msg-str__ nil)
-                        (force-mode-line-update t)
-                        (redisplay))
-                    (remove-hook 'pre-command-hook oprefunc)))))
-            (add-hook 'pre-command-hook oprefunc)
+              (lambda (&rest _)
+                (let ((inhibit-quit t)
+                      (redisplay-func
+                       (lambda nil
+                         (when-let ((buff (and (buffer-live-p ombuff) ombuff))
+                                    (inhibit-quit t))
+                           (with-current-buffer buff
+                             (setq __eemacs-msg-mode-line-msg-str__ nil)
+                             (force-mode-line-update t)
+                             (redisplay)))))
+                      (hook-remover-func
+                       (lambda nil
+                         (when-let ((buff (and (buffer-live-p ombuff) ombuff))
+                                    (inhibit-quit t))
+                           (with-current-buffer buff
+                             (remove-hook 'pre-command-hook oprefunc))))))
+                  (unwind-protect (funcall redisplay-func)
+                    (funcall hook-remover-func)))))
+            (add-hook 'pre-command-hook oprefunc nil t)
+            (add-hook 'pre-command-hook
+                      (entropy/emacs-setf-by-body oprefunc-idle
+                        (lambda (&rest _)
+                          (let ((inhibit-quit t))
+                            (unwind-protect
+                                (when-let ((buff (and (buffer-live-p ombuff) ombuff))
+                                           (inhibit-quit t))
+                                  (with-current-buffer buff
+                                    (unless (get-buffer-window buff)
+                                      (setq __eemacs-msg-mode-line-msg-str__ nil))))
+                              (remove-hook 'pre-command-hook oprefunc-idle))))))
             ;; NOTE: still need to keep consistency with original
             ;; `message's return value.
             (prog1 (let ((inhibit-message t)) (apply #'message format-string args))

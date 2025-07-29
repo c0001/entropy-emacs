@@ -376,7 +376,8 @@ cons of LANG-NAME and LANG-RECIPE, or nil that not found."
                  (eemacs/lang/macro/oref lang-ts-obj :id))))
       nil)))
 
-(defvar eemacs/lang/var//treesit-parser-install-ok-exists nil)
+(entropy/emacs-defconst/only-allow/local
+  eemacs/lang/var//treesit-parser-install-ok-exists nil)
 (cl-defmacro eemacs/lang/macro/with-make-recipe
     (name &rest slots &key with-this-as with-modes-assoc-plist &allow-other-keys)
   "Define a `eemacs/lang/class/recipe' use let bounded sets of interned
@@ -546,47 +547,66 @@ ASSOC-PLISTS is respected."
 
 ;; NOTE: metas of recipes can be grabbed from package `treesit-auto'.
 
-;; *** Clojure
-(eemacs/lang/macro/with-make-recipe "Clojure"
+;; *** Common Lisp
+
+(eemacs/lang/macro/with-make-recipe "Common Lisp"
   :with-modes-assoc-plist
-  '((:prog-modes
-     (clojure-mode
-      clojurescript-mode clojurec-mode
-      clojuredart-mode jank-mode joker-mode)
-     :treesit-modes clojure-ts-mode))
+  '((:prog-modes common-lisp-mode :treesist-modes commonlisp-ts-mode))
+  :core
   (eemacs/lang/macro/oset this/obj/core
-    :fnm-regexp "\\.cljc?s?d?\\'")
+    :fnm-regexp "\\.cl\\'")
   (eemacs/lang/macro/oset this/obj/modes
-    :list this/var/prog-modes
-    :probe
-    (eemacs/lang/macro/define-probe
-     :with-conds-pattern
-     `((function
-        .
-        ,(lambda nil
-           (when probe/var/buffer
-             (car-safe (memq (buffer-local-value 'major-mode probe/var/buffer)
-                             this/var/prog-modes)))))
-       (file-ext
-        ("clj"  :val clojure-mode)
-        ("cljc" :val clojurec-mode)
-        ("cljs" :val clojurescript-mode)
-        ("cljd" :val clojuredart-mode)
-        ("jank" :val jank-mode)
-        ("joke" :val joker-mode)))))
-  (eemacs/lang/macro/oset this/obj/ids :list "clojure")
+    :list this/var/prog-modes)
+  (eemacs/lang/macro/oset this/obj/ids
+    :list "commonlisp")
   (eemacs/lang/macro/oset this/obj/treesit
-    :id
-    (car-safe (oref this/obj/ids list))
-    :repo-url
-    "https://github.com/sogaiu/tree-sitter-clojure"
-    :modes
-    (eemacs/lang/class/modes
-     :list this/var/treesit-modes
-     :probe
-     (eemacs/lang/macro/define-probe
-      :with-conds-pattern
-      '((_ . clojure-ts-mode))))))
+    :id "commonlisp"
+    :repo-url "https://github.com/tree-sitter-grammars/tree-sitter-commonlisp"
+    :modes this/var/treesit-modes)
+  (eemacs/lang/macro/oset this/obj/subrecipes
+    :list
+    (list
+;; **** Clojure
+     (eemacs/lang/macro/with-make-recipe "Clojure"
+       :with-modes-assoc-plist
+       '((:prog-modes
+          (clojure-mode
+           clojurescript-mode clojurec-mode
+           clojuredart-mode jank-mode joker-mode)
+          :treesit-modes clojure-ts-mode))
+       (eemacs/lang/macro/oset this/obj/core
+         :fnm-regexp "\\.cljc?s?d?\\'")
+       (eemacs/lang/macro/oset this/obj/modes
+         :list this/var/prog-modes
+         :probe
+         (eemacs/lang/macro/define-probe
+          :with-conds-pattern
+          `((function
+             .
+             ,(lambda nil
+                (when probe/var/buffer
+                  (car-safe (memq (buffer-local-value 'major-mode probe/var/buffer)
+                                  this/var/prog-modes)))))
+            (file-ext
+             ("clj"  :val clojure-mode)
+             ("cljc" :val clojurec-mode)
+             ("cljs" :val clojurescript-mode)
+             ("cljd" :val clojuredart-mode)
+             ("jank" :val jank-mode)
+             ("joke" :val joker-mode)))))
+       (eemacs/lang/macro/oset this/obj/ids :list "clojure")
+       (eemacs/lang/macro/oset this/obj/treesit
+         :id
+         (car-safe (oref this/obj/ids list))
+         :repo-url
+         "https://github.com/sogaiu/tree-sitter-clojure"
+         :modes
+         (eemacs/lang/class/modes
+          :list this/var/treesit-modes
+          :probe
+          (eemacs/lang/macro/define-probe
+           :with-conds-pattern
+           '((_ . clojure-ts-mode)))))))))
 
 ;; *** Python
 
@@ -824,7 +844,25 @@ ASSOC-PLISTS is respected."
        (eemacs/lang/macro/oset this/obj/treesit
          :id "powershell"
          :repo-url "https://github.com/airbus-cert/tree-sitter-powershell"
-         :modes (eemacs/lang/class/modes :list this/var/treesit-modes))))))
+         :modes (eemacs/lang/class/modes :list this/var/treesit-modes)))
+
+;; **** AWK
+     (eemacs/lang/macro/with-make-recipe "AWK"
+       :with-modes-assoc-plist
+       '((:prog-modes awk-mode :treesist-modes awk-ts-mode))
+       :core
+       (eemacs/lang/macro/oset this/obj/core
+         :fnm-regexp "\\.awk\\'")
+       (eemacs/lang/macro/oset this/obj/modes
+         :list this/var/prog-modes)
+       (eemacs/lang/macro/oset this/obj/ids
+         :list "awk")
+       (eemacs/lang/macro/oset this/obj/treesit
+         :id "awk"
+         :repo-url "https://github.com/Beaglefoot/tree-sitter-awk"
+         :modes this/var/treesit-modes))
+
+     )))
 
 ;; *** C
 
@@ -970,7 +1008,42 @@ ASSOC-PLISTS is respected."
   (eemacs/lang/macro/oset this/obj/treesit
     :id "java"
     :repo-url "https://github.com/tree-sitter/tree-sitter-java"
-    :modes (eemacs/lang/class/modes :list this/var/treesit-modes)))
+    :modes (eemacs/lang/class/modes :list this/var/treesit-modes))
+  (eemacs/lang/macro/oset this/obj/subrecipes
+    :list
+    (list
+;; **** Kotlin
+     (eemacs/lang/macro/with-make-recipe "Kotlin"
+       :with-modes-assoc-plist
+       '((:prog-modes kotlin-mode :treesist-modes kotlin-ts-mode))
+       :core
+       (eemacs/lang/macro/oset this/obj/core
+         :fnm-regexp "\\.kts?\\'")
+       (eemacs/lang/macro/oset this/obj/modes
+         :list this/var/prog-modes)
+       (eemacs/lang/macro/oset this/obj/ids
+         :list "kotlin")
+       (eemacs/lang/macro/oset this/obj/treesit
+         :id "kotlin"
+         :repo-url "https://github.com/fwcd/tree-sitter-kotlin"
+         :modes this/var/treesit-modes))
+
+;; **** Dart
+     (eemacs/lang/macro/with-make-recipe "Dart"
+       :with-modes-assoc-plist
+       '((:prog-modes dart-mode :treesist-modes dart-ts-mode))
+       :core
+       (eemacs/lang/macro/oset this/obj/core
+         :fnm-regexp "\\.dart\\'")
+       (eemacs/lang/macro/oset this/obj/modes
+         :list this/var/prog-modes)
+       (eemacs/lang/macro/oset this/obj/ids
+         :list "dart")
+       (eemacs/lang/macro/oset this/obj/treesit
+         :id "dart"
+         :repo-url "https://github.com/ast-grep/tree-sitter-dart"
+         :modes this/var/treesit-modes))
+     )))
 
 ;; *** PHP
 (eemacs/lang/macro/with-make-recipe "PHP"
@@ -1031,6 +1104,22 @@ ASSOC-PLISTS is respected."
     :modes
     (eemacs/lang/class/modes :list this/var/treesit-modes)))
 
+;; *** Lua
+(eemacs/lang/macro/with-make-recipe "Lua"
+  :with-modes-assoc-plist
+  '((:prog-modes lua-mode :treesist-modes lua-ts-mode))
+  :core
+  (eemacs/lang/macro/oset this/obj/core
+    :fnm-regexp "\\.lua\\'")
+  (eemacs/lang/macro/oset this/obj/modes
+    :list this/var/prog-modes)
+  (eemacs/lang/macro/oset this/obj/ids
+    :list "lua")
+  (eemacs/lang/macro/oset this/obj/treesit
+    :id "lua"
+    :repo-url "https://github.com/tree-sitter-grammars/tree-sitter-lua"
+    :modes this/var/treesit-modes))
+
 ;; *** YAML
 (eemacs/lang/macro/with-make-recipe "YAML"
   :with-modes-assoc-plist
@@ -1061,6 +1150,110 @@ ASSOC-PLISTS is respected."
     :repo-url "https://github.com/tree-sitter/tree-sitter-toml"
     :modes
     (eemacs/lang/class/modes :list this/var/treesit-modes)))
+
+;; *** Dockerfile
+
+(eemacs/lang/macro/with-make-recipe "Dockerfile"
+  :with-modes-assoc-plist
+  '((:prog-modes dockerfile-mode :treesist-modes dockerfile-ts-mode))
+  :core
+  (eemacs/lang/macro/oset this/obj/core
+    :fnm-regexp "[/\\]\\(?:Containerfile\\|Dockerfile\\)\\(?:\\.[^/\\]*\\)?\\'")
+  (eemacs/lang/macro/oset this/obj/modes
+    :list this/var/prog-modes)
+  (eemacs/lang/macro/oset this/obj/ids
+    :list "dockerfile")
+  (eemacs/lang/macro/oset this/obj/treesit
+    :id "dockerfile"
+    :repo-url "https://github.com/camdencheek/tree-sitter-dockerfile"
+    :modes this/var/treesit-modes))
+
+;; *** SQL
+(eemacs/lang/macro/with-make-recipe "SQL"
+  :with-modes-assoc-plist
+  '((:prog-modes sql-mode :treesist-modes sql-ts-mode))
+  :core
+  (eemacs/lang/macro/oset this/obj/core
+    :fnm-regexp "\\.sql\\'")
+  (eemacs/lang/macro/oset this/obj/modes
+    :list this/var/prog-modes)
+  (eemacs/lang/macro/oset this/obj/ids
+    :list "sql")
+  (eemacs/lang/macro/oset this/obj/treesit
+    :id "sql"
+    :repo-url "https://github.com/DerekStride/tree-sitter-sql"
+    :repo-revision "gh-pages"
+    :modes this/var/treesit-modes))
+
+;; *** Org
+(eemacs/lang/macro/with-make-recipe "Org"
+  :with-modes-assoc-plist
+  '((:prog-modes org-mode :treesist-modes org-ts-mode))
+  :core
+  (eemacs/lang/macro/oset this/obj/core
+    :fnm-regexp "\\.org\\'")
+  (eemacs/lang/macro/oset this/obj/modes
+    :list this/var/prog-modes)
+  (eemacs/lang/macro/oset this/obj/ids
+    :list "org")
+  (eemacs/lang/macro/oset this/obj/treesit
+    :id "org"
+    :repo-url "https://github.com/milisims/tree-sitter-org"
+    :modes this/var/treesit-modes))
+
+;; *** LaTeX
+(eemacs/lang/macro/with-make-recipe "LaTeX"
+  :with-modes-assoc-plist
+  '((:prog-modes latex-mode :treesist-modes latex-ts-mode))
+  :core
+  (eemacs/lang/macro/oset this/obj/core
+    :fnm-regexp "\\.tex\\'")
+  (eemacs/lang/macro/oset this/obj/modes
+    :list this/var/prog-modes)
+  (eemacs/lang/macro/oset this/obj/ids
+    :list "latex")
+  (eemacs/lang/macro/oset this/obj/treesit
+    :id "latex"
+    ;; FIXME: current latex treesit soure does not include a parser.c
+    ;; in its src dir and no plan to do so, thus the compiling is
+    ;; always failed, see:
+    ;; https://github.com/latex-lsp/tree-sitter-latex/pull/168 &&
+    ;; https://github.com/latex-lsp/tree-sitter-latex/issues/172
+    :repo-url "https://github.com/latex-lsp/tree-sitter-latex"
+    :modes this/var/treesit-modes))
+
+;; *** Makefile
+(eemacs/lang/macro/with-make-recipe "Makefile"
+  :with-modes-assoc-plist
+  '((:prog-modes makefile-mode :treesist-modes makefile-ts-mode))
+  :core
+  (eemacs/lang/macro/oset this/obj/core
+    :fnm-regexp "\\([Mm]akefile\\|.*\\.\\(mk\\|make\\)\\)\\'")
+  (eemacs/lang/macro/oset this/obj/modes
+    :list this/var/prog-modes)
+  (eemacs/lang/macro/oset this/obj/ids
+    :list "makefile")
+  (eemacs/lang/macro/oset this/obj/treesit
+    :id "make"
+    :repo-url "https://github.com/tree-sitter-grammars/tree-sitter-make"
+    :modes this/var/treesit-modes))
+
+;; *** Markdown
+(eemacs/lang/macro/with-make-recipe "Markdown"
+  :with-modes-assoc-plist
+  '((:prog-modes (poly-markdown-mode markdown-mode) :treesist-modes markdown-ts-mode))
+  :core
+  (eemacs/lang/macro/oset this/obj/core
+    :fnm-regexp "\\.md\\'")
+  (eemacs/lang/macro/oset this/obj/modes
+    :list this/var/prog-modes)
+  (eemacs/lang/macro/oset this/obj/ids
+    :list "markdown")
+  (eemacs/lang/macro/oset this/obj/treesit
+    :id "markdown"
+    :repo-url "https://github.com/tree-sitter-grammars/tree-sitter-markdown"
+    :repo-src-dir "tree-sitter-markdown/src"
+    :modes this/var/treesit-modes))
 
 ;; * provide
 (provide 'entropy-emacs-lang)
