@@ -219,7 +219,8 @@ should be a list of elements, and a function defined via
    (subrecipes :initarg :subrecipes
                :type (or eemacs/lang/class/subrecipes
                          null)
-               :initform nil)))
+               :initform nil)
+   (parent  :initarg :parent :type (or null string))))
 
 (defvar eemacs/lang/var/recipe-alist nil)
 (defun eemacs/lang/func/get-recipe-modes (lang-recipe &optional type)
@@ -380,6 +381,8 @@ cons of LANG-NAME and LANG-RECIPE, or nil that not found."
 
 (entropy/emacs-defconst/only-allow/local
   eemacs/lang/var//treesit-parser-install-ok-exists nil)
+(entropy/emacs-defconst/only-allow/local
+  eemacs/lang/var//lang-recpe-parent nil)
 (cl-defmacro eemacs/lang/macro/with-make-recipe
     (name &rest slots &key with-this-as with-modes-assoc-plist &allow-other-keys)
   "Define a `eemacs/lang/class/recipe' use let bounded sets of interned
@@ -431,7 +434,8 @@ WITH-MODES-ASSOC-PLIST used as meaning as `eemacs/lang/assoc-plist/func/match'.
                (setq ,this/var/prog-modes (append ,this/var/prog-modes (ensure-list mds)))
                (setq ,this/var/ts-modes   (append ,this/var/ts-modes (ensure-list ts-mds))))
              (setq ,this/var/all-modes (append ,this/var/prog-modes ,this/var/ts-modes))))
-         (progn ,@body)
+         (oset ,this parent eemacs/lang/var//lang-recpe-parent)
+         (let ((eemacs/lang/var//lang-recpe-parent ,name)) ,@body)
          (if (assoc ,name eemacs/lang/var/recipe-alist 'string=)
              (setf (alist-get ,name eemacs/lang/var/recipe-alist
                               nil nil 'string=)
@@ -525,7 +529,10 @@ for dynamic libraries for this system, because `dynamic-library-suffixes' is nil
     (dolist (rec eemacs/lang/var/recipe-alist)
       (when-let ((func
                   (eemacs/lang/macro/oref (cdr rec)
-                    :treesit :installer)))
+                    :treesit :installer))
+                 ;; NOTE: no dups invocation since parent auto
+                 ;; recursively install subrecipes
+                 ((not (eemacs/lang/macro/oref (cdr rec) :parent))))
         (entropy/emacs-message-simple-progress-message
             (format "Install treesit parsers for lang %s" (car rec))
           (funcall func))))))
