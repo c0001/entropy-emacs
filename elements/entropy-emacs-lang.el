@@ -189,6 +189,8 @@ should be a list of elements, and a function defined via
    (modes         :initarg :modes
                   :type (or eemacs/lang/class//list-probe null)
                   :initform nil)
+   (installable   :initarg :installable :type (or null t)
+                  :initform t)
    (installer     :initarg :installer :type (or null (satisfies functionp))
                   :initform nil)))
 
@@ -441,10 +443,17 @@ WITH-MODES-ASSOC-PLIST used as meaning as `eemacs/lang/assoc-plist/func/match'.
               core-func)
            (entropy/emacs-setf-by-body core-func
              (lambda ()
-               (entropy/emacs-when-let*-firstn 3
+               (entropy/emacs-when-let*-firstn 4
                    ((trobj (oref ,this treesit))
-                    (id (eemacs/lang/macro/oref trobj id))
+                    (id (eemacs/lang/macro/oref trobj :id))
                     (ids (ensure-list id))
+                    ((or (eemacs/lang/macro/oref trobj :installable)
+                         (prog1 nil
+                           (display-warning
+                            'treesit
+                            (format "The treesit parser '%s' isn't installable \
+since its source currently not support eemacs auto installation mechanism! SKIP!!!"
+                                    id)))))
                     (libnames
                      (let (l (tmpvar ids)
                              (soext
@@ -1220,6 +1229,11 @@ ASSOC-PLISTS is respected."
     ;; https://github.com/latex-lsp/tree-sitter-latex/pull/168 &&
     ;; https://github.com/latex-lsp/tree-sitter-latex/issues/172
     :repo-url "https://github.com/latex-lsp/tree-sitter-latex"
+    :installable
+    ;; FIXME: due to above issue, the emacs-29 treesit.el internal
+    ;; installation mechanism does error instead of warning while such
+    ;; case failing occurred.
+    nil
     :modes this/var/treesit-modes))
 
 ;; *** Makefile
