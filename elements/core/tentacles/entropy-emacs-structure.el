@@ -619,7 +619,7 @@ recalc the specified head level specification.
               ;; NOTE: firstly we must fold to top-level since the
               ;; fully expanded children will not be fold while
               ;; `outline-show-branches'
-              (condition-case err
+              (condition-case-unless-debug err
                   (outline-hide-sublevels
                    ;; found the first head as the toplevel result since we
                    ;; can not cycle through abnormal head structure.
@@ -1300,6 +1300,9 @@ This function is an around advice for `outshine-mode'."
           ;; make it as the specified `comment-start'
           (setq-local entropy/emacs-structure--outline_local_spec_comment_start_str "//")
           (apply orig-func orig-args)))
+       ((memq major-mode (ensure-list (eemacs/lang/func/bof/modes (current-buffer) 'all)))
+        (when (bound-and-true-p outshine-mode)
+          (setq outshine-mode nil)))
        (t
         (apply orig-func orig-args)))))
 
