@@ -7454,7 +7454,8 @@ from."
                          (or (and (sequencep variable)
                                   (not (stringp variable)))
                              (cl-struct-p variable)
-                             (hash-table-p variable))
+                             (hash-table-p variable)
+                             (eieio-object-p variable))
                          (yes-or-no-p "Use vertical print style restriction?"))
                     (entropy/emacs-read-natural-number-string-until-matched
                      nil
