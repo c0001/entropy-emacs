@@ -957,14 +957,14 @@ otherwise uses the original procedure."
 cdr of a PLIST used to guide to print OBJECT in `standard-output'.
 
 The internal described type is one of belows:
-1. 'list'       : OBJECT is `listp'
-2. 'vector'     : OBJECT is `vectorp'
-3. 'cl-struct'  : OBJECT is `cl-struct-p'
-4. 'hash-table' : OBJECT is `hash-table-p'
-5. 'string'     : OBJECT is `stringp'
-6. 'number'     : OBJECT is `numberp'
-7. 'atom'       : OBJECT is `atom' used as fallback for any unspecified var
-                  type.
+1. 'list'         : OBJECT is `listp'
+2. 'vector'       : OBJECT is `vectorp'
+3. 'cl-struct'    : OBJECT is `cl-struct-p'
+4. 'eieio-object' : OBJECT is `eieio-object-p'
+5. 'hash-table'   : OBJECT is `hash-table-p'
+6. 'string'       : OBJECT is `stringp'
+7. 'number'       : OBJECT is `numberp'
+8. 'atom'         : OBJECT is `atom' used as fallback for any unspecified var type
 
 PLIST's valid keys are:
 1. ':print-func' : function calling with an optional argument i.e. a
