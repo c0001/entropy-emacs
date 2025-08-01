@@ -104,7 +104,7 @@ FILTER and PROBE are called without any arguments with `point' in
 
 If FILTER return non-nil, then POS is definitely not at that
 region. If PROBE return non-nil, then POS is definitely at that
-region.
+region. (FILTER takes priority than PROBE)
 
 If FILTER or PROBE is omitted or nil, they are always used as return
 nil." ,type-sym))
@@ -558,7 +558,8 @@ function called at POS without any arguments requested by invoking,
 and run with `entropy/emacs-save-excurstion-and-mark-and-match-data'.
 
 If FILTER return non-nil, then POS is definitely not at that CASE. If
-PROBE return non-nil, then POS is definitely at that CASE.
+PROBE return non-nil, then POS is definitely at that CASE. (FILTER takes
+priority than PROBE)
 
 If FILTER or PROBE is omitted or nil, they are always used as return
 nil. That is only internal syntactic pass mechanism will be used in

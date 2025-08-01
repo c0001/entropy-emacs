@@ -9350,6 +9350,10 @@ step WITH-STEP (defaults to 1) to the end (`eobp') or begin (`bobp')
 of WITH-BUFFER according to whether WITH-STEP is positive or not, or
 to the boundary at buffer position WITH-BOUND if it is set.
 
+EEMACS_MAINTENANCE: FIXME: > the WITH-BOUND data structure currently is
+preserving extensible possibility as a cons but futher should take it
+into a plist or more robust way.
+
 If WITH-BOUND is a cons, its car is used as the boundary position and
 the line WITH-BOUND at is also included to run MAP-FUNC, where
 defaulty MAP-FUNC is not invoked in this case.
