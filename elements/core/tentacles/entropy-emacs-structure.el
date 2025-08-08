@@ -1300,7 +1300,9 @@ This function is an around advice for `outshine-mode'."
           ;; make it as the specified `comment-start'
           (setq-local entropy/emacs-structure--outline_local_spec_comment_start_str "//")
           (apply orig-func orig-args)))
-       ((memq major-mode (ensure-list (eemacs/lang/func/bof/modes (current-buffer) 'all)))
+       ;; do not enable outshine in org-* like mode preventing from collision
+       ((or (derived-mode-p 'org-mode)
+            (memq major-mode '(org-mode org-ts-mode)))
         (when (bound-and-true-p outshine-mode)
           (setq outshine-mode nil)))
        (t
