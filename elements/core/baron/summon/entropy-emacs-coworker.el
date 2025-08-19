@@ -1149,6 +1149,17 @@ lsp-java-v3.1_jdtls_release/%s"))
    '("gopls")
    "golang.org/x/tools/gopls@latest"))
 
+;; **** autotool
+
+(defun entropy/emacs-coworker-check-autotool-lsp (&rest _)
+  (interactive)
+  (entropy/emacs-coworker--coworker-isolate-bins-install-by-pip
+   "autotool-lsp"
+   '("autotools-language-server"
+     "autoconf-language-server"
+     "make-language-server")
+   "autotools-language-server"))
+
 ;; *** exra tools
 ;; **** wsl-open
 (defun entropy/emacs-coworker-check-wsl-open (&rest _)
@@ -1224,6 +1235,9 @@ lsp-java-v3.1_jdtls_release/%s"))
                             :pred entropy/emacs-coworker-check-pyls-ms-lsp
                             :enable (EEMACS-DT-FORM
                                      (executable-find "dotnet")))
+                     (:name "autotools-lsp"
+                            :pred entropy/emacs-coworker-check-autotool-lsp
+                            :enable (EEMACS-DT-FORM t))
                      ))
         (entropy/emacs-message-non-popup nil))
     (entropy/emacs-with-coworker-host
