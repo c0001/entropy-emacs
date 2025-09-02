@@ -1120,5 +1120,26 @@ more."
     (advice-add fn :around
                 #'__adv/xclip-with-tmpdir-as-default-directory)))
 
+;; ** treesit
+
+(entropy/emacs--inner-use-package treesit
+  :eemacs-if (>= emacs-major-version 30)
+  :config
+  (setq-default
+   treesit-outline-predicate
+   (entropy/emacs-!cl-defun eemacs//default-treesit-outline-predicate (node)
+     "The default `treesit-outline-predicate' in eemacs.
+
+This function exists to implement more accurately
+`outline-search-function' for treesit variant `major-mode's other than
+using the emacs internal one i.e. `treesit-simple-imenu-settings' which
+is not too much suitable for eemacs outline integration."
+     (and (equal "comment" (treesit-node-type node))
+          (ignore-errors outline-regexp)
+          (entropy/emacs-save-excurstion-and-mark-and-match-data
+            (goto-char (pos-bol))
+            (re-search-forward outline-regexp (pos-eol) t))
+          t))))
+
 ;; * provide
 (provide 'entropy-emacs-utils)
