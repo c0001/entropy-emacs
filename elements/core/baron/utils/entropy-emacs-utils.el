@@ -1124,6 +1124,9 @@ more."
 
 (entropy/emacs--inner-use-package treesit
   :eemacs-if (>= emacs-major-version 30)
+  :ensure nil
+  :defines (outline-regexp
+            outline-search-function)
   :config
   (setq-default
    treesit-outline-predicate
@@ -1135,11 +1138,29 @@ This function exists to implement more accurately
 using the emacs internal one i.e. `treesit-simple-imenu-settings' which
 is not too much suitable for eemacs outline integration."
      (and (equal "comment" (treesit-node-type node))
-          (ignore-errors outline-regexp)
           (entropy/emacs-save-excurstion-and-mark-and-match-data
             (goto-char (pos-bol))
             (re-search-forward outline-regexp (pos-eol) t))
-          t))))
+          t)))
+  (define-advice outline-next-visible-heading
+      (:around (ofunc &rest oargs)
+               eemacs//treesit-outline-next-visible-heading)
+    "EEMACS_TEMPORALLY_HACK: Temporarily disable `outline-search-function' of
+treesit variants mode for hacking its infinitely looping searching next
+outline heads start at a invisible heading line"
+    (if
+        (and (eemacs/lang/func/bof/treesit-id (current-buffer))
+             (or
+              (entropy/emacs-save-excurstion-and-mark-and-match-data
+                (goto-char (pos-bol))
+                (not (looking-at-p outline-regexp)))
+              (entropy/emacs-save-excurstion-and-mark-and-match-data
+                (goto-char (pos-eol))
+                (outline-invisible-p))))
+        (let ((outline-search-function nil))
+          (apply ofunc oargs))
+      (apply ofunc oargs)))
+  )
 
 ;; * provide
 (provide 'entropy-emacs-utils)
