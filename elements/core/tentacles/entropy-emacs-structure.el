@@ -745,7 +745,7 @@ call `outshine-imenu' instead."
            conf-xdefaults-mode
            makefile-mode))
         hooknm)
-    (dolist (m (append omodes mmodes))
+    (dolist (m (delete-dups (append omodes mmodes)))
       (setq hooknm (intern (concat (symbol-name m) "-hook")))
       (add-hook hooknm 'outshine-mode)))
 
@@ -1300,11 +1300,6 @@ This function is an around advice for `outshine-mode'."
           ;; make it as the specified `comment-start'
           (setq-local entropy/emacs-structure--outline_local_spec_comment_start_str "//")
           (apply orig-func orig-args)))
-       ;; do not enable outshine in org-* like mode preventing from collision
-       ((or (derived-mode-p 'org-mode)
-            (memq major-mode '(org-mode org-ts-mode)))
-        (when (bound-and-true-p outshine-mode)
-          (setq outshine-mode nil)))
        (t
         (apply orig-func orig-args)))))
 
