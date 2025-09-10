@@ -321,7 +321,12 @@ Otherwise, it displays the message like `message' would."
     (if (or (bound-and-true-p edebug-mode) (minibufferp)
             (eq (cdr-safe __eemacs-msg-use-modeline-p__) 'force))
         (let ((inhibit-quit t)
-              omwin ombuff omfmt oprefunc oprefunc-idle)
+              omwin ombuff omfmt oprefunc oprefunc-idle
+              (disable-msg-func
+               (lambda nil
+                 (setq __eemacs-msg-mode-line-msg-str__ nil)
+                 (force-mode-line-update t)
+                 (redisplay))))
           (ignore omwin ombuff omfmt oprefunc)
           (with-current-buffer
               (setq ombuff
@@ -359,15 +364,13 @@ Otherwise, it displays the message like `message' would."
                          (when-let ((buff (and (buffer-live-p ombuff) ombuff))
                                     (inhibit-quit t))
                            (with-current-buffer buff
-                             (setq __eemacs-msg-mode-line-msg-str__ nil)
-                             (force-mode-line-update t)
-                             (redisplay)))))
+                             (funcall disable-msg-func)))))
                       (hook-remover-func
                        (lambda nil
                          (when-let ((buff (and (buffer-live-p ombuff) ombuff))
                                     (inhibit-quit t))
                            (with-current-buffer buff
-                             (remove-hook 'pre-command-hook oprefunc))))))
+                             (remove-hook 'pre-command-hook oprefunc t))))))
                   (unwind-protect (funcall redisplay-func)
                     (funcall hook-remover-func)))))
             (add-hook 'pre-command-hook oprefunc nil t)
@@ -376,11 +379,16 @@ Otherwise, it displays the message like `message' would."
                         (lambda (&rest _)
                           (let ((inhibit-quit t))
                             (unwind-protect
-                                (when-let ((buff (and (buffer-live-p ombuff) ombuff))
-                                           (inhibit-quit t))
-                                  (with-current-buffer buff
-                                    (unless (get-buffer-window buff)
-                                      (setq __eemacs-msg-mode-line-msg-str__ nil))))
+                                (when-let* ((buff (and (buffer-live-p ombuff) ombuff))
+                                            (inhibit-quit t)
+                                            (idle-func
+                                             (lambda nil
+                                               (with-current-buffer buff
+                                                 (funcall disable-msg-func)))))
+                                  (unless (eq (current-buffer) buff)
+                                    (funcall idle-func)
+                                    (with-current-buffer buff
+                                      (remove-hook 'pre-command-hook oprefunc t))))
                               (remove-hook 'pre-command-hook oprefunc-idle))))))
             ;; NOTE: still need to keep consistency with original
             ;; `message's return value.
