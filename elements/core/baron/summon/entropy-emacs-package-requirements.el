@@ -129,7 +129,6 @@
     diminish
     dired-hacks-utils
     dired-quick-sort
-    dired-rainbow
     dired-subtree
     diredfl
     disable-mouse

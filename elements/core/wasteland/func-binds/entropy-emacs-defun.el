@@ -10196,6 +10196,39 @@ Optional DIGITS-PER-COMPONENT has same meaning as it be for
 
 ;; *** Face manipulation
 
+(defmacro entropy/emacs-face-simple-define (name face-props)
+  "Return face specification according to FACE-PROPS.
+
+FACE-PROPS is a foreground color string, a face symbol to inherit or a
+item used in `defface' as its face-spec's attr e.g.
+(:foreground \"green\" :background \"yellow\").
+
+NAME is the face name major spec for which formatted with this lib's
+inner format spec, it's either a string or a symbol.
+
+Return the defined face name symbol."
+  (macroexp-let2* ignore
+      ((name name) (oname name) (face-props face-props) (face-spec nil))
+    `(let ((,name (entropy/emacs-make-new-interned-symbol
+                   (format "eemacs//face-simple-of/%s" ,name))))
+       (setq ,face-spec
+             (cond
+              ((stringp ,face-props)
+               (list :foreground ,face-props))
+              ((symbolp ,face-props)
+               (list :inherit ,face-props))
+              (t ,face-props)))
+       (eval
+        `(defface ,,name (list (list t ',,face-spec))
+           (format "\
+Face defined via `entropy/emacs-face-simple-define' for name `%s' with
+props of:
+
+%s"
+                   ',,oname ',,face-spec)
+           :group 'face))
+       ,name)))
+
 (defun entropy/emacs-ambiguous-face-attribtue
     (face attribute &optional frame inherit)
   "Like `face-attribute' but also support an ambiguous FACE type
@@ -10351,6 +10384,59 @@ the color inherited as what `face-attribute' did."
       (entropy/emacs-set-face-attribute
        face1 face1-frame
        :background new-c-hex))))
+
+;; *** font-lock manipulation
+
+(defvar eemacs//font-lock-keywords-cache nil)
+(defun entropy/emacs-font-lock-refresh-mode (mode)
+  "Refresh `font-lock-keywords' for all buffers in `major-mode' of MODE."
+  (when (bound-and-true-p entropy/emacs-early-init-done)
+    (dolist (buff (buffer-list))
+      (with-current-buffer buff
+        (when (eq major-mode mode)
+          (font-lock-refresh-defaults))))))
+(defun entropy/emacs-font-lock-add-keywords (name-sym mode keywords &optional how)
+  "Like `font-lock-add-keywords' but give each KEYWORDS a flag symbol
+NAME-SYMBOL with its MODE so that we can easily remove it use
+`entropy/emacs-font-lock-remove-keywords'. Additionally the injection
+did by uniquely via `equal'. Return nil."
+  (let (name-match mode-match mode-match-item-exist-p)
+    (if (setq name-match (alist-get name-sym eemacs//font-lock-keywords-cache))
+        (if (setq mode-match (alist-get mode name-match))
+            (unless (setq mode-match-item-exist-p (member keywords mode-match))
+              (setf mode-match (append mode-match (list keywords))))
+          (setf name-match (append name-match (list (list mode keywords)))))
+      (add-to-list 'eemacs//font-lock-keywords-cache
+                   (list name-sym (list mode keywords))))
+    (unless mode-match-item-exist-p
+      (font-lock-add-keywords mode keywords how)
+      (entropy/emacs-font-lock-refresh-mode mode))
+    nil))
+
+(defun entropy/emacs-font-lock-remove-keywords (name-sym mode &optional keywords)
+  "Like `font-lock-remove-keywords', but used with
+`entropy/emacs-font-lock-add-keywords'.
+
+If KEYWORDS is not specified, remove all keywords under MODE for which
+named as NAME-SYM."
+  (let ((cache (copy-tree eemacs//font-lock-keywords-cache))
+        should-flush-p)
+    (when-let ((name-match (alist-get name-sym cache)))
+      (when-let ((mode-match (alist-get mode name-match)))
+        (if keywords
+            (progn
+              (setf mode-match (delete keywords mode-match)
+                    should-flush-p t)
+              (font-lock-remove-keywords mode keywords))
+          (if-let ((nmm (delete (assoc mode name-match) name-match)))
+              (setf name-match nmm)
+            (setq cache (delete (assoc name-sym cache) cache)))
+          (dolist (kwds mode-match)
+            (setq should-flush-p t)
+            (font-lock-remove-keywords mode kwds)))))
+    (and should-flush-p (entropy/emacs-font-lock-refresh-mode mode))
+    (setq eemacs//font-lock-keywords-cache cache)
+    nil))
 
 ;; *** Theme manipulation
 

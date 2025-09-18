@@ -1793,6 +1793,21 @@ use the emulated result or use the `window-width'."
 
 ;; ** dired refer
 
+;; EEMACS_MAINTENANCE: grabbed from `dired-hacks-datetime-regexp' in
+;; `dired-hacks-utils' package.
+(defvar entropy/emacs-dired-datetime-regexp
+  "\\sw\\sw\\sw....\\(?:[0-9][0-9]:[0-9][0-9]\\|.[0-9]\\{4\\}\\)"
+  "A regexp matching the date/time in the dired listing.
+
+It is used to determine where the filename starts.  It should
+*not* match any characters after the last character of the
+timestamp.  It is assumed that the timestamp is preceded and
+followed by at least one space character.  You should only use
+shy groups (prefixed with ?:) because the first group is used by
+the font-lock to determine what portion of the name should be
+colored."
+  )
+
 ;; *** `dired-goto-file' extending
 (defvar entropy/emacs-dired-goto-file-extend-processors nil
   "Extra processors applied for `dired-goto-file' when its return

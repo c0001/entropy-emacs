@@ -1945,61 +1945,84 @@ TODO:
 
 ;; **** Use coloful dired ls
 
-(use-package dired-rainbow
-  :eemacs-adrequire
-  ((:enable t :adfors (dired-mode-hook) :adtype hook :pdumper-no-end t))
-  :commands (dired-rainbow-define-chmod)
-  :config
-  (progn
-    (dired-rainbow-define dotfiles "gray" "\\..*")
-    (dired-rainbow-define
-     web "#4e9a06"
-     ("htm" "html" "xhtml" "xml" "xaml" "css" "js"
-      "json" "asp" "aspx" "haml" "php" "jsp" "ts"
-      "coffee" "scss" "less" "phtml"))
-    (dired-rainbow-define
-     prog "yellow3"
-     ("el" "l" "ml" "py" "rb" "pl" "pm" "c"
-      "cpp" "cxx" "c++" "h" "hpp" "hxx" "h++"
-      "m" "cs" "mk" "make" "swift" "go" "java"
-      "asm" "robot" "yml" "yaml" "rake" "lua"))
-    (dired-rainbow-define
-     sh "green yellow"
-     ("sh" "bash" "zsh" "fish" "csh" "ksh"
-      "awk" "ps1" "psm1" "psd1" "bat" "cmd"))
-    (dired-rainbow-define
-     text "yellow green"
-     ("txt" "md" "org" "ini" "conf" "rc"
-      "vim" "vimrc" "exrc"))
-    (dired-rainbow-define
-     doc "spring green"
-     ("doc" "docx" "ppt" "pptx" "xls" "xlsx"
-      "csv" "rtf" "wps" "pdf" "texi" "tex"
-      "odt" "ott" "odp" "otp" "ods" "ots"
-      "odg" "otg"))
-    (dired-rainbow-define
-     misc "gray50"
-     ("DS_Store" "projectile" "cache" "elc"
-      "dat" "meta"))
-    (dired-rainbow-define
-     media "#ce5c00"
-     ("mp3" "mp4" "MP3" "MP4" "wav" "wma"
-      "wmv" "mov" "3gp" "avi" "mpg" "mkv"
-      "flv" "ogg" "rm" "rmvb"))
-    (dired-rainbow-define
-     picture "purple3"
-     ("bmp" "jpg" "jpeg" "gif" "png" "tiff"
-      "ico" "svg" "psd" "pcd" "raw" "exif"
-      "BMP" "JPG" "PNG"))
-    (dired-rainbow-define
-     archive "saddle brown"
-     ("zip" "tar" "gz" "tgz" "7z" "rar"
-      "gzip" "xz" "001" "ace" "bz2" "lz"
-      "lzma" "bzip2" "cab" "jar" "iso"))
-    ;; boring regexp due to lack of imagination
-    (dired-rainbow-define log (:inherit default :italic t) ".*\\.log")))
 
-(use-package diredfl
+(defmacro eemacs//dired-rainbow-define (flag face-props exts &optional how)
+  (macroexp-let2* ignore
+      ((flag flag)
+       (feat-flag
+        `(intern (format "eemacs//dired-raibow-fontlock-keywords-flag/%s"
+                         ,flag)))
+       (face-props face-props) (exts exts) (how how)
+       (regexp `(concat
+                 "^[^!].[^d].*[ ]"
+                 entropy/emacs-dired-datetime-regexp
+                 "[ ]\\("
+                 (if (listp ,exts)
+                     (concat ".*\\." (regexp-opt ,exts))
+                   ,exts)
+                 "\\)$"))
+       (face-sym
+        `(entropy/emacs-face-simple-define
+          (format "dired-rainbow-%s" ,flag) ,face-props)))
+    `(let ((fcsym ,face-sym))
+       (dolist (el '(dired-mode wdired-mode))
+         (entropy/emacs-font-lock-remove-keywords ,feat-flag el)
+         (entropy/emacs-font-lock-add-keywords
+          ,feat-flag el
+          (list (list ,regexp 1 `(quote ,fcsym) 'prepend))
+          ,how)))))
+(entropy/emacs-lazy-load-simple 'dired
+  (eemacs//dired-rainbow-define 'dotfiles "gray" "\\..*")
+  (eemacs//dired-rainbow-define
+   'web "#4e9a06"
+   '("htm" "html" "xhtml" "xml" "xaml" "css" "js"
+     "json" "asp" "aspx" "haml" "php" "jsp" "ts"
+     "coffee" "scss" "less" "phtml"))
+  (eemacs//dired-rainbow-define
+   'prog "yellow3"
+   '("el" "l" "ml" "py" "rb" "pl" "pm" "c"
+     "cpp" "cxx" "c++" "h" "hpp" "hxx" "h++"
+     "m" "cs" "mk" "make" "swift" "go" "rs" "java"
+     "asm" "robot" "yml" "yaml" "toml" "rake" "lua"
+     "nix"))
+  (eemacs//dired-rainbow-define
+   'sh "green yellow"
+   '("sh" "bash" "zsh" "fish" "csh" "ksh"
+     "awk" "ps1" "psm1" "psd1" "bat" "cmd"))
+  (eemacs//dired-rainbow-define
+   'text "yellow green"
+   '("txt" "md" "org" "ini" "conf" "rc"
+     "vim" "vimrc" "exrc"))
+  (eemacs//dired-rainbow-define
+   'doc "spring green"
+   '("doc" "docx" "ppt" "pptx" "xls" "xlsx"
+     "csv" "rtf" "wps" "pdf" "texi" "tex"
+     "odt" "ott" "odp" "otp" "ods" "ots"
+     "odg" "otg"))
+  (eemacs//dired-rainbow-define
+   'misc "gray50"
+   '("DS_Store" "projectile" "cache" "elc"
+     "dat" "meta"))
+  (eemacs//dired-rainbow-define
+   'media "#ce5c00"
+   '("mp3" "mp4" "MP3" "MP4" "wav" "wma"
+     "wmv" "mov" "3gp" "avi" "mpg" "mkv"
+     "flv" "ogg" "rm" "rmvb"))
+  (eemacs//dired-rainbow-define
+   'picture "purple3"
+   '("bmp" "jpg" "jpeg" "gif" "png" "avif" "tiff"
+     "ico" "svg" "psd" "pcd" "raw" "exif"
+     "BMP" "JPG" "PNG"))
+  (eemacs//dired-rainbow-define
+   'archive "saddle brown"
+   '("zip" "tar" "gz" "tgz" "7z" "rar"
+     "gzip" "xz" "001" "ace" "bz2" "lz"
+     "lzma" "bzip2" "cab" "jar" "iso"))
+  ;; boring regexp due to lack of imagination
+  (eemacs//dired-rainbow-define
+   'log '(:inherit default :italic t) ".*\\.log"))
+
+(entropy/emacs--inner-use-package diredfl
   :commands (diredfl-global-mode)
   :eemacs-adrequire
   ((:enable t :adfors (dired-mode-hook) :adtype hook :pdumper-no-end t))
@@ -2251,6 +2274,13 @@ which is hardcoded in the ORIGIN-FUNC.
               :around
               #'__ya/dired-subtree--dired-line-is-directory-or-link-p)
 
+  (defun eemacs//dired-subtree-depth-face (depth)
+    (intern (format "dired-subtree-depth-%d-face"
+                    ;; since the most depth level has
+                    ;; faced via `dired-subtree' is
+                    ;; 6.
+                    (let ((rtn (mod depth 6))) (if (= rtn 0) 1 rtn)))))
+
   (defun __ya/dired-subtree-insert-1 (dir-name &rest _args)
     (when (and (dired-subtree--dired-line-is-directory-or-link-p)
                (not (dired-subtree--is-expanded-p)))
@@ -2282,7 +2312,7 @@ which is hardcoded in the ORIGIN-FUNC.
                (parent (dired-subtree--get-ov (1- beg)))
                (depth (or (and parent (1+ (overlay-get parent 'dired-subtree-depth)))
                           1))
-               (face (intern (format "dired-subtree-depth-%d-face" depth))))
+               (face (eemacs//dired-subtree-depth-face depth)))
           (when dired-subtree-use-backgrounds
             (overlay-put ov 'face face))
           ;; refactor this to some function
@@ -2308,7 +2338,7 @@ which is hardcoded in the ORIGIN-FUNC.
                                        (--map
                                         (propertize dired-subtree-line-prefix
                                                     'face
-                                                    (intern (format "dired-subtree-depth-%d-face" it)))
+                                                    (eemacs//dired-subtree-depth-face it))
                                         (number-sequence 1 (1- depth))))))))
                          (funcall dired-subtree-line-prefix depth)))
           (overlay-put ov 'dired-subtree-name dir-name)
