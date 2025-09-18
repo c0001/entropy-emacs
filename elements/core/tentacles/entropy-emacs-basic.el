@@ -2010,9 +2010,12 @@ TODO:
      "flv" "ogg" "rm" "rmvb"))
   (eemacs//dired-rainbow-define
    'picture "purple3"
-   '("bmp" "jpg" "jpeg" "gif" "png" "avif" "tiff"
+   '("bmp" "jpg" "jpeg" "gif" "png" "tiff"
      "ico" "svg" "psd" "pcd" "raw" "exif"
      "BMP" "JPG" "PNG"))
+  (eemacs//dired-rainbow-define
+   'picture-highly-compressed "goldenrod"
+   '("avif" "webp"))
   (eemacs//dired-rainbow-define
    'archive "saddle brown"
    '("zip" "tar" "gz" "tgz" "7z" "rar"
