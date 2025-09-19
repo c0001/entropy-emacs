@@ -47,7 +47,7 @@ permission-denied path properly."
 
   (defun eemacs//project-find-file-hook nil
     "Remember current project with project.el if it is a project."
-    (when-let ((prj (project-current)))
+    (when-let* ((prj (project-current)))
       (run-with-idle-timer
        0.2 nil
        (lambda nil
@@ -116,8 +116,8 @@ permission-denied path properly."
        :enable t :exit t :eemacs-top-bind t))
      "Project Powerful Search"
      (("C-c p s a"
-       (if-let ((hh (entropy/emacs-hydra-hollow-category-common-individual-get-caller
-                     'powerful-searcher)))
+       (if-let* ((hh (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+                      'powerful-searcher)))
            (call-interactively hh)
          (user-error "powerful searcher facilities not found yet."))
        "Search the current project with eemacs powerful searcher"

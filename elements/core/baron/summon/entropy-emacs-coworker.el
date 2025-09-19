@@ -910,7 +910,7 @@ EXIT /b
         (entropy/emacs-coworker--coworker-alist-judge
          (list (cons 'file (list "rust-analyzer"))))
       (entropy/emacs-coworker--coworker-message-existed "rust-analyzer")
-      (cl-return))
+      (cl-return-from entropy/emacs-coworker-check-rust-analyzer nil))
     (entropy/emacs-setf-by-body status
       (entropy/emacs-coworker--coworker-install-by-archive-get
        "rust-analyzer"

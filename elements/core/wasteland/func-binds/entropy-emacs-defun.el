@@ -1348,9 +1348,9 @@ mapping."
         (modi-sym (make-symbol "use-modify"))
         (body-rtn-sym (make-symbol "body-rtn"))
         (body (entropy/emacs-defun--get-real-body body)))
-    `(when-let ((,(if body t))
-                (,rest-sym ,list)
-                ((consp ,rest-sym)))
+    `(when-let* ((,(if body t))
+                 (,rest-sym ,list)
+                 ((consp ,rest-sym)))
        (let ((,exit-sym ,with-exit)
              (,body-rtn-sym nil)
              (,modi-sym ,with-modify-it)
@@ -1383,9 +1383,9 @@ macro to use it instead of `it' as what bind for."
         (exit-sym (make-symbol "exit"))
         (body-rtn-sym (make-symbol "body-rtn"))
         (body (entropy/emacs-defun--get-real-body body)))
-    `(when-let ((,(if body t))
-                (,rest-sym ,list)
-                ((consp ,rest-sym)))
+    `(when-let* ((,(if body t))
+                 (,rest-sym ,list)
+                 ((consp ,rest-sym)))
        (let ((,exit-sym ,with-exit)
              (,body-rtn-sym nil)
              ;; exposed internal let binding
@@ -3365,7 +3365,7 @@ TEST (`equal' as default)."
   (entropy/emacs--with-ring-p-check ring
     :with-error t
     (unless (ring-empty-p ring)
-      (when-let ((idx (entropy/emacs-ring-member ring item test)))
+      (when-let* ((idx (entropy/emacs-ring-member ring item test)))
         (ring-remove ring idx)))))
 
 (defun entropy/emacs-ring-remove-all (ring item &optional test)
@@ -8357,7 +8357,7 @@ Value is nil if it isn't thus.
 This function exists since many package user buffer name as *buffer*
 argument to its apis but they often confuse ended usages in invocation
 with `buffer-live-p' which always return nil for such case."
-  (when-let ((object))
+  (when-let* ((object))
     (if (bufferp object) (buffer-live-p object)
       (and (stringp object)
            (setq object (get-buffer object))
@@ -10421,14 +10421,14 @@ If KEYWORDS is not specified, remove all keywords under MODE for which
 named as NAME-SYM."
   (let ((cache (copy-tree eemacs//font-lock-keywords-cache))
         should-flush-p)
-    (when-let ((name-match (alist-get name-sym cache)))
-      (when-let ((mode-match (alist-get mode name-match)))
+    (when-let* ((name-match (alist-get name-sym cache)))
+      (when-let* ((mode-match (alist-get mode name-match)))
         (if keywords
             (progn
               (setf mode-match (delete keywords mode-match)
                     should-flush-p t)
               (font-lock-remove-keywords mode keywords))
-          (if-let ((nmm (delete (assoc mode name-match) name-match)))
+          (if-let* ((nmm (delete (assoc mode name-match) name-match)))
               (setf name-match nmm)
             (setq cache (delete (assoc name-sym cache) cache)))
           (dolist (kwds mode-match)
@@ -10924,10 +10924,10 @@ nil without any modifications for KEYMAP.
 
 KEY of KEYs should satisfy same argument of `define-key', either
 for KEYMAP."
-  (when-let ((key1-def (lookup-key keymap key1))
-             ((not (numberp key1-def)))
-             (key2-def (lookup-key keymap key2))
-             ((not (numberp key2-def))))
+  (when-let* ((key1-def (lookup-key keymap key1))
+              ((not (numberp key1-def)))
+              (key2-def (lookup-key keymap key2))
+              ((not (numberp key2-def))))
     (define-key keymap key1 key2-def)
     (define-key keymap key2 key1-def) t))
 
@@ -10936,7 +10936,7 @@ for KEYMAP."
 defination of key BY-KEY in KEYMAP. Return t if BY-KEY has valid
 defination can be used for, or nil without any modifications of
 KEYMAP."
-  (when-let
+  (when-let*
       ((keydef (lookup-key keymap by-key)))
     (dolist (key keys)
       (define-key keymap key keydef)) t))
@@ -11241,7 +11241,7 @@ window use origin buffer `%S'"
         (entropy/emacs-local-set-key
          (kbd "q")
          (lambda () (interactive)
-           (if-let (((not (buffer-live-p buff))))
+           (if-let* (((not (buffer-live-p buff))))
                (user-error "Exhausted buffer is not existed any more: %s"
                            new-buffname)
              (when-let* (((not (one-window-p)))
@@ -11883,16 +11883,6 @@ operation or nil indicate no idle exists for."
            entropy/emacs-auto-completion-use-backend-as))))
 
 ;; *** Misc.
-
-(defun entropy/emacs-maybe-redisplay ()
-  "Like `redisplay' but for eemacs maintaining only.
-
-The return is undefined."
-  (if (bound-and-true-p sys/is-built-with-pgtk-p)
-      ;; FIXME: pgtk's redisplay lags of visual feeling against with
-      ;; x11, thus this func designed to use tiny sleep to give
-      ;; wayland window system more obviously visual feedback.
-      (sleep-for 0.0000000001)))
 
 ;; ** System utils integration
 
@@ -13010,6 +13000,8 @@ eemacs context."
         (entropy/emacs--set-user-package-dir-common "29.1"))
        ((= emacs-major-version 30)
         (entropy/emacs--set-user-package-dir-common "30.1"))
+       ((= emacs-major-version 31)
+        (entropy/emacs--set-user-package-dir-common "31.1"))
        (t (error "Unsupport emacs version '%s'" emacs-version))))
     (when (memq entropy/emacs-ext-elpkg-get-type
                 '(entropy-emacs-extenisons-project
@@ -13809,8 +13801,8 @@ when the last event contet doesn't change, this useful to prevent
 yanking an obsolete entry from `kill-ring' when the emacs
 internal cut operation has updated the kill-ring but
 `xterm-paste' will still yank the previouse event content."
-  (when-let (((eq (car-safe event) 'xterm-paste))
-             (paste-str (nth 1 event)))
+  (when-let* (((eq (car-safe event) 'xterm-paste))
+              (paste-str (nth 1 event)))
     (with-temp-buffer
       (unless (string= paste-str
                        entropy/emacs--xterm-clipboard-head)
@@ -13988,8 +13980,8 @@ WHEN-DIFF WHEN-MAIN WITH-LEXICAL-BINDINGS &rest BODY)"
           new-args-parse (progn (plist-put args-parse :body-plist inc-pl)
                                 (plist-put args-parse :body new-body))
           new-args (entropy/emacs-merge-lambda-args new-args-parse))
-    `(when-let (((daemonp))
-                (,func-name-sym (intern (format "%s-for-emacs-daemon" ,name))))
+    `(when-let* (((daemonp))
+                 (,func-name-sym (intern (format "%s-for-emacs-daemon" ,name))))
        (entropy/emacs-add-hook-with-lambda ,func-name-sym ,@new-args))))
 
 (when (daemonp)

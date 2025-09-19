@@ -938,16 +938,16 @@ This function sets the buffer-local or global value of `bongo-next-action'."
               (if (> title-width 0) (min title-width (string-width str))
                 (string-width str))
               nil nil elp)))
-         (when-let (((and bongo-display-track-lengths bongo-length
-                          (bongo-playlist-buffer-p bongo-target))))
+         (when-let* (((and bongo-display-track-lengths bongo-length
+                           (bongo-playlist-buffer-p bongo-target))))
            (concat
-            (when-let (((> title-width 0))
-                       (lw (+
-                            ;; fine tune padding
-                            20
-                            ;; current SPC char
-                            1
-                            title-width)))
+            (when-let* (((> title-width 0))
+                        (lw (+
+                             ;; fine tune padding
+                             20
+                             ;; current SPC char
+                             1
+                             title-width)))
               (if (fboundp 'string-pixel-width)
                   (propertize
                    " "

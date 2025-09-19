@@ -361,14 +361,14 @@ Otherwise, it displays the message like `message' would."
                 (let ((inhibit-quit t)
                       (redisplay-func
                        (lambda nil
-                         (when-let ((buff (and (buffer-live-p ombuff) ombuff))
-                                    (inhibit-quit t))
+                         (when-let* ((buff (and (buffer-live-p ombuff) ombuff))
+                                     (inhibit-quit t))
                            (with-current-buffer buff
                              (funcall disable-msg-func)))))
                       (hook-remover-func
                        (lambda nil
-                         (when-let ((buff (and (buffer-live-p ombuff) ombuff))
-                                    (inhibit-quit t))
+                         (when-let* ((buff (and (buffer-live-p ombuff) ombuff))
+                                     (inhibit-quit t))
                            (with-current-buffer buff
                              (remove-hook 'pre-command-hook oprefunc t))))))
                   (unwind-protect (funcall redisplay-func)

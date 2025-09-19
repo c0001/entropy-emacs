@@ -123,8 +123,8 @@ In PRJ-FILTER-MODE With prefix \\[universal-argument], show
               (list
                "^ *\\*"    ;special buffers
                (lambda nil
-                 (if-let ((prj (or __entropy/emacs-ibuffer-current-project
-                                   __entropy/emacs-ibuffer-current-project/pml)))
+                 (if-let* ((prj (or __entropy/emacs-ibuffer-current-project
+                                    __entropy/emacs-ibuffer-current-project/pml)))
                      (not (equal prj (project-current nil (eemacs//default-directory buff))))
                    (when (or __entropy/emacs-ibuffer-current-use-project-stype-p
                              __entropy/emacs-ibuffer-current-use-project-stype-p/pml)

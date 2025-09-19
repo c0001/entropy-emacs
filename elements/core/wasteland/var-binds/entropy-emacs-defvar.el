@@ -1144,7 +1144,7 @@ It is a string used for `kbd'.")
                 :save-excursion (plist-get pval :save-excursion)
                 (let ((precond (plist-get pval :precond)))
                   (when (if precond (funcall precond) t)
-                    (when-let ((prf (plist-get pval :before)))
+                    (when-let* ((prf (plist-get pval :before)))
                       (funcall prf))
                     (prog1
                         (let ((rval (apply rtn args)) (rvalguard (plist-get pval :valguard)))
@@ -1153,7 +1153,7 @@ It is a string used for `kbd'.")
                               (error "[eemacs-outline-op-err: %s]: return value '%s' is invalid"
                                      type rval))
                             rval))
-                      (when-let ((atf (plist-get pval :after)))
+                      (when-let* ((atf (plist-get pval :after)))
                         (funcall atf))))))))
         (entropy/emacs-!error-as-eemacs-internal-error
          "can not get type op: %s" type))))
@@ -1688,7 +1688,7 @@ indicate the false meaning."
                   (win-live-p (and (windowp win)
                                    (window-live-p win)))
                   (buff-buff (get-buffer buffer-or-name))
-                  (buff-name (when-let ((buff (get-buffer buffer-or-name)))
+                  (buff-name (when-let* ((buff (get-buffer buffer-or-name)))
                                (buffer-name buff))))
              (unless (entropy/emacs-window-auto-center-mode-base-condition-satisfied-judge)
                (throw :exit 'auto-center-base-condition-not-satisfied))
@@ -2539,7 +2539,7 @@ when non of thus or the one is not `buffer-live-p' anymore.
 DIBUFF is the file buffer invoked by `server-execute' which is
 placed as the `current-buffer' before
 `entropy/emacs-daemon-server-after-make-frame-hook' is ran."
-  (when-let
+  (when-let*
       ((val (frame-parameter
              (or frame (selected-frame))
              'entropy/emacs-daemon-frame-initial-buffer)))
@@ -3250,11 +3250,11 @@ BUFFER.
 If BUFFER is not set, defaults to `current-buffer'.
 
 PROP should be one of `entropy/emacs-editor-convention-properties'."
-  (when-let ((funcs (alist-get
-                     prop
-                     entropy/emacs-editor-convention/var/get-property-ops))
-             (buffer (or buffer (current-buffer)))
-             (val t))
+  (when-let* ((funcs (alist-get
+                      prop
+                      entropy/emacs-editor-convention/var/get-property-ops))
+              (buffer (or buffer (current-buffer)))
+              (val t))
     (with-current-buffer buffer
       (catch :exit
         (dolist (el funcs)
@@ -3440,11 +3440,11 @@ to set =eemacs-editor-convention= referred specs in BODY.
     (&optional buffer)
   (setq buffer (or buffer (current-buffer)))
   (with-current-buffer buffer
-    (when-let ((vars (alist-get
-                      major-mode
-                      entropy/emacs-editor-convention-indentation-alist))
-               (dvals file-local-variables-alist)
-               (rtn t)) (setq rtn nil)
+    (when-let* ((vars (alist-get
+                       major-mode
+                       entropy/emacs-editor-convention-indentation-alist))
+                (dvals file-local-variables-alist)
+                (rtn t)) (setq rtn nil)
       ;; FIXME: how we deal with multi spec of meaningful usage of
       ;; those variables i.e. TODO make the judgement more accurate
       ;; thru per-mode `cond' analyzing.
@@ -3459,7 +3459,7 @@ to set =eemacs-editor-convention= referred specs in BODY.
     (&optional buffer)
   (setq buffer (or buffer (current-buffer)))
   (with-current-buffer buffer
-    (when-let ((dvals file-local-variables-alist))
+    (when-let* ((dvals file-local-variables-alist))
       (assoc 'indent-tabs-mode dvals))))
 (entropy/emacs-editor-convention-register-property-value
  'indent_style #'entropy/emacs-editor-convention/dir-local-get/indent-style)
@@ -3468,7 +3468,7 @@ to set =eemacs-editor-convention= referred specs in BODY.
     (&optional buffer)
   (setq buffer (or buffer (current-buffer)))
   (with-current-buffer buffer
-    (when-let ((dvals file-local-variables-alist))
+    (when-let* ((dvals file-local-variables-alist))
       (assoc 'tab-width dvals))))
 (entropy/emacs-editor-convention-register-property-value
  'tab_width #'entropy/emacs-editor-convention/dir-local-get/tab_width)
@@ -3477,7 +3477,7 @@ to set =eemacs-editor-convention= referred specs in BODY.
     (&optional buffer)
   (setq buffer (or buffer (current-buffer)))
   (with-current-buffer buffer
-    (when-let ((dvals file-local-variables-alist))
+    (when-let* ((dvals file-local-variables-alist))
       (or (assoc 'require-final-newline dvals)
           (assoc 'mode-require-final-newline dvals)
           (and (memq major-mode '(c-mode c++-mode objc-mode))
@@ -3494,7 +3494,7 @@ to set =eemacs-editor-convention= referred specs in BODY.
     (&optional buffer)
   (setq buffer (or buffer (current-buffer)))
   (with-current-buffer buffer
-    (when-let ((dvals file-local-variables-alist))
+    (when-let* ((dvals file-local-variables-alist))
       (or (assoc 'write-file-functions dvals)
           (and (bound-and-true-p editorconfig-mode)
                (alist-get 'editorconfig-trim-whitespaces-mode dvals))))))
@@ -3506,7 +3506,7 @@ to set =eemacs-editor-convention= referred specs in BODY.
     (&optional buffer)
   (setq buffer (or buffer (current-buffer)))
   (with-current-buffer buffer
-    (when-let ((dvals file-local-variables-alist))
+    (when-let* ((dvals file-local-variables-alist))
       (assoc 'fill-column dvals))))
 (entropy/emacs-editor-convention-register-property-value
  'max_line_length
@@ -3516,7 +3516,7 @@ to set =eemacs-editor-convention= referred specs in BODY.
     (&optional buffer)
   (setq buffer (or buffer (current-buffer)))
   (with-current-buffer buffer
-    (when-let ((dvals file-local-variables-alist))
+    (when-let* ((dvals file-local-variables-alist))
       (or (assoc 'coding-system dvals)
           (assoc 'buffer-file-coding-system dvals)
           (assoc 'buffer-file-coding-system-explicit dvals)))))
@@ -3528,7 +3528,7 @@ to set =eemacs-editor-convention= referred specs in BODY.
     (&optional buffer)
   (setq buffer (or buffer (current-buffer)))
   (with-current-buffer buffer
-    (when-let ((dvals file-local-variables-alist))
+    (when-let* ((dvals file-local-variables-alist))
       (or (assoc 'coding-system dvals)
           (assoc 'buffer-file-coding-system dvals)
           (assoc 'buffer-file-coding-system-explicit dvals)))))

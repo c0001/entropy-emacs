@@ -284,6 +284,16 @@ Return BODY's value if thus of OK is be."
                 "should be enabled") ',body)
      ,(if (cdr body) `(progn ,@body) (car body))))
 
+(defun entropy/emacs-maybe-redisplay ()
+  "Like `redisplay' but for eemacs maintaining only.
+
+The return is undefined."
+  (if (bound-and-true-p sys/is-built-with-pgtk-p)
+      ;; FIXME: pgtk's redisplay lags of visual feeling against with
+      ;; x11, thus this func designed to use tiny sleep to give
+      ;; wayland window system more obviously visual feedback.
+      (sleep-for 0.0000000001)))
+
 ;; *** compatible refine
 (unless (fboundp 'always)
   ;; FIXME: invention from emacs 28 and above, so we should defined as
@@ -1583,7 +1593,7 @@ it has one of thus, otherwise same as `process-buffer'."
 (advice-add 'delete-process :around #'entropy/emacs--delete-process-adv)
 
 (entropy/emacs-!cl-defun entropy/emacs--delete-process-regist-vip (proc)
-  (when-let (((and (processp proc) (process-live-p proc))))
+  (when-let* (((and (processp proc) (process-live-p proc))))
     (add-to-list 'entropy/emacs-delete-process-inhibit-register proc)
     (when-let* ((proc-stderr (get-buffer-process (entropy/emacs-process-stderr-buffer proc)))
                 ((and (processp proc-stderr) (process-live-p proc-stderr))))
@@ -1663,7 +1673,7 @@ it has one of thus, otherwise same as `process-buffer'."
                      (setq ,url-varname
                            (format "http://localhost:%s/" ,port-varname))
                      (funcall tmp-port-bind-func))))
-       (when-let
+       (when-let*
            (((or (not noninteractive)
                  entropy/emacs-fall-love-with-pdumper
                  (daemonp))))

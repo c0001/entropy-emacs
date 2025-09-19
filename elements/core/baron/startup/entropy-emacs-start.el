@@ -121,7 +121,7 @@ some packages. Or nil without did anything."
   (when (or entropy/emacs-package-install-success-list
             entropy/emacs-package-install-failed-list)
     (setq entropy/emacs-start--is-init-with-install t)
-    (when-let
+    (when-let*
         ((logbuff (and (bound-and-true-p byte-compile-log-buffer)
                        (get-buffer byte-compile-log-buffer))))
       ;; persist save compile log for debugging

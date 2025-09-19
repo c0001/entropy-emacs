@@ -1630,13 +1630,13 @@ in generally meaning range which says that basically can did so.")
        (intern (format "entropy/emacs-%s-prefer-use-treesit-p" for-major-mode))))
 (defun entropy/emacs-ide-prefer-use-treesit-p (for-major-mode &optional buffer)
   (unless entropy/emacs-ide-suppressed
-    (when-let ((sym (entropy/emacs-get-ide-prefer-use-treesit-symbol
-                     for-major-mode))
-               ((and (boundp sym)
-                     (eq (symbol-value sym) 'treesit)))
-               (local-mmd
-                (with-current-buffer (or buffer (current-buffer))
-                  (or (hack-local-variables t) t))))
+    (when-let* ((sym (entropy/emacs-get-ide-prefer-use-treesit-symbol
+                      for-major-mode))
+                ((and (boundp sym)
+                      (eq (symbol-value sym) 'treesit)))
+                (local-mmd
+                 (with-current-buffer (or buffer (current-buffer))
+                   (or (hack-local-variables t) t))))
       (cond
        ;; NOTE: honor user local mode spec firstly
        ((not (eq local-mmd t)) nil)
@@ -1675,7 +1675,7 @@ Valid type are 'traditional' or 'lsp' which default to use lsp.
             :group 'entropy/emacs-customize-group-for-IDE-configuration)
          forms)))
     (dolist (el entropy/emacs-ide-for-them/classic)
-      (when-let ((sym (entropy/emacs-get-ide-prefer-use-treesit-symbol el)))
+      (when-let* ((sym (entropy/emacs-get-ide-prefer-use-treesit-symbol el)))
         (push
          `(defcustom ,sym ,(if entropy/emacs-ide-is-treesit-generally-adapted-p
                                ''treesit ''traditional)

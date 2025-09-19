@@ -71,8 +71,8 @@
 ;;;###autoload
 (defun entropy/shellpop2/main/hide/shell/buffer (shell/type/name)
   (entropy/shellpop2/core/macro/do-with/shell/type/obj shell/type/name
-    (when-let ((buffobj-focus
-                (entropy/shellpop2/core/api/obj/shell/type/op/get-focus)))
+    (when-let* ((buffobj-focus
+                 (entropy/shellpop2/core/api/obj/shell/type/op/get-focus)))
       (entropy/shellpop2/core/generic/shell/buffer/op/hide buffobj-focus))))
 
 ;;;###autoload

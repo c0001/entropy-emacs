@@ -1,4 +1,4 @@
-;; entropy-base16-theme.el -- base16 themes for emacs
+;; entropy-base16-theme.el -- base16 themes for emacs  -*- lexical-binding: nil; -*-
 
 ;; Author: Kaleb Elwert <belak@coded.io>
 ;;         Neil Bhakta

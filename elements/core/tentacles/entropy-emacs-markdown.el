@@ -86,7 +86,7 @@ package management!"))
   ;; `entropy/emacs-fontsets-used-latin-font'
   (when entropy/emacs-font-setting-enable
     (defface entropy/emacs-markdown-face--fixed-pitch
-      '((t :inherit 'fixed-pitch))
+      '((t :inherit fixed-pitch))
       ""
       :group 'entropy/emacs-tempo-face-group)
     (set-face-attribute

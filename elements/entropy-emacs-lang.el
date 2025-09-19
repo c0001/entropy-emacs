@@ -15,8 +15,10 @@
   (let (key val form)
     (while slots
       (setq key (pop slots) val (pop slots))
+      (if (not (keywordp key)) (setq key (intern (format ":%s") (symbol-name key))))
       (when (eq key :list) (setq val `(ensure-list ,val)))
-      (push `(oset ,obj ,key ,val) form))
+      (push `(oset ,obj ,(intern (substring (symbol-name key) 1))
+                   ,val) form))
     (when form
       (cons 'progn (nreverse form)))))
 
@@ -276,10 +278,10 @@ cons of LANG-NAME and LANG-RECIPE, or nil that not found."
               buffer-or-file)))))
 
 (defun eemacs/lang/func/bof/lang-name (buffer-or-file)
-  (when-let ((rec (eemacs/lang/func/bof/lang-recipe buffer-or-file)))
+  (when-let* ((rec (eemacs/lang/func/bof/lang-recipe buffer-or-file)))
     (car rec)))
 (defun eemacs/lang/func/bof/treesit-id (buffer-or-file)
-  (when-let ((rec (eemacs/lang/func/bof/lang-recipe buffer-or-file)))
+  (when-let* ((rec (eemacs/lang/func/bof/lang-recipe buffer-or-file)))
     (eemacs/lang/macro/oref (cdr rec) :treesit :id)))
 (defun eemacs/lang/func/bof/modes (buffer-or-file &optional type)
   (let ((rec (eemacs/lang/func/bof/lang-recipe buffer-or-file)))
@@ -423,7 +425,7 @@ WITH-MODES-ASSOC-PLIST used as meaning as `eemacs/lang/assoc-plist/func/match'.
                  ,this/obj/subrecipes
                  ,this/var/prog-modes ,this/var/ts-modes ,this/var/all-modes
                  ,this/var/modes-assoc-plist)
-         (oset ,this/obj/core :name ,name)
+         (eemacs/lang/macro/oset ,this/obj/core :name ,name)
          (when ,mal
            (setq ,this/var/modes-assoc-plist ,mal)
            (let (mds ts-mds)
@@ -434,7 +436,7 @@ WITH-MODES-ASSOC-PLIST used as meaning as `eemacs/lang/assoc-plist/func/match'.
                (setq ,this/var/prog-modes (append ,this/var/prog-modes (ensure-list mds)))
                (setq ,this/var/ts-modes   (append ,this/var/ts-modes (ensure-list ts-mds))))
              (setq ,this/var/all-modes (append ,this/var/prog-modes ,this/var/ts-modes))))
-         (oset ,this parent eemacs/lang/var//lang-recpe-parent)
+         (eemacs/lang/macro/oset ,this :parent eemacs/lang/var//lang-recpe-parent)
          (let ((eemacs/lang/var//lang-recpe-parent ,name)) ,@body)
          (if (assoc ,name eemacs/lang/var/recipe-alist 'string=)
              (setf (alist-get ,name eemacs/lang/var/recipe-alist
@@ -517,22 +519,22 @@ for dynamic libraries for this system, because `dynamic-library-suffixes' is nil
                      (funcall (oref (oref sc treesit) installer)))))))
            (defalias func-sym
              (lambda nil (interactive) (funcall core-func)))
-           (oset ,this/obj/treesit :installer func-sym))
+           (eemacs/lang/macro/oset ,this/obj/treesit :installer func-sym))
          ,this))))
 
 (defun eemacs/lang/func/install/all-treesit-parsers nil
   (when (file-directory-p entropy/emacs-treesit-libs-default-load-path)
-    (when-let ((files (directory-files entropy/emacs-treesit-libs-default-load-path
-                                       t "\\`libtree-sitter-")))
+    (when-let* ((files (directory-files entropy/emacs-treesit-libs-default-load-path
+                                        t "\\`libtree-sitter-")))
       (dolist (el files) (delete-file el))))
   (let ((eemacs/lang/var//treesit-parser-install-ok-exists t))
     (dolist (rec eemacs/lang/var/recipe-alist)
-      (when-let ((func
-                  (eemacs/lang/macro/oref (cdr rec)
-                    :treesit :installer))
-                 ;; NOTE: no dups invocation since parent auto
-                 ;; recursively install subrecipes
-                 ((not (eemacs/lang/macro/oref (cdr rec) :parent))))
+      (when-let* ((func
+                   (eemacs/lang/macro/oref (cdr rec)
+                     :treesit :installer))
+                  ;; NOTE: no dups invocation since parent auto
+                  ;; recursively install subrecipes
+                  ((not (eemacs/lang/macro/oref (cdr rec) :parent))))
         (entropy/emacs-message-simple-progress-message
             (format "Install treesit parsers for lang %s" (car rec))
           (funcall func))))))

@@ -281,7 +281,7 @@ cadr: the file path equalized with FILE in a treemacs project PRJ
 caddr: the treemacs workspace on which the PRJ stands predicated by `treemacs-workspace-p'
 cadddr: the PRJ object predicated by `treemacs-project-p'"
       (setq file (directory-file-name (expand-file-name file)))
-      (when-let ((ws (treemacs-current-workspace)))
+      (when-let* ((ws (treemacs-current-workspace)))
         (if-let* ((cache-val
                    (entropy/emacs--treemacs-fipp-find-item file ws))) cache-val
           (entropy/emacs-message-simple-progress-message

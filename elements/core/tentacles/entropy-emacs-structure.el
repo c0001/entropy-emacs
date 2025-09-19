@@ -552,7 +552,7 @@ recalc the specified head level specification.
                     (funcall
                      (cond ((derived-mode-p 'markdown-mode)
                             (lambda nil
-                              (when-let ((mt (markdown-on-heading-p)))
+                              (when-let* ((mt (markdown-on-heading-p)))
                                 ;; EEMACS_MAINTENANCE&NOTE&FIXME:
                                 ;; `markdown-on-heading-p' return
                                 ;; non-nil as its API declaration but

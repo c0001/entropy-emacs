@@ -146,7 +146,7 @@ sharing the same local keymap."
 
 ;;;###autoload
 (defun entropy/shellpop2/core/func/kill-buffer-with-proc (buffer)
-  (when-let ((buffer (and (buffer-live-p buffer) buffer)))
+  (when-let* ((buffer (and (buffer-live-p buffer) buffer)))
     (let ((proc (get-buffer-process buffer)))
       (if (not proc) (kill-buffer buffer)
         (pop-to-buffer buffer)
@@ -748,9 +748,9 @@ as orphan."
                  ((entropy/shellpop2/core/api/obj/shell/type/op/get-focus nil
                     "Get current `shell/type's focused `shell/buffer/obj' or nil if
 not existed."
-                    (when-let ((ob
-                                (and (not (ring-empty-p ,sto-ring-sym))
-                                     (ring-ref ,sto-ring-sym 0))))
+                    (when-let* ((ob
+                                 (and (not (ring-empty-p ,sto-ring-sym))
+                                      (ring-ref ,sto-ring-sym 0))))
                       (entropy/shellpop2/core/macro/do-with/shell/buffer/obj ,stn-sym ob
                         (and (entropy/shellpop2/core/api/obj/shell/buffer/pred/valid-p)
                              it))))

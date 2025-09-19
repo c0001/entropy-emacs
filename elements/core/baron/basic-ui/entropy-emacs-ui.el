@@ -748,7 +748,7 @@ window removed since we just need one welcom buffer."
 
   (defun __eemacs/remove-dashboard-messy-injection (&rest _)
     (remove-hook 'window-size-change-functions 'dashboard-resize-on-hook)
-    (when-let ((dbuff (get-buffer dashboard-buffer-name)))
+    (when-let* ((dbuff (get-buffer dashboard-buffer-name)))
       (with-current-buffer dbuff
         (remove-hook 'window-size-change-functions 'dashboard-resize-on-hook t)
         (when (eq major-mode 'dashboard-mode)

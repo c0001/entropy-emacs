@@ -1935,8 +1935,8 @@ Since we chosen the kmacro from ring, we set it as the
   (unless (version< emacs-version "29.1")
     (require 'kmacro)
     (defun __ext/counsel--kmacro-equal-last (x)
-      (when-let ((lkeys (if (stringp last-kbd-macro) (key-parse last-kbd-macro)
-                          last-kbd-macro)))
+      (when-let* ((lkeys (if (stringp last-kbd-macro) (key-parse last-kbd-macro)
+                           last-kbd-macro)))
         (equal lkeys (kmacro--keys x))))
     (defun counsel--kmacro-candidates ()
       "Create the list of keyboard macros used by `counsel-kmacro'.
@@ -2687,13 +2687,13 @@ currnt fontset."
      (let* ((file (or (car oargs) default-directory))
             (trprj-root
              (and (fboundp 'entropy/emacs-treemacs-file-in-project-p)
-                  (when-let ((prj (nth 3 (entropy/emacs-treemacs-file-in-project-p file))))
+                  (when-let* ((prj (nth 3 (entropy/emacs-treemacs-file-in-project-p file))))
                     (treemacs-project->path prj)))))
        ;; NOTE: we prefer use treemacs project toolchain to guarantee
        ;; `treemacs-follow-mode' workable for the ref jumping.
        (or trprj-root
            ;; then prefer eeamcs project spec
-           (when-let ((prj (project-current))) (project-root prj))
+           (when-let* ((prj (project-current))) (project-root prj))
            (apply ofunc oargs)))))
   )
 

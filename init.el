@@ -107,7 +107,7 @@ value assignments into."
 It's a version string which can be used for `version<' and
 `version<='.")
 (defconst entropy/emacs-highest-emacs-version-requirement
-  "30.1"
+  "31.1"
   "The highest emacs version requirement for entropy-emacs.
 
 It's a version string which can be used for `version<' and
@@ -185,10 +185,10 @@ VARIABLE is `string-empty-p' unless WITH-EMPTY-STRING is non-nil.
 
 NOTE: for eemacs spec env vars use the alias
 `entropy/emacs-getenv-equal-eemacs-eqnv' to distinguish context."
-  (when-let ((val
-              (if with-empty-string
-                  (getenv variable frame)
-                (entropy/emacs-getenv variable frame))))
+  (when-let* ((val
+               (if with-empty-string
+                   (getenv variable frame)
+                 (entropy/emacs-getenv variable frame))))
     (if (consp value)
         (member val value) (equal val value))))
 

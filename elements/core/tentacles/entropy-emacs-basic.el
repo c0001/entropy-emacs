@@ -600,7 +600,7 @@ entropy/emacs-basic--dired-cmd-run-with-simple-progress-prompt/for/%s/"
 
   (entropy/emacs-api-restriction/emacs-version
       'adv/progress-prompt/dired--find-file
-    :max-emacs-ver "30.1"
+    :max-emacs-ver "31.1"
     :do-error t
     (entropy/emacs-basic--dired-cmd-run-with-simple-progress-prompt
         dired--find-file (memq this-command '(dired-find-file))
@@ -2935,7 +2935,7 @@ notice the queue run instead of populating a immediately timer in
 each creation occurred since the queue guard
 `image-dired-thumb-queue-run' will also ran in the process
 sentinel of `image-dired-create-thumb-1'."
-      (when-let ((ccht entropy/emacs-basic--image-dired-cache-thumbnail-htable/var))
+      (when-let* ((ccht entropy/emacs-basic--image-dired-cache-thumbnail-htable/var))
         ;; even if the thumb not exist but we should respect the cache.
         (when (entropy/emacs-basic--image-dired-cache-thumbnail-htable/get
                original-file ccht)
@@ -3644,7 +3644,7 @@ point."
 
   (defun entropy/emacs-image-dired-idle-track-orig-file--core
       (thumbnails-buffer)
-    (when-let ((buff thumbnails-buffer) ((buffer-live-p buff)))
+    (when-let* ((buff thumbnails-buffer) ((buffer-live-p buff)))
       (with-current-buffer buff
         ;; no-dired assosicated mode via
         ;; `entropy/emacs-image-dired-display-thumbs-recursively'
@@ -4169,8 +4169,8 @@ force fit width: %s"
             (setq func '__ya/image-dired-display-image/use-image-mode)
           (setq func '__ya/image-dired-display-image/use-fast-insert))
         (funcall func imgf osize dwimp) (redisplay t)
-        (when-let ((eemacs//image-dired-force-use-one-window-p)
-                   (inhibit-quit t))
+        (when-let* ((eemacs//image-dired-force-use-one-window-p)
+                    (inhibit-quit t))
           (save-excursion
             (select-window (image-dired-display-window))
             (progn (delete-other-windows))
@@ -4222,7 +4222,7 @@ force fit width: %s"
                                                                  this-buffer-name))
                       (lambda nil (interactive)
                         (with-current-buffer this-buffer
-                          (when-let (((eq major-mode 'image-dired-thumbnail-mode)))
+                          (when-let* (((eq major-mode 'image-dired-thumbnail-mode)))
                             (call-interactively
                              'entropy/emacs-image-dired-display-next-thumbnail-original))))
                       (format "display next image of image dired thumbnail buffer %s"
@@ -4233,7 +4233,7 @@ force fit width: %s"
                                                                  this-buffer-name))
                       (lambda nil (interactive)
                         (with-current-buffer this-buffer
-                          (when-let (((eq major-mode 'image-dired-thumbnail-mode)))
+                          (when-let* (((eq major-mode 'image-dired-thumbnail-mode)))
                             (call-interactively
                              'entropy/emacs-image-dired-display-previous-thumbnail-original))))
                       (format "display previous image of image dired thumbnail buffer %s"
@@ -4680,8 +4680,8 @@ usage, this is the most difference from
                   assoc-dired-buffname (buffer-name assoc-dired-buffer)
                   fname file-name)))
           (with-current-buffer assoc-dired-buffer
-            (when-let ((pt (progn (dired-goto-file fname) (point)))
-                       (dbfwin (get-buffer-window assoc-dired-buffer)))
+            (when-let* ((pt (progn (dired-goto-file fname) (point)))
+                        (dbfwin (get-buffer-window assoc-dired-buffer)))
               ;; NOTE: we should sync window point when buffer
               ;; displayed so that the track visually updated, or the
               ;; window point not changed even when tracked yet.
@@ -4701,8 +4701,8 @@ usage, this is the most difference from
             ;; `image-dired-track-original-file' since the dired
             ;; buffer may not lived and the new one we made is not
             ;; internally 'associated' with the thumbnail buffer.
-            (when-let ((pt (progn (dired-goto-file file-name) (point)))
-                       (dbfwin (get-buffer-window assoc-dired-buffer)))
+            (when-let* ((pt (progn (dired-goto-file file-name) (point)))
+                        (dbfwin (get-buffer-window assoc-dired-buffer)))
               (set-window-point dbfwin pt)))
           (let (_)
             (with-current-buffer assoc-dired-buffer
@@ -5284,7 +5284,8 @@ displayed image as same operated mechanism as
 (defun entropy/emacs-basic--patch-image-dired-db-search-regexp nil
   ;; FIXME: why the `image-dired-tags-db-file' still free-var even
   ;; we've declared?
-  (let ((byte-compile-warnings '(not free-vars)))
+  (when-let* (((< emacs-major-version 31))
+              (byte-compile-warnings '(not free-vars)))
     (advice-patch
      'image-dired-list-tags
      '(search-forward-regexp (format "^%s" (regexp-quote file)) nil t)
@@ -5670,9 +5671,9 @@ buffer, in that case any conditions don't match the filter then
   "Timer function to recovery the `hl-line-mode' status when
 temporally shutdown by
 `entropy/emacs-basic--hl-line-disable-wrapper'."
-  (when-let (((bound-and-true-p entropy/emacs-current-session-is-idle-p))
-             ((not (entropy/emacs-operation-status/running-auto-completion-op-p)))
-             (win-list (window-list)))
+  (when-let* (((bound-and-true-p entropy/emacs-current-session-is-idle-p))
+              ((not (entropy/emacs-operation-status/running-auto-completion-op-p)))
+              (win-list (window-list)))
     (dolist (win win-list)
       (with-selected-window win
         (when (bound-and-true-p eemacs-hl-line-mode-enable)
@@ -6077,13 +6078,13 @@ if did may cause some troubles since: [%s %s]."
         (funcall mode)
         (when (eq major-mode 'org-mode) (outline-show-all))
         (goto-char point)
-        (when-let ((fname (buffer-file-name))
-                   (trpath
-                    (and (fboundp 'entropy/emacs-treemacs-file-in-project-p)
-                         (cadr (entropy/emacs-treemacs-file-in-project-p fname))))
-                   (  (not (string=
-                            (directory-file-name fname)
-                            (directory-file-name trpath)))))
+        (when-let* ((fname (buffer-file-name))
+                    (trpath
+                     (and (fboundp 'entropy/emacs-treemacs-file-in-project-p)
+                          (cadr (entropy/emacs-treemacs-file-in-project-p fname))))
+                    ((not (string=
+                           (directory-file-name fname)
+                           (directory-file-name trpath)))))
           (when (yes-or-no-p
                  (format "\
 Seemly current buffer's visited file is a member of a project in current treemacs workspace, \
@@ -6685,7 +6686,7 @@ error type to output symbol OUTPUT-SYM."
                         (unless (yes-or-no-p "\
 This text of `kill-ring' is larger than 1M, do you really need to save it?")
                           (error "large item detected, abort"))
-                      (when-let ((buffer-live-p lbf) (inhibit-quit t))
+                      (when-let* ((buffer-live-p lbf) (inhibit-quit t))
                         (if (window-live-p lbfwin) (delete-window lbfwin))
                         (kill-buffer lbf))))
                   ;; The attempt worked: the object is printable.
@@ -8470,12 +8471,12 @@ relied on the corresponding rime backend your specified in
       nil))
   (defun entropy/emacs-basic-emacs-rime-s2t-toggle nil
     (interactive)
-    (if-let (((bound-and-true-p rime-mode))
-             ((not (entropy/emacs-utils-cmd-call-from-hydra-p)))
-             (last-input-event
-              ;; EEMACS_MAINTENANCE: convention of rime default
-              ;; control+grave switcher keybinding, but not always.
-              67108960))
+    (if-let* (((bound-and-true-p rime-mode))
+              ((not (entropy/emacs-utils-cmd-call-from-hydra-p)))
+              (last-input-event
+               ;; EEMACS_MAINTENANCE: convention of rime default
+               ;; control+grave switcher keybinding, but not always.
+               67108960))
         (rime-send-keybinding)
       (user-error "-v-")))
   (entropy/emacs--with-top-key-dynamic-modified

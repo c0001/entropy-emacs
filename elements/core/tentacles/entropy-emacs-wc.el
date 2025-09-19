@@ -1388,7 +1388,7 @@ frequency due to performance issue with minor accuracy lost."
                   (setq ptm eemacs//winner-maybe-save-old-conf/var/time-stamp
                         pbuff eemacs//winner-maybe-save-old-conf/var/prev-buffer)
                   (setq tmsap (and ptm
-                                   (when-let ((tmdiff (entropy/emacs-time-subtract ptm ctm t)))
+                                   (when-let* ((tmdiff (entropy/emacs-time-subtract ptm ctm t)))
                                      (> tmdiff 2)))
                         bufsap (and pbuff (not (eq cbuff pbuff))))
                   (prog1

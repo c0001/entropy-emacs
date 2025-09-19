@@ -349,7 +349,7 @@ building procedure while invoking INSTALL-COMMANDS."
                   (setq
                    defdir
                    (or defdir
-                       (when-let ((d (plist-get command :default-directory)))
+                       (when-let* ((d (plist-get command :default-directory)))
                          (if (consp d)
                              (if (eq (car d) 'absolute) (cdr d)
                                (expand-file-name (cdr d) default-directory))
@@ -407,16 +407,16 @@ building procedure while invoking INSTALL-COMMANDS."
 
 (defun entropy/emacs-package-prompt-install-fails ()
   (if (not entropy/emacs-package-install-failed-list)
-      (when-let (((not entropy/emacs-package-init-with-quick-start-p))
-                 ;; Only make session should refresh the quick file
-                 ;; since:
-                 ;;
-                 ;; 1. in byte-code start session, there's indeed no
-                 ;;    need to do so and shouldn't at least.
-                 ;; 2. in source start session, we also need not to do
-                 ;;    thus since we respect the soure session for
-                 ;;    `entropy/emacs-env-with-pure-eemacs-env'.
-                 (package-quickstart (entropy/emacs-is-make-session)))
+      (when-let* (((not entropy/emacs-package-init-with-quick-start-p))
+                  ;; Only make session should refresh the quick file
+                  ;; since:
+                  ;;
+                  ;; 1. in byte-code start session, there's indeed no
+                  ;;    need to do so and shouldn't at least.
+                  ;; 2. in source start session, we also need not to do
+                  ;;    thus since we respect the soure session for
+                  ;;    `entropy/emacs-env-with-pure-eemacs-env'.
+                  (package-quickstart (entropy/emacs-is-make-session)))
         (entropy/emacs-message-simple-progress-message
          "%s"
          :with-message-color-args
@@ -694,7 +694,7 @@ exception."
                 form :config 'list 'no-error)))
          (eemacs-macros-list
           (and should-use-p
-               (when-let ((src (plist-get kpl :eemacs-macros)))
+               (when-let* ((src (plist-get kpl :eemacs-macros)))
                  (if (consp (car-safe src)) (car src)
                    src))))
          final-usepkg-form)

@@ -1,4 +1,4 @@
-;; entropy-base16-theme-bright-theme.el -- A base16 colorscheme
+;; entropy-base16-theme-bright-theme.el -- A base16 colorscheme  -*- lexical-binding: nil; -*-
 
 ;;; Commentary:
 ;; Base16: (https://github.com/chriskempson/base16)

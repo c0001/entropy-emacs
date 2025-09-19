@@ -95,8 +95,8 @@ Bounds is an cons of (beg . end) point of `current-buffer'"
   :ensure nil
   :preface
   (defun entropy/emacs-codeserver--xref-ver-161-p nil
-    (if-let ((dc (entropy/emacs-elpkg-get-pkg-desc-via-name
-                  'xref 'current '(xref-pop-marker-stack defun))))
+    (if-let* ((dc (entropy/emacs-elpkg-get-pkg-desc-via-name
+                   'xref 'current '(xref-pop-marker-stack defun))))
         (version-list-<= '(1 6 1) (package-desc-version dc)) t))
   (defvar entropy/emacs-codeserver--xref-goback-cmd nil)
   :defines
@@ -183,10 +183,10 @@ Bounds is an cons of (beg . end) point of `current-buffer'"
              (entropy/emacs-!error "%s" err)))))
 
       ;; then remove `hs-minor-mode' hidden overlay
-      (when-let ((hsmode-p (bound-and-true-p hs-minor-mode))
-                 (hs-line-is-hide-p
-                  (save-excursion
-                    (hs-already-hidden-p))))
+      (when-let* ((hsmode-p (bound-and-true-p hs-minor-mode))
+                  (hs-line-is-hide-p
+                   (save-excursion
+                     (hs-already-hidden-p))))
         (save-excursion
           (hs-show-block)))
 
@@ -1222,7 +1222,7 @@ predicate when run it, see
     (setq lsp-ui-doc--from-mouse nil)
     (lsp-ui-util-safe-delete-overlay lsp-ui-doc--inline-ov)
     (lsp-ui-util-safe-delete-overlay lsp-ui-doc--highlight-ov)
-    (when-let ((frame (lsp-ui-doc--get-frame)))
+    (when-let* ((frame (lsp-ui-doc--get-frame)))
       (when (frame-visible-p frame)
         (make-frame-invisible frame))))
   (defun eemacs/lsp-ui-doc-hide ()
@@ -1919,9 +1919,9 @@ to enable the lsp server for this major-mode supported by `lsp-mode'.
            :success-fn (eglot--lambda ((Hover) contents range)
                          (unless __this_eglot-show-doc--sig-showing
                            (when-buffer-window
-                            (when-let (info (and (not (seq-empty-p contents))
-                                                 (eglot--hover-info contents
-                                                                    range)))
+                            (when-let* ((info (and (not (seq-empty-p contents))
+                                                   (eglot--hover-info contents
+                                                                      range))))
                               (eglot-ui--show-doc-internal info)))))
            :deferred :textDocument/hover)))))
 
@@ -1932,7 +1932,11 @@ to enable the lsp server for this major-mode supported by `lsp-mode'.
 
   (defun eglot-ui-doc-display ()
     (when eglot-ui-doc-mode
-      (eglot--highlight-piggyback nil)
+      (if (fboundp 'eglot-highlight-eldoc-function)
+          (eglot-highlight-eldoc-function nil)
+        ;; lower version of eglot doesn't has above exposed API, used
+        ;; the inner one.
+        (eglot--highlight-piggyback nil))
       (eglot-ui-show-doc)))
 
   (define-minor-mode eglot-ui-doc-mode
