@@ -3073,16 +3073,16 @@ any of them return non-nil.")
     (entropy/emacs-!defalias adv-func-name
       (lambda (&rest args)
         (let* ((curbuff (current-buffer))
-               (lnm (intern (or (eemacs/lang/func/bof/treesit-id curbuff)
-                                (eemacs/lang/func/mode/treesit-id prog-mode-name)
+               (lnm (intern (or (eemacs/prog-lang/func/bof/treesit-id curbuff)
+                                (eemacs/prog-lang/func/mode/treesit-id prog-mode-name)
                                 (entropy/emacs-!error-as-eemacs-internal-error
                                  "No treesit id found for buffer %s" curbuff))))
                (tsm-nm
                 (or
                  (entropy/emacs-maybe-car
-                  (eemacs/lang/func/bof/modes curbuff 'treesit-modes))
+                  (eemacs/prog-lang/func/bof/modes curbuff 'treesit-modes))
                  (entropy/emacs-maybe-car
-                  (eemacs/lang/func/mode/treesit-modes prog-mode-name))
+                  (eemacs/prog-lang/func/mode/treesit-modes prog-mode-name))
                  (when entropy/emacs-startup-with-Debug-p
                    (warn "treesit variant for major-mode `%s' of lang `%s' is not find"
                          prog-mode-name lnm)
@@ -3098,9 +3098,9 @@ any of them return non-nil.")
                (entropy/emacs-bound-and-true-p adv-avar-name)
                (if (treesit-ready-p lnm 'message) nil
                  ;; suggest installation for such missiing ts parser
-                 (if-let* ((rec (eemacs/lang/func/bof/lang-recipe curbuff))
-                           (ts-id (eemacs/lang/macro/oref (cdr rec) :treesit :id))
-                           (ts-installer (eemacs/lang/macro/oref (cdr rec) :treesit :installer)))
+                 (if-let* ((rec (eemacs/prog-lang/func/bof/lang-recipe curbuff))
+                           (ts-id (eemacs/prog-lang/macro/oref (cdr rec) :treesit :id))
+                           (ts-installer (eemacs/prog-lang/macro/oref (cdr rec) :treesit :installer)))
                      (if (yes-or-no-p
                           (format "It seems missing treesit parser for lang '%s', install it to enable '%s'"
                                   ts-id tsm-nm))

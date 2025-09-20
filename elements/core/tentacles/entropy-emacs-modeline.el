@@ -1203,7 +1203,7 @@ style which defined in `entropy/emacs-modeline-style'."
         modeline--miscinfo/treesit-mode-indicator
       (progn
         (entropy/emacs-setf-by-body modeline--miscinfo/treesit-mode-indicator
-          (if (eemacs/lang/func/mode/treesit-mode-p
+          (if (eemacs/prog-lang/func/mode/treesit-mode-p
                (buffer-local-value 'major-mode (window-buffer (selected-window))))
               (if (entropy/emacs-icons-displayable-p)
                   (format "%s"

@@ -10,7 +10,7 @@
   (defvar treesit-language-source-alist))
 
 ;; ** libs
-(cl-defmacro eemacs/lang/macro/oset (obj &rest slots)
+(cl-defmacro eemacs/prog-lang/macro/oset (obj &rest slots)
   (declare (indent 1))
   (let (key val form)
     (while slots
@@ -22,7 +22,7 @@
     (when form
       (cons 'progn (nreverse form)))))
 
-(cl-defmacro eemacs/lang/macro/oref (obj &rest slots)
+(cl-defmacro eemacs/prog-lang/macro/oref (obj &rest slots)
   (declare (indent 1))
   (macroexp-let2* ignore
       ((oobj nil) (ooform nil) (obj obj))
@@ -46,7 +46,7 @@
                         ,oobj))))
       form)))
 
-(cl-defmacro eemacs/lang/macro/define-general-probe
+(cl-defmacro eemacs/prog-lang/macro/define-general-probe
     (&rest body &key with-this-as
            &allow-other-keys)
   (let* ((body (entropy/emacs--get-def-body body 'with-safe))
@@ -56,7 +56,7 @@
          (probe/var/file (intern (concat (symbol-name it) "/var/file")))
          (probe/var/fext (intern (concat (symbol-name it) "/var/fext")))
          (bop (make-symbol "bop")))
-    `(let ((fnm (make-symbol "eemacs/lang/probe-func")))
+    `(let ((fnm (make-symbol "eemacs/prog-lang/probe-func")))
        (entropy/emacs-defalias fnm
          (lambda (&optional ,bofarg)
            (let* ((,probe/var/buffer
@@ -84,17 +84,17 @@
                  (when ,bop
                    (let ((inhibit-quit t))
                      (kill-buffer ,probe/var/buffer))))))))
-       (put fnm :is-eemacs/lang/probe-func-p t)
+       (put fnm :is-eemacs/prog-lang/probe-func-p t)
        fnm)))
 
-(defun eemacs/lang/func//cond-match-p (cond cond-map)
+(defun eemacs/prog-lang/func//cond-match-p (cond cond-map)
   (let (extractor elt)
     (when (setq elt (alist-get cond cond-map nil nil 'equal))
       (setq
        extractor (or (plist-get elt :extractor) 'identity)
        elt       (plist-get elt :val))
       (funcall extractor elt))))
-(cl-defmacro eemacs/lang/macro/define-probe
+(cl-defmacro eemacs/prog-lang/macro/define-probe
     (&key
      with-this-as
      with-conds-pattern
@@ -104,7 +104,7 @@
          ;; (probe/var/file (intern (concat (symbol-name it) "/var/file")))
          (probe/var/fext (intern (concat (symbol-name it) "/var/fext"))))
     (macroexp-let2* ignore ((cods nil))
-      `(eemacs/lang/macro/define-general-probe
+      `(eemacs/prog-lang/macro/define-general-probe
         :with-this-as ,with-this-as
         (let ((,cods ,with-conds-pattern) extp)
           (catch :exit
@@ -113,10 +113,10 @@
                 (cond
                  ((and (eq (car cod) 'major-mode) ,probe/var/buffer)
                   (with-current-buffer ,probe/var/buffer
-                    (eemacs/lang/func//cond-match-p
+                    (eemacs/prog-lang/func//cond-match-p
                      major-mode (cdr cod))))
                  ((and (eq (car cod) 'file-ext) ,probe/var/fext)
-                  (eemacs/lang/func//cond-match-p
+                  (eemacs/prog-lang/func//cond-match-p
                    ,probe/var/fext
                    (cdr cod)))
                  ((eq (car cod) '_) (cdr cod))
@@ -125,11 +125,11 @@
           extp)))))
 
 ;; ** classes
-(defun eemacs/lang/probe-func-type-p (sym)
+(defun eemacs/prog-lang/probe-func-type-p (sym)
   (or
    (and (symbolp sym) (functionp sym)
-        (eq (get sym :is-eemacs/lang/probe-func-p) t))))
-(defclass eemacs/lang/class/core ()
+        (eq (get sym :is-eemacs/prog-lang/probe-func-p) t))))
+(defclass eemacs/prog-lang/class/core ()
   ((name          :initarg :name :type string
                   :documentation
                   "Language Name standard via language server
@@ -138,25 +138,25 @@ protocol (See: https://code.visualstudio.com/docs/languages/identifiers).
 For those langauge has no defined in which case, please following
 programer forum convention i.e. as conventional as possible")
    (fnm-regexp    :initarg :fnm-regexp :type string)))
-(defclass eemacs/lang/class//list-probe ()
+(defclass eemacs/prog-lang/class//list-probe ()
   ((_))
   :abstract t
   :documentation
   "The empty top abstraction of a eemacs specified language object class
 for defined a list of possible value and a probe function to extract an
 accelerated one for a buffer or file from unified api
-`eemacs/lang/class//list-probe/method/call'.
+`eemacs/prog-lang/class//list-probe/method/call'.
 
 This at least, any children class inherit from this interface should
 declare two slots, i.e. the :list and :probe where the value of :list
 should be a list of elements, and a function defined via
-`eemacs/lang/macro/define-probe' for :probe.")
-(defun eemacs/lang/class//list-probe/method/call
+`eemacs/prog-lang/macro/define-probe' for :probe.")
+(defun eemacs/prog-lang/class//list-probe/method/call
     (obj &optional buffer-or-file)
   (if (or (not (eieio-object-p obj))
           (not (memq (eieio-object-class obj)
                      (eieio-class-children
-                      'eemacs/lang/class//list-probe))))
+                      'eemacs/prog-lang/class//list-probe))))
       nil
     (let ((l  (and (slot-boundp obj 'list)
                    (slot-value  obj 'list)))
@@ -164,17 +164,17 @@ should be a list of elements, and a function defined via
                    (slot-value  obj 'probe))))
       (if pb (funcall pb buffer-or-file)
         (and (consp l) (not (cdr l)) (car l))))))
-(defclass eemacs/lang/class/modes (eemacs/lang/class//list-probe)
+(defclass eemacs/prog-lang/class/modes (eemacs/prog-lang/class//list-probe)
   ((list          :initarg :list :type (or null (satisfies consp))
                   :initform nil)
-   (probe         :initarg :probe :type (or (satisfies eemacs/lang/probe-func-type-p) null)
+   (probe         :initarg :probe :type (or (satisfies eemacs/prog-lang/probe-func-type-p) null)
                   :initform nil)))
-(defclass eemacs/lang/class/ids (eemacs/lang/class//list-probe)
+(defclass eemacs/prog-lang/class/ids (eemacs/prog-lang/class//list-probe)
   ((list          :initarg :list :type (or null (satisfies consp))
                   :initform nil)
-   (probe         :initarg :probe :type (or (satisfies eemacs/lang/probe-func-type-p) null)
+   (probe         :initarg :probe :type (or (satisfies eemacs/prog-lang/probe-func-type-p) null)
                   :initform nil)))
-(defclass eemacs/lang/class/treesit ()
+(defclass eemacs/prog-lang/class/treesit ()
   ((id            :initarg :id            :type string)
    (repo-type     :initarg :repo-type     :type (or string null)
                   :initform nil)
@@ -189,57 +189,57 @@ should be a list of elements, and a function defined via
    (compile-c++   :initarg :compile-c++   :type (or string null)
                   :initform nil)
    (modes         :initarg :modes
-                  :type (or eemacs/lang/class//list-probe null)
+                  :type (or eemacs/prog-lang/class//list-probe null)
                   :initform nil)
    (installable   :initarg :installable :type (or null t)
                   :initform t)
    (installer     :initarg :installer :type (or null (satisfies functionp))
                   :initform nil)))
 
-(defun eemacs/lang/class/subrecipes/pred/list-type-p (x)
+(defun eemacs/prog-lang/class/subrecipes/pred/list-type-p (x)
   (and (listp x)
        (catch :exit
          (dolist (y x)
-           (unless (eemacs/lang/class/recipe-p y)
+           (unless (eemacs/prog-lang/class/recipe-p y)
              (throw :exit nil)))
          t)))
-(defclass eemacs/lang/class/subrecipes (eemacs/lang/class//list-probe)
+(defclass eemacs/prog-lang/class/subrecipes (eemacs/prog-lang/class//list-probe)
   ((list :initarg :list
          :type (or
                 null
                 (and
                  (satisfies consp)
-                 (satisfies eemacs/lang/class/subrecipes/pred/list-type-p)))
+                 (satisfies eemacs/prog-lang/class/subrecipes/pred/list-type-p)))
          :initform nil)
-   (probe         :initarg :probe :type (or (satisfies eemacs/lang/probe-func-type-p) null)
+   (probe         :initarg :probe :type (or (satisfies eemacs/prog-lang/probe-func-type-p) null)
                   :initform nil)))
-(defclass eemacs/lang/class/recipe ()
-  ((core    :initarg :core    :type eemacs/lang/class/core)
-   (modes   :initarg :modes   :type eemacs/lang/class/modes)
-   (ids     :initarg :ids     :type eemacs/lang/class/ids)
-   (treesit :initarg :treesit :type (or eemacs/lang/class/treesit null))
+(defclass eemacs/prog-lang/class/recipe ()
+  ((core    :initarg :core    :type eemacs/prog-lang/class/core)
+   (modes   :initarg :modes   :type eemacs/prog-lang/class/modes)
+   (ids     :initarg :ids     :type eemacs/prog-lang/class/ids)
+   (treesit :initarg :treesit :type (or eemacs/prog-lang/class/treesit null))
    (subrecipes :initarg :subrecipes
-               :type (or eemacs/lang/class/subrecipes
+               :type (or eemacs/prog-lang/class/subrecipes
                          null)
                :initform nil)
    (parent  :initarg :parent :type (or null string))))
 
-(defvar eemacs/lang/var/recipe-alist nil)
-(defun eemacs/lang/func/get-recipe-modes (lang-recipe &optional type)
-  (if (not (eemacs/lang/class/recipe-p lang-recipe)) nil
+(defvar eemacs/prog-lang/var/recipe-alist nil)
+(defun eemacs/prog-lang/func/get-recipe-modes (lang-recipe &optional type)
+  (if (not (eemacs/prog-lang/class/recipe-p lang-recipe)) nil
     (cl-case type
-      (treesit-modes  (eemacs/lang/macro/oref lang-recipe :treesit :modes :list))
-      (prog-modes     (eemacs/lang/macro/oref lang-recipe :modes :list))
-      (all            (append (eemacs/lang/func/get-recipe-modes lang-recipe 'prog-modes)
-                              (eemacs/lang/func/get-recipe-modes lang-recipe 'treesit-modes)))
-      (t (eemacs/lang/func/get-recipe-modes lang-recipe 'prog-modes)))))
-(defun eemacs/lang/func/get-recipes-modes (&optional type)
+      (treesit-modes  (eemacs/prog-lang/macro/oref lang-recipe :treesit :modes :list))
+      (prog-modes     (eemacs/prog-lang/macro/oref lang-recipe :modes :list))
+      (all            (append (eemacs/prog-lang/func/get-recipe-modes lang-recipe 'prog-modes)
+                              (eemacs/prog-lang/func/get-recipe-modes lang-recipe 'treesit-modes)))
+      (t (eemacs/prog-lang/func/get-recipe-modes lang-recipe 'prog-modes)))))
+(defun eemacs/prog-lang/func/get-recipes-modes (&optional type)
   (let (rtn mds)
-    (dolist (rec eemacs/lang/var/recipe-alist)
-      (setq mds (eemacs/lang/func/get-recipe-modes (cdr rec) type))
+    (dolist (rec eemacs/prog-lang/var/recipe-alist)
+      (setq mds (eemacs/prog-lang/func/get-recipe-modes (cdr rec) type))
       (and  mds (setq rtn (append rtn mds))))
     rtn))
-(defun eemacs/lang/func/bof/lang-recipe (buffer-or-file)
+(defun eemacs/prog-lang/func/bof/lang-recipe (buffer-or-file)
   "Get the `eemaca/lang/class/recipe' for BUFFER-OR-FILE, the return is a
 cons of LANG-NAME and LANG-RECIPE, or nil that not found."
   (let (lang-rec lang-fnm-regexp rtn)
@@ -249,13 +249,13 @@ cons of LANG-NAME and LANG-RECIPE, or nil that not found."
                    (buffer-file-name buffer-or-file)))
       (entropy/emacs-setf-by-body rtn
         (funcall
-         (eemacs/lang/macro/define-general-probe
+         (eemacs/prog-lang/macro/define-general-probe
           (catch :exit
-            (dolist (rec eemacs/lang/var/recipe-alist)
+            (dolist (rec eemacs/prog-lang/var/recipe-alist)
               (setq lang-rec (cdr rec))
               (when (and probe/var/fext probe/var/file
                          (setq lang-fnm-regexp
-                               (eemacs/lang/macro/oref lang-rec
+                               (eemacs/prog-lang/macro/oref lang-rec
                                  :core :fnm-regexp))
                          (string-match-p lang-fnm-regexp probe/var/file))
                 (throw :exit rec)))
@@ -267,131 +267,131 @@ cons of LANG-NAME and LANG-RECIPE, or nil that not found."
     (or rtn
         (and (bufferp buffer-or-file)
              (funcall
-              (eemacs/lang/macro/define-general-probe
+              (eemacs/prog-lang/macro/define-general-probe
                (catch :exit
-                 (dolist (rec eemacs/lang/var/recipe-alist)
+                 (dolist (rec eemacs/prog-lang/var/recipe-alist)
                    (setq lang-rec (cdr rec))
                    (when (memq (buffer-local-value 'major-mode probe/var/buffer)
-                               (eemacs/lang/func/get-recipe-modes lang-rec 'all))
+                               (eemacs/prog-lang/func/get-recipe-modes lang-rec 'all))
                      (throw :exit rec)))
                  nil))
               buffer-or-file)))))
 
-(defun eemacs/lang/func/bof/lang-name (buffer-or-file)
-  (when-let* ((rec (eemacs/lang/func/bof/lang-recipe buffer-or-file)))
+(defun eemacs/prog-lang/func/bof/lang-name (buffer-or-file)
+  (when-let* ((rec (eemacs/prog-lang/func/bof/lang-recipe buffer-or-file)))
     (car rec)))
-(defun eemacs/lang/func/bof/treesit-id (buffer-or-file)
-  (when-let* ((rec (eemacs/lang/func/bof/lang-recipe buffer-or-file)))
-    (eemacs/lang/macro/oref (cdr rec) :treesit :id)))
-(defun eemacs/lang/func/bof/modes (buffer-or-file &optional type)
-  (let ((rec (eemacs/lang/func/bof/lang-recipe buffer-or-file)))
+(defun eemacs/prog-lang/func/bof/treesit-id (buffer-or-file)
+  (when-let* ((rec (eemacs/prog-lang/func/bof/lang-recipe buffer-or-file)))
+    (eemacs/prog-lang/macro/oref (cdr rec) :treesit :id)))
+(defun eemacs/prog-lang/func/bof/modes (buffer-or-file &optional type)
+  (let ((rec (eemacs/prog-lang/func/bof/lang-recipe buffer-or-file)))
     (when rec
       (setq rec (cdr rec))
-      (eemacs/lang/class//list-probe/method/call
+      (eemacs/prog-lang/class//list-probe/method/call
        (cl-case type
-         (treesit-modes (eemacs/lang/macro/oref rec :treesit :modes))
-         (t (eemacs/lang/macro/oref rec :modes)))
+         (treesit-modes (eemacs/prog-lang/macro/oref rec :treesit :modes))
+         (t (eemacs/prog-lang/macro/oref rec :modes)))
        buffer-or-file))))
-(defun eemacs/lang/func/mode/treesit-mode-p (mode)
+(defun eemacs/prog-lang/func/mode/treesit-mode-p (mode)
   (let (;; lang-name
         lang-rec lang-ts-modes)
     (catch :exit
-      (dolist (rec eemacs/lang/var/recipe-alist)
+      (dolist (rec eemacs/prog-lang/var/recipe-alist)
         (setq ;; lang-name (car rec)
               lang-rec (cdr rec))
         (setq lang-ts-modes
-              (eemacs/lang/macro/oref lang-rec
+              (eemacs/prog-lang/macro/oref lang-rec
                 :treesit :modes :list))
         (if (memq mode lang-ts-modes) (throw :exit t)))
       nil)))
-(defun eemacs/lang/func/mode/prog-mode-p (mode)
+(defun eemacs/prog-lang/func/mode/prog-mode-p (mode)
   (let (;; lang-name
         lang-rec lang-modes lang-ts-modes)
     (catch :exit
-      (dolist (rec eemacs/lang/var/recipe-alist)
+      (dolist (rec eemacs/prog-lang/var/recipe-alist)
         (setq ;; lang-name (car rec)
               lang-rec (cdr rec))
-        (setq lang-modes (eemacs/lang/macro/oref lang-rec :modes :list))
+        (setq lang-modes (eemacs/prog-lang/macro/oref lang-rec :modes :list))
         (if (memq mode lang-modes) (throw :exit t))
         (setq lang-ts-modes
-              (eemacs/lang/macro/oref lang-rec
+              (eemacs/prog-lang/macro/oref lang-rec
                 :treesit :modes :list))
         (if (memq mode lang-ts-modes) (throw :exit nil)))
       ;; FIXME: fine-tune default judgement
       (and (fboundp mode)
            (string-match-p "-mode\\'" (symbol-name mode))))))
-(defun eemacs/lang/func/mode/prog-modes (mode &optional buffer-or-file)
+(defun eemacs/prog-lang/func/mode/prog-modes (mode &optional buffer-or-file)
   (let (;; lang-name
         lang-rec lang-modes lang-ts-modes)
     (catch :exit
-      (dolist (rec eemacs/lang/var/recipe-alist)
+      (dolist (rec eemacs/prog-lang/var/recipe-alist)
         (setq ;; lang-name (car rec)
               lang-rec (cdr rec))
-        (setq lang-modes (eemacs/lang/macro/oref lang-rec :modes :list)
+        (setq lang-modes (eemacs/prog-lang/macro/oref lang-rec :modes :list)
               lang-ts-modes
-              (eemacs/lang/macro/oref lang-rec
+              (eemacs/prog-lang/macro/oref lang-rec
                 :treesit :modes :list))
         (when (memq mode (append lang-modes lang-ts-modes))
           (throw :exit (if buffer-or-file
-                           (eemacs/lang/class//list-probe/method/call
-                            (eemacs/lang/macro/oref lang-rec :modes) buffer-or-file)
+                           (eemacs/prog-lang/class//list-probe/method/call
+                            (eemacs/prog-lang/macro/oref lang-rec :modes) buffer-or-file)
                          lang-modes))))
       nil)))
-(defun eemacs/lang/func/mode/treesit-modes (mode &optional buffer-or-file)
+(defun eemacs/prog-lang/func/mode/treesit-modes (mode &optional buffer-or-file)
   (let (;; lang-name
         lang-rec lang-ts-obj lang-modes lang-ts-modes)
     (catch :exit
-      (dolist (rec eemacs/lang/var/recipe-alist)
+      (dolist (rec eemacs/prog-lang/var/recipe-alist)
         (setq ;; lang-name (car rec)
               lang-rec (cdr rec))
-        (setq lang-modes (eemacs/lang/macro/oref lang-rec :modes :list)
+        (setq lang-modes (eemacs/prog-lang/macro/oref lang-rec :modes :list)
               lang-ts-modes
-              (eemacs/lang/macro/oref
-                  (setq lang-ts-obj (eemacs/lang/macro/oref lang-rec :treesit))
+              (eemacs/prog-lang/macro/oref
+                  (setq lang-ts-obj (eemacs/prog-lang/macro/oref lang-rec :treesit))
                 :modes :list))
         (when (memq mode lang-ts-modes)
           (throw :exit (if buffer-or-file
-                           (eemacs/lang/class//list-probe/method/call
-                            (eemacs/lang/macro/oref lang-ts-obj :modes)
+                           (eemacs/prog-lang/class//list-probe/method/call
+                            (eemacs/prog-lang/macro/oref lang-ts-obj :modes)
                             buffer-or-file)
                          lang-ts-modes)))
         (when (memq mode lang-modes)
           (and (not lang-ts-obj) (throw :exit nil))
           (throw :exit
                  (if buffer-or-file
-                     (eemacs/lang/class//list-probe/method/call
-                      (eemacs/lang/macro/oref lang-ts-obj :modes)
+                     (eemacs/prog-lang/class//list-probe/method/call
+                      (eemacs/prog-lang/macro/oref lang-ts-obj :modes)
                       buffer-or-file)
                    lang-ts-modes))))
       nil)))
-(defun eemacs/lang/func/mode/treesit-id (mode)
+(defun eemacs/prog-lang/func/mode/treesit-id (mode)
   (let (;; lang-name
         lang-rec lang-ts-obj lang-modes lang-ts-modes)
     (catch :exit
-      (dolist (rec eemacs/lang/var/recipe-alist)
+      (dolist (rec eemacs/prog-lang/var/recipe-alist)
         (setq ;; lang-name (car rec)
               lang-rec (cdr rec))
-        (setq lang-modes (eemacs/lang/macro/oref lang-rec :modes :list)
+        (setq lang-modes (eemacs/prog-lang/macro/oref lang-rec :modes :list)
               lang-ts-modes
-              (eemacs/lang/macro/oref
-                  (setq lang-ts-obj (eemacs/lang/macro/oref lang-rec :treesit))
+              (eemacs/prog-lang/macro/oref
+                  (setq lang-ts-obj (eemacs/prog-lang/macro/oref lang-rec :treesit))
                 :modes :list))
         (when (and lang-ts-obj (memq mode (append lang-modes lang-ts-modes)))
           (throw :exit
-                 (eemacs/lang/macro/oref lang-ts-obj :id))))
+                 (eemacs/prog-lang/macro/oref lang-ts-obj :id))))
       nil)))
 
 (entropy/emacs-defconst/only-allow/local
-  eemacs/lang/var//treesit-parser-install-ok-exists nil)
+  eemacs/prog-lang/var//treesit-parser-install-ok-exists nil)
 (entropy/emacs-defconst/only-allow/local
-  eemacs/lang/var//lang-recpe-parent nil)
-(cl-defmacro eemacs/lang/macro/with-make-recipe
+  eemacs/prog-lang/var//lang-recpe-parent nil)
+(cl-defmacro eemacs/prog-lang/macro/with-make-recipe
     (name &rest slots &key with-this-as with-modes-assoc-plist &allow-other-keys)
-  "Define a `eemacs/lang/class/recipe' use let bounded sets of interned
+  "Define a `eemacs/prog-lang/class/recipe' use let bounded sets of interned
 symbols THIS-BINDING prefixed by WITH-THIS-AS (defaults to `this') that
 is a explicit symbol name.
 
-WITH-MODES-ASSOC-PLIST used as meaning as `eemacs/lang/assoc-plist/func/match'.
+WITH-MODES-ASSOC-PLIST used as meaning as `eemacs/prog-lang/assoc-plist/func/match'.
 "
   (declare (indent 1))
   (let* ((this (or with-this-as 'this))
@@ -406,12 +406,12 @@ WITH-MODES-ASSOC-PLIST used as meaning as `eemacs/lang/assoc-plist/func/match'.
          (this/var/ts-modes    (intern (concat (symbol-name this) "/var/treesit-modes")))
          (this/var/all-modes   (intern (concat (symbol-name this) "/var/all-modes"))))
     (macroexp-let2* ignore ((name name) (mal with-modes-assoc-plist))
-      `(let* ((,this (eemacs/lang/class/recipe
-                      :core    (make-instance 'eemacs/lang/class/core)
-                      :modes   (make-instance 'eemacs/lang/class/modes)
-                      :ids     (make-instance 'eemacs/lang/class/ids)
-                      :treesit (make-instance 'eemacs/lang/class/treesit)
-                      :subrecipes (make-instance 'eemacs/lang/class/subrecipes)))
+      `(let* ((,this (eemacs/prog-lang/class/recipe
+                      :core    (make-instance 'eemacs/prog-lang/class/core)
+                      :modes   (make-instance 'eemacs/prog-lang/class/modes)
+                      :ids     (make-instance 'eemacs/prog-lang/class/ids)
+                      :treesit (make-instance 'eemacs/prog-lang/class/treesit)
+                      :subrecipes (make-instance 'eemacs/prog-lang/class/subrecipes)))
               (,this/obj/core    (oref ,this core))
               (,this/obj/modes   (oref ,this modes))
               (,this/obj/ids     (oref ,this ids))
@@ -425,7 +425,7 @@ WITH-MODES-ASSOC-PLIST used as meaning as `eemacs/lang/assoc-plist/func/match'.
                  ,this/obj/subrecipes
                  ,this/var/prog-modes ,this/var/ts-modes ,this/var/all-modes
                  ,this/var/modes-assoc-plist)
-         (eemacs/lang/macro/oset ,this/obj/core :name ,name)
+         (eemacs/prog-lang/macro/oset ,this/obj/core :name ,name)
          (when ,mal
            (setq ,this/var/modes-assoc-plist ,mal)
            (let (mds ts-mds)
@@ -436,24 +436,24 @@ WITH-MODES-ASSOC-PLIST used as meaning as `eemacs/lang/assoc-plist/func/match'.
                (setq ,this/var/prog-modes (append ,this/var/prog-modes (ensure-list mds)))
                (setq ,this/var/ts-modes   (append ,this/var/ts-modes (ensure-list ts-mds))))
              (setq ,this/var/all-modes (append ,this/var/prog-modes ,this/var/ts-modes))))
-         (eemacs/lang/macro/oset ,this :parent eemacs/lang/var//lang-recpe-parent)
-         (let ((eemacs/lang/var//lang-recpe-parent ,name)) ,@body)
-         (if (assoc ,name eemacs/lang/var/recipe-alist 'string=)
-             (setf (alist-get ,name eemacs/lang/var/recipe-alist
+         (eemacs/prog-lang/macro/oset ,this :parent eemacs/prog-lang/var//lang-recpe-parent)
+         (let ((eemacs/prog-lang/var//lang-recpe-parent ,name)) ,@body)
+         (if (assoc ,name eemacs/prog-lang/var/recipe-alist 'string=)
+             (setf (alist-get ,name eemacs/prog-lang/var/recipe-alist
                               nil nil 'string=)
                    ,this)
-           (push (cons ,name ,this) eemacs/lang/var/recipe-alist))
+           (push (cons ,name ,this) eemacs/prog-lang/var/recipe-alist))
          (let
-             ((func-sym (intern (format "eemacs/lang/interact/install/treesit-parser/%s"
+             ((func-sym (intern (format "eemacs/prog-lang/interact/install/treesit-parser/%s"
                                         (replace-regexp-in-string "[    ]+" "-" ,name))))
               core-func)
            (entropy/emacs-setf-by-body core-func
              (lambda ()
                (entropy/emacs-when-let*-firstn 4
                    ((trobj (oref ,this treesit))
-                    (id (eemacs/lang/macro/oref trobj :id))
+                    (id (eemacs/prog-lang/macro/oref trobj :id))
                     (ids (ensure-list id))
-                    ((or (eemacs/lang/macro/oref trobj :installable)
+                    ((or (eemacs/prog-lang/macro/oref trobj :installable)
                          (prog1 nil
                            (display-warning
                             'treesit
@@ -485,7 +485,7 @@ for dynamic libraries for this system, because `dynamic-library-suffixes' is nil
                    (dolist (lb libnames)
                      (setq nid (car lb) lb (expand-file-name (cdr lb) libdir))
                      (when (file-exists-p lb)
-                       (if eemacs/lang/var//treesit-parser-install-ok-exists
+                       (if eemacs/prog-lang/var//treesit-parser-install-ok-exists
                            (push nid should-not-install-list)
                          (let ((inhibit-quit t)
                                (lb-bk (make-backup-file-name lb)))
@@ -519,27 +519,27 @@ for dynamic libraries for this system, because `dynamic-library-suffixes' is nil
                      (funcall (oref (oref sc treesit) installer)))))))
            (defalias func-sym
              (lambda nil (interactive) (funcall core-func)))
-           (eemacs/lang/macro/oset ,this/obj/treesit :installer func-sym))
+           (eemacs/prog-lang/macro/oset ,this/obj/treesit :installer func-sym))
          ,this))))
 
-(defun eemacs/lang/func/install/all-treesit-parsers nil
+(defun eemacs/prog-lang/func/install/all-treesit-parsers nil
   (when (file-directory-p entropy/emacs-treesit-libs-default-load-path)
     (when-let* ((files (directory-files entropy/emacs-treesit-libs-default-load-path
                                         t "\\`libtree-sitter-")))
       (dolist (el files) (delete-file el))))
-  (let ((eemacs/lang/var//treesit-parser-install-ok-exists t))
-    (dolist (rec eemacs/lang/var/recipe-alist)
+  (let ((eemacs/prog-lang/var//treesit-parser-install-ok-exists t))
+    (dolist (rec eemacs/prog-lang/var/recipe-alist)
       (when-let* ((func
-                   (eemacs/lang/macro/oref (cdr rec)
+                   (eemacs/prog-lang/macro/oref (cdr rec)
                      :treesit :installer))
                   ;; NOTE: no dups invocation since parent auto
                   ;; recursively install subrecipes
-                  ((not (eemacs/lang/macro/oref (cdr rec) :parent))))
+                  ((not (eemacs/prog-lang/macro/oref (cdr rec) :parent))))
         (entropy/emacs-message-simple-progress-message
             (format "Install treesit parsers for lang %s" (car rec))
           (funcall func))))))
 
-(defun eemacs/lang/assoc-plist/func/match
+(defun eemacs/prog-lang/assoc-plist/func/match
     (assoc-plists key-match match-member key-against)
   "Find value based on key KEY-MATCH according to the wanted from an
 ASSOC-PLIST from list of thus in ASSOC-PLISTS.
@@ -567,37 +567,37 @@ ASSOC-PLISTS is respected."
 
 ;; *** Common Lisp
 
-(eemacs/lang/macro/with-make-recipe "Common Lisp"
+(eemacs/prog-lang/macro/with-make-recipe "Common Lisp"
   :with-modes-assoc-plist
   '((:prog-modes common-lisp-mode :treesist-modes commonlisp-ts-mode))
   :core
-  (eemacs/lang/macro/oset this/obj/core
+  (eemacs/prog-lang/macro/oset this/obj/core
     :fnm-regexp "\\.cl\\'")
-  (eemacs/lang/macro/oset this/obj/modes
+  (eemacs/prog-lang/macro/oset this/obj/modes
     :list this/var/prog-modes)
-  (eemacs/lang/macro/oset this/obj/ids
+  (eemacs/prog-lang/macro/oset this/obj/ids
     :list "commonlisp")
-  (eemacs/lang/macro/oset this/obj/treesit
+  (eemacs/prog-lang/macro/oset this/obj/treesit
     :id "commonlisp"
     :repo-url "https://github.com/tree-sitter-grammars/tree-sitter-commonlisp"
     :modes this/var/treesit-modes)
-  (eemacs/lang/macro/oset this/obj/subrecipes
+  (eemacs/prog-lang/macro/oset this/obj/subrecipes
     :list
     (list
 ;; **** Clojure
-     (eemacs/lang/macro/with-make-recipe "Clojure"
+     (eemacs/prog-lang/macro/with-make-recipe "Clojure"
        :with-modes-assoc-plist
        '((:prog-modes
           (clojure-mode
            clojurescript-mode clojurec-mode
            clojuredart-mode jank-mode joker-mode)
           :treesit-modes clojure-ts-mode))
-       (eemacs/lang/macro/oset this/obj/core
+       (eemacs/prog-lang/macro/oset this/obj/core
          :fnm-regexp "\\.cljc?s?d?\\'")
-       (eemacs/lang/macro/oset this/obj/modes
+       (eemacs/prog-lang/macro/oset this/obj/modes
          :list this/var/prog-modes
          :probe
-         (eemacs/lang/macro/define-probe
+         (eemacs/prog-lang/macro/define-probe
           :with-conds-pattern
           `((function
              .
@@ -612,100 +612,100 @@ ASSOC-PLISTS is respected."
              ("cljd" :val clojuredart-mode)
              ("jank" :val jank-mode)
              ("joke" :val joker-mode)))))
-       (eemacs/lang/macro/oset this/obj/ids :list "clojure")
-       (eemacs/lang/macro/oset this/obj/treesit
+       (eemacs/prog-lang/macro/oset this/obj/ids :list "clojure")
+       (eemacs/prog-lang/macro/oset this/obj/treesit
          :id
          (car-safe (oref this/obj/ids list))
          :repo-url
          "https://github.com/sogaiu/tree-sitter-clojure"
          :modes
-         (eemacs/lang/class/modes
+         (eemacs/prog-lang/class/modes
           :list this/var/treesit-modes
           :probe
-          (eemacs/lang/macro/define-probe
+          (eemacs/prog-lang/macro/define-probe
            :with-conds-pattern
            '((_ . clojure-ts-mode)))))))))
 
 ;; *** Python
 
-(eemacs/lang/macro/with-make-recipe "Python"
+(eemacs/prog-lang/macro/with-make-recipe "Python"
   :with-modes-assoc-plist
   '((:prog-modes python-mode :treesit-modes python-ts-mode))
-  (eemacs/lang/macro/oset this/obj/core
+  (eemacs/prog-lang/macro/oset this/obj/core
     :fnm-regexp "\\.py[iw]?\\'")
-  (eemacs/lang/macro/oset this/obj/modes
+  (eemacs/prog-lang/macro/oset this/obj/modes
     :list this/var/prog-modes)
-  (eemacs/lang/macro/oset this/obj/ids
+  (eemacs/prog-lang/macro/oset this/obj/ids
     :list "python")
-  (eemacs/lang/macro/oset this/obj/treesit
+  (eemacs/prog-lang/macro/oset this/obj/treesit
     :id "python"
     :repo-url "https://github.com/tree-sitter/tree-sitter-python"
     :modes
-    (eemacs/lang/class/modes
+    (eemacs/prog-lang/class/modes
      :list this/var/treesit-modes)))
 
 ;; *** Html
-(eemacs/lang/macro/with-make-recipe "HTML"
+(eemacs/prog-lang/macro/with-make-recipe "HTML"
   :with-modes-assoc-plist
   '((:prog-modes
      (html-mode web-mode mhtml-mode sgml-mode)
      :treesit-modes html-ts-mode))
-  (eemacs/lang/macro/oset this/obj/core
+  (eemacs/prog-lang/macro/oset this/obj/core
     :fnm-regexp "\\.html\\'")
-  (eemacs/lang/macro/oset this/obj/modes
+  (eemacs/prog-lang/macro/oset this/obj/modes
     :list this/var/prog-modes)
-  (eemacs/lang/macro/oset this/obj/ids
+  (eemacs/prog-lang/macro/oset this/obj/ids
     :list "html")
-  (eemacs/lang/macro/oset this/obj/treesit
+  (eemacs/prog-lang/macro/oset this/obj/treesit
     :id "html"
     :repo-url "https://github.com/tree-sitter/tree-sitter-html"
     :modes
-    (eemacs/lang/class/modes :list this/var/treesit-modes))
-  (eemacs/lang/macro/oset this/obj/subrecipes
+    (eemacs/prog-lang/class/modes :list this/var/treesit-modes))
+  (eemacs/prog-lang/macro/oset this/obj/subrecipes
     :list
     (list
 ;; **** CSS
-     (eemacs/lang/macro/with-make-recipe "CSS"
+     (eemacs/prog-lang/macro/with-make-recipe "CSS"
        :with-this-as this-css
        :with-modes-assoc-plist
        '((:prog-modes css-mode :treesit-modes css-ts-mode))
-       (eemacs/lang/macro/oset this-css/obj/core
+       (eemacs/prog-lang/macro/oset this-css/obj/core
          :fnm-regexp "\\.css\\'")
-       (eemacs/lang/macro/oset this-css/obj/modes
+       (eemacs/prog-lang/macro/oset this-css/obj/modes
          :list this-css/var/prog-modes)
-       (eemacs/lang/macro/oset this-css/obj/ids
+       (eemacs/prog-lang/macro/oset this-css/obj/ids
          :list "css")
-       (eemacs/lang/macro/oset this-css/obj/treesit
+       (eemacs/prog-lang/macro/oset this-css/obj/treesit
          :id "css"
          :repo-url "https://github.com/tree-sitter/tree-sitter-css"
-         :modes (eemacs/lang/class/modes :list this-css/var/treesit-modes)))
+         :modes (eemacs/prog-lang/class/modes :list this-css/var/treesit-modes)))
 
 ;; **** XML
-     (eemacs/lang/macro/with-make-recipe "XML"
+     (eemacs/prog-lang/macro/with-make-recipe "XML"
        :with-this-as this-xml
        :with-modes-assoc-plist
        '((:prog-modes (xml-mode nxml-mode)))
-       (eemacs/lang/macro/oset this-xml/obj/core
+       (eemacs/prog-lang/macro/oset this-xml/obj/core
          :fnm-regexp "\\.xml\\'")
-       (eemacs/lang/macro/oset this-xml/obj/modes
+       (eemacs/prog-lang/macro/oset this-xml/obj/modes
          :list this-xml/var/prog-modes)
-       (eemacs/lang/macro/oset this-xml/obj/ids
+       (eemacs/prog-lang/macro/oset this-xml/obj/ids
          :list "xml"))
      )))
 
 ;; *** Javascript
-(eemacs/lang/macro/with-make-recipe "JavaScript"
+(eemacs/prog-lang/macro/with-make-recipe "JavaScript"
   :with-modes-assoc-plist
   `((:prog-modes
      (js-mode javascript-mode js2-mode)
      :treesit-modes
      js-ts-mode))
-  (eemacs/lang/macro/oset this/obj/core
+  (eemacs/prog-lang/macro/oset this/obj/core
     :fnm-regexp "\\.js\\'")
-  (eemacs/lang/macro/oset this/obj/modes
+  (eemacs/prog-lang/macro/oset this/obj/modes
     :list this/var/prog-modes
     :probe
-    (eemacs/lang/macro/define-probe
+    (eemacs/prog-lang/macro/define-probe
      :with-conds-pattern
      `((function
         .
@@ -714,45 +714,45 @@ ASSOC-PLISTS is respected."
              (car-safe (memq (buffer-local-value 'major-mode probe/var/buffer)
                              this/var/prog-modes)))))
        (_ . js-mode))))
-  (eemacs/lang/macro/oset this/obj/ids :list "javascript")
-  (eemacs/lang/macro/oset this/obj/treesit
+  (eemacs/prog-lang/macro/oset this/obj/ids :list "javascript")
+  (eemacs/prog-lang/macro/oset this/obj/treesit
     :id (car-safe (oref this/obj/ids list))
     :repo-url "https://github.com/tree-sitter/tree-sitter-javascript"
     :repo-revision "master"
     :repo-src-dir  "src"
     :modes
-    (eemacs/lang/class/modes
+    (eemacs/prog-lang/class/modes
      :list this/var/treesit-modes))
-  (eemacs/lang/macro/oset this/obj/subrecipes
+  (eemacs/prog-lang/macro/oset this/obj/subrecipes
     :list
     (list
 ;; **** JSON
-     (eemacs/lang/macro/with-make-recipe "JSON"
+     (eemacs/prog-lang/macro/with-make-recipe "JSON"
        :with-this-as this-json
        :with-modes-assoc-plist
        '((:prog-modes (json-mode js-json-mode) :treesit-modes json-ts-mode))
-       (eemacs/lang/macro/oset this-json/obj/core
+       (eemacs/prog-lang/macro/oset this-json/obj/core
          :fnm-regexp "\\.json\\'")
-       (eemacs/lang/macro/oset this-json/obj/modes
+       (eemacs/prog-lang/macro/oset this-json/obj/modes
          :list this-json/var/prog-modes)
-       (eemacs/lang/macro/oset this-json/obj/ids
+       (eemacs/prog-lang/macro/oset this-json/obj/ids
          :list "json")
-       (eemacs/lang/macro/oset this-json/obj/treesit
+       (eemacs/prog-lang/macro/oset this-json/obj/treesit
          :id "json"
          :repo-url "https://github.com/tree-sitter/tree-sitter-json"
-         :modes (eemacs/lang/class/modes :list this-json/var/treesit-modes)))
+         :modes (eemacs/prog-lang/class/modes :list this-json/var/treesit-modes)))
 
 ;; **** Typescript
-     (eemacs/lang/macro/with-make-recipe "TypeScript"
+     (eemacs/prog-lang/macro/with-make-recipe "TypeScript"
        :with-this-as this-ts
        :with-modes-assoc-plist
        '((:prog-modes typescript-mode :treesit-modes typescript-ts-mode))
-       (eemacs/lang/macro/oset this-ts/obj/core
+       (eemacs/prog-lang/macro/oset this-ts/obj/core
          :fnm-regexp "\\.ts\\'")
-       (eemacs/lang/macro/oset this-ts/obj/modes
+       (eemacs/prog-lang/macro/oset this-ts/obj/modes
          :list this-ts/var/prog-modes
          :probe
-         (eemacs/lang/macro/define-probe
+         (eemacs/prog-lang/macro/define-probe
           :with-conds-pattern
           `((function
              .
@@ -760,68 +760,68 @@ ASSOC-PLISTS is respected."
                 (when probe/var/buffer
                   (car-safe (memq (buffer-local-value 'major-mode probe/var/buffer)
                                   this-ts/var/prog-modes))))))))
-       (eemacs/lang/macro/oset this-ts/obj/ids :list "typescript")
-       (eemacs/lang/macro/oset this-ts/obj/treesit
+       (eemacs/prog-lang/macro/oset this-ts/obj/ids :list "typescript")
+       (eemacs/prog-lang/macro/oset this-ts/obj/treesit
          :id (car-safe (oref this-ts/obj/ids list))
          :repo-url "https://github.com/tree-sitter/tree-sitter-typescript"
          :repo-revision "master"
          :repo-src-dir "typescript/src"
          :modes
-         (eemacs/lang/class/modes
+         (eemacs/prog-lang/class/modes
           :list this-ts/var/treesit-modes))
-       (eemacs/lang/macro/oset this-ts/obj/subrecipes
+       (eemacs/prog-lang/macro/oset this-ts/obj/subrecipes
          :list
          (list
 ;; **** TypeScript JSX
-          (eemacs/lang/macro/with-make-recipe "TypeScript JSX"
+          (eemacs/prog-lang/macro/with-make-recipe "TypeScript JSX"
             :with-this-as this-jsx
             :with-modes-assoc-plist
             `((:prog-modes typescript-tsx-mode :treesit-modes tsx-ts-mode))
-            (eemacs/lang/macro/oset this-jsx/obj/core
+            (eemacs/prog-lang/macro/oset this-jsx/obj/core
               :fnm-regexp "\\.tsx\\'")
-            (eemacs/lang/macro/oset this-jsx/obj/modes
+            (eemacs/prog-lang/macro/oset this-jsx/obj/modes
               :list this-jsx/var/prog-modes)
-            (eemacs/lang/macro/oset this-jsx/obj/ids
+            (eemacs/prog-lang/macro/oset this-jsx/obj/ids
               :list "tsx")
-            (eemacs/lang/macro/oset this-jsx/obj/treesit
+            (eemacs/prog-lang/macro/oset this-jsx/obj/treesit
               :id (car-safe (oref this-jsx/obj/ids list))
               :repo-url "https://github.com/tree-sitter/tree-sitter-typescript"
               :repo-revision "master"
               :repo-src-dir "tsx/src"
               :modes
-              (eemacs/lang/class/modes :list this-jsx/var/treesit-modes))))))
+              (eemacs/prog-lang/class/modes :list this-jsx/var/treesit-modes))))))
 
 ;; **** Vue
-     (eemacs/lang/macro/with-make-recipe "Vue"
+     (eemacs/prog-lang/macro/with-make-recipe "Vue"
        :with-this-as this-vue
        :with-modes-assoc-plist
        `((:prog-modes vue-mode :treesit-modes vue-ts-mode))
-       (eemacs/lang/macro/oset this-vue/obj/core
+       (eemacs/prog-lang/macro/oset this-vue/obj/core
          :fnm-regexp "\\.vue\\'")
-       (eemacs/lang/macro/oset this-vue/obj/modes
+       (eemacs/prog-lang/macro/oset this-vue/obj/modes
          :list this-vue/var/prog-modes)
-       (eemacs/lang/macro/oset this-vue/obj/ids
+       (eemacs/prog-lang/macro/oset this-vue/obj/ids
          :list "vue")
-       (eemacs/lang/macro/oset this-vue/obj/treesit
+       (eemacs/prog-lang/macro/oset this-vue/obj/treesit
          :id (car-safe (oref this-vue/obj/ids list))
          :repo-url "https://github.com/tree-sitter-grammars/tree-sitter-vue"
          :modes
-         (eemacs/lang/class/modes :list this-vue/var/treesit-modes)))
+         (eemacs/prog-lang/class/modes :list this-vue/var/treesit-modes)))
      )))
 
 ;; *** ShellScript
 
-(eemacs/lang/macro/with-make-recipe "Shell Script"
+(eemacs/prog-lang/macro/with-make-recipe "Shell Script"
   :with-modes-assoc-plist
   '((:prog-modes sh-mode :treesit-modes bash-ts-mode))
-  (eemacs/lang/macro/oset this/obj/core
+  (eemacs/prog-lang/macro/oset this/obj/core
     :fnm-regexp (rx "." (or "sh" "bash" "bashrc" "bash_profile" "fish" "zsh") line-end))
-  (eemacs/lang/macro/oset this/obj/modes
+  (eemacs/prog-lang/macro/oset this/obj/modes
     :list this/var/prog-modes)
-  (eemacs/lang/macro/oset this/obj/ids
+  (eemacs/prog-lang/macro/oset this/obj/ids
     :list '("sh" "bash" "zsh" "fish")
     :probe
-    (eemacs/lang/macro/define-probe
+    (eemacs/prog-lang/macro/define-probe
      :with-conds-pattern
      `((major-mode
         (bash-ts-mode . bash))
@@ -840,42 +840,42 @@ ASSOC-PLISTS is respected."
         ("bash_profile" . bash)
         ("zsh" . zsh)
         ("fish" . fish)))))
-  (eemacs/lang/macro/oset this/obj/treesit
+  (eemacs/prog-lang/macro/oset this/obj/treesit
     :id "bash"
     :repo-url "https://github.com/tree-sitter/tree-sitter-bash"
     :modes
-    (eemacs/lang/class/modes
+    (eemacs/prog-lang/class/modes
      :list '(bash-ts-mode)))
-  (eemacs/lang/macro/oset this/obj/subrecipes
+  (eemacs/prog-lang/macro/oset this/obj/subrecipes
     :list
     (list
 ;; **** PowerShell
-     (eemacs/lang/macro/with-make-recipe "PowerShell"
+     (eemacs/prog-lang/macro/with-make-recipe "PowerShell"
        :with-modes-assoc-plist
        '((:prog-modes powershell-mode :treesit-modes powershell-ts-mode))
-       (eemacs/lang/macro/oset this/obj/core
+       (eemacs/prog-lang/macro/oset this/obj/core
          :fnm-regexp "\\.ps[dm]?1\\'")
-       (eemacs/lang/macro/oset this/obj/modes
+       (eemacs/prog-lang/macro/oset this/obj/modes
          :list this/var/prog-modes)
-       (eemacs/lang/macro/oset this/obj/ids
+       (eemacs/prog-lang/macro/oset this/obj/ids
          :list "powershell")
-       (eemacs/lang/macro/oset this/obj/treesit
+       (eemacs/prog-lang/macro/oset this/obj/treesit
          :id "powershell"
          :repo-url "https://github.com/airbus-cert/tree-sitter-powershell"
-         :modes (eemacs/lang/class/modes :list this/var/treesit-modes)))
+         :modes (eemacs/prog-lang/class/modes :list this/var/treesit-modes)))
 
 ;; **** AWK
-     (eemacs/lang/macro/with-make-recipe "AWK"
+     (eemacs/prog-lang/macro/with-make-recipe "AWK"
        :with-modes-assoc-plist
        '((:prog-modes awk-mode :treesist-modes awk-ts-mode))
        :core
-       (eemacs/lang/macro/oset this/obj/core
+       (eemacs/prog-lang/macro/oset this/obj/core
          :fnm-regexp "\\.awk\\'")
-       (eemacs/lang/macro/oset this/obj/modes
+       (eemacs/prog-lang/macro/oset this/obj/modes
          :list this/var/prog-modes)
-       (eemacs/lang/macro/oset this/obj/ids
+       (eemacs/prog-lang/macro/oset this/obj/ids
          :list "awk")
-       (eemacs/lang/macro/oset this/obj/treesit
+       (eemacs/prog-lang/macro/oset this/obj/treesit
          :id "awk"
          :repo-url "https://github.com/Beaglefoot/tree-sitter-awk"
          :modes this/var/treesit-modes))
@@ -884,353 +884,353 @@ ASSOC-PLISTS is respected."
 
 ;; *** C
 
-(eemacs/lang/macro/with-make-recipe "C"
+(eemacs/prog-lang/macro/with-make-recipe "C"
   :with-modes-assoc-plist
   '((:prog-modes c-mode :treesit-modes c-ts-mode))
-  (eemacs/lang/macro/oset this/obj/core
+  (eemacs/prog-lang/macro/oset this/obj/core
     :fnm-regexp "\\.c\\'")
-  (eemacs/lang/macro/oset this/obj/modes
+  (eemacs/prog-lang/macro/oset this/obj/modes
     :list this/var/prog-modes)
-  (eemacs/lang/macro/oset this/obj/ids
+  (eemacs/prog-lang/macro/oset this/obj/ids
     :list "c")
-  (eemacs/lang/macro/oset this/obj/treesit
+  (eemacs/prog-lang/macro/oset this/obj/treesit
     :id "c"
     :repo-url "https://github.com/tree-sitter/tree-sitter-c"
     :modes
-    (eemacs/lang/class/modes
+    (eemacs/prog-lang/class/modes
      :list this/var/treesit-modes))
-  (eemacs/lang/macro/oset this/obj/subrecipes
+  (eemacs/prog-lang/macro/oset this/obj/subrecipes
     :list
     (list
 ;; **** CPP
-     (eemacs/lang/macro/with-make-recipe "C++"
+     (eemacs/prog-lang/macro/with-make-recipe "C++"
        :with-this-as this-cpp
        :with-modes-assoc-plist
        '((:prog-modes c++-mode :treesit-modes c++-ts-mode))
-       (eemacs/lang/macro/oset this-cpp/obj/core
+       (eemacs/prog-lang/macro/oset this-cpp/obj/core
          :fnm-regexp "\\.cpp\\'")
-       (eemacs/lang/macro/oset this-cpp/obj/modes
+       (eemacs/prog-lang/macro/oset this-cpp/obj/modes
          :list this-cpp/var/prog-modes)
-       (eemacs/lang/macro/oset this-cpp/obj/ids
+       (eemacs/prog-lang/macro/oset this-cpp/obj/ids
          :list "cpp")
-       (eemacs/lang/macro/oset this-cpp/obj/treesit
+       (eemacs/prog-lang/macro/oset this-cpp/obj/treesit
          :id "cpp"
          :repo-url "https://github.com/tree-sitter/tree-sitter-cpp"
          :modes
-         (eemacs/lang/class/modes
+         (eemacs/prog-lang/class/modes
           :list this-cpp/var/treesit-modes)))
 
 ;; **** CSHARP
-     (eemacs/lang/macro/with-make-recipe "C#"
+     (eemacs/prog-lang/macro/with-make-recipe "C#"
        :with-this-as this-csharp
        :with-modes-assoc-plist
        '((:prog-modes csharp-mode :treesit-modes csharp-ts-mode))
-       (eemacs/lang/macro/oset this-csharp/obj/core
+       (eemacs/prog-lang/macro/oset this-csharp/obj/core
          :fnm-regexp "\\.cs\\'")
-       (eemacs/lang/macro/oset this-csharp/obj/modes
+       (eemacs/prog-lang/macro/oset this-csharp/obj/modes
          :list this-csharp/var/prog-modes)
-       (eemacs/lang/macro/oset this-csharp/obj/ids
+       (eemacs/prog-lang/macro/oset this-csharp/obj/ids
          :list "csharp")
-       (eemacs/lang/macro/oset this-csharp/obj/treesit
+       (eemacs/prog-lang/macro/oset this-csharp/obj/treesit
          :id "c-sharp"
          :repo-url "https://github.com/tree-sitter/tree-sitter-c-sharp"
          :modes
-         (eemacs/lang/class/modes
+         (eemacs/prog-lang/class/modes
           :list this-csharp/var/treesit-modes)))
 
 ;; **** CMAKE
-     (eemacs/lang/macro/with-make-recipe "CMAKE"
+     (eemacs/prog-lang/macro/with-make-recipe "CMAKE"
        :with-this-as this-cmake
        :with-modes-assoc-plist
        '((:prog-modes cmake-mode :treesit-modes cmake-ts-mode))
-       (eemacs/lang/macro/oset this-cmake/obj/core
+       (eemacs/prog-lang/macro/oset this-cmake/obj/core
          :fnm-regexp "\\.cmake\\'")
-       (eemacs/lang/macro/oset this-cmake/obj/modes
+       (eemacs/prog-lang/macro/oset this-cmake/obj/modes
          :list this-cmake/var/prog-modes)
-       (eemacs/lang/macro/oset this-cmake/obj/ids
+       (eemacs/prog-lang/macro/oset this-cmake/obj/ids
          :list "cmake")
-       (eemacs/lang/macro/oset this-cmake/obj/treesit
+       (eemacs/prog-lang/macro/oset this-cmake/obj/treesit
          :id "cmake"
          :repo-url "https://github.com/uyha/tree-sitter-cmake"
          :modes
-         (eemacs/lang/class/modes
+         (eemacs/prog-lang/class/modes
           :list this-cmake/var/treesit-modes)))
      )))
 
 ;; *** Rust
-(eemacs/lang/macro/with-make-recipe "Rust"
+(eemacs/prog-lang/macro/with-make-recipe "Rust"
   :with-modes-assoc-plist
   '((:prog-modes rust-mode :treesit-modes rust-ts-mode))
-  (eemacs/lang/macro/oset this/obj/core
+  (eemacs/prog-lang/macro/oset this/obj/core
     :fnm-regexp "\\.rs\\'")
-  (eemacs/lang/macro/oset this/obj/modes
+  (eemacs/prog-lang/macro/oset this/obj/modes
     :list this/var/prog-modes)
-  (eemacs/lang/macro/oset this/obj/ids
+  (eemacs/prog-lang/macro/oset this/obj/ids
     :list "rust")
-  (eemacs/lang/macro/oset this/obj/treesit
+  (eemacs/prog-lang/macro/oset this/obj/treesit
     :id "rust"
     :repo-url "https://github.com/tree-sitter/tree-sitter-rust"
     :modes
-    (eemacs/lang/class/modes
+    (eemacs/prog-lang/class/modes
      :list this/var/treesit-modes)))
 
 ;; *** Go
-(eemacs/lang/macro/with-make-recipe "Go"
+(eemacs/prog-lang/macro/with-make-recipe "Go"
   :with-modes-assoc-plist
   '((:prog-modes go-mode :treesit-modes go-ts-mode))
-  (eemacs/lang/macro/oset this/obj/core
+  (eemacs/prog-lang/macro/oset this/obj/core
     :fnm-regexp "\\.go\\'")
-  (eemacs/lang/macro/oset this/obj/modes
+  (eemacs/prog-lang/macro/oset this/obj/modes
     :list this/var/prog-modes)
-  (eemacs/lang/macro/oset this/obj/ids
+  (eemacs/prog-lang/macro/oset this/obj/ids
     :list "go")
-  (eemacs/lang/macro/oset this/obj/treesit
+  (eemacs/prog-lang/macro/oset this/obj/treesit
     :id "go"
     :repo-url "https://github.com/tree-sitter/tree-sitter-go"
     :modes
-    (eemacs/lang/class/modes
+    (eemacs/prog-lang/class/modes
      :list this/var/treesit-modes))
-  (eemacs/lang/macro/oset this/obj/subrecipes
+  (eemacs/prog-lang/macro/oset this/obj/subrecipes
     :list
     (list
 ;; **** Go Mod
-     (eemacs/lang/macro/with-make-recipe "Go Mod"
+     (eemacs/prog-lang/macro/with-make-recipe "Go Mod"
        :with-this-as this-gomod
        :with-modes-assoc-plist
        '((:prog-modes go-mod-mode :treesit-modes go-mod-ts-mode))
-       (eemacs/lang/macro/oset this-gomod/obj/core
+       (eemacs/prog-lang/macro/oset this-gomod/obj/core
          :fnm-regexp "go\\.mod\\'")
-       (eemacs/lang/macro/oset this-gomod/obj/modes
+       (eemacs/prog-lang/macro/oset this-gomod/obj/modes
          :list this-gomod/var/prog-modes)
-       (eemacs/lang/macro/oset this-gomod/obj/ids
+       (eemacs/prog-lang/macro/oset this-gomod/obj/ids
          :list "gomod")
-       (eemacs/lang/macro/oset this-gomod/obj/treesit
+       (eemacs/prog-lang/macro/oset this-gomod/obj/treesit
          :id "gomod"
          :repo-url "https://github.com/camdencheek/tree-sitter-go-mod"
          :modes
-         (eemacs/lang/class/modes
+         (eemacs/prog-lang/class/modes
           :list this-gomod/var/treesit-modes)))
      )))
 
 ;; *** Java
 
-(eemacs/lang/macro/with-make-recipe "Java"
+(eemacs/prog-lang/macro/with-make-recipe "Java"
   :with-modes-assoc-plist
   '((:prog-modes java-mode :treesit-modes java-ts-mode))
-  (eemacs/lang/macro/oset this/obj/core
+  (eemacs/prog-lang/macro/oset this/obj/core
     :fnm-regexp "\\.java\\'")
-  (eemacs/lang/macro/oset this/obj/modes
+  (eemacs/prog-lang/macro/oset this/obj/modes
     :list this/var/prog-modes)
-  (eemacs/lang/macro/oset this/obj/ids
+  (eemacs/prog-lang/macro/oset this/obj/ids
     :list "java")
-  (eemacs/lang/macro/oset this/obj/treesit
+  (eemacs/prog-lang/macro/oset this/obj/treesit
     :id "java"
     :repo-url "https://github.com/tree-sitter/tree-sitter-java"
-    :modes (eemacs/lang/class/modes :list this/var/treesit-modes))
-  (eemacs/lang/macro/oset this/obj/subrecipes
+    :modes (eemacs/prog-lang/class/modes :list this/var/treesit-modes))
+  (eemacs/prog-lang/macro/oset this/obj/subrecipes
     :list
     (list
 ;; **** Kotlin
-     (eemacs/lang/macro/with-make-recipe "Kotlin"
+     (eemacs/prog-lang/macro/with-make-recipe "Kotlin"
        :with-modes-assoc-plist
        '((:prog-modes kotlin-mode :treesist-modes kotlin-ts-mode))
        :core
-       (eemacs/lang/macro/oset this/obj/core
+       (eemacs/prog-lang/macro/oset this/obj/core
          :fnm-regexp "\\.kts?\\'")
-       (eemacs/lang/macro/oset this/obj/modes
+       (eemacs/prog-lang/macro/oset this/obj/modes
          :list this/var/prog-modes)
-       (eemacs/lang/macro/oset this/obj/ids
+       (eemacs/prog-lang/macro/oset this/obj/ids
          :list "kotlin")
-       (eemacs/lang/macro/oset this/obj/treesit
+       (eemacs/prog-lang/macro/oset this/obj/treesit
          :id "kotlin"
          :repo-url "https://github.com/fwcd/tree-sitter-kotlin"
          :modes this/var/treesit-modes))
 
 ;; **** Dart
-     (eemacs/lang/macro/with-make-recipe "Dart"
+     (eemacs/prog-lang/macro/with-make-recipe "Dart"
        :with-modes-assoc-plist
        '((:prog-modes dart-mode :treesist-modes dart-ts-mode))
        :core
-       (eemacs/lang/macro/oset this/obj/core
+       (eemacs/prog-lang/macro/oset this/obj/core
          :fnm-regexp "\\.dart\\'")
-       (eemacs/lang/macro/oset this/obj/modes
+       (eemacs/prog-lang/macro/oset this/obj/modes
          :list this/var/prog-modes)
-       (eemacs/lang/macro/oset this/obj/ids
+       (eemacs/prog-lang/macro/oset this/obj/ids
          :list "dart")
-       (eemacs/lang/macro/oset this/obj/treesit
+       (eemacs/prog-lang/macro/oset this/obj/treesit
          :id "dart"
          :repo-url "https://github.com/ast-grep/tree-sitter-dart"
          :modes this/var/treesit-modes))
      )))
 
 ;; *** PHP
-(eemacs/lang/macro/with-make-recipe "PHP"
+(eemacs/prog-lang/macro/with-make-recipe "PHP"
   :with-modes-assoc-plist
   '((:prog-modes php-mode :treesit-modes php-ts-mode))
-  (eemacs/lang/macro/oset this/obj/core
+  (eemacs/prog-lang/macro/oset this/obj/core
     :fnm-regexp "\\.php\\'")
-  (eemacs/lang/macro/oset this/obj/modes
+  (eemacs/prog-lang/macro/oset this/obj/modes
     :list this/var/prog-modes)
-  (eemacs/lang/macro/oset this/obj/ids
+  (eemacs/prog-lang/macro/oset this/obj/ids
     :list "php")
-  (eemacs/lang/macro/oset this/obj/treesit
+  (eemacs/prog-lang/macro/oset this/obj/treesit
     :id "php"
     :repo-url "https://github.com/tree-sitter/tree-sitter-php"
     :repo-src-dir "php/src"
     :modes
-    (eemacs/lang/class/modes :list this/var/treesit-modes)))
+    (eemacs/prog-lang/class/modes :list this/var/treesit-modes)))
 
 ;; *** Perl
-(eemacs/lang/macro/with-make-recipe "Perl"
+(eemacs/prog-lang/macro/with-make-recipe "Perl"
   :with-modes-assoc-plist
   '((:prog-modes perl-mode :treesit-modes perl-ts-mode))
-  (eemacs/lang/macro/oset this/obj/core
+  (eemacs/prog-lang/macro/oset this/obj/core
     :fnm-regexp "\\.pl6?\\'")
-  (eemacs/lang/macro/oset this/obj/modes
+  (eemacs/prog-lang/macro/oset this/obj/modes
     :list this/var/prog-modes)
-  (eemacs/lang/macro/oset this/obj/ids
+  (eemacs/prog-lang/macro/oset this/obj/ids
     :list (list "perl" "perl6")
     :probe
-    (eemacs/lang/macro/define-probe
+    (eemacs/prog-lang/macro/define-probe
      :with-conds-pattern
      `((file-ext
         ("perl" "perl")
         ("perl" "perl6"))
        (_ . "perl"))))
-  (eemacs/lang/macro/oset this/obj/treesit
+  (eemacs/prog-lang/macro/oset this/obj/treesit
     :id "perl"
     :repo-url "https://github.com/ganezdragon/tree-sitter-perl"
     :modes
-    (eemacs/lang/class/modes :list this/var/treesit-modes)))
+    (eemacs/prog-lang/class/modes :list this/var/treesit-modes)))
 
 ;; *** Ruby
-(eemacs/lang/macro/with-make-recipe "Ruby"
+(eemacs/prog-lang/macro/with-make-recipe "Ruby"
   :with-modes-assoc-plist
   '((:prog-modes ruby-mode :treesit-modes ruby-ts-mode))
-  (eemacs/lang/macro/oset this/obj/core
+  (eemacs/prog-lang/macro/oset this/obj/core
     :fnm-regexp
     "\\(?:\\.\\(?:rbw?\\|ru\\|rake\\|thor\\|jbuilder\
 \\|rabl\\|gemspec\\|podspec\\)\\|/\\(?:Gem\\|Rake\
 \\|Cap\\|Thor\\|Puppet\\|Berks\\|Brew\\|Vagrant\\|Guard\\|Pod\\)file\\)\\'")
-  (eemacs/lang/macro/oset this/obj/modes
+  (eemacs/prog-lang/macro/oset this/obj/modes
     :list this/var/prog-modes)
-  (eemacs/lang/macro/oset this/obj/ids
+  (eemacs/prog-lang/macro/oset this/obj/ids
     :list "ruby")
-  (eemacs/lang/macro/oset this/obj/treesit
+  (eemacs/prog-lang/macro/oset this/obj/treesit
     :id "ruby"
     :repo-url "https://github.com/tree-sitter/tree-sitter-ruby"
     :modes
-    (eemacs/lang/class/modes :list this/var/treesit-modes)))
+    (eemacs/prog-lang/class/modes :list this/var/treesit-modes)))
 
 ;; *** Lua
-(eemacs/lang/macro/with-make-recipe "Lua"
+(eemacs/prog-lang/macro/with-make-recipe "Lua"
   :with-modes-assoc-plist
   '((:prog-modes lua-mode :treesist-modes lua-ts-mode))
   :core
-  (eemacs/lang/macro/oset this/obj/core
+  (eemacs/prog-lang/macro/oset this/obj/core
     :fnm-regexp "\\.lua\\'")
-  (eemacs/lang/macro/oset this/obj/modes
+  (eemacs/prog-lang/macro/oset this/obj/modes
     :list this/var/prog-modes)
-  (eemacs/lang/macro/oset this/obj/ids
+  (eemacs/prog-lang/macro/oset this/obj/ids
     :list "lua")
-  (eemacs/lang/macro/oset this/obj/treesit
+  (eemacs/prog-lang/macro/oset this/obj/treesit
     :id "lua"
     :repo-url "https://github.com/tree-sitter-grammars/tree-sitter-lua"
     :modes this/var/treesit-modes))
 
 ;; *** YAML
-(eemacs/lang/macro/with-make-recipe "YAML"
+(eemacs/prog-lang/macro/with-make-recipe "YAML"
   :with-modes-assoc-plist
   '((:prog-modes yaml-mode :treesit-modes yaml-ts-mode))
-  (eemacs/lang/macro/oset this/obj/core
+  (eemacs/prog-lang/macro/oset this/obj/core
     :fnm-regexp "\\.ya?ml\\'")
-  (eemacs/lang/macro/oset this/obj/modes
+  (eemacs/prog-lang/macro/oset this/obj/modes
     :list this/var/prog-modes)
-  (eemacs/lang/macro/oset this/obj/ids
+  (eemacs/prog-lang/macro/oset this/obj/ids
     :list "yaml")
-  (eemacs/lang/macro/oset this/obj/treesit
+  (eemacs/prog-lang/macro/oset this/obj/treesit
     :id "yaml"
     :repo-url "https://github.com/tree-sitter-grammars/tree-sitter-yaml"
-    :modes (eemacs/lang/class/modes :list this/var/treesit-modes)))
+    :modes (eemacs/prog-lang/class/modes :list this/var/treesit-modes)))
 
 ;; *** TOML
-(eemacs/lang/macro/with-make-recipe "TOML"
+(eemacs/prog-lang/macro/with-make-recipe "TOML"
   :with-modes-assoc-plist
   '((:prog-modes (conf-toml-mode toml-mode) :treesit-modes toml-ts-mode))
-  (eemacs/lang/macro/oset this/obj/core
+  (eemacs/prog-lang/macro/oset this/obj/core
     :fnm-regexp "\\.toml\\'")
-  (eemacs/lang/macro/oset this/obj/modes
+  (eemacs/prog-lang/macro/oset this/obj/modes
     :list this/var/prog-modes)
-  (eemacs/lang/macro/oset this/obj/ids
+  (eemacs/prog-lang/macro/oset this/obj/ids
     :list "toml")
-  (eemacs/lang/macro/oset this/obj/treesit
+  (eemacs/prog-lang/macro/oset this/obj/treesit
     :id "toml"
     :repo-url "https://github.com/tree-sitter/tree-sitter-toml"
     :modes
-    (eemacs/lang/class/modes :list this/var/treesit-modes)))
+    (eemacs/prog-lang/class/modes :list this/var/treesit-modes)))
 
 ;; *** Dockerfile
 
-(eemacs/lang/macro/with-make-recipe "Dockerfile"
+(eemacs/prog-lang/macro/with-make-recipe "Dockerfile"
   :with-modes-assoc-plist
   '((:prog-modes dockerfile-mode :treesist-modes dockerfile-ts-mode))
   :core
-  (eemacs/lang/macro/oset this/obj/core
+  (eemacs/prog-lang/macro/oset this/obj/core
     :fnm-regexp "[/\\]\\(?:Containerfile\\|Dockerfile\\)\\(?:\\.[^/\\]*\\)?\\'")
-  (eemacs/lang/macro/oset this/obj/modes
+  (eemacs/prog-lang/macro/oset this/obj/modes
     :list this/var/prog-modes)
-  (eemacs/lang/macro/oset this/obj/ids
+  (eemacs/prog-lang/macro/oset this/obj/ids
     :list "dockerfile")
-  (eemacs/lang/macro/oset this/obj/treesit
+  (eemacs/prog-lang/macro/oset this/obj/treesit
     :id "dockerfile"
     :repo-url "https://github.com/camdencheek/tree-sitter-dockerfile"
     :modes this/var/treesit-modes))
 
 ;; *** SQL
-(eemacs/lang/macro/with-make-recipe "SQL"
+(eemacs/prog-lang/macro/with-make-recipe "SQL"
   :with-modes-assoc-plist
   '((:prog-modes sql-mode :treesist-modes sql-ts-mode))
   :core
-  (eemacs/lang/macro/oset this/obj/core
+  (eemacs/prog-lang/macro/oset this/obj/core
     :fnm-regexp "\\.sql\\'")
-  (eemacs/lang/macro/oset this/obj/modes
+  (eemacs/prog-lang/macro/oset this/obj/modes
     :list this/var/prog-modes)
-  (eemacs/lang/macro/oset this/obj/ids
+  (eemacs/prog-lang/macro/oset this/obj/ids
     :list "sql")
-  (eemacs/lang/macro/oset this/obj/treesit
+  (eemacs/prog-lang/macro/oset this/obj/treesit
     :id "sql"
     :repo-url "https://github.com/DerekStride/tree-sitter-sql"
     :repo-revision "gh-pages"
     :modes this/var/treesit-modes))
 
 ;; *** Org
-(eemacs/lang/macro/with-make-recipe "Org"
+(eemacs/prog-lang/macro/with-make-recipe "Org"
   :with-modes-assoc-plist
   '((:prog-modes org-mode :treesist-modes org-ts-mode))
   :core
-  (eemacs/lang/macro/oset this/obj/core
+  (eemacs/prog-lang/macro/oset this/obj/core
     :fnm-regexp "\\.org\\'")
-  (eemacs/lang/macro/oset this/obj/modes
+  (eemacs/prog-lang/macro/oset this/obj/modes
     :list this/var/prog-modes)
-  (eemacs/lang/macro/oset this/obj/ids
+  (eemacs/prog-lang/macro/oset this/obj/ids
     :list "org")
-  (eemacs/lang/macro/oset this/obj/treesit
+  (eemacs/prog-lang/macro/oset this/obj/treesit
     :id "org"
     :repo-url "https://github.com/milisims/tree-sitter-org"
     :modes this/var/treesit-modes))
 
 ;; *** LaTeX
-(eemacs/lang/macro/with-make-recipe "LaTeX"
+(eemacs/prog-lang/macro/with-make-recipe "LaTeX"
   :with-modes-assoc-plist
   '((:prog-modes latex-mode :treesist-modes latex-ts-mode))
   :core
-  (eemacs/lang/macro/oset this/obj/core
+  (eemacs/prog-lang/macro/oset this/obj/core
     :fnm-regexp "\\.tex\\'")
-  (eemacs/lang/macro/oset this/obj/modes
+  (eemacs/prog-lang/macro/oset this/obj/modes
     :list this/var/prog-modes)
-  (eemacs/lang/macro/oset this/obj/ids
+  (eemacs/prog-lang/macro/oset this/obj/ids
     :list "latex")
-  (eemacs/lang/macro/oset this/obj/treesit
+  (eemacs/prog-lang/macro/oset this/obj/treesit
     :id "latex"
     ;; FIXME: current latex treesit soure does not include a parser.c
     ;; in its src dir and no plan to do so, thus the compiling is
@@ -1246,33 +1246,33 @@ ASSOC-PLISTS is respected."
     :modes this/var/treesit-modes))
 
 ;; *** Makefile
-(eemacs/lang/macro/with-make-recipe "Makefile"
+(eemacs/prog-lang/macro/with-make-recipe "Makefile"
   :with-modes-assoc-plist
   '((:prog-modes makefile-mode :treesist-modes makefile-ts-mode))
   :core
-  (eemacs/lang/macro/oset this/obj/core
+  (eemacs/prog-lang/macro/oset this/obj/core
     :fnm-regexp "\\([Mm]akefile\\|.*\\.\\(mk\\|make\\)\\)\\'")
-  (eemacs/lang/macro/oset this/obj/modes
+  (eemacs/prog-lang/macro/oset this/obj/modes
     :list this/var/prog-modes)
-  (eemacs/lang/macro/oset this/obj/ids
+  (eemacs/prog-lang/macro/oset this/obj/ids
     :list "makefile")
-  (eemacs/lang/macro/oset this/obj/treesit
+  (eemacs/prog-lang/macro/oset this/obj/treesit
     :id "make"
     :repo-url "https://github.com/tree-sitter-grammars/tree-sitter-make"
     :modes this/var/treesit-modes))
 
 ;; *** Markdown
-(eemacs/lang/macro/with-make-recipe "Markdown"
+(eemacs/prog-lang/macro/with-make-recipe "Markdown"
   :with-modes-assoc-plist
   '((:prog-modes (poly-markdown-mode markdown-mode) :treesist-modes markdown-ts-mode))
   :core
-  (eemacs/lang/macro/oset this/obj/core
+  (eemacs/prog-lang/macro/oset this/obj/core
     :fnm-regexp "\\.md\\'")
-  (eemacs/lang/macro/oset this/obj/modes
+  (eemacs/prog-lang/macro/oset this/obj/modes
     :list this/var/prog-modes)
-  (eemacs/lang/macro/oset this/obj/ids
+  (eemacs/prog-lang/macro/oset this/obj/ids
     :list "markdown")
-  (eemacs/lang/macro/oset this/obj/treesit
+  (eemacs/prog-lang/macro/oset this/obj/treesit
     :id "markdown"
     :repo-url "https://github.com/tree-sitter-grammars/tree-sitter-markdown"
     :repo-src-dir "tree-sitter-markdown/src"

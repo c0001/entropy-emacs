@@ -979,7 +979,7 @@ since we solved deps broken")))))
      ((equal type "Install-Treesit-Parsers")
       (if entropy/emacs-ide-is-treesit-generally-adapted-p
           (entropy/emacs-batch--prompts-for-treesit-parsers-installing-section
-           (eemacs/lang/func/install/all-treesit-parsers))
+           (eemacs/prog-lang/func/install/all-treesit-parsers))
         (warn "current emacs %s does not support treesit parser feature"
               emacs-version)))
      ((equal type "Install-Eemacs-Ext-Build")

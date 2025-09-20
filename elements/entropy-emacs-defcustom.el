@@ -1606,12 +1606,12 @@ in generally meaning range which says that basically can did so.")
 
 (defvar entropy/emacs-ide-for-them/treesit-variants
   (when entropy/emacs-ide-is-treesit-generally-adapted-p
-    (cl-loop for i in (eemacs/lang/func/get-recipes-modes 'treesit-modes)
+    (cl-loop for i in (eemacs/prog-lang/func/get-recipes-modes 'treesit-modes)
              if (not (memq i '(org-ts-mode markdown-ts-mode)))
              collect i)))
 
 (defvar entropy/emacs-ide-for-them/classic
-  (cl-loop for i in (eemacs/lang/func/get-recipes-modes 'prog-modes)
+  (cl-loop for i in (eemacs/prog-lang/func/get-recipes-modes 'prog-modes)
            if (not (memq i '(org-mode markdown-mode)))
            collect i))
 

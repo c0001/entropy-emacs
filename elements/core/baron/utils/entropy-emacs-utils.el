@@ -221,8 +221,8 @@
     (dolist (m entropy/emacs-ide-for-them)
       (unless (alist-get m nerd-icons-mode-icon-alist)
         (when (entropy/emacs-setf-by-body tr-fnm
-                (and (eemacs/lang/func/mode/treesit-mode-p m)
-                     (ensure-list (eemacs/lang/func/mode/prog-modes m))))
+                (and (eemacs/prog-lang/func/mode/treesit-mode-p m)
+                     (ensure-list (eemacs/prog-lang/func/mode/prog-modes m))))
           (catch :exit
             (dolist (el tr-fnm)
               (when (setq oc (alist-get el nerd-icons-mode-icon-alist))
@@ -1149,7 +1149,7 @@ is not too much suitable for eemacs outline integration."
 treesit variants mode for hacking its infinitely looping searching next
 outline heads start at a invisible heading line"
     (if
-        (and (eemacs/lang/func/bof/treesit-id (current-buffer))
+        (and (eemacs/prog-lang/func/bof/treesit-id (current-buffer))
              (or
               (entropy/emacs-save-excurstion-and-mark-and-match-data
                 (goto-char (pos-bol))
