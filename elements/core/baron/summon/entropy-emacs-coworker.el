@@ -894,9 +894,20 @@ EXIT /b
 (with-eval-after-load 'lsp-pwsh         ;do not using
                                         ;`entropy/emacs-lazy-load-simple',
                                         ;thats will force load 'lsp' while pdumper procedure
-  (unless (file-exists-p lsp-pwsh-log-path)
-    ;; ensure that the log path exist or will make pwsh-ls start fail
-    (mkdir lsp-pwsh-log-path 'create-parent)))
+  (let ((lp (directory-file-name (expand-file-name lsp-pwsh-log-path))))
+    (if (file-exists-p lp)
+        ;; ensure the log path is a dirctory or pwsh-ls will init with error like:
+        ;;
+        ;; #+begin_example
+        ;; Start-EditorServices: .../PowerShellEditorServices/Start-EditorServices.ps1:111
+        ;; Line |
+        ;;  111 |  Start-EditorServices @PSBoundParameters
+        ;;      |  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        ;;      | The file '.../.emacs.d/stuffs/lsp-mode/cache/install/pwsh/logs/emacs-powershell.log' already exists.
+        ;; #+end_example
+        (and (not (file-directory-p lp)) (delete-file lp))
+      ;; ensure that the log path exist or will make pwsh-ls start fail
+      (mkdir lsp-pwsh-log-path 'create-parent))))
 (unless entropy/emacs-ext-use-eemacs-lsparc
   (setq lsp-pwsh-dir
         (expand-file-name
