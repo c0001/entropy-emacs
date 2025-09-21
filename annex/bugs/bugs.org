@@ -1426,6 +1426,45 @@ error and may be freeze via thus.
   operation, but I haven't got whether its a emacs feature or its just
   a internal feature of =company-box=?
 
+
+** emacs-31 TUI invisible childframe unexpectedly displayed in `with-selected-frame' body
+:PROPERTIES:
+:CUSTOM_ID: h:b70d7385-645f-4917-9f54-49d034232734
+:END:
+
+#+begin_src org
+  Dear emacs maintainers:
+
+  I found a strange bug (or maybe it's a feature?) in incoming emac-31
+  that an invisible TUI childframe may re-displayed under unexpected way
+  of when using =with-selected-frame=.
+
+  This bug's reproduction is very simple, that evaluate below code
+  snippet in vanilla emacs-31(currently in emacs-src git commit
+  27853a2bca6) with =-nw= in command line:
+
+  ,#+begin_src emacs-lisp :tangle yes
+    (eval
+     '(let ((win
+             ;; first we just create a simple and fresh new childfarme
+             (display-buffer-in-child-frame (generate-new-buffer " *test-buffer* ") nil)))
+
+        ;; then we make it invisible
+        (make-frame-invisible (window-frame win))
+
+        ;; then we scan all lived frames without doing any further operations
+        ;; which may cause that childfarme displayed again.
+        (dolist (el (frame-list))
+          (with-selected-frame el nil))
+        (message "See the prev-hided child-frame re-displayed without be under our charge in lisp aspect.")
+        ;; finaly we finish the experiment
+        (run-with-idle-timer
+         5 nil
+         (lambda (&rest _) (make-frame-invisible (window-frame win)))))
+     'enable-lexical-binding)
+  ,#+end_src
+#+end_src
+
 * COMMENT Local Varaibles
 :PROPERTIES:
 :CUSTOM_ID: h-550f1e2d-23da-47d3-98e1-cd8be05baa7d

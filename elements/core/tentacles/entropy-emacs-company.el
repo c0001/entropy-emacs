@@ -1176,7 +1176,8 @@ in `entropy/emacs-company-frontend-sticker'."
   ;; EEMACS_MAINTENANCE: should follow upstream updates
   (defun __ya/company-box--set-mode (&optional frame)
     (cond
-     ((and (bound-and-true-p company-box-mode) (not (display-graphic-p frame)))
+     ((and (bound-and-true-p company-box-mode)
+           (not (entropy/emacs-posframe-adapted-p frame)))
       (company-box-mode -1))
      ((bound-and-true-p company-box-mode)
       (company-box--tweak-external-packages)
