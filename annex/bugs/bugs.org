@@ -1427,10 +1427,12 @@ error and may be freeze via thus.
   a internal feature of =company-box=?
 
 
-** emacs-31 TUI invisible childframe unexpectedly displayed in `with-selected-frame' body
+** DOING emacs-31 TUI invisible childframe unexpectedly displayed in `with-selected-frame' body
 :PROPERTIES:
 :CUSTOM_ID: h:b70d7385-645f-4917-9f54-49d034232734
 :END:
+
+emacs bug list id: #79487 @ https://lists.gnu.org/archive/html/bug-gnu-emacs/2025-09/msg01118.html
 
 #+begin_src org
   Dear emacs maintainers:
@@ -1464,6 +1466,16 @@ error and may be freeze via thus.
      'enable-lexical-binding)
   ,#+end_src
 #+end_src
+
+** [2025-09-24 Wed 05:15:42]: follow emacs maintainer suggestion:
+
+This is neither a bug nor a feature that of how emacs TUI handle frame
+selection by `select-frame' which is the subroutine used in
+=with-selected-frame= in which emacs will dispatch the selected frame
+in TUI displaying in next redisplay, since in text terminal there's
+only one frame can be displayed at a time, thus eemacs maintained a
+advice for `select-frame' to mark the invisible frame invisble after
+select it.
 
 * COMMENT Local Varaibles
 :PROPERTIES:

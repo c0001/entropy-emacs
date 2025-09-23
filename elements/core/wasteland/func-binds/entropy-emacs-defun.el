@@ -11097,6 +11097,55 @@ refer, or `height' for frame height refer."
       (t (and (entropy/emacs-frame-is-large-p frame 'height)
               (entropy/emacs-frame-is-large-p frame 'width))))))
 
+(entropy/emacs-defconst/only-allow/local
+  entropy/emacs-select-frame/insist-invisible-state nil
+  "Dynamic status indicator for `select-frame' to preventing invisible
+frame be displayed. (see eemacs bug h:b70d7385-645f-4917-9f54-49d034232734)")
+(define-advice select-frame
+    (:around (ofunc &rest oargs) eemacs-advice//insist-invisible-state)
+  "Advice of following `entropy/emacs-select-frame/insist-invisible-state'."
+  (if-let* ((entropy/emacs-select-frame/insist-invisible-state)
+            (frame-invisible-p (eq nil (frame-visible-p (car oargs))))
+            (frame (apply ofunc oargs)))
+      (unwind-protect
+          (when (and frame-invisible-p (not (display-graphic-p)))
+            (make-frame-invisible frame 'force))
+        frame)
+    (apply ofunc oargs)))
+
+(defun entropy/emacs-select-frame (frame &optional norecord)
+  "Same as `select-frame' but follow `entropy/emacs-select-frame/insist-invisible-state'."
+  (let ((entropy/emacs-select-frame/insist-invisible-state t))
+    (select-frame frame norecord)))
+(defmacro entropy/emacs-with-selected-frame (frame &rest body)
+  "Same as `with-selected-frame' but follow `entropy/emacs-select-frame/insist-invisible-state'."
+  (declare (indent 1) (debug t))
+  (let ((the-frame (make-symbol "the-frame"))
+        (the-frame-old-invisible-p (make-symbol "the-frame-old-invisible-p"))
+        (the-frame-cur-invisible-p (make-symbol "the-frame-cur-invisible-p"))
+        (body-ran-p (make-symbol "body-ran-p"))
+        (old-frame (make-symbol "old-frame"))
+        (old-buffer (make-symbol "old-buffer")))
+    `(let* ((,the-frame ,frame)
+            (,the-frame-old-invisible-p (not (frame-visible-p ,the-frame)))
+            (,the-frame-cur-invisible-p nil)
+            (,body-ran-p nil)
+            (,old-frame (selected-frame))
+            (,old-buffer (current-buffer)))
+       (unwind-protect
+           (progn (entropy/emacs-select-frame ,the-frame 'norecord)
+                  (unwind-protect (prog1 (progn ,@body) (setq ,body-ran-p t))
+                    (setq ,the-frame-cur-invisible-p
+                          (and (frame-live-p ,the-frame)
+                               (not (frame-visible-p ,the-frame))))))
+         (when (frame-live-p ,old-frame)
+           (select-frame ,old-frame 'norecord))
+         (when (buffer-live-p ,old-buffer)
+           (set-buffer ,old-buffer))
+         (when (frame-live-p ,the-frame)
+           (when (and ,body-ran-p ,the-frame-old-invisible-p ,the-frame-cur-invisible-p)
+             (make-frame-invisible ,the-frame)))))))
+
 ;; *** Window manipulation
 ;; **** Basic
 (cl-defmacro entropy/emacs-with-selected-buffer-window

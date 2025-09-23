@@ -642,6 +642,12 @@ procedure."
                 :override
                 #'__ya/hydra--clearfun/eemacs-hydra-display-indicator-reset))
 
+  (define-advice hydra-disable
+      (:around (ofunc &rest oargs) eemacs-advice//hidra-disable-in-emacs-TUI-posframe)
+    "Advice for follow `entropy/emacs-select-frame/insist-invisible-state'."
+    (let ((entropy/emacs-select-frame/insist-invisible-state t))
+      (apply ofunc oargs)))
+
 ;; ***** call interactively indicator
 
   (entropy/emacs-defconst/only-allow/local
@@ -686,7 +692,7 @@ keymap."
     "Return non-nil when current emacs-session can use
 `posframe-show' to show the pretty hydra."
     (and
-     (display-graphic-p)
+     (entropy/emacs-posframe-adapted-p)
      (fboundp 'posframe-show)))
   (defvar entropy/emacs-pretty-hydra-inhibt-use-posframe nil
     "Inhibit use `posframe-show' to show the hydra hints even if
