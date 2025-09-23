@@ -23,7 +23,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        emacs-version: [28.2, 29.4, 30.1]
+        emacs-version: [28.2, 29.4, 30.1, snapshot]
         experimental: [false]
         # we've not prepared for emacs_31.0.50
         #
