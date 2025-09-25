@@ -1083,7 +1083,10 @@ in `entropy/emacs-company-frontend-sticker'."
            (entropy/emacs-set-key-without-remap
              company-active-map
              (kbd "C-h")
-             'company-box-doc-manually))
+             'company-box-doc-manually)
+           (if (display-graphic-p)
+               (setq company-box-icons-alist 'company-box-icons-images)
+             (setq company-box-icons-alist 'company-box-icons-icons-in-terminal)))
           (t
            (let (_)
              (entropy/emacs-message-do-message
@@ -1169,6 +1172,52 @@ in `entropy/emacs-company-frontend-sticker'."
   (advice-add #'company-box-icons--elisp
               :override
               #'entropy/emacs-company--company-box-icons-elisp)
+
+  (define-advice company-box--get-icon (:override (icon) eemacs-advice/redefine)
+    "Advice for use nerd-icons preferly."
+    (cond ((listp icon)
+           (cond ((eq 'image (car icon))
+                  (unless (plist-get icon :height)
+                    (setq icon (append icon `(:height ,(round (* (frame-char-height) 0.90))))))
+                  (propertize " " 'display icon 'company-box-image t
+                              'display-origin icon))
+                 ((and company-box-color-icon icon)
+                  (if (stringp icon) icon
+                    (apply 'company-box--icons-in-terminal icon)))
+                 (t (company-box--icons-in-terminal (or (car icon) 'fa_question_circle)))))
+          ((symbolp icon)
+           (company-box--icons-in-terminal (or icon 'fa_question_circle)))
+          (t icon)))
+
+  (setq company-box-icons-icons-in-terminal
+        `((Unknown       . ,(nerd-icons-codicon "nf-cod-question"))
+          (Text          . ,(nerd-icons-codicon "nf-cod-text_size")) ;; Text
+          (Method        . ,(nerd-icons-codicon "nf-cod-symbol_method" :face font-lock-function-name-face)) ;; Method
+          (Function      . ,(nerd-icons-codicon "nf-cod-symbol_method" :face font-lock-function-name-face)) ;; Function
+          (Constructor   . ,(nerd-icons-codicon "nf-cod-symbol_method" :face font-lock-function-name-face)) ;; Constructor
+          (Field         . ,(nerd-icons-codicon "nf-cod-symbol_field" :foreground "#FF9800")) ;; Field
+          (Variable      . ,(nerd-icons-codicon "nf-cod-symbol_variable" :foreground "#FF9800")) ;; Variable
+          (Class         . ,(nerd-icons-codicon "nf-cod-symbol_class" :foreground "#7C4DFF")) ;; Class
+          (Interface     . ,(nerd-icons-codicon "nf-cod-symbol_interface" :foreground "#7C4DFF")) ;; Interface
+          (Module        . ,(nerd-icons-codicon "nf-cod-symbol_interface" :foreground "#7C4DFF")) ;; Module
+          (Property      . ,(nerd-icons-codicon "nf-cod-symbol_property" :foreground "#FF9800")) ;; Property
+          (Unit          . ,(nerd-icons-codicon "nf-cod-settings_gear")) ;; Unit
+          (Value         . ,(nerd-icons-codicon "nf-cod-symbol_property" :foreground "#FF9800")) ;; Value
+          (Enum          . ,(nerd-icons-codicon "nf-cod-symbol_enum" :face font-lock-type-face)) ;; Enum
+          (Keyword       . ,(nerd-icons-codicon "nf-cod-symbol_keyword" :foreground "#009688")) ;; Keyword
+          (Snippet       . ,(nerd-icons-codicon "nf-cod-symbol_snippet")) ;; Snippet
+          (Color         . ,(nerd-icons-codicon "nf-cod-symbol_color" :face font-lock-doc-face)) ;; Color
+          (File          . ,(nerd-icons-codicon "nf-cod-file")) ;; File
+          (Reference     . ,(nerd-icons-codicon "nf-cod-references")) ;; Reference
+          (Folder        . ,(nerd-icons-codicon "nf-cod-folder")) ;; Folder
+          (EnumMember    . ,(nerd-icons-codicon "nf-cod-symbol_enum_member" :foreground "#009688")) ;; EnumMember
+          (Constant      . ,(nerd-icons-codicon "nf-cod-symbol_constant" :face font-lock-constant-face)) ;; Constant
+          (Struct        . ,(nerd-icons-codicon "nf-cod-symbol_structure" :face font-lock-type-face)) ;; Struct
+          (Event         . ,(nerd-icons-codicon "nf-cod-symbol_event")) ;; Event
+          (Operator      . ,(nerd-icons-codicon "nf-cod-symbol_operator")) ;; Operator
+          (TypeParameter . ,(nerd-icons-codicon "nf-cod-symbol_parameter"))
+          (Template      . ,(nerd-icons-codicon "nf-cod-notebook_template"))) ;; TypeParameter
+        )
 
 ;; ***** advices
 ;; ****** make `company-box--set-mode' proper
