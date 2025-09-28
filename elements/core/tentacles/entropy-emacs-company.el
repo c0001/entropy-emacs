@@ -380,7 +380,7 @@ inputing lag experience."
                   this-command
                   '__eemacs/company--perform-input-command-p)))
         (apply orig-func orig-args)
-      (let ((nmrtn 'success) orig-rtn)
+      (let ((nmrtn (make-symbol "tmp")) orig-rtn)
         (if (eq (while-no-input
                   (setq orig-rtn (apply orig-func orig-args))
                   nmrtn) nmrtn) orig-rtn
@@ -463,7 +463,7 @@ inputing lag experience."
   (defvar-local __ya/company-post-command/previous-point nil)
   (defvar-local __ya/company-post-command/idle-cancel-p nil)
 
-  (defvar __ya/company-post-command/orig-func (symbol-function 'company-post-command)
+  (defvar __ya/company-post-command/orig-func (entropy/emacs-get-func-origin-def 'company-post-command)
     "The origin function defination of `company-post-command'.")
 
   (defvar __ya/company-post-command/idle-port)
@@ -777,16 +777,28 @@ with `shackle'."
 
 ;; ***** smooth continuous patch
 
-  (entropy/emacs-make-command-continuous-smoothing-with-common-style
-      company-select-previous)
-  (entropy/emacs-make-command-continuous-smoothing-with-common-style
-      company-select-next)
-  (entropy/emacs-make-command-continuous-smoothing-with-common-style
-      company-previous-page)
-  (entropy/emacs-make-command-continuous-smoothing-with-common-style
-      company-next-page)
-  (entropy/emacs-make-command-continuous-smoothing-with-common-style
-      company-search-delete-char)
+  (let ((cmp-fts '(company-pseudo-tooltip-frontend)))
+    (entropy/emacs-make-command-continuous-smoothing-with-common-style
+        company-select-previous
+      :when (memq (car-safe company-frontends) cmp-fts))
+    (entropy/emacs-make-command-continuous-smoothing-with-common-style
+        company-select-previous-or-abort
+      :when (memq (car-safe company-frontends) cmp-fts))
+    (entropy/emacs-make-command-continuous-smoothing-with-common-style
+        company-select-next
+      :when (memq (car-safe company-frontends) cmp-fts))
+    (entropy/emacs-make-command-continuous-smoothing-with-common-style
+        company-select-next-or-abort
+      :when (memq (car-safe company-frontends) cmp-fts))
+    (entropy/emacs-make-command-continuous-smoothing-with-common-style
+        company-previous-page
+      :when (memq (car-safe company-frontends) cmp-fts))
+    (entropy/emacs-make-command-continuous-smoothing-with-common-style
+        company-next-page
+      :when (memq (car-safe company-frontends) cmp-fts))
+    (entropy/emacs-make-command-continuous-smoothing-with-common-style
+        company-search-delete-char
+      :when (memq (car-safe company-frontends) cmp-fts)))
 
 ;; *** __end__
   )
@@ -1192,9 +1204,9 @@ in `entropy/emacs-company-frontend-sticker'."
   (setq company-box-icons-icons-in-terminal
         `((Unknown       . ,(nerd-icons-codicon "nf-cod-question"))
           (Text          . ,(nerd-icons-codicon "nf-cod-text_size")) ;; Text
-          (Method        . ,(nerd-icons-codicon "nf-cod-symbol_method" :face font-lock-function-name-face)) ;; Method
-          (Function      . ,(nerd-icons-codicon "nf-cod-symbol_method" :face font-lock-function-name-face)) ;; Function
-          (Constructor   . ,(nerd-icons-codicon "nf-cod-symbol_method" :face font-lock-function-name-face)) ;; Constructor
+          (Method        . ,(nerd-icons-codicon "nf-cod-symbol_method" :face 'font-lock-function-name-face)) ;; Method
+          (Function      . ,(nerd-icons-codicon "nf-cod-symbol_method" :face 'font-lock-function-name-face)) ;; Function
+          (Constructor   . ,(nerd-icons-codicon "nf-cod-symbol_method" :face 'font-lock-function-name-face)) ;; Constructor
           (Field         . ,(nerd-icons-codicon "nf-cod-symbol_field" :foreground "#FF9800")) ;; Field
           (Variable      . ,(nerd-icons-codicon "nf-cod-symbol_variable" :foreground "#FF9800")) ;; Variable
           (Class         . ,(nerd-icons-codicon "nf-cod-symbol_class" :foreground "#7C4DFF")) ;; Class
@@ -1203,16 +1215,16 @@ in `entropy/emacs-company-frontend-sticker'."
           (Property      . ,(nerd-icons-codicon "nf-cod-symbol_property" :foreground "#FF9800")) ;; Property
           (Unit          . ,(nerd-icons-codicon "nf-cod-settings_gear")) ;; Unit
           (Value         . ,(nerd-icons-codicon "nf-cod-symbol_property" :foreground "#FF9800")) ;; Value
-          (Enum          . ,(nerd-icons-codicon "nf-cod-symbol_enum" :face font-lock-type-face)) ;; Enum
+          (Enum          . ,(nerd-icons-codicon "nf-cod-symbol_enum" :face 'font-lock-type-face)) ;; Enum
           (Keyword       . ,(nerd-icons-codicon "nf-cod-symbol_keyword" :foreground "#009688")) ;; Keyword
           (Snippet       . ,(nerd-icons-codicon "nf-cod-symbol_snippet")) ;; Snippet
-          (Color         . ,(nerd-icons-codicon "nf-cod-symbol_color" :face font-lock-doc-face)) ;; Color
+          (Color         . ,(nerd-icons-codicon "nf-cod-symbol_color" :face 'font-lock-doc-face)) ;; Color
           (File          . ,(nerd-icons-codicon "nf-cod-file")) ;; File
           (Reference     . ,(nerd-icons-codicon "nf-cod-references")) ;; Reference
           (Folder        . ,(nerd-icons-codicon "nf-cod-folder")) ;; Folder
           (EnumMember    . ,(nerd-icons-codicon "nf-cod-symbol_enum_member" :foreground "#009688")) ;; EnumMember
-          (Constant      . ,(nerd-icons-codicon "nf-cod-symbol_constant" :face font-lock-constant-face)) ;; Constant
-          (Struct        . ,(nerd-icons-codicon "nf-cod-symbol_structure" :face font-lock-type-face)) ;; Struct
+          (Constant      . ,(nerd-icons-codicon "nf-cod-symbol_constant" :face 'font-lock-constant-face)) ;; Constant
+          (Struct        . ,(nerd-icons-codicon "nf-cod-symbol_structure" :face 'font-lock-type-face)) ;; Struct
           (Event         . ,(nerd-icons-codicon "nf-cod-symbol_event")) ;; Event
           (Operator      . ,(nerd-icons-codicon "nf-cod-symbol_operator")) ;; Operator
           (TypeParameter . ,(nerd-icons-codicon "nf-cod-symbol_parameter"))
@@ -1494,8 +1506,8 @@ as an scroll lagging reason when toggle on `company-box-doc-enable'.
 EEMACS_MAINTENANCE: need patching with `company-box' upstream
 updates."
     (when-let* ((company-box-doc-enable))
-      (unless (or __company-box-doc-need-force-hide-p
-                  __company-box-doc-hided-p)
+      (unless (and __company-box-doc-hided-p
+                   (not __company-box-doc-need-force-hide-p))
         (let ((doc-frame
                (frame-local-getq company-box-doc-frame
                                  frame)))
@@ -1528,8 +1540,8 @@ updates."
 
   (defun __company-box-doc-hide--with-local-judge
       (orig-func &rest orig-args)
-    (unless (or __company-box-doc-need-force-hide-p
-                __company-box-doc-hided-p)
+    (unless (and __company-box-doc-hided-p
+                 (not __company-box-doc-need-force-hide-p))
       (let ((rtn (apply orig-func orig-args)))
         (setq __company-box-doc-hided-p t)
         rtn)))
@@ -1550,6 +1562,46 @@ while in `company-box-mode'."
                    #'__ya_company-box-doc-hide t)))
   (add-hook 'company-box-mode-hook
             #'entropy/emacs-company-box-hide-on-the-fly)
+
+;; ********* `company-box-doc--show' TUI patch
+
+  (define-advice company-box-doc--set-frame-position
+      (:override (frame) eemacs-advice//set-frame-pos-in-tui)
+    "Made doc box rendering correct in TUI from use text width instead of the
+GUI pixel size dimension."
+    (if (display-graphic-p)
+        (funcall (entropy/emacs-get-func-origin-def 'company-box-doc--set-frame-position)
+                 frame)
+      (-let* ((box-position (frame-position (company-box--get-frame)))
+              (box-width (frame-width (company-box--get-frame)))
+              (window (frame-root-window frame))
+              (_ (fit-frame-to-buffer frame))
+              ((width . height)
+               (if company-box-doc-no-wrap
+                   (cons (window-text-width window) (window-text-height window))
+                 (cons
+                  (min
+                   (window-text-width window)
+                   ;; Use the widest space available (left or right of the box frame)
+                   (let ((space-right (- (frame-width) (+ 2 (car box-position) box-width)))
+                         (space-left (- (car box-position) 2)))
+                     (if (< space-right space-left) space-left space-right)))
+                  (min (- (frame-native-height) 1) (window-text-height window)))))
+              (bottom (+ company-box--bottom (frame-border-width)))
+              (x (+ (car box-position) box-width 1))
+              (y (cdr box-position))
+              (y (if (> (+ y height 1) bottom)
+                     (- y (- (+ y height) bottom) 1)
+                   y))
+              (space-right (- (frame-width) x))
+              (space-left (car box-position))
+              (x (or (let ((border 0))
+                       (and (> width space-right)
+                            (> space-left (+ width border (/ (frame-char-width) 2)))
+                            (- (car box-position) width border (/ (frame-char-width) 2))))
+                     x)))
+        (set-frame-position frame (max x 0) (max y 0))
+        (set-frame-size frame width height))))
 
 ;; ********* `company-box-doc--show' neglect patch
 
@@ -1623,9 +1675,10 @@ frames has a same hiden expection via eemacs spec patch for
 `company-box-hide' and its further."
     :use-hook 'entropy/emacs-keyboard-quit-before-hook
     (let ((__company-box-main-frame-need-force-hide-p t)
-          (__company-box-doc-need-force-hide-p t))
-      (company-box-hide)
-      (company-box-doc--hide (selected-frame))))
+          (__company-box-doc-need-force-hide-p t)
+          (entropy/emacs-frame-force-hide-p t))
+      (company-box-doc--hide (selected-frame))
+      (company-box-hide)))
 
   (defun __ya/company-box-show (orig-func &rest orig-args)
     (unless __company-box-main-frame-hided-p
@@ -1700,6 +1753,43 @@ frames has a same hiden expection via eemacs spec patch for
   (advice-add 'company-box--move-selection
               :around
               #'__ya/company-box--move-selection/dups-debug)
+
+;; ******* frontend patch
+
+  (define-advice company-box-frontend
+      (:override (command) eemacs-advice//fix-TUI-frame-unexpected-hidden)
+    "Simply say that the box frame unexpectly hidden when the company command
+is not the `hide' in text terminal.
+
+See also eemacs bug bug h:b70d7385-645f-4917-9f54-49d034232734"
+    (when-let* (((not (eq command 'hide)))
+                ((not (display-graphic-p)))
+                (frm (company-box--get-frame))
+                ((frame-live-p frm)))
+      (unless (frame-visible-p frm)
+        (make-frame-visible frm)))
+    (cond
+     ((eq command 'hide)
+      (company-box-hide))
+     ((and (equal company-candidates-length 1)
+           (company-box--hide-single-candidate))
+      (company-box-hide))
+     ((eq command 'show)
+      (company-box-show))
+     ((eq command 'update)
+      (company-box--update))
+     ((eq command 'select-mouse)
+      (company-box--select-mouse))
+     ((and (eq command 'post-command)
+           (fboundp 'company-box--post-command))
+      (company-box--post-command))))
+
+  (define-advice company-box--update-scrollbar
+      (:around (ofunc &rest oargs) eemacs-advice//disable-scrollbar-in-TUI)
+    "TODO: temporarily disable scrollbar in TUI since we should find a
+similar way in text movements against GUI pixel visualization."
+    (if (display-graphic-p) (apply ofunc oargs)
+      (ignore)))
 
 ;; ******* Debug
   (defun entropy/emacs-company-box-delete-all-child-frames

@@ -97,7 +97,9 @@ For lisp coding aim, always return the transfered buffer.
   :ensure nil
   :preface
   (defvar entropy/emacs-lisp--emacs-lisp-lambda-form-keywords
-    '(defun cl-defun defalias
+    '(defvar defun cl-defun defalias
+       defmacro cl-defmacro define-advice
+       lambda cl-lambda
        cl-defgeneric cl-defmethod
        entropy/emacs-!cl-defun
        entropy/emacs-!cl-defmacro
@@ -105,8 +107,6 @@ For lisp coding aim, always return the transfered buffer.
        entropy/emacs-!defalias
        entropy/emacs-!defgeneric
        entropy/emacs-!defmethod
-       lambda cl-lambda
-       defmacro cl-defmacro
        entropy/emacs-cl-lambda
        entropy/emacs-cl-lambda-with-lcb
        entropy/emacs-define-lambda-as-exp

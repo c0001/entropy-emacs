@@ -609,6 +609,33 @@ See also `entropy/emacs-require-only-once'."
        (defalias ,sym-name ,@(cdr args))
        ,sym-name)))
 
+(defmacro entropy/emacs-setq-with-maybe-defvar (&rest args)
+  "Like `setq' but `defvar' first while SYMBOL is not `boundp'.
+
+\(fn SYMBOL &optional INITVALUE DOCSTRING)"
+  (declare (debug defvar) (doc-string 3) (indent defun))
+  (macroexp-let2* ignore ((val (cadr args)))
+    `(progn
+       (eval-when-compile (defvar ,(car args)))
+       (if (boundp (quote ,(car args)))
+           (setq ,(car args) ,val)
+         (defvar ,(car args) nil)
+         (setq ,(car args) ,val)))))
+
+(defmacro entropy/emacs-setq-with-maybe-defvar-local (&rest args)
+  "Like `setq' but `defvar-local' first while SYMBOL is not `boundp'.
+
+\(fn SYMBOL &optional INITVALUE DOCSTRING)"
+  (declare (debug defvar) (doc-string 3) (indent defun))
+  (macroexp-let2* ignore ((val (cadr args)))
+    `(progn
+       ;; NOTE: emacs-30 and lower vers' initval is not optional
+       (eval-when-compile (defvar-local ,(car args) nil))
+       (if (boundp (quote ,(car args)))
+           (setq ,(car args) ,val)
+         (defvar-local ,(car args) nil)
+         (setq ,(car args) ,val)))))
+
 (defmacro entropy/emacs-defvar-local-with-pml (&rest args)
   "Same as `defvar-local' but also make VAR as permanent-local
 variable i.e. not cleared when buffer's `major-mode' changed (see
@@ -1468,14 +1495,16 @@ supported (defaults to `current-buffer').
 If NO-PROPERTIES-P is non-nil, use
 `buffer-substring-no-properties' as subroutine.
 
-START and END is used as usual but just evaluated while
-`current-buffer' has bound to BUFFER."
+START and END is used as usual but just evaluated while `current-buffer'
+has bound to BUFFER. If not specified, they are defaults to `point-min'
+and `point-max'."
     (declare (indent 1))
     (macroexp-let2* ignore
         ((buffer-sym `(or ,buffer (current-buffer)))
          (start-sym nil) (end-sym nil))
       `(with-current-buffer ,buffer-sym
-         (let ((,start-sym ,start) (,end-sym ,end))
+         (let ((,start-sym (or ,start (point-min)))
+               (,end-sym (or ,end (point-max))))
            (if (not ,no-properties-p)
                (buffer-substring ,start-sym ,end-sym)
              (buffer-substring-no-properties

@@ -201,7 +201,7 @@ otherwise.
 TIME indicate the *first* time emacs waked up from the last idle
 status.")
 
-(defvar entropy/emacs-current-commands-ring-size 20
+(defvar entropy/emacs-current-commands-ring-size 1000
   "The max size of `entropy/emacs-current-commands-ring'.")
 (defvar entropy/emacs-current-commands-ring
   (make-ring entropy/emacs-current-commands-ring-size)

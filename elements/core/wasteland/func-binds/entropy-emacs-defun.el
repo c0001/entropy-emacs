@@ -11097,54 +11097,49 @@ refer, or `height' for frame height refer."
       (t (and (entropy/emacs-frame-is-large-p frame 'height)
               (entropy/emacs-frame-is-large-p frame 'width))))))
 
+(entropy/emacs-defconst
+  entropy/emacs-frame-visible-parameter (make-symbol "eemacs-advice//insist-invisible-state")
+  "Frame visible parameter which non-nil indicate this frame is set visible
+as true via elisp context (see eemacs bug h:b70d7385-645f-4917-9f54-49d034232734)")
 (entropy/emacs-defconst/only-allow/local
-  entropy/emacs-select-frame/insist-invisible-state nil
-  "Dynamic status indicator for `select-frame' to preventing invisible
-frame be displayed. (see eemacs bug h:b70d7385-645f-4917-9f54-49d034232734)")
+  entropy/emacs-frame-force-hide-p nil
+  "")
+(define-advice make-frame-visible
+    (:around (ofunc &rest oargs) eemacs-advice//insist-invisible-state)
+  "Advice of following `entropy/emacs-frame-visible-parameter'."
+  (if (display-graphic-p) (apply ofunc oargs)
+    (let ((frame (or (car oargs) (selected-frame)))
+          (para entropy/emacs-frame-visible-parameter)
+          (inhibit-quit t))
+      (prog1 (apply ofunc oargs)
+        (set-frame-parameter frame para 'true)))))
+(define-advice make-frame-invisible
+    (:around (ofunc &rest oargs) eemacs-advice//insist-invisible-state)
+  "Advice of following `entropy/emacs-frame-visible-parameter'."
+  (if (display-graphic-p) (apply ofunc oargs)
+    (let ((frame (or (car oargs) (selected-frame)))
+          (para entropy/emacs-frame-visible-parameter)
+          (inhibit-quit t))
+      (prog1 (apply ofunc oargs)
+        (set-frame-parameter frame para 'false)))))
 (define-advice select-frame
     (:around (ofunc &rest oargs) eemacs-advice//insist-invisible-state)
-  "Advice of following `entropy/emacs-select-frame/insist-invisible-state'."
-  (if-let* ((entropy/emacs-select-frame/insist-invisible-state)
-            (frame-invisible-p (eq nil (frame-visible-p (car oargs))))
-            (frame (apply ofunc oargs)))
-      (unwind-protect
-          (when (and frame-invisible-p (not (display-graphic-p)))
-            (make-frame-invisible frame 'force))
-        frame)
-    (apply ofunc oargs)))
-
-(defun entropy/emacs-select-frame (frame &optional norecord)
-  "Same as `select-frame' but follow `entropy/emacs-select-frame/insist-invisible-state'."
-  (let ((entropy/emacs-select-frame/insist-invisible-state t))
-    (select-frame frame norecord)))
-(defmacro entropy/emacs-with-selected-frame (frame &rest body)
-  "Same as `with-selected-frame' but follow `entropy/emacs-select-frame/insist-invisible-state'."
-  (declare (indent 1) (debug t))
-  (let ((the-frame (make-symbol "the-frame"))
-        (the-frame-old-invisible-p (make-symbol "the-frame-old-invisible-p"))
-        (the-frame-cur-invisible-p (make-symbol "the-frame-cur-invisible-p"))
-        (body-ran-p (make-symbol "body-ran-p"))
-        (old-frame (make-symbol "old-frame"))
-        (old-buffer (make-symbol "old-buffer")))
-    `(let* ((,the-frame ,frame)
-            (,the-frame-old-invisible-p (not (frame-visible-p ,the-frame)))
-            (,the-frame-cur-invisible-p nil)
-            (,body-ran-p nil)
-            (,old-frame (selected-frame))
-            (,old-buffer (current-buffer)))
-       (unwind-protect
-           (progn (entropy/emacs-select-frame ,the-frame 'norecord)
-                  (unwind-protect (prog1 (progn ,@body) (setq ,body-ran-p t))
-                    (setq ,the-frame-cur-invisible-p
-                          (and (frame-live-p ,the-frame)
-                               (not (frame-visible-p ,the-frame))))))
-         (when (frame-live-p ,old-frame)
-           (select-frame ,old-frame 'norecord))
-         (when (buffer-live-p ,old-buffer)
-           (set-buffer ,old-buffer))
-         (when (frame-live-p ,the-frame)
-           (when (and ,body-ran-p ,the-frame-old-invisible-p ,the-frame-cur-invisible-p)
-             (make-frame-invisible ,the-frame)))))))
+  "Advice of following `entropy/emacs-frame-visible-parameter'."
+  (if (display-graphic-p) (apply ofunc oargs)
+    (let* ((inhibit-quit t)
+           (frame (apply ofunc oargs))
+           (para entropy/emacs-frame-visible-parameter)
+           (para-val (frame-parameter frame para)))
+      (entropy/emacs-!message-when-debug
+       "--> para: %s frame: %s visible: %s this-cmd: %s"
+       para-val frame (frame-visible-p frame) this-command)
+      (unless (or (and (not entropy/emacs-frame-force-hide-p)
+                       (eq 'true para-val))
+                  (not (frame-parent frame)))
+        (and (or entropy/emacs-frame-force-hide-p
+                 (eq para-val 'false))
+             (make-frame-invisible frame)))
+      frame)))
 
 ;; *** Window manipulation
 ;; **** Basic
@@ -14677,6 +14672,9 @@ obey the SCM condition, nil for not, but without any mandatory
 order to do as this i.e made decision by user-end . Otherwise,
 BODY is just ran when SCM is supplied, as on tick-tock tune.
 
+When form WHEN is specified non-nil, BODY is only be wrapped by SCM when
+it returns non-nil, otherwise BODY is directly run.
+
 Be aware that the `this-command' consideration is not as is of the
 command of NAME only but also for any command contained NAME as a
 subroutine unless WITH-THIS-COMMAND is specified and non-nil,
@@ -14692,7 +14690,7 @@ it has valid value type of below:
 
 \(fn NAME ARGLIST [DOCSTRING] [DECL] [INTERACTIVE] &key \
 WITH-ADJACENT-INTERVAL WITH-ADJACENT-LEN WITH-BREAK-INTERVAL \
-WITH-SELF-DEAL WITH-THIS-COMMAND \
+WITH-SELF-DEAL WITH-THIS-COMMAND WHEN \
 &rest BODY...)"
   (declare (doc-string 3) (indent 2))
   (let*
@@ -14717,17 +14715,15 @@ WITH-SELF-DEAL WITH-THIS-COMMAND \
        (lambda-args-plist (entropy/emacs-parse-lambda-args-plus (cdr args)))
        (lambda-head-plist (plist-get lambda-args-plist :body-plist))
        (with-adjacent-interval
-        (or (plist-get lambda-head-plist :with-adjacent-interval)
-            0.05))
+        (plist-get lambda-head-plist :with-adjacent-interval))
        (with-adjacent-len
-        (or (plist-get lambda-head-plist :with-adjacent-len)
-            2))
+        (plist-get lambda-head-plist :with-adjacent-len))
        (with-break-interval
-        (or (plist-get lambda-head-plist :with-break-interval)
-            0.02))
+        (plist-get lambda-head-plist :with-break-interval))
        (with-this-command
         (plist-get lambda-head-plist :with-this-command))
        (with-self-deal (plist-get lambda-head-plist :with-self-deal))
+       (when (or (plist-get lambda-head-plist :when) t))
        (lambda-args-form (plist-get lambda-args-plist :arglist))
        (lambda-doc-form
         (let ((val (or (plist-get lambda-args-plist :docstring) "")))
@@ -14750,48 +14746,49 @@ details)."
         ((ranp-sym nil) (condp-sym nil)
          (use-this-command-sym with-this-command))
       `(let ()
-         (defvar ,wadi-sym ,with-adjacent-interval)
-         (defvar ,wadl-sym ,with-adjacent-len)
-         (defvar ,wbri-sym ,with-break-interval)
-         (defvar-local ,lvsym nil)
+         (entropy/emacs-setq-with-maybe-defvar ,wadi-sym (or ,with-adjacent-interval 0.01))
+         (entropy/emacs-setq-with-maybe-defvar ,wadl-sym (or ,with-adjacent-len 2))
+         (entropy/emacs-setq-with-maybe-defvar ,wbri-sym (or ,with-break-interval 0.001))
+         (entropy/emacs-setq-with-maybe-defvar-local ,lvsym nil)
          (cl-defun ,fsym ,lambda-args-form
            ,@lambda-doc-form
            ,@lambda-declare-form
            ,@lambda-inct-form
-           (let ((,ranp-sym nil) (,condp-sym nil))
-             (if (bound-and-true-p ,lvsym)
-                 (when (> (entropy/emacs-time-subtract ,lvsym nil 'use-float)
-                          ,wbri-sym)
-                   (setq ,ranp-sym t ,lvsym nil))
-               (entropy/emacs-setf-by-body ,condp-sym
-                 (cond ((null ,use-this-command-sym)
-                        (entropy/emacs-current-commands-continuous-p
-                         this-command ,wadl-sym ,wadi-sym))
-                       ((eq ,use-this-command-sym t)
-                        (when (eq this-command ',fsym)
+           (if (not ,when) (entropy/emacs-macroexp-progn lambda-body)
+             (let ((,ranp-sym nil) (,condp-sym nil))
+               (if (bound-and-true-p ,lvsym)
+                   (when (> (entropy/emacs-time-subtract ,lvsym nil 'use-float)
+                            ,wbri-sym)
+                     (setq ,ranp-sym t ,lvsym nil))
+                 (entropy/emacs-setf-by-body ,condp-sym
+                   (cond ((null ,use-this-command-sym)
                           (entropy/emacs-current-commands-continuous-p
-                           this-command ,wadl-sym ,wadi-sym)))
-                       ((functionp ,use-this-command-sym)
-                        (entropy/emacs-current-commands-continuous-p
-                         (funcall ,use-this-command-sym)
-                         ,wadl-sym ,wadi-sym))
-                       ((symbolp ,use-this-command-sym)
-                        (entropy/emacs-current-commands-continuous-p
-                         ,use-this-command-sym ,wadl-sym ,wadi-sym))
-                       ((proper-list-p ,use-this-command-sym)
-                        (catch :break
-                          (dolist (el ,use-this-command-sym)
-                            (when (entropy/emacs-current-commands-continuous-p
-                                   el ,wadl-sym ,wadi-sym)
-                              (throw :break t)))))
-                       (t (error "wrong type of `this-command' predication: %s"
-                                 ,use-this-command-sym))))
-               (if ,condp-sym
-                   (setq ,lvsym (current-time))
-                 (setq ,ranp-sym t)))
-             ,(if (not with-self-deal) `(when ,ranp-sym ,@lambda-body)
-                `(let ((,with-self-deal ,ranp-sym))
-                   ,@lambda-body))))))))
+                           this-command ,wadl-sym ,wadi-sym))
+                         ((eq ,use-this-command-sym t)
+                          (when (eq this-command ',fsym)
+                            (entropy/emacs-current-commands-continuous-p
+                             this-command ,wadl-sym ,wadi-sym)))
+                         ((functionp ,use-this-command-sym)
+                          (entropy/emacs-current-commands-continuous-p
+                           (funcall ,use-this-command-sym)
+                           ,wadl-sym ,wadi-sym))
+                         ((symbolp ,use-this-command-sym)
+                          (entropy/emacs-current-commands-continuous-p
+                           ,use-this-command-sym ,wadl-sym ,wadi-sym))
+                         ((proper-list-p ,use-this-command-sym)
+                          (catch :break
+                            (dolist (el ,use-this-command-sym)
+                              (when (entropy/emacs-current-commands-continuous-p
+                                     el ,wadl-sym ,wadi-sym)
+                                (throw :break t)))))
+                         (t (error "wrong type of `this-command' predication: %s"
+                                   ,use-this-command-sym))))
+                 (if ,condp-sym
+                     (setq ,lvsym (current-time))
+                   (setq ,ranp-sym t)))
+               ,(if (not with-self-deal) `(when ,ranp-sym ,@lambda-body)
+                  `(let ((,with-self-deal ,ranp-sym))
+                     ,@lambda-body)))))))))
 
 (cl-defmacro entropy/emacs-make-command-continuous-smoothing
     (&rest args)
@@ -14824,7 +14821,7 @@ WITH-SELF-DEAL WITH-THIS-COMMAND &rest BODY...)"
 (cl-defmacro entropy/emacs-make-command-continuous-smoothing-with-common-style
     (command-name
      &key
-     with-adjacent-interval with-adjacent-len with-break-interval
+     with-adjacent-interval with-adjacent-len with-break-interval when
      &allow-other-keys)
   "Make eemacs smooth-continous around advice for command `%s', with
 common style.
@@ -14839,27 +14836,35 @@ of usage of optional keys.
 
 \(fn COMMAND-NAME &key \
 WITH-ADJACENT-INTERVAL WITH-ADJACENT-LEN WITH-BREAK-INTERVAL \
-WITH-THIS-COMMAND)"
+WITH-THIS-COMMAND WHEN)"
   (declare (indent 1))
   (let ((fsym
          (intern
           (format "__eemacs/smooth-continous-variant/%s/around-advice__"
                   command-name))))
-    `(progn
-       (entropy/emacs-define-smooth-continuous-command
-           ,fsym (fn &rest args)
-         ,(format "Common eemacs smooth-continuous around advice for command `%s'.
+    (macroexp-let2* ignore
+        ((wadji with-adjacent-interval)
+         (wadjl with-adjacent-len)
+         (wbrki with-break-interval))
+      `(progn
+         (entropy/emacs-define-smooth-continuous-command
+             ,fsym (fn &rest args)
+           ,(format "Common eemacs smooth-continuous around advice for command `%s'.
 
 See `entropy/emacs-define-smooth-continuous-command' for details."
-                  command-name)
-         :with-adjacent-interval ,with-adjacent-interval
-         :with-adjacent-len ,with-adjacent-len
-         :with-break-interval ,with-break-interval
-         :with-self-deal ranp
-         (if (called-interactively-p 'interactive)
-             (when ranp (apply fn args))
-           (apply fn args)))
-       (advice-add ',command-name :around #',fsym))))
+                    command-name)
+           :with-adjacent-interval ,wadji
+           :with-adjacent-len      ,wadjl
+           :with-break-interval    ,wbrki
+           :with-self-deal ranp
+           (if (and (called-interactively-p 'interactive) ,(or when t))
+               (prog1 nil
+                 (if ranp (apply fn args)
+                   (when (entropy/emacs-log-suggest-push-output-p)
+                     (message "--> break command: %s wadji: %s wadjl: %s wbrki: %s"
+                              ',command-name ,wadji ,wadjl ,wbrki))))
+             (apply fn args)))
+         (advice-add ',command-name :around #',fsym)))))
 
 ;; * provide
 (provide 'entropy-emacs-defun)
