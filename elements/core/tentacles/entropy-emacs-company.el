@@ -1098,7 +1098,9 @@ in `entropy/emacs-company-frontend-sticker'."
              'company-box-doc-manually)
            (if (display-graphic-p)
                (setq company-box-icons-alist 'company-box-icons-images)
-             (setq company-box-icons-alist 'company-box-icons-icons-in-terminal)))
+             (setq company-box-icons-alist 'company-box-icons-icons-in-terminal)
+             (setq company-box-icons-icons-in-terminal
+                   (eemacs//company-box-icons-gen-icons-in-terminal))))
           (t
            (let (_)
              (entropy/emacs-message-do-message
@@ -1201,35 +1203,99 @@ in `entropy/emacs-company-frontend-sticker'."
            (company-box--icons-in-terminal (or icon 'fa_question_circle)))
           (t icon)))
 
-  (setq company-box-icons-icons-in-terminal
-        `((Unknown       . ,(nerd-icons-codicon "nf-cod-question"))
-          (Text          . ,(nerd-icons-codicon "nf-cod-text_size")) ;; Text
-          (Method        . ,(nerd-icons-codicon "nf-cod-symbol_method" :face 'font-lock-function-name-face)) ;; Method
-          (Function      . ,(nerd-icons-codicon "nf-cod-symbol_method" :face 'font-lock-function-name-face)) ;; Function
-          (Constructor   . ,(nerd-icons-codicon "nf-cod-symbol_method" :face 'font-lock-function-name-face)) ;; Constructor
-          (Field         . ,(nerd-icons-codicon "nf-cod-symbol_field" :foreground "#FF9800")) ;; Field
-          (Variable      . ,(nerd-icons-codicon "nf-cod-symbol_variable" :foreground "#FF9800")) ;; Variable
-          (Class         . ,(nerd-icons-codicon "nf-cod-symbol_class" :foreground "#7C4DFF")) ;; Class
-          (Interface     . ,(nerd-icons-codicon "nf-cod-symbol_interface" :foreground "#7C4DFF")) ;; Interface
-          (Module        . ,(nerd-icons-codicon "nf-cod-symbol_interface" :foreground "#7C4DFF")) ;; Module
-          (Property      . ,(nerd-icons-codicon "nf-cod-symbol_property" :foreground "#FF9800")) ;; Property
-          (Unit          . ,(nerd-icons-codicon "nf-cod-settings_gear")) ;; Unit
-          (Value         . ,(nerd-icons-codicon "nf-cod-symbol_property" :foreground "#FF9800")) ;; Value
-          (Enum          . ,(nerd-icons-codicon "nf-cod-symbol_enum" :face 'font-lock-type-face)) ;; Enum
-          (Keyword       . ,(nerd-icons-codicon "nf-cod-symbol_keyword" :foreground "#009688")) ;; Keyword
-          (Snippet       . ,(nerd-icons-codicon "nf-cod-symbol_snippet")) ;; Snippet
-          (Color         . ,(nerd-icons-codicon "nf-cod-symbol_color" :face 'font-lock-doc-face)) ;; Color
-          (File          . ,(nerd-icons-codicon "nf-cod-file")) ;; File
-          (Reference     . ,(nerd-icons-codicon "nf-cod-references")) ;; Reference
-          (Folder        . ,(nerd-icons-codicon "nf-cod-folder")) ;; Folder
-          (EnumMember    . ,(nerd-icons-codicon "nf-cod-symbol_enum_member" :foreground "#009688")) ;; EnumMember
-          (Constant      . ,(nerd-icons-codicon "nf-cod-symbol_constant" :face 'font-lock-constant-face)) ;; Constant
-          (Struct        . ,(nerd-icons-codicon "nf-cod-symbol_structure" :face 'font-lock-type-face)) ;; Struct
-          (Event         . ,(nerd-icons-codicon "nf-cod-symbol_event")) ;; Event
-          (Operator      . ,(nerd-icons-codicon "nf-cod-symbol_operator")) ;; Operator
-          (TypeParameter . ,(nerd-icons-codicon "nf-cod-symbol_parameter"))
-          (Template      . ,(nerd-icons-codicon "nf-cod-notebook_template"))) ;; TypeParameter
-        )
+
+  (defun eemacs//company-box-icons-gen-icons-in-terminal ()
+    (let ((use-icon-p (entropy/emacs-icons-displayable-p)))
+      (cl-labels ((use-text (kind)
+                    (let ((conf (alist-get kind company-text-icons-mapping)))
+                      (if (not conf) (propertize "." 'face 'shadow)
+                        (cl-destructuring-bind (icon &optional fg bg) conf
+                          (propertize
+                           icon
+                           'face
+                           (company-text-icons--face fg bg nil)))))))
+        `((Unknown
+           . ,(if use-icon-p (nerd-icons-codicon "nf-cod-question")
+                (use-text 'unknown)))
+          (Text
+           . ,(if use-icon-p (nerd-icons-codicon "nf-cod-text_size")
+                (use-text 'text)))
+          (Method
+           . ,(if use-icon-p (nerd-icons-codicon "nf-cod-symbol_method" :face 'font-lock-function-name-face)
+                (use-text 'method)))
+          (Function
+           . ,(if use-icon-p (nerd-icons-codicon "nf-cod-symbol_method" :face 'font-lock-function-name-face)
+                (use-text 'function)))
+          (Constructor
+           . ,(if use-icon-p (nerd-icons-codicon "nf-cod-symbol_method" :face 'font-lock-function-name-face)
+                (use-text 'constructor)))
+          (Field
+           . ,(if use-icon-p (nerd-icons-codicon "nf-cod-symbol_field" :foreground "#FF9800")
+                (use-text 'field)))
+          (Variable
+           . ,(if use-icon-p (nerd-icons-codicon "nf-cod-symbol_variable" :foreground "#FF9800")
+                (use-text 'variable)))
+          (Class
+           . ,(if use-icon-p (nerd-icons-codicon "nf-cod-symbol_class" :foreground "#7C4DFF")
+                (use-text 'class)))
+          (Interface
+           . ,(if use-icon-p (nerd-icons-codicon "nf-cod-symbol_interface" :foreground "#7C4DFF")
+                (use-text 'interface)))
+          (Module
+           . ,(if use-icon-p (nerd-icons-codicon "nf-cod-symbol_interface" :foreground "#7C4DFF")
+                (use-text 'module)))
+          (Property
+           . ,(if use-icon-p (nerd-icons-codicon "nf-cod-symbol_property" :foreground "#FF9800")
+                (use-text 'property)))
+          (Unit
+           . ,(if use-icon-p (nerd-icons-codicon "nf-cod-settings_gear")
+                (use-text 'unit)))
+          (Value
+           . ,(if use-icon-p (nerd-icons-codicon "nf-cod-symbol_property" :foreground "#FF9800")
+                (use-text 'value)))
+          (Enum
+           . ,(if use-icon-p (nerd-icons-codicon "nf-cod-symbol_enum" :face 'font-lock-type-face)
+                (use-text 'enum)))
+          (Keyword
+           . ,(if use-icon-p (nerd-icons-codicon "nf-cod-symbol_keyword" :foreground "#009688")
+                (use-text 'keyword)))
+          (Snippet
+           . ,(if use-icon-p (nerd-icons-codicon "nf-cod-symbol_snippet")
+                (use-text 'snippet)))
+          (Color
+           . ,(if use-icon-p (nerd-icons-codicon "nf-cod-symbol_color" :face 'font-lock-doc-face)
+                (use-text 'color)))
+          (File
+           . ,(if use-icon-p (nerd-icons-codicon "nf-cod-file")
+                (use-text 'file)))
+          (Reference
+           . ,(if use-icon-p (nerd-icons-codicon "nf-cod-references")
+                (use-text 'reference)))
+          (Folder
+           . ,(if use-icon-p (nerd-icons-codicon "nf-cod-folder")
+                (use-text 'folder)))
+          (EnumMember
+           . ,(if use-icon-p (nerd-icons-codicon "nf-cod-symbol_enum_member" :foreground "#009688")
+                (use-text 'enum-member)))
+          (Constant
+           . ,(if use-icon-p (nerd-icons-codicon "nf-cod-symbol_constant" :face 'font-lock-constant-face)
+                (use-text 'constant)))
+          (Struct
+           . ,(if use-icon-p (nerd-icons-codicon "nf-cod-symbol_structure" :face 'font-lock-type-face)
+                (use-text 'struct)))
+          (Event
+           . ,(if use-icon-p (nerd-icons-codicon "nf-cod-symbol_event")
+                (use-text 'event)))
+          (Operator
+           . ,(if use-icon-p (nerd-icons-codicon "nf-cod-symbol_operator")
+                (use-text 'operator)))
+          (TypeParameter
+           . ,(if use-icon-p (nerd-icons-codicon "nf-cod-symbol_parameter")
+                (use-text 'type-parameter)))
+          (Template
+           . ,(if use-icon-p (nerd-icons-codicon "nf-cod-notebook_template")
+                (use-text 'template))))
+        )))
 
 ;; ***** advices
 ;; ****** make `company-box--set-mode' proper
