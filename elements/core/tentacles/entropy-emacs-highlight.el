@@ -348,7 +348,8 @@ dead and duplicated ones."
             t
           nil))))))
 
-  :config (setq highlight-indent-guides-method 'character))
+  :config (setq highlight-indent-guides-method 'character
+                highlight-indent-guides-suppress-auto-error t))
 
 ;; ** Colorize color names in buffers
 ;;

@@ -1336,6 +1336,16 @@ This function is an around advice for `outshine-mode'."
      (outline-next-heading) (forward-line 0)
      (and (looking-at-p outline-regexp) t)))
 
+;; **** misc.
+
+  ;; FIXME TODO
+  ;; EEMACS_TEMPORALLY_HACK: for some not defined cmds outshine also
+  ;; set the keybinding in `outline-minor-mode-prefix', thus we should
+  ;; faking it out.
+  (dolist (cmd '(outshine-reveal))
+    (unless (fboundp cmd)
+      (defalias cmd 'ignore)))
+
 ;; *** __end__
   )
 
