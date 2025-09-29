@@ -169,6 +169,19 @@ With prefix argument binds, jump to the previous mark place."
   ;; using any key-bindings when active "C-<lwindow>-g" in WINDOWS
   (advice-add 'y-or-n-p :override #'entropy/emacs-basic-y-or-n-p))
 
+;; *** Hack eemacs bug: h:e4bd5597-0068-4502-9ed1-3ab8fdcb970b
+
+;; EEMACS_TEMPORALLY_HACK
+(define-advice pgtk-backend-display-class
+    (:around (ofunc &rest oargs) eemacs-advice//bug:h:e4bd5597-0068-4502-9ed1-3ab8fdcb970b)
+  "Simply say `pgtk-backend-display-class' can not distinguish the display
+class in a text terminal. Thus we simply give the usual value as return
+in wayland display but is not accurately, return empty string otherwise."
+  (if (display-graphic-p) (apply ofunc oargs)
+    (if (and (featurep 'pgtk) (entropy/emacs-getenv "WAYLAND_DISPLAY"))
+        "GdkWaylandDisplay"
+      "")))
+
 ;; ** Basic major-modes spec
 ;; *** Prog modes
 ;; **** disable bidi etc. long-line/large-buffer lag causer

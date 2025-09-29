@@ -1467,7 +1467,10 @@ emacs bug list id: #79487 @ https://lists.gnu.org/archive/html/bug-gnu-emacs/202
   ,#+end_src
 #+end_src
 
-** [2025-09-24 Wed 05:15:42]: follow emacs maintainer suggestion:
+*** [2025-09-24 Wed 05:15:42]: follow emacs maintainer suggestion:
+:PROPERTIES:
+:CUSTOM_ID: h:99ae6e0f-cecc-4299-bbcc-7c1132c32fdb
+:END:
 
 This is neither a bug nor a feature that of how emacs TUI handle frame
 selection by `select-frame' which is the subroutine used in
@@ -1476,6 +1479,15 @@ in TUI displaying in next redisplay, since in text terminal there's
 only one frame can be displayed at a time, thus eemacs maintained a
 advice for `select-frame' to mark the invisible frame invisble after
 select it.
+
+** DOING `pgtk-backend-display-class' error when funcalled in TUI
+:PROPERTIES:
+:CUSTOM_ID: h:e4bd5597-0068-4502-9ed1-3ab8fdcb970b
+:END:
+
+Related to emacs bug#6332
+https://lists.gnu.org/archive/html/bug-gnu-emacs/2023-08/msg01124.html
+
 
 * COMMENT Local Varaibles
 :PROPERTIES:
