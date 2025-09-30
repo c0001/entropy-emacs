@@ -98,6 +98,24 @@ value assignments into."
   :group 'entropy-emacs-customize-top-group)
 
 ;; ** Eemacs top declares
+;; *** Pre
+
+;; Bound `init-file-user' if not set, since if not may cause some
+;; situations failure e.g. `gnus-read-init-file' press to read the
+;; init file if thus, this usually caused by start emacs with -q/Q
+;; flag.
+(unless (bound-and-true-p init-file-user)
+  (setq init-file-user ""))
+
+(defconst entropy/emacs-emacs-builtin-lisp-packages-host-dir
+  (file-truename (file-name-as-directory
+                  (expand-file-name (file-name-directory (locate-library "subr")))))
+  "The emacs builtin lisp packages archive directory for current emacs
+session.
+
+The path is expanded and absoluted and satisfied by `file-name-as-directory'."
+  )
+
 ;; *** Vars
 ;; set entropy-emacs lowest emacs version requirement
 (defconst entropy/emacs-lowest-emacs-version-requirement

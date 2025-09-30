@@ -5839,6 +5839,33 @@ NOTE: this is a advice wrapper for any function."
 (when entropy/emacs-custom-tab-enable
   (setq-default tab-width entropy/emacs-custom-tab-width))
 
+(defun entropy/emacs-set-tab-width-by-strictly-eight nil
+  "Set `tab-width' strictly as eight spaces for `current-buffer'.
+
+This function exists since eight space tab width is a convention for
+widely usage in many cases.
+
+In eemacs, this function is only running in some suggested cases other
+than `entropy/emacs-custom-tab-width' with user prompts and forcely ran
+in some cases really needs thus."
+  (let* ((curbuff (current-buffer))
+         (curfile (when-let* ((bfn (buffer-file-name curbuff))) (file-truename bfn)))
+         (should-set-p nil))
+    (cond
+     ((and curfile
+           (not (local-variable-p 'tab-width))
+           (or
+            ;; current emacs installation builtin lisp files
+            (string-prefix-p entropy/emacs-emacs-builtin-lisp-packages-host-dir
+                             curfile)
+            ;; the emacs source files
+            (and (stringp source-directory)
+                 (string-prefix-p (file-truename source-directory) curfile))))
+      (setq should-set-p t))
+     (t nil))
+    (and should-set-p (setq tab-width 8))))
+(add-hook 'prog-mode-hook #'entropy/emacs-set-tab-width-by-strictly-eight)
+
 ;; **** Buffer operations
 ;; ***** Initiative operations
 ;; ****** Input time into buffer
