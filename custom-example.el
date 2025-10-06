@@ -26,7 +26,7 @@
 ;; * Basic personal information
 (setq entropy/emacs-user-full-name "Thanos")
 
-(setq entropy/emacs-user-mail-address "thanos@comos.com")
+(setq entropy/emacs-user-mail-address "thanos@gmail.com")
 
 (setq entropy/emacs-indicate-sshd-session nil)
 

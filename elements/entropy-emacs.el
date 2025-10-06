@@ -1246,6 +1246,121 @@ when available.
          (user-error (concat "[%s] " ,string)
                      ,sym ,@args)))))
 
+;; *** eieio enhancements
+
+(eval-and-compile (require 'eieio))
+(defun eemacs--slot-name (slot)
+  (if (keywordp slot) (intern (substring (symbol-name slot) 1))
+    slot))
+(defmacro eemacs-oref (obj slot)
+  "like `oref' but slot can be a `keywordp' style."
+  (let ((slot (eemacs--slot-name slot)))
+    `(oref ,obj ,slot)))
+(defmacro eemacs-oset (obj slot value)
+  "like `oset' but slot can be a `keywordp' style."
+  (let ((slot (eemacs--slot-name slot)))
+    `(oset ,obj ,slot ,value)))
+
+(entropy/emacs-defconst/only-allow/local eemacs-oref-ubound-return nil
+  "The return value for which a object's slot is not `slot-boundp' for such
+an object operation failed.")
+(entropy/emacs-defconst/only-allow/local eemacs-oref-abort-return nil
+  "The return value for which a object's slot operation can not be operated.")
+(cl-defmacro eemacs-oref-batch (obj &rest slots)
+  "Make `eemacs-oref' thru objects spawns chain.
+
+This macro followed convention of `eemacs-oref-ubound-return' and
+`eemacs-oref-abort-return'."
+  (declare (indent 1))
+  (if (not slots) eemacs-oref-abort-return
+    (let ((form nil) (oform-sym (make-symbol "oform"))
+          (obj-sym (make-symbol "obj"))
+          (abort-sym (make-symbol "abort"))
+          (throw-func-sym (make-symbol "throw-func"))
+          (false-sym (make-symbol "false"))
+          (rtn-sym (make-symbol "rtn")))
+      (dolist (slt slots)
+        (setq slt (eemacs--slot-name slt))
+        (if (not form)
+            (setq form
+                  `(if (and (eieio-object-p ,obj-sym)
+                            (slot-boundp ,obj-sym ',slt))
+                       (oref ,obj-sym ,slt)
+                     (funcall ,throw-func-sym)))
+          (setq form
+                `(let ((,oform-sym ,form))
+                   (if (and (eieio-object-p ,oform-sym)
+                            (slot-boundp ,oform-sym ',slt))
+                       (oref ,oform-sym ,slt)
+                     (funcall ,throw-func-sym))))))
+      `(let* ((,obj-sym ,obj)
+              (,throw-func-sym (lambda nil (throw ',abort-sym ',false-sym)))
+              (,rtn-sym (catch ',abort-sym ,form)))
+         (if (eq ,rtn-sym ',false-sym) eemacs-oref-ubound-return
+           ,rtn-sym)))))
+
+(defmacro eemacs-oset-batch (obj value &rest slots)
+  "Make `eemacs-oset' thru spawns chain via `eemacs-oref-batch'.
+
+This macro followed convention of `eemacs-oref-ubound-return' and
+`eemacs-oref-abort-return'."
+  (declare (indent defun))
+  (if (not slots) eemacs-oref-abort-return
+    (let ((nslots (butlast slots))
+          (nslt (car (last slots))))
+      (setq nslt (eemacs--slot-name nslt))
+      (if (null nslots) `(oset ,obj ,nslt ,value)
+        (macroexp-let2* ignore
+            ((ref-val `(eemacs-oref-batch ,obj ,@nslots)))
+          `(if (eieio-object-p ,ref-val) (oset ,ref-val ,nslt ,value)
+             eemacs-oref-ubound-return))))))
+
+(defmacro eemacs-oref-batch-group (obj &rest slot-groups)
+  "Make `eemacs-oref-batch' based on groups of arguments SLOT-GROUPS as
+usual. Return OBJ.
+
+Each element of SLOT-GROUPS is argument list passed to
+`eemacs-oref-batch' except its car is a `setf' place for which the
+`eemacs-oref' return injected."
+  (declare (indent 1))
+  (let (form)
+    (macroexp-let2* ignore
+        ((obj obj))
+      (dolist (el slot-groups)
+        (push `(setf ,(car el) (eemacs-oref-batch ,obj ,@(cdr el))) form))
+      ;; return obj
+      (and form (setq form `(progn ,@(nreverse form) ,obj)))
+      form)))
+
+(defmacro eemacs-oset-batch-group (obj &rest slot-groups)
+  "Make `eemacs-oset-batch' based on groups of arguments SLOT-GROUPS as
+usual. Return OBJ.
+
+Each element of SLOT-GROUPS is argument list passed to `eemacs-oref-batch'."
+  (declare (indent 1))
+  (let (form)
+    (macroexp-let2* ignore
+        ((obj obj))
+      (dolist (el slot-groups)
+        (push `(eemacs-oset-batch ,obj ,@el) form))
+      ;; return obj
+      (and form (setq form `(progn ,@(nreverse form) ,obj)))
+      form)))
+
+(defmacro eemacs-make-instance (class &rest slot-args)
+  "Make a instance of class name CLASS thru slots initialization SLOT-ARGS
+if specified, return the instance object.
+
+SLOT-ARGS are paired arguments passed to `eemacs-oset'."
+  (declare (indent 1))
+  (let (form)
+    (macroexp-let2* ignore
+        ((class class) (obj `(make-instance ,class)))
+      (while slot-args
+        (push `(eemacs-oset ,obj ,(pop slot-args) ,(pop slot-args)) form))
+      (and form (setq form `(progn ,@(nreverse form))))
+      `(progn ,form ,obj))))
+
 ;; *** making procedure
 
 (defun entropy/emacs-is-make-all-session ()

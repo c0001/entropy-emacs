@@ -2002,6 +2002,8 @@ When key USE-PROXY is non-nil, we use
           (const :read-active-file) boolean)
   :group 'entropy/emacs-customize-group-for-gnus)
 
+;; *** Email
+
 ;; *** Major-modes
 (defgroup entropy/emacs-customize-group-for-major-modes nil
   "Eemacs major modes configuration customizable group."
@@ -3726,4 +3728,4 @@ that."
 (provide 'entropy-emacs-defcustom)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; init-custom.el ends here
+;;; entropy-emacs-defcustom.el ends here

@@ -510,6 +510,7 @@ notation.
   (entropy/emacs-start--require-with-duration-log 'entropy-emacs-textwww)
   (entropy/emacs-start--require-with-duration-log 'entropy-emacs-rss)
   (entropy/emacs-start--require-with-duration-log 'entropy-emacs-gnus)
+  (entropy/emacs-start--require-with-duration-log 'entropy-emacs-mail)
   (entropy/emacs-start--require-with-duration-log 'entropy-emacs-tools)
   (entropy/emacs-start--require-with-duration-log 'entropy-emacs-music)
   (entropy/emacs-start--require-with-duration-log 'entropy-emacs-vcs)
