@@ -34,15 +34,9 @@
 ;; * Code:
 ;; ** require
 
-(defvar mail-source-directory)
-(defvar message-directory)
-(defvar nnfolder-directory)
-(defvar gnus-init-file)
-(defvar gnus-startup-file)
-(defvar gnus-read-newsrc-file)
-(defvar gnus-save-newsrc-file)
-(defvar gnus-use-dribble-file)
-(defvar gnus-read-active-file)
+(eval-when-compile
+  (require 'gnus) (require 'gnus-start) (require 'nnfolder)
+  (require 'mail-source) (require 'message))
 
 ;; ** gnus
 (use-package gnus
