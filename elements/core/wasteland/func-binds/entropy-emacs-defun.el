@@ -13920,8 +13920,9 @@ subroutine of `entropy/emacs-xterm-paste-core'.
 function made by `entropy/emacs-with-daemon-make-frame-done'.")
 
 (defmacro entropy/emacs-with-daemon-make-frame-done (&rest args)
-  "Run progresses PROGRESSs after emacs daemon server make a new frame
-where PROGRESS is a emacs lisp form.
+  "Run progresses PROGRESSes after emacs daemon server make a new frame
+where PROGRESS is a emacs lisp form. All PROGRESSes ran only in a
+`daemonp' session.
 
 1) WHEN-TUI is the PROGRESS ran after the first tui daemon client frame created
 2) WHEN-TUI-EACH is the PROGRESS ran after every tui daemon client frame created

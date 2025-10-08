@@ -1154,9 +1154,9 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
              entropy/sdcv-search-input-adjacent
              entropy/sdcv-autoshow-mode)
   :init
-  (if (null (daemonp))
-      (unless (display-graphic-p)
-        (setq entropy/sdcv-default-show-tooltip-method 'popup))
+  (if (entropy/emacs-posframe-adapted-p)
+      (setq entropy/sdcv-default-show-tooltip-method 'posframe)
+    (setq entropy/sdcv-default-show-tooltip-method 'popup)
     (entropy/emacs-with-daemon-make-frame-done
       'entropy-sdcv (&rest _)
       :when-tui
