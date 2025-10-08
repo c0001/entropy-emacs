@@ -63,7 +63,7 @@
   :type 'string
   :group 'entropy/emacs-customize-group-for-fundametal-configuration)
 
-(defcustom entropy/emacs-user-mail-address "Thanos@comos.com"
+(defcustom entropy/emacs-user-mail-address "Thanos@gmail.com"
   "The value for `user-mail-address' but specified for
 =entropy-emacs=."
   :type 'string
