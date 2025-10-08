@@ -768,11 +768,15 @@ Currently detected env variables:")
   ;; Use idle timer so that the server init completed as so non server
   ;; init failure error `Error: server did not start correctly'
   ;; returned.
+  (message "Running CI daemon test idle guard ...")
   (run-with-idle-timer
    10
    'prevent-no-kill-for-hang-the-CI-instance
    (lambda nil
-     (condition-case-unless-debug err (kill-emacs)
+     (condition-case-unless-debug err
+         (progn
+           (message "Killing current CI daemon tester ...")
+           (kill-emacs 0))
        (error
         (entropy/emacs-message-do-error
          "[%s] %s"
