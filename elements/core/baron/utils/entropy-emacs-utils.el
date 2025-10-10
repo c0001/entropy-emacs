@@ -1144,24 +1144,47 @@ is not too much suitable for eemacs outline integration."
             (goto-char (pos-bol))
             (re-search-forward outline-regexp (pos-eol) t))
           t)))
-  (define-advice outline-next-visible-heading
-      (:around (ofunc &rest oargs)
-               eemacs//treesit-outline-next-visible-heading)
+
+  (defun eemacs-advice//temporally-hack/treesit-outline-search
+      (ofunc &rest oargs)
     "EEMACS_TEMPORALLY_HACK: Temporarily disable `outline-search-function' of
 treesit variants mode for hacking its infinitely looping searching next
-outline heads start at a invisible heading line"
-    (if
-        (and (eemacs/prog-lang/func/bof/treesit-id (current-buffer))
-             (or
-              (entropy/emacs-save-excurstion-and-mark-and-match-data
-                (goto-char (pos-bol))
-                (not (looking-at-p outline-regexp)))
-              (entropy/emacs-save-excurstion-and-mark-and-match-data
-                (goto-char (pos-eol))
-                (outline-invisible-p))))
-        (let ((outline-search-function nil))
-          (apply ofunc oargs))
+outline heads start at a invisible heading line, or it will match an
+wrong place for recognizing it as an outline head."
+    (if (and (eemacs/prog-lang/func/bof/treesit-id (current-buffer)) t)
+        (let ((bound (car oargs)) (move (cadr oargs))
+              (backward (caddr oargs)) (lkat (cadddr oargs))
+              (otrex (concat "^\\(?:" outline-regexp "\\)"))
+              rtn)
+          ;; NOTE: we must ensure not used `t' value for
+          ;; `re-search-forward' subroutine to move the point, or
+          ;; the map will be infinitely looping.
+          (setq move (and move 'move))
+          (entropy/emacs-setf-by-body rtn
+            (if lkat (looking-at otrex)
+              (if backward (re-search-backward otrex bound move)
+                (re-search-forward otrex bound move))))
+          (if lkat (and rtn t) rtn))
       (apply ofunc oargs)))
+
+  (entropy/emacs-add-hook-with-lambda-use-timer
+    (cons t 'eemacs//buffer-list-update-hook/temporally-hack/treesit-outline-search)
+    (&rest _)
+    "hook used inject idle timer for `eemacs-advice//temporally-hack/treesit-outline-search'"
+    :use-hook 'buffer-list-update-hook
+    (let ((buff (current-buffer)))
+      (run-with-idle-timer
+       0.1 nil
+       (lambda (&rest _)
+         (when-let* (((buffer-live-p buff)) (inhibit-quit t))
+           (with-current-buffer buff
+             (when (and (bound-and-true-p outline-minor-mode)
+                        (eq (bound-and-true-p outline-search-function)
+                            'treesit-outline-search))
+               (add-function
+                :around (local 'outline-search-function)
+                'eemacs-advice//temporally-hack/treesit-outline-search))))))))
+
   )
 
 ;; * provide
