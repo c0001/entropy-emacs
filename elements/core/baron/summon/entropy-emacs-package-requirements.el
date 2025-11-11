@@ -144,7 +144,7 @@
        flycheck
        flymake
        ;; magit/ghub require emacs version upon 29 now [2024-12-23 Mon 17:59:06]
-       (when (< emacs-major-version 29) 'ghub)
+       (unless (< emacs-major-version 29) 'ghub)
        git-messenger
        git-timemachine
        git-modes

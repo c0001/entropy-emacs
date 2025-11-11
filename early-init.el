@@ -40,7 +40,7 @@
 ;; daily using convention.
 (setq find-file-visit-truename nil)
 
-;;;; early defvar
+;;;; Early defvar
 
 ;; top eemacs host
 (defconst entropy/emacs-user-emacs-directory
@@ -118,6 +118,9 @@ emacs upstream")
       help-enable-completion-autoload nil
       help-enable-symbol-autoload nil
       )
+
+;; Defaultly disable auto install treesit library before customization
+(setq treesit-auto-install-grammar nil)
 
 ;;;; Process performance tweaking
 
