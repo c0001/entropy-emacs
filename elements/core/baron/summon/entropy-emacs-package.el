@@ -296,10 +296,9 @@ the error msg into `entropy/emacs-package-install-failed-list'."
          :popup-while-eemacs-init-with-interactive t
          print-prefix
          (blue (if update "Updating" "Installing"))
-         (yellow
-          (if (package-desc-p pkg)
-              (format "%s ---> <%s>" pkg-name pkg)
-            (format "%s" pkg-name))))
+         (if (package-desc-p pkg)
+             (format "%s ---> <%s>" (yellow pkg-name) (blue pkg))
+           (yellow (format "%s" pkg-name))))
       (entropy/emacs-message-do-message
        "[%s] package '%s' ..."
        :popup-while-eemacs-init-with-interactive t
@@ -459,15 +458,11 @@ building procedure while invoking INSTALL-COMMANDS."
         (count 1))
     ;; calulate packages need to be installing
     (dolist (pkgreqptr (bound-and-true-p entropy-emacs-packages))
-      (unless (or (null pkgreqptr)
-                  (entropy/emacs-package-pkg-installed-p
-                   (entropy/emacs-setf-by-body pkg-for
-                     (or
-                      (entropy/emacs-pkgreq-get-pkgreqptr-pkg-slot
-                       pkgreqptr :pkg-desc)
-                      (entropy/emacs-pkgreq-get-pkgreqptr-pkg-slot
-                       pkgreqptr :name)))))
+      (setq pkg-for (cdr pkgreqptr))
+      (unless (entropy/emacs-package-pkg-installed-p pkg-for)
         (push pkg-for pkg-pre)))
+    ;; made install order following `entropy-emacs-packages'
+    (and pkg-pre (setq pkg-pre (nreverse pkg-pre)))
     ;; do installing
     (dolist (pkg pkg-pre)
       (entropy/emacs-without-debugger
