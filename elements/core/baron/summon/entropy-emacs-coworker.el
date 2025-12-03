@@ -201,8 +201,12 @@ EXIT /b
 ;; *** package install branches
 ;; **** npm install
 ;; ***** isolate type
+(defun entropy/emacs-coworker--coworker-isolate-bins-install-by-npm/method/get-module-prefix
+    (server-name-string)
+  (expand-file-name (format "eemacs-node-lsp/%s" server-name-string)
+                    entropy/emacs-coworker-lib-host-root))
 (defun entropy/emacs-coworker--coworker-isolate-bins-install-by-npm
-    (server-name-string server-bins server-repo-string)
+    (server-name-string server-bins &rest server-repo-string)
   (when sys/win32p
     (unless (and entropy/emacs-win-portable-nodejs-enable
                  (file-exists-p
@@ -222,8 +226,8 @@ EXIT /b
          ;; since each pacakge should has their own dependencies and
          ;; shouldn't pollute other package's dependencies.
          (this-npm-prefix
-          (expand-file-name (format "eemacs-node-lsp/%s" server-name-string)
-                            entropy/emacs-coworker-lib-host-root))
+          (entropy/emacs-coworker--coworker-isolate-bins-install-by-npm/method/get-module-prefix
+           server-name-string))
          (server-lostp
           (not
            (entropy/emacs-coworker--coworker-alist-judge
@@ -255,7 +259,7 @@ EXIT /b
            :synchronously t
            :command
            '("npm"
-             "install" ,server-repo-string)
+             "install" ,@server-repo-string)
            :buffer (get-buffer-create "*eemacs-coworker-npm-install-proc*")
            :default-directory ,(entropy/emacs-return-as-default-directory this-npm-prefix)
            :prepare
@@ -791,7 +795,25 @@ EXIT /b
   (entropy/emacs-coworker--coworker-isolate-bins-install-by-npm
    "vue-lsp-server"
    '("vls")
-   "vls"))
+   "vls")
+  (entropy/emacs-coworker--coworker-isolate-bins-install-by-npm
+   "angular-lsp-server"
+   '("ngserver")
+   "@angular/language-service@next"
+   "@angular/language-server"
+   "typescript"))
+(with-eval-after-load 'lsp-angular
+  (unless (entropy/emacs-custom-var-is-customized-p 'lsp-clients-angular-language-server-command)
+    (setq lsp-clients-angular-language-server-command
+          (let ((node-prefix
+                 (entropy/emacs-coworker--coworker-isolate-bins-install-by-npm/method/get-module-prefix
+                  "angular-lsp-server")))
+            (list "ngserver"
+                  "--ngProbeLocations"
+                  node-prefix
+                  "--tsProbeLocations"
+                  node-prefix
+                  "--stdio")))))
 
 ;; **** php
 (defun entropy/emacs-coworker-check-php-lsp (&rest _)
