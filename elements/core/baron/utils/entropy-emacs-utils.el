@@ -1162,8 +1162,12 @@ wrong place for recognizing it as an outline head."
           (setq move (and move 'move))
           (entropy/emacs-setf-by-body rtn
             (if lkat (looking-at otrex)
-              (if backward (re-search-backward otrex bound move)
-                (re-search-forward otrex bound move))))
+              ;; just return nil while moving/searching failed since
+              ;; those should not corrupt the host process in this
+              ;; simple search function
+              (ignore-errors
+                (if backward (re-search-backward otrex bound move)
+                  (re-search-forward otrex bound move)))))
           (if lkat (and rtn t) rtn))
       (apply ofunc oargs)))
 
