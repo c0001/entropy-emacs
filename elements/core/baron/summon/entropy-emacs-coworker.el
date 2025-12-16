@@ -802,6 +802,7 @@ EXIT /b
    "@angular/language-service@next"
    "@angular/language-server"
    "typescript"))
+(defvar lsp-clients-angular-language-server-command)
 (with-eval-after-load 'lsp-angular
   (unless (entropy/emacs-custom-var-is-customized-p 'lsp-clients-angular-language-server-command)
     (setq lsp-clients-angular-language-server-command
