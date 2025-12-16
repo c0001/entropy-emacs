@@ -175,7 +175,13 @@ should be a list of elements, and a function defined via
    (probe         :initarg :probe :type (or (satisfies eemacs/prog-lang/probe-func-type-p) null)
                   :initform nil)))
 (defclass eemacs/prog-lang/class/treesit ()
-  ((id            :initarg :id            :type string)
+  ((id            :initarg :id            :type string
+                  :documentation
+                  "NOTE: The language id for the LANG, which should indeed grabbed from LSP
+standard defs of *language identifier*
+(https://microsoft.github.io/language-server-protocol/specifications/)
+or if any not presented in LSP then named as history usage convention
+and updating it while presents.")
    (repo-type     :initarg :repo-type     :type (or string null)
                   :initform nil)
    (repo-url      :initarg :repo-url      :type (or string null)
@@ -390,6 +396,11 @@ cons of LANG-NAME and LANG-RECIPE, or nil that not found."
   "Define a `eemacs/prog-lang/class/recipe' use let bounded sets of interned
 symbols THIS-BINDING prefixed by WITH-THIS-AS (defaults to `this') that
 is a explicit symbol name.
+
+NAME should indeed grabbed from LSP standard defs of
+*language* (https://microsoft.github.io/language-server-protocol/specifications/)
+or if any not presented in LSP then named as history usage convention
+and updating it while presents.
 
 WITH-MODES-ASSOC-PLIST used as meaning as `eemacs/prog-lang/assoc-plist/func/match'.
 "
@@ -741,6 +752,13 @@ ASSOC-PLISTS is respected."
          :id "json"
          :repo-url "https://github.com/tree-sitter/tree-sitter-json"
          :modes (eemacs/prog-lang/class/modes :list this-json/var/treesit-modes)))
+
+;; **** JSDOC
+     (eemacs/prog-lang/macro/with-make-recipe "JSDoc"
+       :with-this-as this-jsdoc
+       (eemacs/prog-lang/macro/oset this-jsdoc/obj/treesit
+         :id "jsdoc"
+         :repo-url "https://github.com/tree-sitter/tree-sitter-jsdoc"))
 
 ;; **** Typescript
      (eemacs/prog-lang/macro/with-make-recipe "TypeScript"
