@@ -13700,7 +13700,7 @@ stuffs on `entropy/emacs-solaire-mode' when
                rtn)
       (setq case-fold-search orig-case-type))))
 
-;; *** Cli compatibale specification
+;; *** Window system compatibale specification
 ;; **** `xterm-paste' wrappers
 
 (defvar entropy/emacs--xterm-clipboard-head nil
@@ -13911,6 +13911,24 @@ subroutine of `entropy/emacs-xterm-paste-core'.
                 (not (string= "" paste)))
        (setq paste (substring-no-properties paste))
        (term-send-raw-string paste)))))
+
+;; **** `gui-backend-get-selection' spec
+
+(cl-defmethod gui-backend-get-selection
+  :extra "eemacs/use_wl_paste" :around
+  (selection-symbol target-type &context (window-system pgtk))
+  "FIXME: eemacs pgtk cannot grab content from X11 session (vanilla emacs
+pgtk no problem), thus we use cli
+command instead."
+  (if (executable-find "wl-paste")
+      (let ((args (and (eq selection-symbol 'PRIMARY) (list "--primary"))))
+        (with-temp-buffer
+          (if (= 0 (apply 'call-process "wl-paste" nil t nil "-n" args))
+              (buffer-substring (point-min) (point-max))
+            (entropy/emacs-message-do-warn
+             "wl-paste return fatal, use origin mechanism")
+            (cl-call-next-method selection-symbol target-type))))
+    (cl-call-next-method selection-symbol target-type)))
 
 ;; *** Emacs daemon specification
 
