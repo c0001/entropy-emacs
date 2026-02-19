@@ -13920,13 +13920,13 @@ subroutine of `entropy/emacs-xterm-paste-core'.
   (cl-defmethod gui-backend-get-selection
     :extra "eemacs/use_xclip_mode" :around
     (selection-symbol target-type &context (window-system pgtk))
-    (let ((window-system nil) (xclip-method 'wl-copy))
+    (let ((window-system nil) (xclip-method 'wl-copy) (xclip-program "wl-copy"))
       (unless (bound-and-true-p xclip-mode) (xclip-mode 1))
       (xclip-get-selection selection-symbol)))
   (cl-defmethod gui-backend-set-selection
     :extra "eemacs/use_xclip_mode" :around
     (selection value &context (window-system pgtk))
-    (let ((window-system nil) (xclip-method 'wl-copy))
+    (let ((window-system nil) (xclip-method 'wl-copy) (xclip-program "wl-copy"))
       (unless (bound-and-true-p xclip-mode) (xclip-mode 1))
       (xclip-set-selection selection value))))
 
