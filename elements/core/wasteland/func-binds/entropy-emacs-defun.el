@@ -13912,23 +13912,23 @@ subroutine of `entropy/emacs-xterm-paste-core'.
        (setq paste (substring-no-properties paste))
        (term-send-raw-string paste)))))
 
-;; **** `gui-backend-get-selection' spec
+;; **** gui-backend clipboard spec
 
-(cl-defmethod gui-backend-get-selection
-  :extra "eemacs/use_wl_paste" :around
-  (selection-symbol target-type &context (window-system pgtk))
-  "FIXME: eemacs pgtk cannot grab content from X11 session (vanilla emacs
-pgtk no problem), thus we use cli
-command instead."
-  (if (executable-find "wl-paste")
-      (let ((args (and (eq selection-symbol 'PRIMARY) (list "--primary"))))
-        (with-temp-buffer
-          (if (= 0 (apply 'call-process "wl-paste" nil t nil "-n" args))
-              (buffer-substring (point-min) (point-max))
-            (entropy/emacs-message-do-warn
-             "wl-paste return fatal, use origin mechanism")
-            (cl-call-next-method selection-symbol target-type))))
-    (cl-call-next-method selection-symbol target-type)))
+;; FIXME: eemacs pgtk cannot grab content from X11 session (vanilla
+;; emacs pgtk no problem), thus we use xclip-mode instead.
+(when (and (executable-find "wl-copy") (executable-find "wl-paste"))
+  (cl-defmethod gui-backend-get-selection
+    :extra "eemacs/use_xclip_mode" :around
+    (selection-symbol target-type &context (window-system pgtk))
+    (let ((window-system nil) (xclip-method 'wl-copy))
+      (unless (bound-and-true-p xclip-mode) (xclip-mode 1))
+      (xclip-get-selection selection-symbol)))
+  (cl-defmethod gui-backend-set-selection
+    :extra "eemacs/use_xclip_mode" :around
+    (selection value &context (window-system pgtk))
+    (let ((window-system nil) (xclip-method 'wl-copy))
+      (unless (bound-and-true-p xclip-mode) (xclip-mode 1))
+      (xclip-set-selection selection value))))
 
 ;; *** Emacs daemon specification
 
