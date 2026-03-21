@@ -13738,7 +13738,8 @@ clipboard with native operation system."
                (executable-find "getclip")
                'getclip)
           ;; android termux emulator
-          (and (executable-find "termux-clipboard-get")
+          (and sys/androidp
+               (executable-find "termux-clipboard-get")
                'termux-clipboard-get)
           ;; microsoft wsl env
           (and sys/wsl2-env-p
@@ -13773,24 +13774,26 @@ clipboard with native operation system."
                           ;; get it.
                           (when (eq judger 'powershell)
                             (executable-find "powershell.exe"))))
-             (if (bound-and-true-p xclip-mode) t
-               (progn (entropy/emacs-require-only-once 'xclip)
-                      (setq xclip-method judger
-                            xclip-program (if (eq judger 'powershell)
-                                              ;; NOTE: WSLg can not
-                                              ;; found non *.exe named
-                                              ;; executable
-                                              (executable-find "powershell.exe")
-                                            (symbol-name judger)))
-                      (entropy/emacs-run-body-only-once
-                       (entropy/emacs-with-daemon-make-frame-done
-                         'eemacs-set-xclip-mode (&rest _)
-                         :when-tui (xclip-mode 1)
-                         :when-gui (xclip-mode 0)))
-                      (when (and (not (bound-and-true-p xclip-mode))
-                                 (not (display-graphic-p)))
-                        (xclip-mode 1))
-                      t))))
+             ;; ssh remote session may not workable with xclip-mode
+             (unless (entropy/emacs-is-ssh-session)
+               (if (bound-and-true-p xclip-mode) t
+                 (entropy/emacs-require-only-once 'xclip)
+                 (setq xclip-method judger
+                       xclip-program (if (eq judger 'powershell)
+                                         ;; NOTE: WSLg can not
+                                         ;; found non *.exe named
+                                         ;; executable
+                                         (executable-find "powershell.exe")
+                                       (symbol-name judger)))
+                 (entropy/emacs-run-body-only-once
+                  (entropy/emacs-with-daemon-make-frame-done
+                    'eemacs-set-xclip-mode (&rest _)
+                    :when-tui (xclip-mode 1)
+                    :when-gui (xclip-mode 0)))
+                 (when (and (not (bound-and-true-p xclip-mode))
+                            (not (display-graphic-p)))
+                   (xclip-mode 1))
+                 t))))
       judger)))
 
 ;; Inspired by

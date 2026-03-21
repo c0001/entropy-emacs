@@ -96,6 +96,13 @@ The usage of this regexp is via `looking-at' or
   (eq system-type 'cygwin)
   "Are we running on a Cygwin system?")
 
+(defconst sys/androidp (eq system-type 'android)
+  "Are we running on an android system?")
+
+(defconst sys/android-x-p
+  (and (display-graphic-p) sys/androidp)
+  "Are we running under X on an android system?")
+
 (defconst sys/rootp
   (string-equal "root" (getenv "USER"))
   "Are you using ROOT user?")
