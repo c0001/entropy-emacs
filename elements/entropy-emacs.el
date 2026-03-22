@@ -1820,7 +1820,11 @@ it has one of thus, otherwise same as `process-buffer'."
        (when-let*
            (((or (not noninteractive)
                  entropy/emacs-fall-love-with-pdumper
-                 (daemonp))))
+                 (daemonp)))
+            ((if (not sys/is-termux-p) t
+               (warn "termux has fatal of using emacs-async \ (see
+https://github.com/syl20bnr/spacemacs/issues/16924), so the servelet
+%s is disabled by default." ,base-name) nil)))
          (unless entropy/emacs-fall-love-with-pdumper
            (funcall tmp-port-bind-func))
          (add-hook

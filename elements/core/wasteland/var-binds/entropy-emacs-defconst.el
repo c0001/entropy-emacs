@@ -200,6 +200,11 @@ display.")
   (string-match-p "--with-pgtk" system-configuration-options)
   "Return non-nil when current emacs is built with PGTK.")
 
+(defconst sys/is-termux-p (or (entropy/emacs-getenv "TERMUX__PREFIX")
+                              (entropy/emacs-getenv "TERMUX_APP_PID"))
+  "Return non-nil when current emacs session is under android TERMUX
+emulator.")
+
 ;; ** system refers
 
 ;; ** Eemacs Error Framework
