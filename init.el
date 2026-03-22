@@ -308,6 +308,13 @@ eemacs loading mechanism logical messy will occurred."
     (let ((nomsg (entropy/emacs--message-do-message-should-not-msg-verbose-p)))
       (apply 'load (car args) (cadr args) nomsg (cdddr args)))))
 
+;; *** Vars after func defined
+
+(defconst sys/is-termux-p (or (entropy/emacs-getenv "TERMUX__PREFIX")
+                              (entropy/emacs-getenv "TERMUX_APP_PID"))
+  "Return non-nil when current emacs session is under android TERMUX
+emulator.")
+
 ;; ** Top customized group
 
 ;; *** Debug
