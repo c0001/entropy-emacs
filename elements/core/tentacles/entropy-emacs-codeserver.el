@@ -1532,6 +1532,33 @@ NOTE: related to the display char height?"
    "require lsp-java"
    (require 'lsp-java-boot)))
 
+(use-package lsp-dart
+  :defer
+  (or
+   ;; pdump can not dump mutex and condvar made by
+   ;; `make-condition-variable'
+   entropy/emacs-fall-love-with-pdumper
+   (entropy/emacs-custom-enable-lazy-load/val))
+  :config
+  (defun __ya/lsp-dart-get-flutter-sdk-dir (ofunc &rest oargs)
+    "Find flutter sdk root thru its machine json outputs."
+    (entropy/emacs-require-only-once 'json)
+    (let ((flr (with-temp-buffer
+                 (call-process "flutter" nil (list (current-buffer) nil)
+                               nil "--version" "--machine")
+                 (goto-char (point-min))
+                 (ignore-errors
+                   (let* ((json-object-type 'alist)
+                          (ob (json-read)))
+                     (alist-get 'flutterRoot ob)))))
+          used_p)
+      (when flr
+        (setq flr flr)
+        (and (file-directory-p flr) (setq used_p t)))
+      (if used_p flr (apply ofunc oargs))))
+  (advice-add 'lsp-dart-get-flutter-sdk-dir
+              :around #'__ya/lsp-dart-get-flutter-sdk-dir))
+
 ;; ******* lsp javascript
 
 (use-package lsp-javascript

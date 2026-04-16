@@ -525,6 +525,7 @@ notation.
   (entropy/emacs-start--require-with-duration-log 'entropy-emacs-web)
   (entropy/emacs-start--require-with-duration-log 'entropy-emacs-python)
   (entropy/emacs-start--require-with-duration-log 'entropy-emacs-c)
+  (entropy/emacs-start--require-with-duration-log 'entropy-emacs-java)
   (entropy/emacs-start--require-with-duration-log 'entropy-emacs-markdown)
   (entropy/emacs-start--require-with-duration-log 'entropy-emacs-emacs-lisp)
   (entropy/emacs-start--require-with-duration-log 'entropy-emacs-lua)

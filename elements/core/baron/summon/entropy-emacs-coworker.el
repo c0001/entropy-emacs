@@ -1194,6 +1194,14 @@ lsp-java-v3.1_jdtls_release/%s"))
      "make-language-server")
    "autotools-language-server"))
 
+;; **** semgrep
+(defun entropy/emacs-coworker-check-semgrep-lsp (&rest _)
+  (interactive)
+  (entropy/emacs-coworker--coworker-isolate-bins-install-by-pip
+   "semgrep-lsp"
+   '("semgrep")
+   "semgrep"))
+
 ;; *** exra tools
 ;; **** wsl-open
 (defun entropy/emacs-coworker-check-wsl-open (&rest _)
@@ -1272,6 +1280,10 @@ lsp-java-v3.1_jdtls_release/%s"))
                      (:name "autotools-lsp"
                             :pred entropy/emacs-coworker-check-autotool-lsp
                             :enable (EEMACS-DT-FORM t))
+                     ;; semgrep is proprietary service, disable by default
+                     (:name "semgrep-lsp"
+                            :pred entropy/emacs-coworker-check-semgrep-lsp
+                            :enable (EEMACS-DT-FORM nil))
                      ))
         (entropy/emacs-message-non-popup nil))
     (entropy/emacs-with-coworker-host

@@ -109,6 +109,7 @@
        counsel-world-clock
        cfrs
        dap-mode
+       dart-mode
        dash
        dashboard
        dash-functional
@@ -180,6 +181,7 @@
        json-snatcher
        log4e
        loop
+       lsp-dart
        lsp-mode
        lsp-java
        lsp-pyright
