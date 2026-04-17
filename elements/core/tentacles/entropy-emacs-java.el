@@ -29,8 +29,12 @@
 ;; Loading automaticaly by `entropy-emacs' without hacking warranty.
 ;;
 ;; * Code:
-(use-package java-ts-mode
+(entropy/emacs--inner-use-package java-ts-mode
   :ensure nil
+  :eemacs-if
+  (bound-and-true-p entropy/emacs-ide-is-treesit-generally-adapted-p)
+  ;; escape byte-compile warning
+  :eemacs-with-no-require (not (treesit-ready-p 'java t))
   :commands (java-ts-mode))
 (use-package dart-mode
   :commands (dart-mode)
