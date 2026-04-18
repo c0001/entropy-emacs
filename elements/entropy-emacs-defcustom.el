@@ -3089,8 +3089,9 @@ eemacs.")
   "Justice whether use eemacs in sshd session. Take priority of
 `entropy/emacs-indicate-sshd-session'."
   (or entropy/emacs-indicate-sshd-session
-      (getenv "SSH_CLIENT")
-      (getenv "SSH_TTY")))
+      (entropy/emacs-getenv "SSH_CLIENT")
+      (entropy/emacs-getenv "SSH_TTY")
+      (entropy/emacs-getenv "SSH_CONNECTION")))
 
 ;; *** pdumper env check
 

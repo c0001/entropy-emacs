@@ -580,8 +580,7 @@ ASSOC-PLISTS is respected."
 
 (eemacs/prog-lang/macro/with-make-recipe "Common Lisp"
   :with-modes-assoc-plist
-  '((:prog-modes common-lisp-mode :treesist-modes commonlisp-ts-mode))
-  :core
+  '((:prog-modes common-lisp-mode :treesit-modes commonlisp-ts-mode))
   (eemacs/prog-lang/macro/oset this/obj/core
     :fnm-regexp "\\.cl\\'")
   (eemacs/prog-lang/macro/oset this/obj/modes
@@ -591,7 +590,7 @@ ASSOC-PLISTS is respected."
   (eemacs/prog-lang/macro/oset this/obj/treesit
     :id "commonlisp"
     :repo-url "https://github.com/tree-sitter-grammars/tree-sitter-commonlisp"
-    :modes this/var/treesit-modes)
+    :modes (eemacs/prog-lang/class/modes :list this/var/treesit-modes))
   (eemacs/prog-lang/macro/oset this/obj/subrecipes
     :list
     (list
@@ -885,8 +884,7 @@ ASSOC-PLISTS is respected."
 ;; **** AWK
      (eemacs/prog-lang/macro/with-make-recipe "AWK"
        :with-modes-assoc-plist
-       '((:prog-modes awk-mode :treesist-modes awk-ts-mode))
-       :core
+       '((:prog-modes awk-mode :treesit-modes awk-ts-mode))
        (eemacs/prog-lang/macro/oset this/obj/core
          :fnm-regexp "\\.awk\\'")
        (eemacs/prog-lang/macro/oset this/obj/modes
@@ -896,7 +894,7 @@ ASSOC-PLISTS is respected."
        (eemacs/prog-lang/macro/oset this/obj/treesit
          :id "awk"
          :repo-url "https://github.com/Beaglefoot/tree-sitter-awk"
-         :modes this/var/treesit-modes))
+         :modes (eemacs/prog-lang/class/modes :list this/var/treesit-modes)))
 
      )))
 
@@ -1051,8 +1049,7 @@ ASSOC-PLISTS is respected."
 ;; **** Kotlin
      (eemacs/prog-lang/macro/with-make-recipe "Kotlin"
        :with-modes-assoc-plist
-       '((:prog-modes kotlin-mode :treesist-modes kotlin-ts-mode))
-       :core
+       '((:prog-modes kotlin-mode :treesit-modes kotlin-ts-mode))
        (eemacs/prog-lang/macro/oset this/obj/core
          :fnm-regexp "\\.kts?\\'")
        (eemacs/prog-lang/macro/oset this/obj/modes
@@ -1062,13 +1059,12 @@ ASSOC-PLISTS is respected."
        (eemacs/prog-lang/macro/oset this/obj/treesit
          :id "kotlin"
          :repo-url "https://github.com/fwcd/tree-sitter-kotlin"
-         :modes this/var/treesit-modes))
+         :modes (eemacs/prog-lang/class/modes :list this/var/treesit-modes)))
 
 ;; **** Dart
      (eemacs/prog-lang/macro/with-make-recipe "Dart"
        :with-modes-assoc-plist
-       '((:prog-modes dart-mode :treesist-modes dart-ts-mode))
-       :core
+       '((:prog-modes dart-mode :treesit-modes dart-ts-mode))
        (eemacs/prog-lang/macro/oset this/obj/core
          :fnm-regexp "\\.dart\\'")
        (eemacs/prog-lang/macro/oset this/obj/modes
@@ -1078,7 +1074,7 @@ ASSOC-PLISTS is respected."
        (eemacs/prog-lang/macro/oset this/obj/treesit
          :id "dart"
          :repo-url "https://github.com/ast-grep/tree-sitter-dart"
-         :modes this/var/treesit-modes))
+         :modes (eemacs/prog-lang/class/modes :list this/var/treesit-modes)))
      )))
 
 ;; *** PHP
@@ -1143,8 +1139,7 @@ ASSOC-PLISTS is respected."
 ;; *** Lua
 (eemacs/prog-lang/macro/with-make-recipe "Lua"
   :with-modes-assoc-plist
-  '((:prog-modes lua-mode :treesist-modes lua-ts-mode))
-  :core
+  '((:prog-modes lua-mode :treesit-modes lua-ts-mode))
   (eemacs/prog-lang/macro/oset this/obj/core
     :fnm-regexp "\\.lua\\'")
   (eemacs/prog-lang/macro/oset this/obj/modes
@@ -1154,7 +1149,7 @@ ASSOC-PLISTS is respected."
   (eemacs/prog-lang/macro/oset this/obj/treesit
     :id "lua"
     :repo-url "https://github.com/tree-sitter-grammars/tree-sitter-lua"
-    :modes this/var/treesit-modes))
+    :modes (eemacs/prog-lang/class/modes :list this/var/treesit-modes)))
 
 ;; *** YAML
 (eemacs/prog-lang/macro/with-make-recipe "YAML"
@@ -1191,8 +1186,7 @@ ASSOC-PLISTS is respected."
 
 (eemacs/prog-lang/macro/with-make-recipe "Dockerfile"
   :with-modes-assoc-plist
-  '((:prog-modes dockerfile-mode :treesist-modes dockerfile-ts-mode))
-  :core
+  '((:prog-modes dockerfile-mode :treesit-modes dockerfile-ts-mode))
   (eemacs/prog-lang/macro/oset this/obj/core
     :fnm-regexp "[/\\]\\(?:Containerfile\\|Dockerfile\\)\\(?:\\.[^/\\]*\\)?\\'")
   (eemacs/prog-lang/macro/oset this/obj/modes
@@ -1202,13 +1196,12 @@ ASSOC-PLISTS is respected."
   (eemacs/prog-lang/macro/oset this/obj/treesit
     :id "dockerfile"
     :repo-url "https://github.com/camdencheek/tree-sitter-dockerfile"
-    :modes this/var/treesit-modes))
+    :modes (eemacs/prog-lang/class/modes :list this/var/treesit-modes)))
 
 ;; *** SQL
 (eemacs/prog-lang/macro/with-make-recipe "SQL"
   :with-modes-assoc-plist
-  '((:prog-modes sql-mode :treesist-modes sql-ts-mode))
-  :core
+  '((:prog-modes sql-mode :treesit-modes sql-ts-mode))
   (eemacs/prog-lang/macro/oset this/obj/core
     :fnm-regexp "\\.sql\\'")
   (eemacs/prog-lang/macro/oset this/obj/modes
@@ -1219,13 +1212,12 @@ ASSOC-PLISTS is respected."
     :id "sql"
     :repo-url "https://github.com/DerekStride/tree-sitter-sql"
     :repo-revision "gh-pages"
-    :modes this/var/treesit-modes))
+    :modes (eemacs/prog-lang/class/modes :list this/var/treesit-modes)))
 
 ;; *** Org
 (eemacs/prog-lang/macro/with-make-recipe "Org"
   :with-modes-assoc-plist
-  '((:prog-modes org-mode :treesist-modes org-ts-mode))
-  :core
+  '((:prog-modes org-mode :treesit-modes org-ts-mode))
   (eemacs/prog-lang/macro/oset this/obj/core
     :fnm-regexp "\\.org\\'")
   (eemacs/prog-lang/macro/oset this/obj/modes
@@ -1235,13 +1227,12 @@ ASSOC-PLISTS is respected."
   (eemacs/prog-lang/macro/oset this/obj/treesit
     :id "org"
     :repo-url "https://github.com/milisims/tree-sitter-org"
-    :modes this/var/treesit-modes))
+    :modes (eemacs/prog-lang/class/modes :list this/var/treesit-modes)))
 
 ;; *** LaTeX
 (eemacs/prog-lang/macro/with-make-recipe "LaTeX"
   :with-modes-assoc-plist
-  '((:prog-modes latex-mode :treesist-modes latex-ts-mode))
-  :core
+  '((:prog-modes latex-mode :treesit-modes latex-ts-mode))
   (eemacs/prog-lang/macro/oset this/obj/core
     :fnm-regexp "\\.tex\\'")
   (eemacs/prog-lang/macro/oset this/obj/modes
@@ -1261,13 +1252,12 @@ ASSOC-PLISTS is respected."
     ;; installation mechanism does error instead of warning while such
     ;; case failing occurred.
     nil
-    :modes this/var/treesit-modes))
+    :modes (eemacs/prog-lang/class/modes :list this/var/treesit-modes)))
 
 ;; *** Makefile
 (eemacs/prog-lang/macro/with-make-recipe "Makefile"
   :with-modes-assoc-plist
-  '((:prog-modes makefile-mode :treesist-modes makefile-ts-mode))
-  :core
+  '((:prog-modes makefile-mode :treesit-modes makefile-ts-mode))
   (eemacs/prog-lang/macro/oset this/obj/core
     :fnm-regexp "\\([Mm]akefile\\|.*\\.\\(mk\\|make\\)\\)\\'")
   (eemacs/prog-lang/macro/oset this/obj/modes
@@ -1277,13 +1267,12 @@ ASSOC-PLISTS is respected."
   (eemacs/prog-lang/macro/oset this/obj/treesit
     :id "make"
     :repo-url "https://github.com/tree-sitter-grammars/tree-sitter-make"
-    :modes this/var/treesit-modes))
+    :modes (eemacs/prog-lang/class/modes :list this/var/treesit-modes)))
 
 ;; *** Markdown
 (eemacs/prog-lang/macro/with-make-recipe "Markdown"
   :with-modes-assoc-plist
-  '((:prog-modes (poly-markdown-mode markdown-mode) :treesist-modes markdown-ts-mode))
-  :core
+  '((:prog-modes (poly-markdown-mode markdown-mode) :treesit-modes markdown-ts-mode))
   (eemacs/prog-lang/macro/oset this/obj/core
     :fnm-regexp "\\.md\\'")
   (eemacs/prog-lang/macro/oset this/obj/modes
@@ -1294,7 +1283,7 @@ ASSOC-PLISTS is respected."
     :id "markdown"
     :repo-url "https://github.com/tree-sitter-grammars/tree-sitter-markdown"
     :repo-src-dir "tree-sitter-markdown/src"
-    :modes this/var/treesit-modes))
+    :modes (eemacs/prog-lang/class/modes :list this/var/treesit-modes)))
 
 ;; * provide
 (provide 'entropy-emacs-lang)

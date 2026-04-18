@@ -29,6 +29,7 @@
 ;; Loading automaticaly by `entropy-emacs' without hacking warranty.
 ;;
 ;; * Code:
+;; ** Java
 (entropy/emacs--inner-use-package java-ts-mode
   :ensure nil
   :eemacs-if
@@ -36,9 +37,23 @@
   ;; escape byte-compile warning
   :eemacs-with-no-require (not (treesit-ready-p 'java t))
   :commands (java-ts-mode))
+
+;; ** dart
 (use-package dart-mode
   :commands (dart-mode)
   :mode "\\.dart$")
+
+;; ** kotlin
+(entropy/emacs--inner-use-package kotlin-ts-mode
+  :eemacs-if
+  (bound-and-true-p entropy/emacs-ide-is-treesit-generally-adapted-p)
+  ;; escape byte-compile warning
+  :eemacs-with-no-require (not (treesit-ready-p 'kotlin t))
+  :commands (kotlin-ts-mode))
+
+(use-package kotlin-mode
+  :commands (kotlin-mode)
+  :mode "\\.kt$")
 
 ;; * provide
 (provide 'entropy-emacs-java)
