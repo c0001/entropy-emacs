@@ -5311,7 +5311,9 @@ displayed image as same operated mechanism as
 (progn
   ;; since we use self-maintained image-28 dired ver. which has
   ;; patched yet.
-  (when (> emacs-major-version 28)
+  (when (and (> emacs-major-version 28)
+             ;; emacs 30.2 fixed yet
+             (version< emacs-version "30.2"))
     (with-eval-after-load 'image-dired-tags
       (entropy/emacs-basic--patch-image-dired-db-search-regexp))))
 
