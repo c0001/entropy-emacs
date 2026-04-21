@@ -359,6 +359,14 @@ sessions performance."
   (setq company-emulation-alist
         (entropy/emacs-double-list 'company-candidates))
 
+  ;; FIXME: emacs-31 made `all' as a function so that the `all'
+  ;; indicator will cause error for `company-dabbrev--fetch' function
+  ;; pred.
+  (when (and (version< "30" emacs-version)
+             (eq company-dabbrev-other-buffers 'all))
+    (setq company-dabbrev-other-buffers
+          (lambda (&rest _) nil)))
+
 ;; **** advices
 ;; ***** `company-perform' performance adjusting
 
