@@ -5,6 +5,8 @@
 
 ;;; Code:
 
+(add-to-list 'load-path (or (and load-file-name (directory-file-name (file-name-directory load-file-name))) (car load-path)))
+
 
 ;;;### (autoloads nil "wudao-query" "wudao-query.el" (26829 11924
 ;;;;;;  859677 615000))
