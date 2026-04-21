@@ -1172,11 +1172,8 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
       `(add-hook ',(cdr item) #'entropy/sdcv-autoshow-mode)))
 
   :config
-  (cond ((executable-find "wd")
-         (setq entropy/sdcv-default-query-backend-name 'wudao-command))
-        ((or (not (executable-find "sdcv"))
-             (not (entropy/sdcv-backends--sdcv-auto-search-dicts)))
-         (setq entropy/sdcv-default-query-backend-name 'youdao)))
+  (setq entropy/sdcv-default-query-backend-name
+        (if (executable-find "tar") 'wudao-hash 'bing))
 
   (add-to-list 'entropy/emacs-solaire-mode-extra-buffer-filters
                #'(lambda (buff)

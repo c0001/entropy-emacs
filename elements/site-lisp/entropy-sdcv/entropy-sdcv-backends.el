@@ -581,21 +581,6 @@ Return value as list as sexp (list word def def-width-overflow-lines)."
     rtn))
 
 ;;;;; wudao
-(defun entropy/sdcv-backends--wudao-require ()
-  (let* ((wd-path (executable-find "wd"))
-         (error-message
-          "You must install 'wudao-dict' from https://github.com/c0001/Wudao-dict.git.
-
-And install it by 'make install'. Finally check whether '~/.local/bin' in your \"PATH\".")
-         wd-host)
-    (unless (stringp wd-path)
-      (error error-message))
-    (setq wd-host (file-name-directory
-                   (directory-file-name
-                    (file-name-directory
-                     (car (file-attributes wd-path))))))
-    (add-to-list 'load-path (expand-file-name "emacs" wd-host))
-    (require 'wudao-query)))
 
 (defun entropy/sdcv-backends--wudao-show-predicate (feedback show-method)
   (cl-case show-method
@@ -607,23 +592,11 @@ And install it by 'make install'. Finally check whether '~/.local/bin' in your \
      feedback)))
 
 (defun entropy/sdcv-backends--query-with-wudao-by-hash (query show-method)
-  (entropy/sdcv-backends--wudao-require)
+  (require 'wudao-query)
   (let ((response (or (ignore-errors
                         (apply (if (fboundp 'wudao/query-word-by-hash/use-json-parse)
                                    'wudao/query-word-by-hash/use-json-parse
                                  'wudao/query-word-by-hash)
-                               (list
-                                query
-                                (eq show-method 'adjacent-common))))
-                      entropy/sdcv-core-response-null-prompt)))
-    response))
-
-(defun entropy/sdcv-backends--query-with-wudao-by-command (query show-method)
-  (entropy/sdcv-backends--wudao-require)
-  (let ((response (or (ignore-errors
-                        (apply (if (fboundp 'wudao/query-word-by-command/use-json-parse)
-                                   'wudao/query-word-by-command/use-json-parse
-                                 'wudao/query-word-by-command)
                                (list
                                 query
                                 (eq show-method 'adjacent-common))))
@@ -636,8 +609,6 @@ And install it by 'make install'. Finally check whether '~/.local/bin' in your \
     (el
      '((wudao-hash :query-function entropy/sdcv-backends--query-with-wudao-by-hash
                    :show-predicate entropy/sdcv-backends--wudao-show-predicate)
-       (wudao-command :query-function entropy/sdcv-backends--query-with-wudao-by-command
-                      :show-predicate entropy/sdcv-backends--wudao-show-predicate)
        (sdcv :query-function entropy/sdcv-backends--query-with-sdcv
              :show-predicate entropy/sdcv-backends--sdcv-show-predicate
              )

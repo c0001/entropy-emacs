@@ -1,0 +1,74 @@
+#+MACRO: three-equals \equal\equal\equal{}$1\equal\equal\equal
+#+title: wudao dict emacs interface
+#+author: Entropy (bmsac0001@gmail.com)
+
+Since =wudao-dict= was python based dict query tool, gives the command
+line native support and I'm one emacser, the building one emacs
+frontend of wudaodict was simple and fast. This folder gives the
+=wudao-dict= query APIs.
+
+* Installing
+
+just adding the path of this folder to your =load-path= and requiring
+the =wudao-query.el=.
+
+Simple demo:
+#+BEGIN_SRC emacs-lisp
+  (add-to-list 'load-paath "path-of-wudaodict/emacs/")
+  (require 'wudao-query)
+#+END_SRC
+
+If you using [[https://github.com/jwiegley/use-package][use-package]] to manage your emacs configuration, you can
+follow below source snippet:
+
+#+BEGIN_SRC emacs-lisp
+  (add-to-list 'load-paath "path-of-wudaodict/emacs/")
+  (use-package wudao-query
+    :ensure nil
+    :functions (wudao/query-word-by-hash
+                wudao/query-word-by-command))
+#+END_SRC
+
+* Methods
+
+- API: ~(entropy/wudao-query-by-command query &optional full)~
+
+  This function recieve one string type parameter to query =wd=
+  command for obtaining the response, for what the response non-match
+  both of local-user-dict or online searching, return nil, otherwise
+  return a ansi-color applied propertized string.
+
+  Optional arg 'full' return the details which ~wd -h~ reflects.
+
+- API: ~(entropy/wudao-query-by-hash query &optional full)~
+
+  For increase the query responsing speed, I batch caching the
+  query-response mapped by =./en-words.txt= with short and
+  full-detailed modes inidividually into =./query.cache_desc= and
+  =./query.cache= plain text file. Those two files will be used by
+  =wudao-cache.el= to parse into two emacs-lisp hash-tables of plist
+  =wudao/query--hash-plist= of key ==:short= and =:full=.
+
+  =wudao/query--hash-plist= was within the procedure of funciton
+  ~entropy/wudao-query-by-hash~, which profits from the hash table
+  fast traversal performance, the query-response will become more
+  smoothly.
+
+  Optional arg 'full' return the details which ~wd -h~ reflects.
+
+  *Cache deficiency:*
+
+  The hashed method may not map all will-queried words, e.g. some
+  words' translation may empty or optained of error (e.g. connection
+  time out). In this way each hash key's value will replaced with
+  special string as humanable prompt:
+  - "{{{three-equals(NOFOUND)}}}"
+  - "{{{three-equals(Empty)}}}"
+
+  You can filter those result and poped out of them in need.
+
+  By default, this function doesn't reducing them, when occurred just
+  return nil.
+
+  
+

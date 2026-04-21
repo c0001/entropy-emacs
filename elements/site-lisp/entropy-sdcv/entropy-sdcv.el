@@ -177,7 +177,7 @@
   :type 'symbol
   :group 'entropy/sdcv-interactive-group)
 
-(defcustom entropy/sdcv-default-query-backend-name 'sdcv
+(defcustom entropy/sdcv-default-query-backend-name 'wudao-hash
   "Default query response backend chosen."
   :type 'symbol
   :group 'entropy/sdcv-interactive-group)

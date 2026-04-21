@@ -790,6 +790,9 @@ faild with hash '%s' which must match '%s'"
     (eemacs-site-lisp_entropy-shellpop2
      "-entropy-shellpop2"
      nil)
+    (eemacs-site-lisp_wudao-query
+     "-wudao-query"
+     nil)
     ,(when (= emacs-major-version 28)
        '(eemacs-site-lisp_image-dired-28-patch
          "-image-dired/28"
