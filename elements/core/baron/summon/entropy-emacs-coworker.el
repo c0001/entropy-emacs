@@ -367,7 +367,8 @@ EXIT /b
              "install" "-I" ,server-repo-string
              "--prefix" ,(if sys/win32p (replace-regexp-in-string "/" "\\\\"  this-pip-prefix)
                            this-pip-prefix)
-             "--no-compile")
+             "--upgrade" "--force-reinstall"
+             )
            :buffer (get-buffer-create "*eemacs-coworker-pip-install-proc*")
            :prepare
            (entropy/emacs-coworker--coworker-message-do-task ,server-name-string)
