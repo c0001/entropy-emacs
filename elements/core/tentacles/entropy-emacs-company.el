@@ -359,13 +359,6 @@ sessions performance."
   (setq company-emulation-alist
         (entropy/emacs-double-list 'company-candidates))
 
-  ;; FIXME: emacs-31 made `all' as a function so that the `all'
-  ;; indicator will cause error for `company-dabbrev--fetch' function
-  ;; pred.
-  (when (and (version< "30" emacs-version)
-             (eq (bound-and-true-p company-dabbrev-other-buffers) 'all))
-    (setq company-dabbrev-other-buffers (lambda (&rest _) nil)))
-
 ;; **** advices
 ;; ***** `company-perform' performance adjusting
 
@@ -808,6 +801,27 @@ with `shackle'."
       :when (memq (car-safe company-frontends) cmp-fts)))
 
 ;; *** __end__
+  )
+
+(use-package company-dabbrev
+  :ensure nil
+  :after company
+  :config
+  ;; FIXME: emacs-31 made `all' as a function so that the `all'
+  ;; indicator will cause error for `company-dabbrev--fetch' function
+  ;; pred.
+  (when (version< "30" emacs-version)
+    (let ((all-fn (lambda (&rest _) nil)))
+      (when (eq (bound-and-true-p company-dabbrev-other-buffers) 'all)
+        (setq company-dabbrev-other-buffers all-fn))
+      (add-variable-watcher
+       'company-dabbrev-other-buffers
+       (lambda (_sym nval op _wh)
+         (when (and (eq op 'set) (eq nval 'all))
+           (run-with-idle-timer
+            0 nil
+            (lambda (&rest _)
+              (setq company-dabbrev-other-buffers all-fn))))))))
   )
 
 ;; ** company components function autoload
