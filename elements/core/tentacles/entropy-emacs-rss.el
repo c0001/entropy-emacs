@@ -378,6 +378,14 @@ Optional arg FEEDS-PLIST-NAME if nil, pruning
           (if curl-procs
               t
             elfeed-indicator))))
+  (entropy/emacs-add-hook-with-lambda '(t . eemacs//elfeed-keyboard-quit/reset-running-flag)
+    (&rest _)
+    "`keyboard-quit' hook for preventing from stuck on wrong value of
+`entropy/emacs-rss--elfeed-update/fetching-running-p' while corrupt
+fetching guard procedure."
+    :use-append t :use-hook 'entropy/emacs-keyboard-quit-before-hook
+    (unless (entropy/emacs-rss--elfeed-process-running-p)
+      (setq entropy/emacs-rss--elfeed-update/fetching-running-p nil)))
 
   (defvar __elfeed-orig-curl-args elfeed-curl-extra-arguments)
   (defvar entropy/emacs-rss--elfeed-update/current-filter nil)
