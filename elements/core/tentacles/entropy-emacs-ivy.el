@@ -850,6 +850,14 @@ large buffer."
 ;; one arg.
 
 ;; **** TODO workaround for ivy window height
+;; **** fix bug of `ivy--reset-state'
+
+  ;; FIXME: should this patch report to upstream
+  (advice-patch
+   'ivy--reset-state
+   '(when predicate
+      (setq collection (cl-remove-if-not predicate collection)))
+   '(setq collection (cl-remove-if-not predicate collection)))
 
 ;; **** workaround for `ivy--insert-prompt'
 
