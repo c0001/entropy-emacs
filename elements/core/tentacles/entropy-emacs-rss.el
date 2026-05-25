@@ -384,8 +384,9 @@ Optional arg FEEDS-PLIST-NAME if nil, pruning
 `entropy/emacs-rss--elfeed-update/fetching-running-p' while corrupt
 fetching guard procedure."
     :use-append t :use-hook 'entropy/emacs-keyboard-quit-before-hook
-    (when (or (not (entropy/emacs-rss--elfeed-process-running-p))
-              (entropy/emacs-current-commands-continuous-p 'keyboard-quit 3 2))
+    (when (and (eq 'elfeed-search-mode major-mode)
+               (or (not (entropy/emacs-rss--elfeed-process-running-p))
+                   (entropy/emacs-current-commands-continuous-p 'keyboard-quit 3 2)))
       (message "eemacs elfeed auto unjam")
       (setq entropy/emacs-rss--elfeed-update/fetching-running-p nil)
       (entropy/emacs-rss--elfeed-update/cancel-all-timer)
