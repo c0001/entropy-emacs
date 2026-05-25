@@ -384,8 +384,12 @@ Optional arg FEEDS-PLIST-NAME if nil, pruning
 `entropy/emacs-rss--elfeed-update/fetching-running-p' while corrupt
 fetching guard procedure."
     :use-append t :use-hook 'entropy/emacs-keyboard-quit-before-hook
-    (unless (entropy/emacs-rss--elfeed-process-running-p)
-      (setq entropy/emacs-rss--elfeed-update/fetching-running-p nil)))
+    (when (or (not (entropy/emacs-rss--elfeed-process-running-p))
+              (entropy/emacs-current-commands-continuous-p 'keyboard-quit 3 2))
+      (message "eemacs elfeed auto unjam")
+      (setq entropy/emacs-rss--elfeed-update/fetching-running-p nil)
+      (entropy/emacs-rss--elfeed-update/cancel-all-timer)
+      (elfeed-unjam)))
 
   (defvar __elfeed-orig-curl-args elfeed-curl-extra-arguments)
   (defvar entropy/emacs-rss--elfeed-update/current-filter nil)
@@ -417,25 +421,27 @@ fetching guard procedure."
       (entropy/emacs-rss--elfeed-update/cancel-common-feeds-gurad-timer)))
 
   (defun entropy/emacs-rss--elfeed-update/set-search-filter (type)
-    (with-current-buffer (elfeed-search-buffer)
-      (cond
-       ;; use pseudo filter buffer to reduce large feeds database
-       ;; insertion performance issue for update all feeds occasion.
-       ((eq type 'before)
-        (if (and (not current-prefix-arg)
-                 (not (eq this-command 'entropy/emacs-rss-elfeed-update)))
-            (setq entropy/emacs-rss--elfeed-update/current-filter nil)
-          (setq entropy/emacs-rss--elfeed-update/current-filter
-                elfeed-search-filter)
-          (elfeed-search-set-filter
-           "*----------during update, please wait----------*")))
-       ((eq type 'after)
-        (when entropy/emacs-rss--elfeed-update/current-filter
-          (elfeed-search-set-filter
-           entropy/emacs-rss--elfeed-update/current-filter)))
-       (t
-        (error "wrong type of elfeed update filter set '%s'"
-               type)))))
+    (let ((fake-filter "*----------during update, please wait----------*"))
+      (with-current-buffer (elfeed-search-buffer)
+        (cond
+         ;; use pseudo filter buffer to reduce large feeds database
+         ;; insertion performance issue for update all feeds occasion.
+         ((eq type 'before)
+          (if (and (not current-prefix-arg)
+                   (not (eq this-command 'entropy/emacs-rss-elfeed-update)))
+              (setq entropy/emacs-rss--elfeed-update/current-filter nil)
+            (setq entropy/emacs-rss--elfeed-update/current-filter
+                  elfeed-search-filter)
+            (elfeed-search-set-filter fake-filter)))
+         ((eq type 'after)
+          (when entropy/emacs-rss--elfeed-update/current-filter
+            (if (equal entropy/emacs-rss--elfeed-update/current-filter fake-filter)
+                (elfeed-search-set-filter "@1-days-ago +unread ")
+              (elfeed-search-set-filter
+               entropy/emacs-rss--elfeed-update/current-filter))))
+         (t
+          (error "wrong type of elfeed update filter set '%s'"
+                 type))))))
 
   (defun entropy/emacs-rss--elfeed-update/fetch-proxy-feeds-guard ()
     (if (entropy/emacs-rss--elfeed-process-running-p)
