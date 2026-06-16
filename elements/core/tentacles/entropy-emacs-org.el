@@ -724,6 +724,84 @@ some LANGs if `web-mode' is featured."
                 :around
                 #'entropy/emacs-org--patch-org-src-edit-element-for-web-mode))
 
+;; **** lang backends
+
+  (defvar eemacs//org-src-lang-mode-map nil)
+  (advice-add 'org-src-get-lang-mode
+              :around
+              (entropy/emacs-!cl-defun eemacs//org-src-get-lang-mode
+                  (orig-func &rest orig-args)
+                (let ((lang (car orig-args)))
+                  (or
+                   (alist-get lang eemacs//org-src-lang-mode-map
+                              nil nil 'string=)
+                   (apply orig-func orig-args)))))
+
+;; ***** Typescript
+
+  ;; grab from https://github.com/lurdan/ob-typescript/blob/master/ob-typescript.el
+
+  (add-to-list 'org-babel-tangle-lang-exts '("typescript" . "ts"))
+
+  (with-eval-after-load 'typescript-ts-mode
+    (add-to-list 'eemacs//org-src-lang-mode-map
+                 (cons "typescript" 'typescript-ts-mode)))
+
+  ;; optionally declare default header arguments for this language
+  (defvar org-babel-default-header-args:typescript
+    '((:cmdline . "--noImplicitAny")))
+
+  (defvar org-babel-command:typescript "tsc"
+    "Command run by ob-typescript to launch tsc compiler")
+
+  (defun org-babel-variable-assignments:typescript (params)
+    "Return list of typescript statements assigning the block's variables."
+    (mapcar (lambda (pair) (format "let %s=%s;"
+                                   (car pair) (org-babel-typescript-var-to-typescript (cdr pair))))
+            (org-babel--get-vars params)))
+
+  (defun org-babel-typescript-var-to-typescript (var)
+    "Convert an elisp var into a string of typescript source code
+specifying a var of the same value."
+    (if (listp var)
+        (concat "[" (mapconcat #'org-babel-typescript-var-to-typescript var ", ") "]")
+      (replace-regexp-in-string "\n" "\\\\n" (format "%S" var))))
+
+  (defun eemacs//org-babel/get-tsc-version ()
+    "Get typescript compiler version"
+    (let ((ver-str (org-babel-eval (concat org-babel-command:typescript " --version") "")))
+      (string-match "[[:digit:]]+" ver-str)
+      (string-to-number (match-string 0 ver-str))))
+
+  (defun org-babel-execute:typescript (body params)
+    "Execute a block of Typescript code with org-babel. This function is
+called by `org-babel-execute-src-block'"
+    (let* ((tmp-src-file (org-babel-temp-file "ts-src-" ".ts"))
+           (tmp-out-file (org-babel-temp-file "ts-src-" ".js"))
+           (cmdline (cdr (assoc :cmdline params)))
+           (cmdline (if cmdline (concat " " cmdline) ""))
+           ;; since tsc v5, -out parameter is deprecated.
+           (out-file-param-name (if (>= (eemacs//org-babel/get-tsc-version) 5) "-outFile" "-out"))
+           (jsexec (if (assoc :wrap params) ""
+                     (concat " ; node " (org-babel-process-file-name tmp-out-file))
+                     )))
+      (with-temp-file tmp-src-file (insert (org-babel-expand-body:generic
+                                            body params (org-babel-variable-assignments:typescript params))))
+      (let ((results (org-babel-eval (format "%s %s %s %s %s %s"
+                                             org-babel-command:typescript
+                                             cmdline
+                                             out-file-param-name
+                                             (org-babel-process-file-name tmp-out-file)
+                                             (org-babel-process-file-name tmp-src-file)
+                                             jsexec)
+                                     ""))
+            (jstrans (with-temp-buffer
+                       (insert-file-contents tmp-out-file)
+                       (buffer-substring-no-properties (point-min) (point-max))
+                       )))
+        (if (eq jsexec "") jstrans results)
+        )))
+
 ;; **** ___end___
 
   )
