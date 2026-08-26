@@ -308,6 +308,11 @@ eemacs loading mechanism logical messy will occurred."
     (let ((nomsg (entropy/emacs--message-do-message-should-not-msg-verbose-p)))
       (apply 'load (car args) (cadr args) nomsg (cdddr args)))))
 
+(defun entropy/emacs-is-running-in-batch-p ()
+  "Return non-nil when current session or in this time the emacs is running
+without display aka. in batch occasion."
+  (eq (display-visual-class) 'static-gray))
+
 ;; *** Vars after func defined
 
 (defconst sys/is-termux-p (or (entropy/emacs-getenv "TERMUX__PREFIX")

@@ -71,19 +71,26 @@
 (use-package advice-patch
   :eemacs-functions (advice--patch advice-patch)
   :config
-  ;; we should kill the src buffer for preventing user's misbehave on
-  ;; that src file after emacs inited for thus.
-  (defun __ya/advice-patch/kill-def-buffer-after-patched
+  (defun __ya/advice-patch/core
       (fn &rest args)
-    (unwind-protect (apply fn args)
-      (when-let* ((fb (ignore-errors
-                        (find-function-noselect (car args) 'lisp-only)))
-                  (buff (car fb)))
-        (entropy/emacs-dynamic-let* (kill-buffer-hook)
-          (kill-buffer buff)))))
-  (advice-add 'advice-patch
-              :around
-              #'__ya/advice-patch/kill-def-buffer-after-patched))
+    (let (
+          ;; disable byte comp warns if the patching progress is run
+          ;; before a window/buffer display action on which the
+          ;; `display-warning' will raise a new window, side by
+          ;; collisions.
+          (byte-compile-warnings
+           (and (or (entropy/emacs-is-running-in-batch-p)
+                    (entropy/emacs-debugger-is-running-p))
+                byte-compile-warnings)))
+      (unwind-protect (apply fn args)
+        ;; we should kill the src buffer for preventing user's misbehave on
+        ;; that src file after emacs inited for thus.
+        (when-let* ((fb (ignore-errors
+                          (find-function-noselect (car args) 'lisp-only)))
+                    (buff (car fb)))
+          (entropy/emacs-dynamic-let* (kill-buffer-hook)
+            (kill-buffer buff))))))
+  (advice-add 'advice-patch :around #'__ya/advice-patch/core))
 
 ;; ** async
 
