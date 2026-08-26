@@ -288,7 +288,7 @@ Return BODY's value if thus of OK is be."
   "Like `redisplay' but for eemacs maintaining only.
 
 The return is undefined."
-  (if (bound-and-true-p sys/is-built-with-pgtk-p)
+  (if (and (bound-and-true-p sys/is-built-with-pgtk-p) (display-graphic-p))
       ;; FIXME: pgtk's redisplay lags of visual feeling against with
       ;; x11, thus this func designed to use tiny sleep to give
       ;; wayland window system more obviously visual feedback.

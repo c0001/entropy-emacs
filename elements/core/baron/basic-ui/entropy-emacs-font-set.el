@@ -403,6 +403,23 @@ are performed."
             (entropy/emacs-font-set--prog-font-set)
           (entropy/emacs-font-set-modern-english-font-set))))))
 
+(let ((amval cjk-ambiguous-chars-are-wide)
+      (acmval auto-composition-mode)
+      (e32p (>= emacs-major-version 32))
+      (e30p (>= emacs-major-version 29)))
+  (defun entropy/emacs-font-set--hack-tui-emoji-display ()
+    ;; Hack emoji collison display in TUI which fixed in emacs-32 but
+    ;; before.
+    ;;
+    ;; https://emacs-china.org/t/emacs-tui-emoji-terminal/31053/16
+    (unless e32p
+      (if (display-graphic-p)
+          (progn
+            (and e30p (setopt cjk-ambiguous-chars-are-wide amval))
+            (setq-default auto-composition-mode acmval))
+        (and e30p (setopt cjk-ambiguous-chars-are-wide nil))
+        (setq-default auto-composition-mode nil)))))
+
 (if (daemonp)
     (entropy/emacs-with-daemon-make-frame-done
       'enable-eemacs-special-font-set (&rest _)
@@ -413,7 +430,9 @@ are performed."
          (entropy/emacs-font--smeset-add-default-hook))
         (entropy/emacs-font-set--set-special-font-for-all-buffers))
       :when-tui
-      (entropy/emacs-font-set--set-special-font-for-all-buffers 'reset))
+      (entropy/emacs-font-set--set-special-font-for-all-buffers 'reset)
+      :when-main
+      (entropy/emacs-font-set--hack-tui-emoji-display))
   (entropy/emacs-lazy-initial-advice-before
    '(find-file switch-to-buffer display-buffer)
    "__enable-eemacs-special-font-set__"
@@ -423,7 +442,8 @@ are performed."
    (add-hook 'prog-mode-hook #'entropy/emacs-font-set--prog-font-set)
    (entropy/emacs-font--smeset-add-default-hook)
    ;; enable font set to opened buffers
-   (entropy/emacs-font-set--set-special-font-for-all-buffers)))
+   (entropy/emacs-font-set--set-special-font-for-all-buffers)
+   (entropy/emacs-font-set--hack-tui-emoji-display)))
 
 (defun entropy/emacs--fontsize-set-guard (symbol newval operation _where)
   "`entropy/emacs-font-size-default' vairable wather guard to reset
