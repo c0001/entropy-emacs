@@ -288,7 +288,13 @@ Return BODY's value if thus of OK is be."
   "Like `redisplay' but for eemacs maintaining only.
 
 The return is undefined."
-  (if (and (bound-and-true-p sys/is-built-with-pgtk-p) (display-graphic-p))
+  (if (and
+       ;; FIXME: the `sleep-for' primitive is more cost in emacs-31
+       ;; for `right/left-char' why(since it pause redisplay?)? Thus
+       ;; we disable while eemacs fully startup done.
+       (not (bound-and-true-p entropy/emacs-after-startup-idle-done))
+       (bound-and-true-p sys/is-built-with-pgtk-p)
+       (display-graphic-p))
       ;; FIXME: pgtk's redisplay lags of visual feeling against with
       ;; x11, thus this func designed to use tiny sleep to give
       ;; wayland window system more obviously visual feedback.

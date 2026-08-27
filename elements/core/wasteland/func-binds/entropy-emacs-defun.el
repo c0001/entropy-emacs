@@ -14770,7 +14770,7 @@ details)."
       `(let ()
          (entropy/emacs-setq-with-maybe-defvar ,wadi-sym (or ,with-adjacent-interval 0.01))
          (entropy/emacs-setq-with-maybe-defvar ,wadl-sym (or ,with-adjacent-len 2))
-         (entropy/emacs-setq-with-maybe-defvar ,wbri-sym (or ,with-break-interval 0.001))
+         (entropy/emacs-setq-with-maybe-defvar ,wbri-sym (or ,with-break-interval 0.05))
          (entropy/emacs-setq-with-maybe-defvar-local ,lvsym nil)
          (cl-defun ,fsym ,lambda-args-form
            ,@lambda-doc-form
