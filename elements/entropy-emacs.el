@@ -390,6 +390,14 @@ To get the real-body in BODY use
                  (if (not with-safe) it
                    (or it (list nil)))))))))
 
+(defun entropy/emacs-get-def-plist (list-var)
+  "Return reverse thing of which `entropy/emacs--get-def-body' returned
+i.e. the head plist portion the origin BODY list."
+  (let ((it list-var) key rtn)
+    (catch 'break
+      (while (keywordp (setq key (pop it)))
+        (setq rtn (append rtn (if it (list key (pop it)) (list key))))))))
+
 (defun entropy/emacs-macroexp-progn (exps)
   "Return EXPS (a list of expressions) with `progn' prepended.
 If EXPS is a list with a single expression, `progn' is not

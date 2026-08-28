@@ -3426,13 +3426,16 @@ way."
       (name &rest args)
     (declare (indent 2))
     (let* ((lambda-args (entropy/emacs-parse-lambda-args-plus args))
-           (body (plist-get lambda-args :body)))
+           (body (plist-get lambda-args :body))
+           (body-body (entropy/emacs-get-plist-body body))
+           (body-plist (entropy/emacs-get-def-plist body)))
       (entropy/emacs-setf-by-body lambda-args
         (plist-put
          lambda-args
          :body
-         `((run-hooks 'entropy/emacs-image-dired-thumbnail-mode-navigation-before-hook)
-           (unwind-protect (progn ,@body)
+         `(,@body-plist
+           (run-hooks 'entropy/emacs-image-dired-thumbnail-mode-navigation-before-hook)
+           (unwind-protect (progn ,@body-body)
              (run-hooks 'entropy/emacs-image-dired-thumbnail-mode-navigation-after-forcerun-hook)))))
       (setq lambda-args (entropy/emacs-merge-lambda-args lambda-args))
       `(entropy/emacs-define-smooth-continuous-command ,name ,@lambda-args))))
@@ -4969,6 +4972,9 @@ window has no image displayed i.e. is invalid!"))
 `entropy/emacs-image-dired-idle-track-orig-file' as subroutine."
     (declare (interactive-only t))
     (interactive)
+    :with-adjacent-len 3
+    :with-adjacent-interval 0.1
+    :with-break-interval 0.1
     (let ((goal-column (current-column)))
       (forward-line 1)
       (move-to-column goal-column))
@@ -4988,6 +4994,9 @@ window has no image displayed i.e. is invalid!"))
 `entropy/emacs-image-dired-idle-track-orig-file' as subroutine."
     (declare (interactive-only t))
     (interactive)
+    :with-adjacent-len 3
+    :with-adjacent-interval 0.1
+    :with-break-interval 0.1
     (let ((goal-column (current-column)))
       (forward-line -1)
       (move-to-column goal-column))
@@ -5122,9 +5131,15 @@ window has no image displayed i.e. is invalid!"))
         (advice-add (cdr func) :around #'eemacs//image-dired-scroll-adv))))
 
   (entropy/emacs-make-command-continuous-smoothing-with-common-style
-      image-dired-scroll-up)
+      image-dired-scroll-up
+    :with-adjacent-interval 0.1
+    :with-adjacent-len 2
+    :with-break-interval 0.1)
   (entropy/emacs-make-command-continuous-smoothing-with-common-style
-      image-dired-scroll-down)
+      image-dired-scroll-down
+    :with-adjacent-interval 0.1
+    :with-adjacent-len 2
+    :with-break-interval 0.1)
 
 ;; ******** mark/unmark
 
@@ -5737,18 +5752,36 @@ NOTE: this is a advice wrapper for any function."
   :config
   (when (fboundp 'pixel-scroll-precision-mode)
     (entropy/emacs-make-command-continuous-smoothing-with-common-style
-        pixel-scroll-interpolate-up)
+        pixel-scroll-interpolate-up
+      :with-adjacent-len 3
+      :with-adjacent-interval 0.1
+      :with-break-interval 0.1)
     (entropy/emacs-make-command-continuous-smoothing-with-common-style
-        pixel-scroll-interpolate-down)
+        pixel-scroll-interpolate-down
+      :with-adjacent-len 3
+      :with-adjacent-interval 0.1
+      :with-break-interval 0.1)
     (entropy/emacs-make-command-continuous-smoothing-with-common-style
-        pixel-scroll-up)
+        pixel-scroll-up
+      :with-adjacent-len 3
+      :with-adjacent-interval 0.1
+      :with-break-interval 0.1)
     (entropy/emacs-make-command-continuous-smoothing-with-common-style
-        pixel-scroll-down)
+        pixel-scroll-down
+      :with-adjacent-len 3
+      :with-adjacent-interval 0.1
+      :with-break-interval 0.1)
     (when (fboundp 'pixel-scroll-precision-mode)
       (entropy/emacs-make-command-continuous-smoothing-with-common-style
-          pixel-scroll-precision)
+          pixel-scroll-precision
+        :with-adjacent-len 3
+        :with-adjacent-interval 0.1
+        :with-break-interval 0.1)
       (entropy/emacs-make-command-continuous-smoothing-with-common-style
-          pixel-scroll-start-momentum))))
+          pixel-scroll-start-momentum
+        :with-adjacent-len 3
+        :with-adjacent-interval 0.1
+        :with-break-interval 0.1))))
 
 (entropy/emacs-make-command-continuous-smoothing-with-common-style
     scroll-up-command)
