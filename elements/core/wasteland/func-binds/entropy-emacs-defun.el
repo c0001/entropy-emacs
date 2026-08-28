@@ -1154,7 +1154,7 @@ and all `print' restrictions are supported via horizontal print style.
                        (throw :exit t))
                      (let* ((slot (nth i slots))
                             (val  (if (slot-boundp x slot) (slot-value x slot)
-                                    eieio-unbound)))
+                                    eieio--unbound)))
                        (funcall insert-group-begin-delmi-func 'as-sub)
                        (funcall insert-func ":" slot)
                        (funcall
@@ -13922,7 +13922,7 @@ subroutine of `entropy/emacs-xterm-paste-core'.
 (when (and (executable-find "wl-copy") (executable-find "wl-paste"))
   (cl-defmethod gui-backend-get-selection
     :extra "eemacs/use_xclip_mode" :around
-    (selection-symbol target-type &context (window-system pgtk))
+    (selection-symbol _target-type &context (window-system pgtk))
     (let ((window-system nil) (xclip-method 'wl-copy) (xclip-program "wl-copy"))
       (unless (bound-and-true-p xclip-mode) (xclip-mode 1))
       (xclip-get-selection selection-symbol)))

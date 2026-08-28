@@ -799,7 +799,7 @@ called by `org-babel-execute-src-block'"
                        (insert-file-contents tmp-out-file)
                        (buffer-substring-no-properties (point-min) (point-max))
                        )))
-        (if (eq jsexec "") jstrans results)
+        (if (equal jsexec "") jstrans results)
         )))
 
 ;; **** ___end___

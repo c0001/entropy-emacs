@@ -110,7 +110,7 @@ if NAMES is nil, \"rime-data\" as fallback."
   (or liberime-shared-data-dir
       ;; Guess
       (cl-case system-type
-        ('gnu/linux
+        (gnu/linux
          (liberime-find-rime-data
           '("/usr/share/local"
             "/usr/share"
@@ -118,9 +118,9 @@ if NAMES is nil, \"rime-data\" as fallback."
             "~/.guix-home/profile/share"
             "~/.guix-profile/share"
             "/run/current-system/profile/share")))
-        ('darwin
+        (darwin
          "/Library/Input Methods/Squirrel.app/Contents/SharedSupport")
-        ('windows-nt
+        (windows-nt
          (liberime-find-rime-data
           (list
            (let ((file (executable-find "emacs")))

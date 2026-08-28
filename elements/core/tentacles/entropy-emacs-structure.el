@@ -1190,7 +1190,7 @@ Otherwise, fallback to the original binding of %s in the current mode."
             (mode-name
              (cond (mode mode)
                    ((string-match
-                     (rx (group (1+ any)) "-map" eol) (symbol-name keymap))
+                     (rx (group (1+ anychar)) "-map" eol) (symbol-name keymap))
                     (intern (match-string 1 (symbol-name keymap))))
                    (t (error "Could not deduce mode name from keymap name")))))
         `(progn
