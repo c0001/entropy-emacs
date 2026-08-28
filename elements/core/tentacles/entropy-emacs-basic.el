@@ -4972,7 +4972,7 @@ window has no image displayed i.e. is invalid!"))
 `entropy/emacs-image-dired-idle-track-orig-file' as subroutine."
     (declare (interactive-only t))
     (interactive)
-    :with-adjacent-len 3
+    :with-adjacent-len 2
     :with-adjacent-interval 0.1
     :with-break-interval 0.1
     (let ((goal-column (current-column)))
@@ -4994,7 +4994,7 @@ window has no image displayed i.e. is invalid!"))
 `entropy/emacs-image-dired-idle-track-orig-file' as subroutine."
     (declare (interactive-only t))
     (interactive)
-    :with-adjacent-len 3
+    :with-adjacent-len 2
     :with-adjacent-interval 0.1
     :with-break-interval 0.1
     (let ((goal-column (current-column)))
