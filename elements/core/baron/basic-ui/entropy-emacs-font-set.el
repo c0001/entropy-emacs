@@ -403,7 +403,7 @@ are performed."
             (entropy/emacs-font-set--prog-font-set)
           (entropy/emacs-font-set-modern-english-font-set))))))
 
-(let ((amval cjk-ambiguous-chars-are-wide)
+(let ((amval (bound-and-true-p cjk-ambiguous-chars-are-wide))
       (acmval auto-composition-mode)
       (e32p (>= emacs-major-version 32))
       (e30p (>= emacs-major-version 29)))
