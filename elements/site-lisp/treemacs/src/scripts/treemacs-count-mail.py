@@ -1,5 +1,6 @@
 from subprocess import Popen, PIPE
 import sys
+from os import environ
 
 # Command line arguments are a list of maildirs.
 # The output is a list of items in the form '((P1 A1) (P2 A2))' where P is the node path for a maildir
@@ -28,6 +29,7 @@ def main():
             if mu_dir == "/":
                 continue
 
+        environ["LC_ALL"] = "C"
         unread = Popen(UNREAD_CMD.format(mu_dir.replace(" ", "\ ")),
                        shell=True,
                        stdout=PIPE,

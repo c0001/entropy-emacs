@@ -1,10 +1,12 @@
 from subprocess import Popen, PIPE
 import sys
+from os import environ
 
 GIT_BIN = sys.argv[1]
 STATUS_CMD = "{} status -sb".format(GIT_BIN)
 
 def main():
+    environ["LC_ALL"] = "C"
     proc = Popen(STATUS_CMD, shell=True, stdout=PIPE, bufsize=100)
 
     if (proc.wait() != 0):

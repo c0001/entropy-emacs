@@ -1,6 +1,7 @@
 from subprocess import run, Popen, PIPE, DEVNULL, check_output
 import sys
 import os
+from os import environ
 
 # There are 3+ command line arguments:
 # 1) the file to update
@@ -90,6 +91,7 @@ def main():
     print(elisp_alist)
 
 def add_git_processes(status_listings, path):
+    environ["LC_ALL"] = "C"
     ignored_proc = Popen(IS_IGNORED_CMD + path, shell=True, stdout=DEVNULL, stderr=DEVNULL)
     tracked_proc = Popen(IS_TRACKED_CMD + path, shell=True, stdout=DEVNULL, stderr=DEVNULL)
     changed_proc = Popen(IS_CHANGED_CMD + path, shell=True, stdout=PIPE,    stderr=DEVNULL)
@@ -97,6 +99,7 @@ def add_git_processes(status_listings, path):
     status_listings.append((path, ignored_proc, tracked_proc, changed_proc))
 
 def determine_file_git_state():
+    environ["LC_ALL"] = "C"
     proc = Popen(FILE_STATE_CMD + FILE, shell=True, stdout=PIPE, stderr=DEVNULL)
     line = proc.stdout.readline()
     if line:

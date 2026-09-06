@@ -83,7 +83,7 @@ For all other cases ORIGINAL-FN is called with original ARGS."
 
 (with-eval-after-load 'winum
   (when (boundp 'winum-ignored-buffers-regexp)
-    (add-to-list 'winum-ignored-buffers-regexp (regexp-quote treemacs--buffer-name-prefix))))
+    (add-to-list 'winum-ignored-buffers-regexp (regexp-quote treemacs-buffer-name-prefix))))
 
 (with-eval-after-load 'ace-window
   (when (boundp 'aw-ignored-buffers)
@@ -108,7 +108,7 @@ to split it."
        (select-window (next-window))))))
 
 (with-eval-after-load 'persp-mode
-  (defun treemacs--remove-treemacs-window-in-new-frames (persp-activated-for)
+  (defun treemacs--remove-treemacs-window-in-new-frames (persp-activated-for &rest _)
     (when (eq persp-activated-for 'frame)
       (-when-let (w (--first (treemacs-is-treemacs-window? it)
                              (window-list)))

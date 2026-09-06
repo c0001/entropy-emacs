@@ -34,4 +34,10 @@
       ('none    (treemacs-select-window))
       ('visible (treemacs-select-window)))))
 
+(defun eemacs-treemacs/func/get-text-property (&rest args)
+  (let ((pos (car args)) buff)
+    (if (and (markerp pos) (setq buff (marker-buffer pos)))
+        (with-current-buffer buff (apply #'get-text-property args))
+      (apply #'get-text-property args))))
+
 (provide 'eemacs-treemacs-defs)

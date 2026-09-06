@@ -205,8 +205,6 @@ PATH: File Path"
          (file-name-directory)
          (treemacs--unslash)))))
 
-(defconst treemacs--buffer-name-prefix " *Treemacs-Buffer-")
-
 (defconst treemacs-dir
   ;; locally we're in src/elisp, installed from melpa we're at the package root
   (-let [dir (-> (if load-file-name
@@ -281,7 +279,7 @@ button type on every call."
   (declare (side-effect-free t))
   (inline-letevals (button prop)
     (inline-quote
-     (get-text-property ,button ,prop))))
+     (eemacs-treemacs/func/get-text-property ,button ,prop))))
 
 (define-inline treemacs-button-start (button)
   "Return the start position of BUTTON.
@@ -434,7 +432,7 @@ extensions and special names like this."
   "Return t when WINDOW is showing a treemacs buffer."
   (declare (side-effect-free t))
   (inline-quote
-   (->> ,window (window-buffer) (buffer-name) (s-starts-with? treemacs--buffer-name-prefix))))
+   (->> ,window (window-buffer) (buffer-name) (s-starts-with? treemacs-buffer-name-prefix))))
 
 (define-inline treemacs--next-neighbour-of (btn)
   "Get the next same-level neighbour of BTN, if any."
@@ -523,7 +521,7 @@ In practice this means expand PATH and remove its final slash."
 (define-inline treemacs-is-treemacs-window-selected? ()
   "Return t when the treemacs window is selected."
   (declare (side-effect-free t))
-  (inline-quote (s-starts-with? treemacs--buffer-name-prefix (buffer-name))))
+  (inline-quote (s-starts-with? treemacs-buffer-name-prefix (buffer-name))))
 
 (defun treemacs--reload-buffers-after-rename (old-path new-path)
   "Reload buffers and windows after OLD-PATH was renamed to NEW-PATH."
@@ -1036,18 +1034,21 @@ Will return t when FILE
 3) ends with \"~\" (backup files)
 4) is surrounded with \"#\" (auto save files)
 5) is \".git\" (see also `treemacs-hide-dot-git-directory')
-6) is \".\" or \"..\" (default dirs)"
+6) is \".jj\" (see also `treemacs-hide-dot-jj-directory')
+7) is \".\" or \"..\" (default dirs)"
   (declare (side-effect-free t) (pure t))
   (inline-letevals (file)
     (inline-quote
      (let ((last (aref ,file (1- (length ,file)))))
        (or (string-prefix-p ".#" ,file)
            (and (eq ?# last) (eq ?# (aref ,file 0)))
-           (eq ?~ last)
+           (backup-file-name-p ,file)
            (string-equal ,file ".")
            (string-equal ,file "..")
            (and treemacs-hide-dot-git-directory
                 (string-equal ,file ".git"))
+           (and treemacs-hide-dot-jj-directory
+                (string-equal ,file ".jj"))
            (string-prefix-p "flycheck_" ,file))))))
 
 (define-inline treemacs--mac-ignore-file-predicate (file _)
