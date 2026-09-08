@@ -34,7 +34,6 @@
 (require 'treemacs-workspaces)
 (require 'treemacs-persistence)
 (require 'treemacs-logging)
-(require 'eemacs-treemacs-defs)
 
 (eval-when-compile
   (require 'cl-lib)
@@ -155,7 +154,7 @@ The prefix argument ARG is treated the same way as with `treemacs-toggle-node'."
     :on-tag-node-leaf    (progn (other-window 1) (treemacs--goto-tag btn))
     :on-nil              (treemacs-pulse-on-failure "There is nothing to do here."))))
 
-(defun treemacs-TAB-action (&optional arg)
+(etm/defun treemacs-TAB-action (&optional arg)
   "Run the appropriate TAB action for the current node.
 
 In the default configuration this usually means to expand or close the content

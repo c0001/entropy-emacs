@@ -27,6 +27,7 @@
 ;;; Code:
 
 (require 'dash)
+(require 'eemacs-treemacs-defs)
 (require 'treemacs-macros)
 (require 'treemacs-customization)
 (require 'treemacs-logging)

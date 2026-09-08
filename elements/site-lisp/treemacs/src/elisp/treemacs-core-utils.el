@@ -265,12 +265,13 @@ Same as `button-put', but faster since it's inlined and does not query the
 button type on every call."
   (inline-letevals (button prop val)
     (inline-quote
+     (etm/wbf ,button
      (put-text-property
       (or (previous-single-property-change (1+ ,button) 'button)
           (point-min))
       (or (next-single-property-change ,button 'button)
           (point-max))
-      ,prop ,val))))
+      ,prop ,val)))))
 
 (define-inline treemacs-button-get (button prop)
   "Get the property of button BUTTON named PROP.
@@ -279,7 +280,7 @@ button type on every call."
   (declare (side-effect-free t))
   (inline-letevals (button prop)
     (inline-quote
-     (eemacs-treemacs/func/get-text-property ,button ,prop))))
+     (etm/wbf ,button (get-text-property ,button ,prop)))))
 
 (define-inline treemacs-button-start (button)
   "Return the start position of BUTTON.

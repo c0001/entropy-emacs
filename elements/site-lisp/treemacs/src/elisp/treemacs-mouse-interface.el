@@ -228,7 +228,7 @@ and ignore any prefix argument."
         (path (-butlast tag-path)))
     (condition-case e
         (progn
-          (find-file-noselect file)
+          (eemacs-treemacs/func/find-file-noselect file)
           (let ((index (treemacs--get-imenu-index file)))
             (dolist (path-item path)
               (setq index (cdr (assoc path-item index))))

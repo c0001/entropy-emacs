@@ -105,8 +105,7 @@ should be placed under."
     (ignore org-imenu-depth)
     (if existing-buffer
         (setq buff existing-buffer)
-      (cl-letf (((symbol-function 'run-mode-hooks) (symbol-function 'ignore)))
-        (setq buff (find-file-noselect file))))
+      (setq buff (eemacs-treemacs/func/find-file-noselect file)))
     (condition-case e
         (when (buffer-live-p buff)
           (with-current-buffer buff
@@ -120,9 +119,12 @@ should be placed under."
                        #'org-imenu-get-tree
                      imenu-create-index-function)))
               (setf result (and (or imenu-generic-expression imenu-create-index-function)
-                                (imenu--make-index-alist t))
+                                (eemacs-treemacs/func/imenu--make-index-alist))
                     mode major-mode)))
-          (unless existing-buffer (kill-buffer buff))
+          ;; FIXME: should not kill buffer if buffer use lsp server
+          ;; integratation since the reopening is resource waste.
+          ;;
+          ;; (unless existing-buffer (kill-buffer buff))
           (when result
             (when (string= "*Rescan*" (caar result))
               (setf result (cdr result)))
@@ -303,7 +305,7 @@ the display window."
 (defun treemacs--expand-tag-node (btn &optional recursive)
   "Open tags node items for BTN.
 Open all tag section under BTN when call is RECURSIVE."
-  (let* ((index (treemacs-button-get btn :index))
+  (etm/let* btn ((index (treemacs-button-get btn :index))
          (tag-path (treemacs-button-get btn :path))
          (parent-dom-node (treemacs-find-in-dom tag-path))
          (recursive (treemacs--prefix-arg-to-recurse-depth recursive)))
@@ -359,6 +361,7 @@ button from cache.  Easiest way is to just do it manually here."
 (defun treemacs--collapse-tag-node (btn &optional recursive)
   "Close tags node at BTN.
 Remove all open tag entries under BTN when RECURSIVE."
+  (etm/wbf btn
   (if recursive
       (treemacs--collapse-tag-node-recursive btn)
     (treemacs--button-close
@@ -366,7 +369,7 @@ Remove all open tag entries under BTN when RECURSIVE."
      :new-state 'tag-node-closed
      :new-icon treemacs-icon-tag-closed
      :post-close-action
-     (treemacs-on-collapse (treemacs-button-get btn :path)))))
+     (treemacs-on-collapse (treemacs-button-get btn :path))))))
 
 (defun treemacs--extract-position (item file)
   "Extract a tag's position stored in ITEM and FILE.
@@ -411,7 +414,7 @@ headline with sub-elements is saved in an `org-imenu-marker' text property."
          (tag (-last-item tag-path)))
     (condition-case e
         (progn
-          (find-file-noselect file)
+          (eemacs-treemacs/func/find-file-noselect file)
           (let ((index (treemacs--get-imenu-index file)))
             (dolist (path-item path)
               (setq index (cdr (assoc path-item index))))
