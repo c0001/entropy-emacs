@@ -808,7 +808,17 @@ shutdown since it is managed by the customize variable
          (cons t (intern (format "__eemacs/maybe-enable-lspmode-for/%s__" mode)))
          nil
          (when (eq (entropy/emacs-get-use-ide-type mode) 'lsp)
-           (lsp-deferred))))))
+           (if (bound-and-true-p eemacs-treemacs/var/func-indicator)
+               (progn
+                 ;; NOTE: since lsp use async method to obtain the
+                 ;; server document symbols data on where we should
+                 ;; guarantee the major synchronization process for
+                 ;; initialization at least.
+                 (message "lsp start at treemacs operations: %s"
+                          eemacs-treemacs/var/func-indicator)
+                 (lsp))
+             (lsp-deferred))
+           )))))
 
   (entropy/emacs-lazy-initial-advice-before
    '(lsp)
