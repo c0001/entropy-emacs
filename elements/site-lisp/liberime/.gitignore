@@ -20,3 +20,6 @@ Debug
 /*.dll
 /*.zip
 /Makefile-liberime-build
+test/test_liberime
+src/liberime-core.dylib
+liberime-core.dylib

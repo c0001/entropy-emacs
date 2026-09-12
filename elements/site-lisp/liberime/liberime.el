@@ -2,7 +2,7 @@
 
 ;; Author: A.I.
 ;; URL: https://github.com/merrickluo/liberime
-;; Version: 0.0.6
+;; Version: 0.0.11
 ;; Package-Requires: ((emacs "25.1"))
 ;; Keywords: convenience, Chinese, input-method, rime
 
@@ -32,8 +32,6 @@
   :group 'liberime
   :type 'hook)
 
-(make-obsolete-variable 'after-liberime-load-hook 'liberime-after-start-hook "2019-12-13")
-
 (defcustom liberime-module-file nil
   "Liberime module file on the system.
 When it is nil, librime will auto search module in many path."
@@ -58,6 +56,21 @@ More info: https://github.com/rime/home/wiki/SharedData"
   :group 'liberime
   :type 'boolean)
 
+(defcustom liberime-load-on-require t
+  "If non-nil, load the module and start rime when this file is loaded.
+When nil, loading `liberime' only defines things; you then call
+`liberime-load' yourself after setting `liberime-user-data-dir',
+`liberime-module-file' and friends.  This helps when a third-party
+package (e.g. pyim) issues the `require', so you cannot wrap it in a
+`let' to bind those variables around load time."
+  :group 'liberime
+  :type 'boolean)
+
+(defcustom liberime-verbose t
+  "If non-nil, echo progress messages while starting rime."
+  :group 'liberime
+  :type 'boolean)
+
 (defvar liberime-select-schema-timer nil
   "Timer used by `liberime-select-schema'.")
 
@@ -76,7 +89,11 @@ More info: https://github.com/rime/home/wiki/SharedData"
 (declare-function liberime-get-sync-dir "ext:src/liberime-core.c")
 (declare-function liberime-get-user-config "ext:src/liberime-core.c")
 (declare-function liberime-process-key "ext:src/liberime-core.c")
+(declare-function liberime-simulate-key-sequence "ext:src/liberime-core.c")
+(declare-function liberime-event-to-key-sequence "ext:src/liberime-core.c")
+(declare-function liberime-process-event "ext:src/liberime-core.c")
 (declare-function liberime-search "ext:src/liberime-core.c")
+(declare-function liberime-get-candidates "ext:src/liberime-core.c")
 (declare-function liberime-select-candidate "ext:src/liberime-core.c")
 (declare-function liberime-select-schema "ext:src/liberime-core.c")
 (declare-function liberime-set-schema-config "ext:src/liberime-core.c")
@@ -138,9 +155,9 @@ if NAMES is nil, \"rime-data\" as fallback."
 (defun liberime-get-user-data-dir ()
   "Return user data directory, create it if necessary."
   (let ((directory (expand-file-name liberime-user-data-dir)))
-    (unless (file-directory-p directory)
-      (make-directory directory))
-    directory))
+    (ignore-errors
+      (make-directory directory t)
+      directory)))
 
 (declare-function w32-shell-execute "w32fns")
 
@@ -160,25 +177,33 @@ if NAMES is nil, \"rime-data\" as fallback."
 (defun liberime-open-user-data-dir ()
   "Open user data dir with external app."
   (interactive)
-  (liberime-open-directory (liberime-get-user-data-dir)))
+  (let ((user-dir (liberime-get-user-data-dir)))
+    (when user-dir
+      (liberime-open-directory user-dir))))
 
 ;;;###autoload
 (defun liberime-open-shared-data-dir ()
   "Open shared data dir with external app."
   (interactive)
-  (liberime-open-directory (liberime-get-shared-data-dir)))
+  (let ((shared-dir (liberime-get-shared-data-dir)))
+    (when shared-dir
+      (liberime-open-directory shared-dir))))
 
 ;;;###autoload
 (defun liberime-open-package-directory ()
   "Open liberime library directory with external app."
   (interactive)
-  (liberime-open-directory (liberime-get-library-directory)))
+  (let ((library-dir (liberime-get-library-directory)))
+    (when library-dir
+      (liberime-open-directory library-dir))))
 
 ;;;###autoload
 (defun liberime-open-package-readme ()
   "Open liberime library README.org."
   (interactive)
-  (find-file (concat (liberime-get-library-directory) "README.org")))
+  (let ((library-dir (liberime-get-library-directory)))
+    (when library-dir
+      (find-file (concat library-dir "README.org")))))
 
 ;;;###autoload
 (defun liberime-build ()
@@ -216,8 +241,8 @@ if NAMES is nil, \"rime-data\" as fallback."
                             (or (locate-library "files") "/usr")))
                      (include-dir (concat (file-name-as-directory path) "include/")))
                 (if (file-exists-p (concat include-dir "emacs-module.h"))
-                    (concat "CFLAGS = -fPIC -O2 -Wall -I " include-dir "\n")
-                  (concat "CFLAGS = -fPIC -O2 -Wall -I emacs-module/" (number-to-string emacs-major-version) "\n")))
+                    (concat "CFLAGS = -fPIC -O2 -Wall -DHAVE_RIME_API -I " include-dir "\n")
+                  (concat "CFLAGS = -fPIC -O2 -Wall -DHAVE_RIME_API -I emacs-module/" (number-to-string emacs-major-version) "\n")))
               (let ((p (getenv "RIME_PATH")))
                 (if p
                     (concat "CFLAGS += -I " p "/src/\n"
@@ -256,13 +281,14 @@ if NAMES is nil, \"rime-data\" as fallback."
   "Start liberime."
   (let ((shared-dir (liberime-get-shared-data-dir))
         (user-dir (liberime-get-user-data-dir)))
-    (message "Liberime: start with shared dir: %S" shared-dir)
-    (message "Liberime: start with user dir: %S" user-dir)
-    (message "")
-    (liberime-start shared-dir user-dir)
-    (when liberime-current-schema
-      (liberime-try-select-schema liberime-current-schema))
-    (run-hooks 'liberime-after-start-hook)))
+    (when (and shared-dir user-dir)
+      (when liberime-verbose
+        (message "Liberime: start with shared dir: %S" shared-dir)
+        (message "Liberime: start with user dir: %S" user-dir))
+      (liberime-start shared-dir user-dir)
+      (when liberime-current-schema
+        (liberime-try-select-schema liberime-current-schema))
+      (run-hooks 'liberime-after-start-hook))))
 
 ;;;###autoload
 (defun liberime-load ()
@@ -289,7 +315,8 @@ if NAMES is nil, \"rime-data\" as fallback."
           (goto-char (point-min)))
         (pop-to-buffer buf)))))
 
-(liberime-load)
+(when liberime-load-on-require
+  (liberime-load))
 
 (defun liberime-get-preedit ()
   "Get rime preedit."
@@ -324,6 +351,76 @@ this function will go to proper page then select a candidate."
   "Clear the lastest rime commit."
   ;; NEED IMPROVE: Second run `liberime-get-commit' will clear commit.
   (liberime-get-commit))
+
+(defun liberime-kbd-to-key-sequence (keys)
+  "Convert Emacs key sequence KEYS to librime key sequence string.
+
+KEYS is a key sequence (vector or string) as returned by `kbd', or a
+plain string whose characters are treated as individual key events.
+Each event is converted via `liberime-event-to-key-sequence' and the
+results are concatenated.
+
+See also `liberime-simulate-key-sequence'.
+
+The output format follows librime's `KeySequence::Parse' convention
+(see librime/src/rime/key_event.cc):
+  - Plain printable ASCII (except `{` and `}`): output directly,
+    e.g. \"a\", \"1\"
+  - Named keys (Left, Return, F1, etc.): wrapped in braces,
+    e.g. \"{Left}\", \"{F1}\"
+  - Keys with modifiers: \"{Control+a}\", \"{Control+Left}\",
+    \"{Meta+F1}\"
+  - Braces `{` and `}` always use names: \"{braceleft}\",
+    \"{braceright}\"
+
+Examples:
+  (liberime-kbd-to-key-sequence (kbd \"a\"))       => \"a\"
+  (liberime-kbd-to-key-sequence (kbd \"C-a\"))     => \"{Control+a}\"
+  (liberime-kbd-to-key-sequence (kbd \"C-M-a\"))   => \"{Control+Meta+a}\"
+  (liberime-kbd-to-key-sequence (kbd \"<left>\"))  => \"{Left}\"
+  (liberime-kbd-to-key-sequence (kbd \"C-<left>\")) => \"{Control+Left}\"
+  (liberime-kbd-to-key-sequence (kbd \"C-<f1>\"))  => \"{Control+F1}\"
+  (liberime-kbd-to-key-sequence (kbd \"{\") )      => \"{braceleft}\"
+  (liberime-kbd-to-key-sequence (kbd \"C-M-<left>\"))
+    => \"{Control+Meta+Left}\"
+
+Multiple keys in a sequence are concatenated:
+  (liberime-kbd-to-key-sequence \"abc\")            => \"abc\"
+  (liberime-kbd-to-key-sequence (kbd \"C-a C-b\"))
+    => \"{Control+a}{Control+b}\""
+  (let ((sequences "")
+        sequence)
+    (dolist (event (listify-key-sequence keys))
+      (setq sequence (liberime-event-to-key-sequence event))
+      (setq sequences (concat sequences sequence)))
+    sequences))
+
+(defun liberime-process-keys (keys)
+  "Process a sequence of KEYS by sending each event to librime.
+
+KEYS is a key sequence (vector or string) as returned by `kbd', or a
+plain string whose characters are treated as individual key events.
+Each event is converted via `liberime-process-event' and sent to
+librime in order.
+
+This is the main entry point for feeding keystrokes to librime,
+typically used in input method event handlers.
+
+Examples:
+  ;; Single keystroke
+  (liberime-process-keys \"a\")
+
+  ;; Multiple keystrokes
+  (liberime-process-keys \"zhongwen\")
+
+  ;; Control/meta combinations
+  (liberime-process-keys (kbd \"C-<return>\"))
+  (liberime-process-keys (kbd \"C-<SPC>\"))
+
+  ;; Function keys
+  (liberime-process-keys (kbd \"<f1>\"))"
+  (dolist (event (listify-key-sequence keys))
+    (liberime-process-event event)))
 
 ;;;###autoload
 (defun liberime-deploy()
@@ -387,6 +484,14 @@ User should specify sync_dir in installation.yaml file of
 `liberime-user-data-dir' directory."
   (interactive)
   (liberime-sync-user-data))
+
+(defun liberime--finalize-on-exit ()
+  "Finalize librime when Emacs is about to exit."
+  (when (featurep 'liberime-core)
+    (ignore-errors (liberime-finalize))))
+
+(add-hook 'kill-emacs-hook #'liberime--finalize-on-exit)
+
 
 (provide 'liberime)
 

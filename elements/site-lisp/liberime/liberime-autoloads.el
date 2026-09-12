@@ -44,6 +44,50 @@ User should specify sync_dir in installation.yaml file of
 
 (register-definition-prefixes "liberime-test" '("measure-time"))
 
+;;;### (autoloads nil "liberime" "liberime.el" (27301 26699 926894
+;;;;;;  181000))
+;;; Generated autoloads from liberime.el
+
+(autoload 'liberime-open-user-data-dir "liberime" "\
+Open user data dir with external app." t)
+
+(autoload 'liberime-open-shared-data-dir "liberime" "\
+Open shared data dir with external app." t)
+
+(autoload 'liberime-open-package-directory "liberime" "\
+Open liberime library directory with external app." t)
+
+(autoload 'liberime-open-package-readme "liberime" "\
+Open liberime library README.org." t)
+
+(autoload 'liberime-build "liberime" "\
+Build liberime-core module." t)
+
+(autoload 'liberime-load "liberime" "\
+Load liberime-core module." t)
+
+(autoload 'liberime-deploy "liberime" "\
+Deploy liberime to affect config file change." t)
+
+(autoload 'liberime-set-page-size "liberime" "\
+Set rime page-size to PAGE-SIZE or by default 10.
+you also need to call `liberime-deploy' to make it take affect
+you only need to do this once.
+
+\(fn PAGE-SIZE)" t)
+
+(autoload 'liberime-select-schema-interactive "liberime" "\
+Select a rime schema interactive." t)
+
+(autoload 'liberime-sync "liberime" "\
+Sync rime user data.
+User should specify sync_dir in installation.yaml file of
+`liberime-user-data-dir' directory." t)
+
+(register-definition-prefixes "liberime" '("liberime-"))
+
+;;;***
+
 ;;; End of scraped data
 
 (provide 'liberime-autoloads)
