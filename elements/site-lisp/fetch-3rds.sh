@@ -25,8 +25,8 @@ elif [[ -n $(git status --porcelain) ]]; then
 fi
 
 declare -A var_prjs=(
-    [rime]='4be1cf2::::https://github.com/c0001/emacs-rime.git'
-    [liberime]='6388813::::https://github.com/c0001/liberime.git'
+    [rime]='8c475e8::::https://github.com/c0001/emacs-rime.git'
+    [liberime]='9da0aa4::::https://github.com/c0001/liberime.git'
     [treemacs]='ae0f9fe::::https://github.com/c0001/treemacs.git'
     [benchmark-init]='4228f46::::https://github.com/c0001/benchmark-init-el'
 )
