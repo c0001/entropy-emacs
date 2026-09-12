@@ -1191,8 +1191,7 @@ lsp-java-v3.1_jdtls_release/%s"))
   (entropy/emacs-coworker--coworker-isolate-bins-install-by-pip
    "autotool-lsp"
    '("autotools-language-server"
-     "autoconf-language-server"
-     "make-language-server")
+     "jsonschema")
    "autotools-language-server"))
 
 ;; **** semgrep
