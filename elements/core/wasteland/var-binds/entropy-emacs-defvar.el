@@ -3039,6 +3039,28 @@ with any file.")
    (if (eq op 'create) (current-time)
      entropy/emacs-file-buffer-meta-null-value)))
 
+;; *** Save buffer ignorance
+
+(defvar entropy/emacs-save-some-buffers-predicates nil
+  "list of functions who is obey the mechanism of
+`save-some-buffers-default-predicate' but do not consider the buffer
+when return non-nil.
+
+Catch throw the result via least order precedence.")
+(defun entropy//emacs-save-some-buffers-default-predicate (&rest _)
+  (let ((preds entropy/emacs-save-some-buffers-predicates))
+    (if (not preds) t
+      (catch :exit
+        (dolist (pred preds)
+          (and (funcall pred) (throw :exit nil)))
+        t))))
+(setq save-some-buffers-default-predicate
+      #'entropy//emacs-save-some-buffers-default-predicate)
+
+(add-to-list 'entropy/emacs-save-some-buffers-predicates
+             (lambda (&rest _)
+               (equal (buffer-name) "*scratch*")))
+
 ;; ** prog-modes
 ;; *** union
 ;; **** treesit prefer

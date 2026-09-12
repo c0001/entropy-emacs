@@ -13046,6 +13046,8 @@ eemacs context."
         (entropy/emacs--set-user-package-dir-common "30.1"))
        ((= emacs-major-version 31)
         (entropy/emacs--set-user-package-dir-common "31.1"))
+       ((= emacs-major-version 32)
+        (entropy/emacs--set-user-package-dir-common "32.1"))
        (t (error "Unsupport emacs version '%s'" emacs-version))))
     (when (memq entropy/emacs-ext-elpkg-get-type
                 '(entropy-emacs-extenisons-project

@@ -2294,6 +2294,25 @@ display icon or empty string while
   :commands (ivy-rich-mode)
   :init
 
+  (entropy/emacs-defconst/only-allow/local eemacs//ran-in-ivy-rich-func-p nil)
+  (defun eemacs//ran-with-ivy-rich-indc (ofunc &rest oargs)
+    (let ((eemacs//ran-in-ivy-rich-func-p t))
+      (apply ofunc oargs)))
+  (defun ivy--alist-set@eemacs-ivy-rich
+      (ofunc &rest oargs)
+    ;; ensure `ivy--display-transformers-alist' not be modified in
+    ;; part of which ivy-rich specified after `ivy-rich-mode'
+    ;; enabled. Only allow ivy-rich facilities to modify in which
+    ;; case, remove this limitation when `ivy-rich-mode' disabled
+    ;; later.
+    (let ((alsym (car oargs)) (key (nth 1 oargs)))
+      (if (not (eq alsym 'ivy--display-transformers-alist))
+          (apply ofunc oargs)
+        (if (and (bound-and-true-p ivy-rich-mode)
+                 (memq key (bound-and-true-p ivy-rich-display-transformers-list)))
+            (and eemacs//ran-in-ivy-rich-func-p (apply ofunc oargs))
+          (apply ofunc oargs)))))
+
   (defun entropy/emacs-ivy--enable-ivy-rich-common ()
     (entropy/emacs-require-only-once
      'ivy
@@ -2307,6 +2326,10 @@ display icon or empty string while
      ivy-rich-display-transformers-list
      (entropy/ivy--ivy-rich-set-transformers-list))
     (ivy-rich-mode +1)
+    (dolist (fn '(ivy-rich-set-display-transformer
+                  ivy-rich-unset-display-transformer))
+      (advice-add fn :around #'eemacs//ran-with-ivy-rich-indc))
+    (advice-add 'ivy--alist-set :around #'ivy--alist-set@eemacs-ivy-rich)
     (unless (bound-and-true-p ivy-mode)
       (ivy-mode +1)))
 

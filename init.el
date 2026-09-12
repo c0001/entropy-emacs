@@ -125,7 +125,7 @@ The path is expanded and absoluted and satisfied by `file-name-as-directory'."
 It's a version string which can be used for `version<' and
 `version<='.")
 (defconst entropy/emacs-highest-emacs-version-requirement
-  "31.1"
+  "32.1"
   "The highest emacs version requirement for entropy-emacs.
 
 It's a version string which can be used for `version<' and

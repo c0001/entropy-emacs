@@ -167,6 +167,13 @@ or manually do 'C-x C-c' immediately.")))
   (add-hook 'entropy/emacs-package-common-start-after-hook
             #'entropy/emacs-start--warn-with-pkg-install))
 
+(defun entropy/emacs-start-press-pkg-warns (&optional enable)
+  (if enable (add-to-list 'warning-suppress-types '(package))
+    (setq warning-suppress-types
+          (remove '(package) warning-suppress-types))))
+(add-hook 'entropy/emacs-package-common-start-after-hook
+          'entropy/emacs-start-press-pkg-warns)
+
 (entropy/emacs-start--require-with-duration-log 'entropy-emacs-ext)
 (defvar entropy/emacs-start-ext-available-p
   (entropy/emacs-start--run-with-duration-log
@@ -175,6 +182,7 @@ or manually do 'C-x C-c' immediately.")))
 (when entropy/emacs-start-ext-available-p
   (entropy/emacs-start--run-with-duration-log
    'func/entropy/emacs-package-common-start
+   (entropy/emacs-start-press-pkg-warns 'enable)
    (entropy/emacs-package-common-start)))
 ;; for waiting hints
 (entropy/emacs-message-do-message "")
