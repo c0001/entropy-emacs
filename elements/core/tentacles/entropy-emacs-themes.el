@@ -96,9 +96,6 @@
   )
 
 (use-package color-theme-sanityinc-tomorrow)
-(use-package gotham-theme)
-(use-package srcery-theme)
-
 
 ;; *** theme load specifix
 

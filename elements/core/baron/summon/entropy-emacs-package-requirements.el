@@ -152,7 +152,6 @@
        gntp
        go-mode
        google-translate
-       gotham-theme
        heap
        helm
        helm-ag
@@ -253,7 +252,6 @@
        spacemacs-theme
        separedit
        spinner
-       srcery-theme
        ssh-agency
        swiper
        symbol-overlay
