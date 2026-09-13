@@ -178,6 +178,7 @@
        json-mode
        json-reformat
        json-snatcher
+       kotlin-mode
        log4e
        loop
        lsp-dart
