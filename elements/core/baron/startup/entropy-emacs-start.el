@@ -168,9 +168,13 @@ or manually do 'C-x C-c' immediately.")))
             #'entropy/emacs-start--warn-with-pkg-install))
 
 (defun entropy/emacs-start-press-pkg-warns (&optional enable)
-  (if enable (add-to-list 'warning-suppress-types '(package))
-    (setq warning-suppress-types
-          (remove '(package) warning-suppress-types))))
+  (when
+      ;; this not boundp at startup time below emacs-30, so which no
+      ;; worry about for suppressing thus.
+      (boundp 'warning-suppress-types)
+    (if enable (add-to-list 'warning-suppress-types '(package))
+      (setq warning-suppress-types
+            (remove '(package) warning-suppress-types)))))
 (add-hook 'entropy/emacs-package-common-start-after-hook
           'entropy/emacs-start-press-pkg-warns)
 
