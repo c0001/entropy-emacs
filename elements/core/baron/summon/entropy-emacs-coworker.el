@@ -788,15 +788,24 @@ EXIT /b
   (entropy/emacs-coworker--coworker-isolate-bins-install-by-npm
    "typescript-base"
    '("tsc" "tsserver")
-   "typescript")
+   ;; FIXME: typescript@7 use go implemented tsgo instead of tsserver,
+   ;; so tsserver is missing in thus.
+   "typescript@6")
   (entropy/emacs-coworker--coworker-isolate-bins-install-by-npm
    "js-lsp-server"
    '("typescript-language-server")
    "typescript-language-server")
   (entropy/emacs-coworker--coworker-isolate-bins-install-by-npm
    "vue-lsp-server"
-   '("vls")
-   "vls")
+   '("vue-language-server")
+   ;; FIXME: typescript@7 use go implemented tsgo instead of tsserver
+   ;; where vue@3 not compatible. So should install typescript@6
+   ;; firstly to avoid vue lsp fetch the newest version 7.
+   ;;
+   ;; See https://github.com/vuejs/language-tools/discussions/6122
+   ;;     https://github.com/vuejs/language-tools/issues/6201
+   "typescript@6"
+   "@vue/language-server")
   (entropy/emacs-coworker--coworker-isolate-bins-install-by-npm
    "angular-lsp-server"
    '("ngserver")
