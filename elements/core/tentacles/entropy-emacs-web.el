@@ -78,7 +78,7 @@ set of `entropy/emacs-browse-url-function-get-for-web-preview'."
   :commands web-mode
 ;; ***** mode declaration
   :mode
-  ("\\.\\(phtml\\|[gj]sp\\|as[cp]x\\|erb\\|djhtml\\|html?\\|hbs\\|ejs\\|jade\\|swig\\|tm?pl\\)$"
+  ("\\.\\(phtml\\|[gj]sp\\|as[cp]x\\|erb\\|djhtml\\|html?\\|hbs\\|ejs\\|jade\\|swig\\|tm?pl\\|vue\\)$"
    .
    web-mode)
 ;; ***** eemacs mmphc
