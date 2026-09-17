@@ -1,9 +1,9 @@
 ;; -*- lexical-binding: t; -*-
 ;; * common lib
+(defvar wudao/lib-message-func nil)
 (defun wudao/lib-message (message &rest args)
-  (if (fboundp 'entropy/emacs-message-do-message)
-      (entropy/emacs-message-do-message
-       message args)
+  (if (functionp wudao/lib-message-func)
+      (apply wudao/lib-message-func message args)
     (apply 'message message args)))
 
 (defmacro wudao/lib-with-temp-buffer (&rest body)
