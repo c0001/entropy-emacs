@@ -809,21 +809,25 @@ EXIT /b
   (entropy/emacs-coworker--coworker-isolate-bins-install-by-npm
    "angular-lsp-server"
    '("ngserver")
+   ;; FIXME: typescript@7 use go implemented tsgo instead of tsserver,
+   ;; so tsserver is missing in thus.
+   "typescript@6"
    "@angular/language-service@next"
-   "@angular/language-server"
-   "typescript"))
+   "@angular/language-server"))
 (defvar lsp-clients-angular-language-server-command)
 (with-eval-after-load 'lsp-angular
   (unless (entropy/emacs-custom-var-is-customized-p 'lsp-clients-angular-language-server-command)
     (setq lsp-clients-angular-language-server-command
-          (let ((node-prefix
-                 (entropy/emacs-coworker--coworker-isolate-bins-install-by-npm/method/get-module-prefix
-                  "angular-lsp-server")))
+          (let* ((node-prefix
+                  (entropy/emacs-coworker--coworker-isolate-bins-install-by-npm/method/get-module-prefix
+                   "angular-lsp-server"))
+                 (nmpath (expand-file-name "node_modules" node-prefix))
+                 (nmlcpath (expand-file-name "@angular/language-server/node_modules/" nmpath)))
             (list "ngserver"
-                  "--ngProbeLocations"
-                  node-prefix
                   "--tsProbeLocations"
-                  node-prefix
+                  nmpath
+                  "--ngProbeLocations"
+                  nmlcpath
                   "--stdio")))))
 
 ;; **** php
