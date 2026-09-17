@@ -62,7 +62,7 @@
 ;; EEMACS_MAINTENANCE: don't forget to update this list when the
 ;; eemacs site-lisp add new components
 (defconst entropy/emacs--self-maintained-packges
-  '(treemacs benchmark-init))
+  '(treemacs benchmark-init lsp-mode))
 (defvar entropy/emacs--base-packges)
 (setq entropy/emacs--base-packges
       (__eemacs/pkg-reqs-list-items
@@ -183,7 +183,6 @@
        log4e
        loop
        lsp-dart
-       lsp-mode
        lsp-java
        lsp-pyright
        lsp-python-ms

@@ -803,7 +803,9 @@ faild with hash '%s' which must match '%s'"
     (eemacs-site-lisp_liberime
      "-liberime"
      nil)
-    (eemacs-treemacs "-treemacs" nil)))
+    (eemacs-treemacs "-treemacs" nil)
+    (eemacs-lsp-mode "-lsp-mode" nil)
+    (eemacs-lsp-mode-clients "-lsp-mode/clients" nil)))
 (setq entropy/emacs-batch--bytecompile-item-register
       (delete nil entropy/emacs-batch--bytecompile-item-register))
 
