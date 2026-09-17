@@ -339,7 +339,10 @@ In used emacs version is: %s
 (defun entropy/emacs-batch--native-compile-package-dir ()
   (require 'comp)
   (let* ((native-comp-verbose 0)
-         (pkg-dirs `(,package-user-dir ,(file-name-directory (locate-library "subr"))))
+         (pkg-dirs `(,package-user-dir
+                     ,(expand-file-name "elements/site-lisp/" entropy/emacs-user-emacs-directory)
+                     ,(file-name-directory (locate-library "subr"))
+                     ))
          (native-comp-async-cu-done-functions '(entropy/emacs-batch--native-comp-cu-done))
          (ignore-rexps
           (if (version< emacs-version "29.1")
@@ -603,7 +606,20 @@ faild with hash '%s' which must match '%s'"
           (unless (or (string-match-p "^.*-pkg\\.el$" f)
                       (string-match-p "^.*test\\.el$" f))
             (when (string-match-p "^.*\\.el$" f)
-              (byte-recompile-file f t 0))))
+              (byte-recompile-file f t 0)
+              ;; Modify elc file modtime as same as source file so the
+              ;; eln load procedure do not skip for reason of newer
+              ;; elc file generated.
+              (when-let* ((elcf (concat f "c"))
+                          ;; NOTE: not all source file are byte-comped
+                          ;; so as the file has `no-byte-compile'
+                          ;; enabled local set.
+                          ((file-exists-p elcf))
+                          (ftime (file-attribute-modification-time
+                                  (file-attributes f))))
+                (or (set-file-times elcf ftime)
+                    (entropy/emacs-!error-as-eemacs-internal-error
+                     "set-file-time [%s] fatal of file '%s'" ftime elcf))))))
       (entropy/emacs-error-without-debugger
        "Dir %s is not an elisp source dir"
        dir))))
@@ -1009,6 +1025,11 @@ since we solved deps broken")))))
       ;; we must prepare for `package-user-dir' before native-comp
       (entropy/emacs-batch--check-packages)
       (entropy/emacs-batch--prompts-for-native-compile
+       ;; firstly we should recomp eemacs site-lisp since the eln file
+       ;; boundp to the newer timestamp above of the elc file of
+       ;; eemacs site-lisp, or load newer elc instead of the prev eln.
+       (entropy/emacs-batch--do-bytecompile-eemacs-core t)
+       (entropy/emacs-batch--do-bytecompile-eemacs-core)
        ;; we should take eemacs eln path as top to store the generations
        (entropy/emacs-native-comp-eln-load-path-set 'reset)
        (entropy/emacs-batch--native-compile-package-dir)))

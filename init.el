@@ -61,17 +61,22 @@
 (setq native-comp-deferred-compilation-deny-list
       '(
         ;; general exclusions
-        "^.*/?\\.?dir-locals\\(\\.el\\)?$"
-        "^.*/?.*-loaddefs\\.el$"
-        "^.*/?loaddefs\\.el$"
-        "^.*/?.*-pkg\\.el$"
-        "^.*/?.*-autoloads\\.el$"
+        "^\\(.*/\\)?\\.?dir-locals\\(\\.el\\)?$"
+        "^\\(.*/\\)?.*-loaddefs\\.el$"
+        "^\\(.*/\\)?loaddefs\\.el$"
+        "^\\(.*/\\)?.*-pkg\\.el$"
+        "^\\(.*/\\)?.*-autoloads\\.el$"
         ;; melpa specs
-        "^.*/?.*\\.yas-setup\\.el$"
+        "^\\(.*/\\)?.*\\.yas-setup\\.el$"
         ;; we must excluded eemacs code for native comp
-        "^.*/?entropy-emacs-[^/]*\\.el$"
-        "^.*/?liberime[^/]*\\.el$"
-        "^.*/?fakecygpty[^/]*\\.el$")
+        "^\\(.*/\\)?elements/core/.*.el$"
+        "^\\(.*/\\)?elements/site-lisp/\\(entropy-[^/]+\\|treemacs\\)/.*\\.el$"
+        "^\\(.*/\\)?elements/site-lisp/liberime/.*\\.el$"
+        "^\\(.*/\\)?elements/site-lisp/rime/.*\\.el$"
+        "^\\(.*/\\)?elements/site-lisp/fakecygpty/.*\\.el$"
+        "^\\(.*/\\)?elements/site-lisp/treemacs/.*\\.el$"
+        "^\\(.*/\\)?elements/site-lisp/lsp-mode/[^c][^/]+/.*\\.el$"
+        )
       ;; emacs 29.1 declared as replacement of
       ;; `native-comp-deferred-compilation-deny-list'
       native-comp-jit-compilation-deny-list
