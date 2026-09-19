@@ -535,6 +535,16 @@ building procedure while invoking INSTALL-COMMANDS."
 ;; Required by `use-package'
 (defvar entropy/emacs-package-init-use-packge-after-hook nil)
 (defun entropy/emacs-package-init-use-package ()
+  ;; NOTE EEMACS_MAINTENANCE: should invoke this function before any
+  ;; usage of `use-package' and never write `use-package' form or use
+  ;; its macro whithin this file since we shadowed emacs builtin
+  ;; `use-package' with using self-maintained one to obtain
+  ;; consistency cross emacs versions, or the bytecomp stage for this
+  ;; file will load builtin one since the evaluation of this function
+  ;; is not occurred while thus, so any usage of `use-package' and its
+  ;; macro in this package will damage the package consistency or
+  ;; making error like load builtin `use-package-core' but it lost
+  ;; features in new one.
   (entropy/emacs-package-prepare-foras)
   (require 'use-package)
   (if entropy/emacs-fall-love-with-pdumper
@@ -548,10 +558,8 @@ building procedure while invoking INSTALL-COMMANDS."
     (setq use-package-expand-minimally t))
   (setq use-package-enable-imenu-support t)
   (run-hooks 'entropy/emacs-package-init-use-packge-after-hook)
-  (use-package diminish
-    :commands (diminish))
-  (use-package bind-key
-    :commands (bind-key)))
+  (autoload 'diminish "diminish")
+  (autoload 'bind-key "bind-key" nil nil t))
 
 (defun entropy/emacs-package--use-package-add-keyword
     (keyword &optional precedence)
