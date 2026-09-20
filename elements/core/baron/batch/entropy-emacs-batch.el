@@ -979,6 +979,15 @@ since we solved deps broken")))))
            (bound-and-true-p entropy/emacs-batch--make-env-type)
            (entropy/emacs-ext-main))
   (let ((type entropy/emacs-batch--make-env-type))
+    ;; since eemacs native comp do byte-comp firstly, we could obtain
+    ;; native performance in same way.
+    (when (and (entropy/emacs-getenv-eemacs-env "EEMACS_SYSTEMD_DAEMON_SERVICE")
+               (string= type "Compile")
+               (ignore-errors (native-comp-available-p)))
+      (entropy/emacs-message-do-message
+       "%s"
+       (yellow "native compile avaible, auto switch to compile with native-comp"))
+      (setq type "Native-Comp"))
     (cond
      ((equal type "Install")
       (entropy/emacs-batch--prompts-for-ext-install-section
