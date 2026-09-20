@@ -111,7 +111,8 @@ Reference:
                                  ;; server-id in `lsp-mode' on which
                                  ;; wrong workspace return will make
                                  ;; error of =Error: No Project.=.
-                                 buffer-file-name)))
+                                 (lsp-f-canonical
+                                  (or buffer-file-name default-directory)))))
     (with-lsp-workspace ts-ls-workspace
       (-let [[[id command payload]] params]
         (lsp-request-async
