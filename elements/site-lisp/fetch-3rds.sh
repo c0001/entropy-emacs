@@ -29,7 +29,7 @@ declare -A var_prjs=(
     [liberime]='9da0aa4::::https://github.com/c0001/liberime.git'
     [treemacs]='ae0f9fe::::https://github.com/c0001/treemacs.git'
     [benchmark-init]='4228f46::::https://github.com/c0001/benchmark-init-el'
-    [lsp-mode]='8ad5aa2108::::https://github.com/c0001/lsp-mode.git'
+    [lsp-mode]='daaf45236b::::https://github.com/c0001/lsp-mode.git'
 )
 
 for i in "${!var_prjs[@]}" ; do
