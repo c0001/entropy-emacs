@@ -39,17 +39,6 @@
 (defvar company-en-words/var--candi-max-len
   (length company-en-words-data/en-words-simple-list))
 
-(defun company-en-words/lib--require-wudao ()
-  (let* ((wd-path (executable-find "wd"))
-         wd-host)
-    (when wd-path
-      (setq wd-host (file-name-directory
-                     (directory-file-name
-                      (file-name-directory
-                       (car (file-attributes wd-path))))))
-      (add-to-list 'load-path (expand-file-name "emacs" wd-host))
-      (require 'wudao-query nil t))))
-
 (defvar company-en-words/lib--en-words-trie-obj nil)
 (defvar company-en-words/var--trie-inited nil)
 (defun company-en-words/lib--init-trie ()
@@ -111,8 +100,8 @@
    word (or maxnum
             company-en-words/var--candi-max-len)))
 
-(defvar company-en-words/var--wudao-required
-  (company-en-words/lib--require-wudao))
+(defun company-en-words/var--wudao-required nil
+  (featurep 'wudao-query))
 
 (defun company-en-words (command &optional arg &rest _ignored)
   (interactive (list 'interactive))
@@ -143,14 +132,11 @@
          (format "%s"
                  (or props " ")))))
     (doc-buffer
-     (when company-en-words/var--wudao-required
+     (when (company-en-words/var--wudao-required)
        (let ((buffer (get-buffer-create company-en-words/var--doc-buffer-name))
              (inhibit-read-only t)
              (short-trans
-              (apply (if (fboundp 'wudao/query-word-by-command/use-json-parse)
-                         'wudao/query-word-by-command/use-json-parse
-                       'wudao/query-word-by-command)
-                     (list arg))))
+              (apply #'wudao/query-word-by-hash/use-json-parse (list arg))))
          (with-current-buffer buffer
            (erase-buffer)
            (insert

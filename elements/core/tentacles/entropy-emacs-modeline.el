@@ -657,10 +657,6 @@ eemacs origin type which reduce performance issue."
       "irc" :toggle doom-modeline-irc :enable t)
      ("F" (setq doom-modeline-irc-buffers (not doom-modeline-irc-buffers))
       "irc buffers" :toggle doom-modeline-irc-buffers :enable t)
-     ("S" (progn
-            (setq doom-modeline-checker-simple-format (not doom-modeline-checker-simple-format))
-            (and (bound-and-true-p flycheck-mode) (flycheck-buffer)))
-      "simple checker" :toggle doom-modeline-checker-simple-format :enable t)
      ("V" (setq doom-modeline-env-version (not doom-modeline-env-version))
       "version" :toggle doom-modeline-env-version :enable t))
     "Style"
@@ -936,7 +932,7 @@ entropy-emacs."
           buffer-info remote-host buffer-position parrot
           " " company-indicator selection-info)
     '(misc-info lsp irc mu4e github debug minor-modes
-                input-method buffer-encoding major-mode process vcs checker))
+                input-method buffer-encoding major-mode process vcs))
 
   (doom-modeline-def-modeline 'project
     '(bar

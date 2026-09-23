@@ -1691,10 +1691,10 @@ to enable the lsp server for this major-mode supported by `lsp-mode'.
               #'entropy/emacs-codeserver--codeserver-union-startjudge-filter-advice-form)
 
   ;; Disable `eldoc-mode' after eglot start
-  ;; NOTE: since `eglot--connect' is the only one subroutine coverred
+  ;; NOTE: since `eglot--managed-mode' is the only one subroutine coverred
   ;; the all eglot start command, but it is not the exposed API which
   ;; we must follow upstream updates.
-  (advice-add 'eglot--connect
+  (advice-add 'eglot--managed-mode
               :around
               #'entropy/emacs-eldoc-inhibit-around-advice)
 
@@ -1885,12 +1885,17 @@ to enable the lsp server for this major-mode supported by `lsp-mode'.
            ;;(bg-mode (frame-parameter nil 'background-mode))
            (background-color (face-attribute 'tooltip :background)))
       (cond
-       ((and (fboundp 'posframe-show) (display-graphic-p))
+       ((and (fboundp 'posframe-show) (entropy/emacs-posframe-adapted-p))
         (entropy/emacs-require-only-once 'posframe)
         (posframe-show
          entropy/emacs-eglot-doc-buffer-name
          :string string
-         :poshandler #'posframe-poshandler-frame-top-right-corner
+         :poshandler
+         ;; FIXME: `#'posframe-poshandler-frame-top-right-corner'
+         ;; display on top left corner in tui session, so we fallback
+         ;; to use window pos instead temporarily.
+         (if (display-graphic-p) #'posframe-poshandler-frame-top-right-corner
+           #'posframe-poshandler-window-top-right-corner)
          :timeout entropy/emacs-eglot-doc-tooltip-timeout
          :background-color background-color
          :foreground-color (face-attribute 'default :foreground)
@@ -1933,21 +1938,27 @@ to enable the lsp server for this major-mode supported by `lsp-mode'.
             __this_eglot-show-doc--this-position-params (eglot--TextDocumentPositionParams)
             __this_eglot-show-doc--sig-showing nil)
       (cl-macrolet ((when-buffer-window
-                     (&body body) ; notice the exception when testing with `ert'
-                     `(when (or (get-buffer-window __this_eglot-show-doc--this-buffer)
-                                (ert-running-test))
-                        (with-current-buffer __this_eglot-show-doc--this-buffer ,@body))))
+                      (&body body) ; notice the exception when testing with `ert'
+                      `(when (or (get-buffer-window __this_eglot-show-doc--this-buffer)
+                                 (ert-running-test))
+                         (with-current-buffer __this_eglot-show-doc--this-buffer ,@body))))
         (when (eglot--server-capable :signatureHelpProvider)
           (jsonrpc-async-request
            __this_eglot-show-doc--this-server
            :textDocument/signatureHelp __this_eglot-show-doc--this-position-params
            :success-fn
-           (eglot--lambda ((SignatureHelp) signatures activeSignature activeParameter)
+           ;; NOTE: inspired from `eglot-signature-eldoc-function'
+           (eglot--lambda ((SignatureHelp) signatures activeSignature (activeParameter 0))
              (when-buffer-window
-              (when (cl-plusp (length signatures))
-                (setq __this_eglot-show-doc--sig-showing t)
-                (eglot-ui--show-doc-internal
-                 (eglot--sig-info signatures activeSignature activeParameter)))))
+              (let ((active-sig (and (cl-plusp (length signatures))
+                                     (aref signatures (or activeSignature 0)))))
+                (when active-sig
+                  (setq __this_eglot-show-doc--sig-showing t)
+                  (eglot-ui--show-doc-internal
+                   (mapconcat
+                    (lambda (s)
+                      (eglot--sig-info s (and (eq s active-sig) activeParameter) nil))
+                    signatures "\n"))))))
            :deferred :textDocument/signatureHelp))
         (when (eglot--server-capable :hoverProvider)
           (jsonrpc-async-request
