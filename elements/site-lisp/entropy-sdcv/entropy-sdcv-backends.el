@@ -594,12 +594,11 @@ Return value as list as sexp (list word def def-width-overflow-lines)."
 (defun entropy/sdcv-backends--query-with-wudao-by-hash (query show-method)
   (require 'wudao-query)
   (let ((response (or (ignore-errors
-                        (apply (if (fboundp 'wudao/query-word-by-hash/use-json-parse)
-                                   'wudao/query-word-by-hash/use-json-parse
-                                 'wudao/query-word-by-hash)
-                               (list
-                                query
-                                (eq show-method 'adjacent-common))))
+                        (apply
+                         'wudao/query-word-by-hash/use-json-parse
+                         (list
+                          query
+                          (eq show-method 'adjacent-common))))
                       entropy/sdcv-core-response-null-prompt)))
     response))
 

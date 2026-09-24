@@ -4,27 +4,29 @@
 ;; This file is part of GNU Emacs.
 
 ;;; Code:
-
 (add-to-list 'load-path (or (and load-file-name (directory-file-name (file-name-directory load-file-name))) (car load-path)))
 
 
-;;;### (autoloads nil "wudao-query" "wudao-query.el" (26829 11924
-;;;;;;  859677 615000))
+;;; Generated autoloads from wudao-json-cache.el
+
+(register-definition-prefixes "wudao-json-cache" '("wudao/json-cache-"))
+
+
+;;; Generated autoloads from wudao-lib.el
+
+(register-definition-prefixes "wudao-lib" '("wudao/lib-"))
+
+
 ;;; Generated autoloads from wudao-query.el
 
-(autoload 'wudao/query-word-by-hash "wudao-query" "\
+(autoload 'wudao/query-word-by-hash/use-json-parse "wudao-query"
+"
 
+(fn QUERY &optional FULL)")
+(autoload 'wudao/query-word-by-command/use-json-parse "wudao-query"
+"
 
-\(fn QUERY &optional FULL)")
-
-(autoload 'wudao/query-word-by-hash/use-json-parse "wudao-query" "\
-
-
-\(fn QUERY &optional FULL)")
-
-(register-definition-prefixes "wudao-query" '("wudao/query-"))
-
-;;;***
+(fn QUERY &optional FULL)")
 
 ;;; End of scraped data
 
