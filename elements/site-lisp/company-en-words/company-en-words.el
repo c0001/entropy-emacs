@@ -101,7 +101,8 @@
             company-en-words/var--candi-max-len)))
 
 (defun company-en-words/var--wudao-required nil
-  (featurep 'wudao-query))
+  (and (require 'wudao-query nil t)
+       (fboundp 'wudao/query-word-by-hash/use-json-parse)))
 
 (defun company-en-words (command &optional arg &rest _ignored)
   (interactive (list 'interactive))
