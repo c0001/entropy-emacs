@@ -604,7 +604,8 @@ faild with hash '%s' which must match '%s'"
     (if source-dirP
         (dolist (f (entropy/emacs-list-dir-subfiles dir-cur))
           (unless (or (string-match-p "^.*-pkg\\.el$" f)
-                      (string-match-p "^.*test\\.el$" f))
+                      (string-match-p "^.*test\\.el$" f)
+                      (string-match-p "\\.dir-locals\\.el$" f))
             (when (string-match-p "^.*\\.el$" f)
               (byte-recompile-file f t 0)
               ;; Modify elc file modtime as same as source file so the

@@ -3533,39 +3533,6 @@ Do you want to open it with messy?"
                Info-default-directory-list
                (list doc-info-dir)))))))
 
-;; *** fake display-graphic
-(defun entropy/emacs-display-graphic-fake-advice
-    (orig-func &rest orig-args)
-  "The `display-graphic-p' around advice for some case that needs
-to forcely judge as a displayable status.
-
-This also affects `display-multi-font-p' because it's an alias of
-that."
-  (cond
-   ((and entropy/emacs-fall-love-with-pdumper
-         entropy/emacs-do-pdumper-in-X) t)
-   (t (apply orig-func orig-args))))
-
-(advice-add 'display-graphic-p
-            :around
-            #'entropy/emacs-display-graphic-fake-advice)
-
-;; Disable `entropy/emacs-display-graphic-fake-advice' when common
-;; start procedure finished (before any other trail hook run), thus
-;; when pdumper session start, `display-graphic-p' function will not
-;; cause some issue e.g. `window-font-width' will throw out error
-;; since the very beginning of pdumper session may(why?) starting on
-;; cli status so that `font-info' will retrieve 'nil' as the callback
-;; of `face-font'.
-(let ((hook (if entropy/emacs-minimal-start
-                'entropy/emacs-init-mini-hook
-              'entropy/emacs-init-X-hook)))
-  (add-hook hook
-            #'(lambda ()
-                (advice-remove
-                 'display-graphic-p
-                 #'entropy/emacs-display-graphic-fake-advice))))
-
 ;; *** clean stuff files
 (entropy/emacs-when-let*-first
     (((not (entropy/emacs-env-init-with-pure-eemacs-env-p)))

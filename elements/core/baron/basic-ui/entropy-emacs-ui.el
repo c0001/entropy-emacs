@@ -633,9 +633,15 @@ window removed since we just need one welcom buffer."
   (setq inhibit-startup-screen t)
 
   (if entropy/emacs-fall-love-with-pdumper
-      (entropy/emacs-lazy-with-load-trail
-        'welcome-buffer
-        (entropy/emacs-ui--init-welcom-init-core))
+      (add-hook 'entropy/emacs-pdumper-load-hook
+                #'(lambda nil
+                    (entropy/emacs-ui--init-welcom-init-core)
+                    ;; FIXME: pdumper init-time should redisplay to
+                    ;; flush display immediately?
+                    (redisplay t))
+                ;; NOTE: ensure eemacs init buffer run at first
+                ;; overhead of all `add-hook' for this hook
+                -100)
     (entropy/emacs-ui--init-welcom-init-core)))
 
 ;; *** emacs dashboard
