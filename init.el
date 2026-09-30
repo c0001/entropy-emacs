@@ -124,7 +124,7 @@ The path is expanded and absoluted and satisfied by `file-name-as-directory'."
 ;; *** Vars
 ;; set entropy-emacs lowest emacs version requirement
 (defconst entropy/emacs-lowest-emacs-version-requirement
-  "28.2"
+  "30.1"
   "The lowsest emacs version requirement for entropy-emacs.
 
 It's a version string which can be used for `version<' and
