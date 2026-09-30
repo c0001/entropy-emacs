@@ -286,7 +286,12 @@ configuration.")
             ;; NOTE: put this at the tail of pdumper recover since its
             ;; value affects `entropy/emacs-message-do-message'.
             entropy/emacs-fall-love-with-pdumper nil
-            entropy/emacs-pdumper--doing-recover-p nil))))
+            entropy/emacs-pdumper--doing-recover-p nil)
+      (run-with-idle-timer
+       0 nil
+       (lambda nil
+         (let ((inhibit-quit t))
+           (run-hooks 'entropy/emacs-pdumper-after-load-hook)))))))
 
 ;; ** load-files
 (defun entropy/emacs-pdumper--load-files-core (top-dir files)

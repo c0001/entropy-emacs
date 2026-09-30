@@ -937,7 +937,9 @@ happened.")
 commands.")
 
 (defvar entropy/emacs-top-key
-  (if (display-graphic-p)
+  (if (or (display-graphic-p)
+          (and entropy/emacs-fall-love-with-pdumper
+               entropy/emacs-do-pdumper-in-X))
       (car entropy/emacs-top-prefix-key-cons)
     (cdr entropy/emacs-top-prefix-key-cons))
   "Top key for entropy-emacs global keybind for

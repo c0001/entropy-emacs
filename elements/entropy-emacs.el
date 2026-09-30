@@ -1926,7 +1926,7 @@ byte-compile generated but source loading undeeded.")
 
 (defun entropy/emacs--inner-setenv (&rest args)
   "eemacs internal `setenv' variant to maintain assigned env cross
-session like for `entropy/emacs-pdumper-load-hook'.
+session like for `after-pdump-load-hook'.
 
 NOTE: do not use this unless for eemacs inner facilities
 developments.
@@ -1935,11 +1935,11 @@ NOTE: for eemacs spec env vars use the alias
 `entropy/emacs--inner-setenv-eemacs-env' to distinguish context."
   (prog1 (apply 'setenv args)
     (if (bound-and-true-p entropy/emacs-fall-love-with-pdumper)
-        (if (bound-and-true-p entropy/emacs-pdumper-load-hook)
-            (setq entropy/emacs-pdumper-load-hook
-                  (nconc entropy/emacs-pdumper-load-hook
+        (if (bound-and-true-p after-pdump-load-hook)
+            (setq after-pdump-load-hook
+                  (nconc after-pdump-load-hook
                          (list (lambda nil (apply 'setenv args)))))
-          (setq entropy/emacs-pdumper-load-hook
+          (setq after-pdump-load-hook
                 (list (lambda nil (apply 'setenv args))))))))
 
 (defalias 'entropy/emacs--inner-setenv-eemacs-env

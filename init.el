@@ -174,6 +174,31 @@ It's a version string which can be used for `version<' and
    entropy/emacs-user-emacs-directory)
   "The value for `custom-file' but specified for =entropy-emacs=.")
 
+(defvar entropy/emacs-pdumper-load-hook nil
+  "Hook for run with pdumper session startup.")
+(defvar entropy/emacs-pdumper-after-load-hook nil
+  "Hook for run after pdumper session startup done.")
+(defvar entropy/emacs-startup-displayable-buffers nil
+  "List of elements indicate eemacs startup with
+displayble(opened) (file)buffers from command-line.")
+(add-to-list 'command-line-functions
+             (progn
+               (defalias 'entropy/emacs-command-line-function
+                 (lambda (&rest _)
+                   (let* ((dir command-line-default-directory)
+                          (file (expand-file-name
+                                 (command-line-normalize-file-name argi)
+                                 dir)))
+                     (push (list argi dir file)
+                           entropy/emacs-startup-displayable-buffers)
+                     (when entropy/emacs-fall-love-with-pdumper
+                       (setq entropy/emacs-pdumper-after-load-hook
+                             (append entropy/emacs-pdumper-after-load-hook
+                                     (list (lambda (&rest _)
+                                             (find-file-other-window file))))))
+                     t))
+                 'entropy/emacs-command-line-function)))
+
 ;; *** Funcs
 ;; **** Multi-version emacs compatible
 ;; TODO ...
@@ -392,8 +417,6 @@ dumped as well as older vers any more.")
 (setq entropy/emacs-do-pdumping-with-lazy-load-p
       (> emacs-major-version 28))
 
-(defvar entropy/emacs-pdumper-load-hook nil
-  "Hook for run with pdumper session startup.")
 (defun entropy/emacs-is-in-eemacs-batch-compile-time nil
   (entropy/emacs-getenv-equal-eemacs-env
    "EEMACS_MAKE" '("Compile" "Compile-Dump")))
