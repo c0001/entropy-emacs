@@ -1083,6 +1083,19 @@ predicate when run it, see
                             x))
                         lsp-client-packages)))
 
+  (defun entropy//emacs-lsp-mode-workspace-remove-invalid-folders()
+    "Delete all invalid lsp tracked folders.
+
+This function existed since invalid tracked folders may corrupt such lsp
+communications with other valid workspace with same server like lsp-java
+did."
+    (interactive)
+    (--each (lsp-session-folders (lsp-session))
+      (unless (file-directory-p it)
+        (entropy/emacs-message-simple-progress-message
+            (format "Clean invalid tracked lsp folder: %s ..." it)
+          (lsp-workspace-folders-remove it)))))
+  (run-with-idle-timer 2 t #'entropy//emacs-lsp-mode-workspace-remove-invalid-folders)
 
   ;; Hack for fixing lsp memory leak for reseponse handler
   ;; suggested from:
