@@ -1131,32 +1131,17 @@ Unsupported system: %s, fallback to use linux type" system-type)
         (base-url-fmt
          "https://sourceforge.net/projects/\
 entropy-emacs-cabinet/files/LSP/lsp-java/\
-lsp-java-v3.1_jdtls_release/%s"))
+lsp-java-v4.0_jdtls_release/%s"))
     (entropy/emacs-coworker--coworker-install-by-archive-get
      "java lsp (main server)"
      "jdtls"
-     (format base-url-fmt "jdt-language-server-1.12.0-202206011637.tar.gz")
-     'tgz)
+     (format base-url-fmt "jdtls.tar.xz")
+     'txz)
     (entropy/emacs-coworker--coworker-install-by-archive-get
-     "java lsp (compiler)"
-     "jdtls/java-decompiler"
-     (format base-url-fmt "dgileadi.java-decompiler-0.0.2.vsix")
-     'zip)
-    (entropy/emacs-coworker--coworker-install-by-archive-get
-     "java lsp (tester)"
-     "jdtls/java-test"
-     (format base-url-fmt "vscjava.vscode-java-test-0.28.0.vsix")
-     'zip)
-    (entropy/emacs-coworker--coworker-install-by-archive-get
-     "java lsp (dependencies)"
-     "jdtls/java-dependency"
-     (format base-url-fmt "vscjava.vscode-java-dependency-0.5.1.vsix")
-     'zip)
-    (entropy/emacs-coworker--coworker-install-by-archive-get
-     "java lsp (vscode-extension)"
-     "jdtls/vscode-extension"
-     (format base-url-fmt "Pivotal.vscode-spring-boot-1.6.0.vsix")
-     'zip)
+     "java dap lsp (test runner)"
+     "jdtls-dap"
+     (format base-url-fmt "jdtls-dap.tar.xz")
+     'txz)
     (let* ((ktname "kotlin-language-server")
            (ktdir
             (expand-file-name ktname entropy/emacs-coworker-archive-host-root))
@@ -1188,6 +1173,13 @@ lsp-java-v3.1_jdtls_release/%s"))
               (delete-file ktbin)
               (funcall symlink-func))
           (funcall symlink-func))))))
+(with-eval-after-load 'lsp-java
+  (unless entropy/emacs-ext-use-eemacs-lsparc
+    (setq lsp-java-server-install-dir
+          (expand-file-name "jdtls/jdtls" entropy/emacs-coworker-archive-host-root)
+          dap-java-test-runner
+          (expand-file-name "jdtls-dap/jdtls-dap/test-runner/junit-platform-console-standalone.jar"
+                            entropy/emacs-coworker-archive-host-root))))
 
 ;; **** gopls
 (defun entropy/emacs-coworker-check-gopls-lsp (&rest _)

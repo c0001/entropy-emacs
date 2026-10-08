@@ -1545,9 +1545,6 @@ NOTE: related to the display char height?"
   ;; feature has lots of bug when init at boot time.
   (setq lsp-java-boot-enabled nil)
   (setq lsp-java-autobuild-enabled nil)
-  (unless entropy/emacs-ext-use-eemacs-lsparc
-    (setq lsp-java-server-install-dir
-          (expand-file-name "jdtls/" entropy/emacs-coworker-archive-host-root)))
   (entropy/emacs-eval-after-load-only-once 'lsp-mode
     (require 'lsp-java))
   :config
