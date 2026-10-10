@@ -1537,6 +1537,44 @@ There're three valid key slots:
                    'entropy/emacs-union-socks-proxy-plist))
   (add-variable-watcher var #'entropy/emacs-union-proxy-reset-varguard))
 
+;; eemacs unified proxychains conf
+(entropy/emacs-defconst entropy/emacs--proxychains-conf-file
+  (expand-file-name ".eemacs-proxychains.conf" entropy/emacs-stuffs-topdir))
+(defun entropy/emacs--gen-proxychains-conf-file (&optional type _nval)
+  (when-let*
+      (((if type (eq type 'http) t))
+       (f entropy/emacs--proxychains-conf-file)
+       (host (plist-get entropy/emacs-union-http-proxy-plist :host))
+       (port (plist-get entropy/emacs-union-http-proxy-plist :port)))
+    (with-temp-buffer
+      (insert
+       (format "\
+strict_chain
+proxy_dns
+
+# localnet exclusion
+##RFC6890 Loopback address range
+## if you enable this, you have to make sure remote_dns_subnet is not 127
+## you'll need to enable it if you want to use an application that
+## connects to localhost.
+localnet 127.0.0.0/255.0.0.0
+localnet ::1/128
+
+## RFC1918 Private Address Ranges
+localnet 10.0.0.0/255.0.0.0
+localnet 172.16.0.0/255.240.0.0
+localnet 192.168.0.0/255.255.0.0
+
+[ProxyList]
+http	%s	%s" host port))
+      (write-file f))
+    (setenv "PROXYCHAINS_CONF_FILE" f)))
+(add-hook 'entropy/emacs-after-startup-hook 'entropy/emacs--gen-proxychains-conf-file)
+(add-hook 'entropy/emacs-union-proxy-reset-hook 'entropy/emacs--gen-proxychains-conf-file)
+
+(defun eemacs//proxychains-adapted-p nil
+  (executable-find "proxychains"))
+
 ;; *** Coworkers
 (defgroup entropy/emacs-customize-group-for-coworkers nil
   "Eemacs coworkers integrated configuration customizable group."

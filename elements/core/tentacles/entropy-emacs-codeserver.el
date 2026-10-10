@@ -1016,6 +1016,53 @@ shutdown since it is managed by the customize variable
                 :around
                 #'entropy/emacs-advice-for-common-do-with-http-proxy))
 
+  (defun eemacs//lsp-not-use-proxychains-resolve-p nil
+    (or (file-remote-p default-directory)
+        (not (plist-get entropy/emacs-union-http-proxy-plist :enable))
+        (not (eemacs//proxychains-adapted-p))))
+  (entropy/emacs-!cl-defun
+      eemacs//lsp-resolve-final-command/with-proxychains (ofunc &rest oargs)
+    (if (eemacs//lsp-not-use-proxychains-resolve-p)
+        (apply ofunc oargs)
+      (let ((rtn (apply ofunc oargs)) cmd
+            (pref (mapcar (lambda (x) (propertize x '__proxychains_p_ t))
+                          (list "proxychains" "-q")))
+            (quote-fn
+             (lambda (x)
+               (propertize (shell-quote-argument x) '__proxychains_p_ t))))
+        (cond
+         ((listp rtn)
+          (setq cmd (append pref rtn)))
+         ((stringp rtn)
+          (setq cmd (concat (mapconcat quote-fn pref " ") rtn)))
+         (t (entropy/emacs-!error-as-eemacs-internal-error
+             "invalid command: %s" rtn)))
+        cmd)))
+  (advice-add 'lsp-resolve-final-command
+              :around #'eemacs//lsp-resolve-final-command/with-proxychains)
+
+  (defun eemacs//lsp-server-present? (ofunc &rest oargs)
+    (if (eemacs//lsp-not-use-proxychains-resolve-p) (apply ofunc oargs)
+      (let ((final-cmd (car oargs)) rtn)
+        (if (listp final-cmd)
+            (setq rtn
+                  (entropy/emacs-mapcar-without-orphans
+                   (lambda (x)
+                     (unless (get-text-property 0 '__proxychains_p_ x) x))
+                   final-cmd nil nil))
+          (let (pos lpos)
+            (with-temp-buffer
+              (insert final-cmd)
+              (goto-char (point-min))
+              (while (and (not (eq pos (point-max)))
+                          (setq pos (next-single-char-property-change
+                                     (setq lpos (or pos (point)))
+                                     '__proxychains_p_ (current-buffer))))
+                (goto-char pos))
+              (setq rtn (string-trim (buffer-substring lpos (poing-max)))))))
+        (apply ofunc (list rtn)))))
+  (advice-add 'lsp-server-present? :around #'eemacs//lsp-server-present?)
+
 ;; ********* lsp idle hook specifications
   (defvar entropy/emacs-codeserver--lsp-on-idle-cases
     `(

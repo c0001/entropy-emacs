@@ -1173,6 +1173,8 @@ lsp-java-v4.0_jdtls_release/%s"))
               (delete-file ktbin)
               (funcall symlink-func))
           (funcall symlink-func))))))
+(defvar lsp-java-server-install-dir)
+(defvar dap-java-test-runner)
 (with-eval-after-load 'lsp-java
   (unless entropy/emacs-ext-use-eemacs-lsparc
     (setq lsp-java-server-install-dir
