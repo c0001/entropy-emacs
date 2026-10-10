@@ -843,6 +843,7 @@ shutdown since it is managed by the customize variable
 ;; ******** lsp union set
   (setq lsp-auto-guess-root t)
   (setq lsp-auto-configure t)
+  (setq lsp-session-file nil)           ;disable persist session cache for consistency consideration
   (setq
    ;; Disable large verbose log
    lsp-log-io nil)
@@ -893,11 +894,6 @@ shutdown since it is managed by the customize variable
    lsp-modeline-workspace-status-enable nil
    lsp-lens-enable nil
    lsp-semantic-tokens-enable nil)
-
-  ;; Inhibit auto header insertion via lsp-cland client refer to
-  ;; https://github.com/emacs-lsp/lsp-mode/issues/2503
-  (defvar lsp-clients-clangd-args)
-  (setq lsp-clients-clangd-args '("--header-insertion=never"))
 
 ;; ******** lsp server init args specifications
 
@@ -1534,6 +1530,15 @@ NOTE: related to the display char height?"
   )
 
 ;; ****** lsp-mode other extension
+;; ******* lsp clangd
+(use-package lsp-clangd
+  :ensure nil
+  :after lsp-mode
+  :config
+  ;; Inhibit auto header insertion via lsp-cland client refer to
+  ;; https://github.com/emacs-lsp/lsp-mode/issues/2503
+  (setq lsp-clients-clangd-args `("--header-insertion=never")))
+
 ;; ******* lsp python ms
 ;; Microsoft python-language-server support
 (use-package lsp-python-ms
