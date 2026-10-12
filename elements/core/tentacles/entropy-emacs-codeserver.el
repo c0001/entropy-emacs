@@ -981,6 +981,7 @@ shutdown since it is managed by the customize variable
             #'entropy/emacs-codeserver--lsp-mode-remove-session-file)
   (defun entropy/emacs-codeserver--lsp-mode-remove-session-file ()
     (when (and (boundp 'lsp-session-file)
+               (stringp lsp-session-file)
                (file-exists-p lsp-session-file))
       (delete-file lsp-session-file)))
 
