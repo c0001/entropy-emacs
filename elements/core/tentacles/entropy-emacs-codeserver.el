@@ -1117,6 +1117,33 @@ predicate when run it, see
       (setq __eemacs-lsp-narrow-p t)
       rtn))
 
+;; ********* redirect uri to reuse current workspace if possible
+
+  (entropy/emacs-!cl-defun eemacs//lsp--uri-to-path (ofunc &rest oargs)
+    "Around advice for `lsp--uri-to-path' for redirecting absolute path
+return to expand with current lsp session folder if possible, so that
+the new opened file-node reused current lsp workspace."
+    (let* ((ortn (apply ofunc oargs))
+           (bf (buffer-file-name)))
+      (if (or (not bf) (not (stringp ortn)) (string-empty-p ortn)
+              (not (file-exists-p ortn))) ortn
+        (let* ((ofname (entropy/emacs-directory-file-name ortn))
+               (oabs   (file-truename ofname))
+               (wkdir  (let ((dir (lsp-find-session-folder (lsp-session) bf)))
+                         (and dir (entropy/emacs-directory-file-name dir))))
+               (wkabs   (and wkdir (file-truename wkdir)))
+               node rtn)
+          (if (not wkabs) ortn
+            (if (not (string-prefix-p wkabs oabs)) ortn
+              (setq node (string-remove-prefix wkabs oabs)
+                    rtn (concat wkdir node))
+              (unless (entropy/emacs-existed-filesystem-nodes-equal-p
+                       ofname rtn)
+                (entropy/emacs-!error-as-eemacs-internal-error
+                 "not equal '%s' -- '%s'" ofname rtn))
+              rtn))))))
+  (advice-add 'lsp--uri-to-path :around #'eemacs//lsp--uri-to-path)
+
 ;; ******** others
   ;; Remove clients not officially included in `lsp-mode' internal
   ;; subroutine to prevent from coverring eemacs customizations.
