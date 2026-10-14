@@ -1630,7 +1630,14 @@ NOTE: related to the display char height?"
   :config
   (entropy/emacs-message-simple-progress-message
    "require lsp-java"
-   (require 'lsp-java-boot)))
+   (require 'lsp-java-boot))
+
+  ;; Disable multi-root since each client should be projet bound only.
+  (dolist (id (list 'jdtls 'boot-ls))
+    (when-let* ((table lsp-clients) (this-client-id id)
+                (this-client (gethash this-client-id table)))
+      (setf (lsp--client-multi-root this-client) nil)))
+  )
 
 (use-package lsp-dart
   :defer
