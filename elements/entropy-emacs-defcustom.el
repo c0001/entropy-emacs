@@ -3620,11 +3620,16 @@ Do you want to open it with messy?"
                   (eww-bookmarks-directory          . "eww/")
 
                   ;; lsp mode
-                  (lsp-session-file              . "lsp-mode/lsp-session-v1")
-                  (lsp-intelephense-storage-path . "lsp-mode/cache/intelephense")
+                  (lsp-session-file              . "lsp-mode/lsp-session.cache")
                   (lsp-server-install-dir        . "lsp-mode/cache/install/")
-                  ;; - lsp java
-                  (lsp-java-workspace-dir        . "lsp-mode/workspace/lsp-java/")
+                  (lsp-intelephense-storage-path . "lsp-mode/intelephense/intelephense.cache")
+                  ;; - lsp-mode workspace
+                  (lsp-java-workspace-dir          . "lsp-mode/workspace/lsp-java/")
+                  (lsp-java-workspace-cache-dir    . "lsp-mode/workspace/lsp-java/.cache/")
+                  (lsp-kotlin-workspace-dir        . "lsp-mode/workspace/lsp-kotlin/")
+                  (lsp-kotlin-workspace-cache-dir  . "lsp-mode/workspace/lsp-kotlin/.cache/")
+                  (lsp-clojure-workspace-dir       . "lsp-mode/workspace/lsp-clojure/")
+                  (lsp-clojure-workspace-cache-dir . "lsp-mode/workspace/lsp-clojure/.cache/")
 
                   ;; async log file
                   (async-byte-compile-log-file . "async-bytecomp.log")
