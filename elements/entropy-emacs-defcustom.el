@@ -3626,6 +3626,9 @@ Do you want to open it with messy?"
                   ;; - lsp-mode workspace
                   (lsp-java-workspace-dir          . "lsp-mode/workspace/lsp-java/")
                   (lsp-java-workspace-cache-dir    . "lsp-mode/workspace/lsp-java/.cache/")
+                  ;; FIXME: unsure its a file or dir, so leave as comment
+                  ;; (lsp-jt-root                     . "lsp-mode/workspace/lsp-java/eclipse.jdt.ls/server/java-test/server/")
+                  (dap-java-test-runner            . "lsp-mode/workspace/lsp-java/eclipse.jdt.ls/test-runner/junit-platform-console-standalone.jar")
                   (lsp-kotlin-workspace-dir        . "lsp-mode/workspace/lsp-kotlin/")
                   (lsp-kotlin-workspace-cache-dir  . "lsp-mode/workspace/lsp-kotlin/.cache/")
                   (lsp-clojure-workspace-dir       . "lsp-mode/workspace/lsp-clojure/")
