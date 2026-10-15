@@ -619,6 +619,29 @@ certain eemacs-spec conditions."
           (add-to-list var d)))
        (t (entropy/emacs-!error "invalid type `%s'" type))))))
 
+;; ***** workspace folder spec
+(defvar eemacs//lsp-workspace-dir-register nil)
+(defvar eemacs//lsp-workspace-dir-cache nil)
+(defun eemacs//lsp-workspace-dir-create (prj-root client-id)
+  "Create a temp directory for per lsp workspace for preveting multi
+workspace use same workspace directory which may cause collision as
+`lsp-java-workspace-dir' did.
+
+Return the created dir or the cache one which already created for thus
+workspace."
+  (when-let* ((reg (alist-get client-id eemacs//lsp-workspace-dir-register))
+              (cache t))
+    (if (setq cache (catch :existed
+                      (dolist (el eemacs//lsp-workspace-dir-cache)
+                        (when (equal (cons client-id prj-root) el)
+                          (throw :existed el)))
+                      nil)) (cdr cache)
+      (setq client-id (replace-regexp-in-string "\\(/\\|\\\\\\)" "-" (symbol-name client-id)))
+      (let ((tmpdir (make-temp-file (format "eemac-lsp-workspace-dir_%s." client-id) t)))
+        (funcall reg prj-root tmpdir)
+        (push (cons client-id prj-root) eemacs//lsp-workspace-dir-cache)
+        tmpdir))))
+
 ;; **** lsp-mode
 ;; ****** lsp-mode core
 (use-package lsp-mode
@@ -1144,6 +1167,26 @@ the new opened file-node reused current lsp workspace."
               rtn))))))
   (advice-add 'lsp--uri-to-path :around #'eemacs//lsp--uri-to-path)
 
+;; ******** workspace spec
+;; ********* workspace dir creation
+
+  (defun eemacs//lsp-mode-create-workspace-dir ()
+    (when-let* ((workspace (bound-and-true-p lsp--cur-workspace))
+                (prj-root (and workspace (lsp--workspace-root workspace)))
+                (client-id (and workspace
+                                (lsp--client-server-id (lsp--workspace-client workspace)))))
+      (eemacs//lsp-workspace-dir-create prj-root client-id)))
+  (defun eemacs//make--lsp-workspace (ofunc &rest oargs)
+    (let ((wk (apply ofunc oargs)))
+      (let ((lsp--cur-workspace wk))
+        (eemacs//lsp-mode-create-workspace-dir))
+      wk))
+  (advice-add 'make-lsp--workspace :around #'eemacs//make--lsp-workspace)
+  (defun eemacs//lsp-mode-hook/create-workspace-dir nil
+    (when (bound-and-true-p lsp-mode)
+      (eemacs//lsp-mode-create-workspace-dir)))
+  (add-hook 'lsp-mode-hook #'eemacs//lsp-mode-hook/create-workspace-dir)
+
 ;; ******** others
   ;; Remove clients not officially included in `lsp-mode' internal
   ;; subroutine to prevent from coverring eemacs customizations.
@@ -1637,7 +1680,24 @@ NOTE: related to the display char height?"
     (when-let* ((table lsp-clients) (this-client-id id)
                 (this-client (gethash this-client-id table)))
       (setf (lsp--client-multi-root this-client) nil)))
+
+  (defun eemacs//lsp-java/set-workspace-dir (_prj-root workspace-dir)
+    (setq-local lsp-java-workspace-dir workspace-dir
+                lsp-java-workspace-cache-dir
+                (expand-file-name ".cache" workspace-dir)))
+  (add-to-list 'eemacs//lsp-workspace-dir-register
+               (cons 'jdtls #'eemacs//lsp-java/set-workspace-dir))
   )
+
+(use-package lsp-kotlin
+  :ensure nil
+  :config
+  (defun eemacs//lsp-kotlin/set-workspace-dir (_prj-root workspace-dir)
+    (setq-local lsp-kotlin-workspace-dir workspace-dir
+                lsp-kotlin-workspace-cache-dir
+                (expand-file-name ".cache" workspace-dir)))
+  (add-to-list 'eemacs//lsp-workspace-dir-register
+               (cons 'kotlin-ls #'eemacs//lsp-kotlin/set-workspace-dir)))
 
 (use-package lsp-dart
   :defer
@@ -1690,6 +1750,18 @@ introduced via 'https://github.com/emacs-lsp/lsp-mode/pull/4202'."
   (advice-add 'lsp-clients-typescript-server-path
               :around
               '__ya/lsp-clients-typescript-server-path))
+
+;; ******* lsp clojure
+
+(use-package lsp-clojure
+  :ensure nil
+  :config
+  (defun eemacs//lsp-clojure/set-workspace-dir (_prj-root workspace-dir)
+    (setq-local lsp-clojure-workspace-dir workspace-dir
+                lsp-clojure-workspace-cache-dir
+                (expand-file-name ".cache" workspace-dir)))
+  (add-to-list 'eemacs//lsp-workspace-dir-register
+               (cons 'clojure-lsp #'eemacs//lsp-clojure/set-workspace-dir)))
 
 ;; **** Eglot
 
