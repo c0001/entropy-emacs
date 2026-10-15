@@ -630,14 +630,14 @@ workspace use same workspace directory which may cause collision as
 Return the created dir or the cache one which already created for thus
 workspace."
   (when-let* ((reg (alist-get client-id eemacs//lsp-workspace-dir-register))
-              (cache t))
+              (cache t) (client-name t))
     (if (setq cache (catch :existed
                       (dolist (el eemacs//lsp-workspace-dir-cache)
                         (when (equal (cons client-id prj-root) el)
                           (throw :existed el)))
                       nil)) (cdr cache)
-      (setq client-id (replace-regexp-in-string "\\(/\\|\\\\\\)" "-" (symbol-name client-id)))
-      (let ((tmpdir (make-temp-file (format "eemac-lsp-workspace-dir_%s." client-id) t)))
+      (setq client-name (replace-regexp-in-string "\\(/\\|\\\\\\)" "-" (symbol-name client-id)))
+      (let ((tmpdir (make-temp-file (format "eemac-lsp-workspace-dir_%s." client-name) t)))
         (funcall reg prj-root tmpdir)
         (push (cons client-id prj-root) eemacs//lsp-workspace-dir-cache)
         tmpdir))))
