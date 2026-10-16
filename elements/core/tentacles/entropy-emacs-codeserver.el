@@ -630,17 +630,38 @@ workspace use same workspace directory which may cause collision as
 Return the created dir or the cache one which already created for thus
 workspace."
   (when-let* ((reg (alist-get client-id eemacs//lsp-workspace-dir-register))
-              (cache t) (client-name t))
-    (if (setq cache (catch :existed
-                      (dolist (el eemacs//lsp-workspace-dir-cache)
-                        (when (equal (cons client-id prj-root) el)
-                          (throw :existed el)))
-                      nil)) (cdr cache)
+              (cache-key (cons client-id prj-root))
+              (cache-val t) (client-name t))
+    (if (and (setq cache-val (alist-get cache-key eemacs//lsp-workspace-dir-cache
+                                        nil nil 'equal))
+             (or (file-directory-p cache-val)
+                 (prog1 nil
+                   (setq eemacs//lsp-workspace-dir-cache
+                         (delete (assoc cache-key eemacs//lsp-workspace-dir-cache 'equal)
+                                 eemacs//lsp-workspace-dir-cache)))))
+        (prog1 cache-val (funcall reg prj-root cache-val))
       (setq client-name (replace-regexp-in-string "\\(/\\|\\\\\\)" "-" (symbol-name client-id)))
-      (let ((tmpdir (make-temp-file (format "eemac-lsp-workspace-dir_%s." client-name) t)))
-        (funcall reg prj-root tmpdir)
-        (push (cons client-id prj-root) eemacs//lsp-workspace-dir-cache)
-        tmpdir))))
+      (let (newdir flag-file)
+        (entropy/emacs-setf-by-body newdir
+          (expand-file-name
+           (format "%s.%s"
+                   (format "eemac-lsp-workspace-dir_%s" client-name)
+                   (md5 prj-root))
+           (expand-file-name "lsp/workspace/" entropy/emacs-stuffs-topdir)))
+        (setq flag-file (expand-file-name ".eemacs-lsp-prj-root.txt" newdir))
+        (if (not (file-exists-p newdir)) (progn (make-directory newdir t) (f-write prj-root 'utf-8 flag-file))
+          (when (or (and (file-exists-p flag-file)
+                         (not (string= (f-read flag-file 'utf-8) prj-root)))
+                    (and current-prefix-arg
+                         (yes-or-no-p (format "Refresh existed lsp workspace dir for '%s' (at %s)?"
+                                              prj-root newdir))))
+            (progn
+              (f-delete (entropy/emacs-directory-file-name newdir) 'force)
+              (make-directory newdir t)
+              (f-write prj-root 'utf-8 flag-file))))
+        (funcall reg prj-root newdir)
+        (push (cons cache-key newdir) eemacs//lsp-workspace-dir-cache)
+        newdir))))
 
 ;; **** lsp-mode
 ;; ****** lsp-mode core
@@ -1170,16 +1191,17 @@ the new opened file-node reused current lsp workspace."
 ;; ******** workspace spec
 ;; ********* workspace dir creation
 
-  (defun eemacs//lsp-mode-create-workspace-dir ()
-    (when-let* ((workspace (bound-and-true-p lsp--cur-workspace))
-                (prj-root (and workspace (lsp--workspace-root workspace)))
-                (client-id (and workspace
-                                (lsp--client-server-id (lsp--workspace-client workspace)))))
-      (eemacs//lsp-workspace-dir-create prj-root client-id)))
+  (defun eemacs//lsp-mode-create-workspace-dir (&optional spec-workspace)
+    (when-let* ((wks (or (and spec-workspace (list spec-workspace)) (lsp-workspaces))))
+      (dolist (wk wks)
+        (when-let* ((workspace wk)
+                    (prj-root (and workspace (lsp--workspace-root workspace)))
+                    (client-id (and workspace
+                                    (lsp--client-server-id (lsp--workspace-client workspace)))))
+          (eemacs//lsp-workspace-dir-create prj-root client-id)))))
   (defun eemacs//make--lsp-workspace (ofunc &rest oargs)
     (let ((wk (apply ofunc oargs)))
-      (let ((lsp--cur-workspace wk))
-        (eemacs//lsp-mode-create-workspace-dir))
+      (eemacs//lsp-mode-create-workspace-dir wk)
       wk))
   (advice-add 'make-lsp--workspace :around #'eemacs//make--lsp-workspace)
   (defun eemacs//lsp-mode-hook/create-workspace-dir nil
