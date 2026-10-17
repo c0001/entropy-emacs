@@ -622,6 +622,7 @@ certain eemacs-spec conditions."
 ;; ***** workspace folder spec
 (defvar eemacs//lsp-workspace-dir-register nil)
 (defvar eemacs//lsp-workspace-dir-cache nil)
+(defvar eemacs//lsp-workspace-dir-refresh-pred-before nil)
 (defun eemacs//lsp-workspace-dir-create (prj-root client-id)
   "Create a temp directory for per lsp workspace for preveting multi
 workspace use same workspace directory which may cause collision as
@@ -631,14 +632,26 @@ Return the created dir or the cache one which already created for thus
 workspace."
   (when-let* ((reg (alist-get client-id eemacs//lsp-workspace-dir-register))
               (cache-key (cons client-id prj-root))
-              (cache-val t) (client-name t))
-    (if (and (setq cache-val (alist-get cache-key eemacs//lsp-workspace-dir-cache
-                                        nil nil 'equal))
-             (or (file-directory-p cache-val)
-                 (prog1 nil
-                   (setq eemacs//lsp-workspace-dir-cache
-                         (delete (assoc cache-key eemacs//lsp-workspace-dir-cache 'equal)
-                                 eemacs//lsp-workspace-dir-cache)))))
+              (cache-val (or (alist-get cache-key eemacs//lsp-workspace-dir-cache
+                                        nil nil 'equal)
+                             entropy/emacs-false-symbol))
+              (client-name t)
+              (refresh-pred-before eemacs//lsp-workspace-dir-refresh-pred-before)
+              (query-p current-prefix-arg)
+              (query-refresh-p-fn
+               (lambda (the-wkdir)
+                 (and query-p
+                      (yes-or-no-p (format "Refresh existed lsp workspace dir for '%s' (at %s)?"
+                                           prj-root the-wkdir))
+                      (if refresh-pred-before
+                          (or (funcall refresh-pred-before)
+                              (entropy/emacs-error-without-debugger
+                               "Failed refresh lsp workspace in before pred ([%s]:%s,%s)"
+                               client-id prj-root the-wkdir))
+                        nil)))))
+    (if (and (and (not (eq cache-val entropy/emacs-false-symbol)) cache-val)
+             (not query-p)
+             (file-directory-p cache-val))
         (prog1 cache-val (funcall reg prj-root cache-val))
       (setq client-name (replace-regexp-in-string "\\(/\\|\\\\\\)" "-" (symbol-name client-id)))
       (let (newdir flag-file)
@@ -652,15 +665,14 @@ workspace."
         (if (not (file-exists-p newdir)) (progn (make-directory newdir t) (f-write prj-root 'utf-8 flag-file))
           (when (or (and (file-exists-p flag-file)
                          (not (string= (f-read flag-file 'utf-8) prj-root)))
-                    (and current-prefix-arg
-                         (yes-or-no-p (format "Refresh existed lsp workspace dir for '%s' (at %s)?"
-                                              prj-root newdir))))
+                    (funcall query-refresh-p-fn newdir))
             (progn
               (f-delete (entropy/emacs-directory-file-name newdir) 'force)
               (make-directory newdir t)
               (f-write prj-root 'utf-8 flag-file))))
         (funcall reg prj-root newdir)
-        (push (cons cache-key newdir) eemacs//lsp-workspace-dir-cache)
+        (cl-pushnew (cons cache-key newdir) eemacs//lsp-workspace-dir-cache
+                    :test 'equal)
         newdir))))
 
 ;; **** lsp-mode
@@ -1191,22 +1203,40 @@ the new opened file-node reused current lsp workspace."
 ;; ******** workspace spec
 ;; ********* workspace dir creation
 
-  (defun eemacs//lsp-mode-create-workspace-dir (&optional spec-workspace)
-    (when-let* ((wks (or (and spec-workspace (list spec-workspace)) (lsp-workspaces))))
+  (entropy/emacs-defconst/only-allow/buffer-local
+    eemacs//lsp-mode-create-workspace-dir-did-p nil)
+  (defun eemacs//lsp-mode-create-workspace-dir (&optional with-freshnew-workspace)
+    (when-let* (((not eemacs//lsp-mode-create-workspace-dir-did-p))
+                (wks (or (and with-freshnew-workspace
+                              (list with-freshnew-workspace)) (lsp-workspaces)))
+                (is-deferred-p 'fake))
       (dolist (wk wks)
         (when-let* ((workspace wk)
+                    (eemacs//lsp-workspace-dir-refresh-pred-before
+                     (unless with-freshnew-workspace
+                       (lambda ()
+                         (let ((inhibit-quit t)) (lsp-workspace-shutdown wk))
+                         (and (eq (lsp--workspace-shutdown-action wk) 'shutdown)
+                              (prog1 t
+                                (unless (eq is-deferred-p t)
+                                  (lsp-deferred)
+                                  (setq is-deferred-p t)))))))
                     (prj-root (and workspace (lsp--workspace-root workspace)))
                     (client-id (and workspace
                                     (lsp--client-server-id (lsp--workspace-client workspace)))))
-          (eemacs//lsp-workspace-dir-create prj-root client-id)))))
+          (eemacs//lsp-workspace-dir-create prj-root client-id)))
+      (setq-local eemacs//lsp-mode-create-workspace-dir-did-p
+                  t)))
   (defun eemacs//make--lsp-workspace (ofunc &rest oargs)
     (let ((wk (apply ofunc oargs)))
-      (eemacs//lsp-mode-create-workspace-dir wk)
+      (when (eemacs//lsp-mode-create-workspace-dir wk)
+        (message "eemacs lsp workspace dir set in make--lsp-workspae"))
       wk))
   (advice-add 'make-lsp--workspace :around #'eemacs//make--lsp-workspace)
   (defun eemacs//lsp-mode-hook/create-workspace-dir nil
     (when (bound-and-true-p lsp-mode)
-      (eemacs//lsp-mode-create-workspace-dir)))
+      (when (eemacs//lsp-mode-create-workspace-dir)
+        (message "eemacs lsp workspace dir set in lsp-mode-hook"))))
   (add-hook 'lsp-mode-hook #'eemacs//lsp-mode-hook/create-workspace-dir)
 
 ;; ******** others
