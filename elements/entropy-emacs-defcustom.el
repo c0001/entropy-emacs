@@ -763,7 +763,7 @@ value type according to non-defined internal definition")
   "")
 
 (defconst entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-git-tag
-  (format "CI/dev/%s/20260916003353"
+  (format "CI/dev/%s/20261019042515"
           entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-version)
   "")
 
@@ -789,7 +789,7 @@ download/%s/entropy-emacs-extensions_build_%s.tar.xz"
   "")
 
 (defconst entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-archive-sha256sum
-  "a88a2fd4428da91d31bc93768fc5591c68dbd767811bab5974bcf3611a9b0bef"
+  "4fdeaad398c507c92410a191e45723b6e23388089ad3be95fb3e2b1decb31091"
   "")
 
 ;; using `entropy-emacs-extensions-project-build' prefer when detected

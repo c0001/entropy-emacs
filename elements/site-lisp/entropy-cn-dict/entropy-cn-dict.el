@@ -1,15 +1,15 @@
-;;; entropy-cn-dict.el --- Simple chinese dictionary using BAIDU API  -*- lexical-binding: t; -*-
+;;; entropy-cn-dict.el --- Simple chinese dictionary using moedict.el  -*- lexical-binding: t; -*-
 ;;
-;;; Copyright (C) 20190911 Entropy
+;;; Copyright (C) 20261019 Entropy
 ;; #+BEGIN_EXAMPLE
 ;; Author:        Entropy <bmsac0001@gmail.com>
 ;; Maintainer:    Entropy <bmsac001@gmail.com>
 ;; URL:           https://github.com/c0001/entropy-cn-dict
-;; Package-Version: 0.1.0
+;; Package-Version: 0.2.0
 ;; Created:       2018
 ;; Keywords:      dictionary, translation, cn-dict
 ;; Compatibility: GNU Emacs 24;
-;; Package-Requires: ((emacs "24") (cl-lib "0.5") (eww))
+;; Package-Requires: ((emacs "24") (cl-lib "0.5") (moedict))
 ;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -35,8 +35,8 @@
 ;;
 ;;; Code:
 
-(require 'eww)
-(defvar url-allow-non-local-files)
+(require 'moedict)
+(require 'entropy-s2t)
 
 (defgroup entropy/cndt-customize-top-group nil
   "Customize group for `entropy-cn-dict'."
@@ -47,72 +47,72 @@
   :type 'string
   :group 'entropy/cndt-customize-top-group)
 
-(defvar entropy/cndt-engine "https://hanyu.baidu.com/s?wd="
-  "Search engine for chinese string query.")
+(defvar entropy/cndt--doc-buffer nil)
 
 (defconst entropy/cndt-cjk-char-regexp
   "[\u4e00-\u9fa5]"
   "CJK char regexp presentation")
 
-(defun entropy/cndt-get-query (url)
-  "Query function of `entropy-cn-dict' for retrieve url and
-process data of retrieved data for insert the result to current
-buffer."
-  (let ((url-allow-non-local-files t)
-        (inhibit-read-only t)
-        ewdata)
-    (fundamental-mode)
-    (erase-buffer)
-    (insert
-     (with-current-buffer
-         (condition-case-unless-debug err
-             (url-retrieve-synchronously url)
-           (error
-            ;; just abort when `url-retrieve-synchronously' can not
-            ;; handle url but in `debug-on-error' case since there's
-            ;; may caused by some other influences.
-            (user-error "can not retrieve `%s' (%s)" url err)))
-       (set-buffer-multibyte t)
-       (goto-char (point-min))
-       ;; delete the http request header meta data
-       (when (re-search-forward "^$" nil t)
-         (delete-region (point-min) (point)))
-       ;; use eww subroutine to render the retrieved DOM so that we
-       ;; can treat it a eww buffer as usually did as via `eww'.
-       (eww-mode)
-       (eww-display-html nil url nil nil (current-buffer))
-       ;; cross referrence navigation history enable via `eww-data'
-       (setq ewdata eww-data)
-       (prog1 (buffer-substring (point-min) (point-max))
-         (kill-buffer))))
-    (eww-mode)
-    (setq-local eww-data ewdata)
-    (goto-char (point-min))))
+(defvar entropy/cndt--query-pages nil)
+(defvar entropy/cndt--query-pages-idx -1)
+(defun entropy/cndt--save-page nil
+  (with-current-buffer entropy/cndt--doc-buffer
+    (let ((doc (buffer-substring (point-min) (point-max)))
+          (cur-idx entropy/cndt--query-pages-idx))
+      (setf (nthcdr (1+ cur-idx) entropy/cndt--query-pages)
+            (cons doc (nthcdr (1+ cur-idx) entropy/cndt--query-pages)))
+      (setq entropy/cndt--query-pages-idx (1+ cur-idx)))))
+(defun entropy/cndt-prev-page nil
+  (interactive nil entropy/cndt-mode)
+  (let ((idx (1- entropy/cndt--query-pages-idx)))
+    (unless (< idx 0)
+      (entropy/cndt--render-doc (nth idx entropy/cndt--query-pages))
+      (setq entropy/cndt--query-pages-idx idx))))
+(defun entropy/cndt-next-page nil
+  (interactive nil entropy/cndt-mode)
+  (let ((idx (1+ entropy/cndt--query-pages-idx)))
+    (unless (> idx (1- (length entropy/cndt--query-pages)))
+      (entropy/cndt--render-doc (nth idx entropy/cndt--query-pages))
+      (setq entropy/cndt--query-pages-idx idx))))
 
-(defun entropy/cndt-search-query (url)
-  "Return buffer with retrieved data using url processed by
-`entropy/cndt-get-query'."
-  (let* ((buffer (get-buffer-create entropy/cndt-buffer-name))
-         (inhibit-read-only t) pt
-         (del-func
-          (lambda nil
-            (let ((inhibit-read-only t))
-              (goto-char pt)
-              (delete-region (point-min) (line-beginning-position)))
-            (goto-char (point-min)))))
-    (with-current-buffer buffer
-      (entropy/cndt-get-query url)
-      (cond
-       ((save-excursion (and (re-search-forward "^* 拼 音" nil t)
-                             (setq pt (point))))
-        (funcall del-func))
-       ((save-excursion (and (re-search-forward "^* 百度首页" nil t)
-                             (setq pt (point))))
-        (funcall del-func)
-        (when (save-excursion (and (re-search-forward "^*\n\\(^$\\)" nil t))
-                              (setq pt (point)))
-          (funcall del-func)))))
-    buffer))
+(defun entropy/cndt--render-doc (doc &optional save)
+  (with-current-buffer entropy/cndt--doc-buffer
+    (let ((inhibit-read-only t))
+      (erase-buffer)
+      (insert doc)
+      (and save (entropy/cndt--save-page))
+      (goto-char (point-min))
+      (entropy/cndt-mode 1)
+      (read-only-mode 1))))
+
+(defvar entropy/cndt-mode-keymap
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "q") 'quit-window)
+    (define-key map (kbd "l") #'entropy/cndt-prev-page)
+    (define-key map (kbd "r") #'entropy/cndt-next-page)
+    map))
+(define-minor-mode entropy/cndt-mode
+  "`major-mode' for `entropy/cndt-query'"
+  :initial-value nil
+  :keymap entropy/cndt-mode-keymap
+  nil)
+
+(defun entropy/cndt--ensure-moedict-db nil
+  (unless (file-exists-p moedict-dictionary-file-path)
+    (unless (executable-find "xz")
+      (user-error "您的系統上沒有發現xz這個指令，請安裝後再重試一次。
+Command 'xz' not found on your system. Please install it then try again"))
+    (unless (file-exists-p moedict-dictionary-xz-file-path)
+      (user-error "字典檔不存在"))
+    (moedict-message "字典檔設定中，請稍後 ...")
+    (redisplay t)
+    (let* ((proc-buffer (get-buffer-create " *moedict uncompress*" t))
+           (exit-code (call-process "xz" nil proc-buffer t
+                                    "-kdfvv"
+                                    (format "%s.xz" moedict-dictionary-file-path))))
+      (if (= 0 exit-code) (moedict-message "字典檔設定完成！")
+        (display-buffer proc-buffer)
+        (user-error "字典檔設定失敗！")))))
 
 (defun entropy/cndt-query (query)
   "`entropy-cn-dict' main interactive function.
@@ -122,8 +122,9 @@ prompt for quering.
 
 Tips:
 
-You can repeatly query dict witin `entropy/cndt-buffer-name'
-buffer, that it will not destruct the window config."
+You can repeatly query dict witin `entropy/cndt-buffer-name' buffer,
+with keybinding of `entropy/cndt-mode-keymap' for back/forward query
+pages."
   (interactive
    (list (let* (region c)
            (cond
@@ -137,16 +138,19 @@ buffer, that it will not destruct the window config."
             (t
              (let ((word (read-string "Input query: ")))
                word))))))
-  (let (url)
-    (if (and query (not (string= "" query)))
-        (setq url (concat entropy/cndt-engine (url-hexify-string query)))
+  (let ()
+    (unless (and query (not (string= "" query)))
       (error "cndt: Query is invalid!"))
-    (if (not (equal (buffer-name) entropy/cndt-buffer-name))
-        (let* ((buffer (entropy/cndt-search-query url)))
-          (display-buffer buffer))
-      (progn
-        (kill-buffer-and-window)
-        (funcall 'entropy/cndt-query query)))))
-
+    ;; NOTE: moedict is traditional chinese dictionary which do not
+    ;; support simplified chinese querying.
+    (setq query (entropy/s2t-string query))
+    (entropy/cndt--ensure-moedict-db)
+    (let ((doc (moedict-query-vocabulary query)))
+      (if doc (setq doc (moedict--render-rows doc))
+        (user-error "No defs for query: %s" query))
+      (setq entropy/cndt--doc-buffer
+            (get-buffer-create entropy/cndt-buffer-name t))
+      (entropy/cndt--render-doc doc t)
+      (display-buffer entropy/cndt--doc-buffer))))
 
 (provide 'entropy-cn-dict)

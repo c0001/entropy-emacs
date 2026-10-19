@@ -13778,7 +13778,7 @@ clipboard with native operation system."
                             (executable-find "powershell.exe"))))
              ;; ssh remote session may not workable with xclip-mode
              (unless (entropy/emacs-is-ssh-session)
-               (if (bound-and-true-p xclip-mode) t
+               (progn
                  (entropy/emacs-require-only-once 'xclip)
                  (setq xclip-method judger
                        xclip-program (if (eq judger 'powershell)
@@ -13787,16 +13787,19 @@ clipboard with native operation system."
                                          ;; executable
                                          (executable-find "powershell.exe")
                                        (symbol-name judger)))
-                 (entropy/emacs-run-body-only-once
-                  (entropy/emacs-with-daemon-make-frame-done
-                    'eemacs-set-xclip-mode (&rest _)
-                    :when-tui (xclip-mode 1)
-                    :when-gui (xclip-mode 0)))
                  (when (and (not (bound-and-true-p xclip-mode))
                             (not (display-graphic-p)))
                    (xclip-mode 1))
                  t))))
       judger)))
+
+(when-let* (((daemonp))
+            (func
+             'entropy/emacs-xterm-cut-or-yank-sync-with-system/functional-env-statisfied-p))
+  (entropy/emacs-with-daemon-make-frame-done
+    'eemacs-set-xclip-mode (&rest _)
+    :when-tui (progn (funcall func) (xclip-mode 1))
+    :when-gui (progn (funcall func) (xclip-mode 0))))
 
 ;; Inspired by
 ;; https://emacs-china.org/t/wsl-emacs-windows/17375/3
