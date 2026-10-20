@@ -91,7 +91,7 @@
       :enable t :exit t :map-inject t)
      ("y" elfeed-kill-link-url-at-point "Copy current entry's link"
       :enable t :exit t :map-inject t)
-     ("TAB" elfeed-show-next-link "Jump to next link"
+     ("f" elfeed-show-fetch-link "Fetch link content and insert it"
       :enable t :exit t :map-inject t)
      ("b" elfeed-show-visit "Show current entry in browser"
       :enable t :exit t :map-inject t))
@@ -392,7 +392,6 @@ fetching guard procedure."
       (entropy/emacs-rss--elfeed-update/cancel-all-timer)
       (elfeed-unjam)))
 
-  (defvar __elfeed-orig-curl-args elfeed-curl-extra-arguments)
   (defvar entropy/emacs-rss--elfeed-update/current-filter nil)
   (defvar entropy/emacs-rss--elfeed-update/fetch-common-feeds/guard-timer nil)
   (defun entropy/emacs-rss--elfeed-update/cancel-common-feeds-gurad-timer ()
@@ -413,8 +412,7 @@ fetching guard procedure."
               nil
               entropy/emacs-rss--elfeed-update/fetching-running-p
               nil
-              elfeed-curl-extra-arguments
-              __elfeed-orig-curl-args))))
+              ))))
 
   (defun entropy/emacs-rss--elfeed-update/cancel-all-timer ()
     (unwind-protect
@@ -450,8 +448,6 @@ fetching guard procedure."
       (unwind-protect
           (progn
             (message "Update proxy feeds done")
-            (setq elfeed-curl-extra-arguments
-                  __elfeed-orig-curl-args)
             (entropy/emacs-rss--elfeed-update/set-search-filter
              'after))
         (entropy/emacs-rss--elfeed-update/cancel-proxy-feeds-gurad-timer))))
@@ -462,19 +458,11 @@ fetching guard procedure."
       (unless entropy/emacs-rss--elfeed-update/fetching-running-p
         (progn
           (setq entropy/emacs-rss--elfeed-use-proxy-p t)
-          (setq __elfeed-orig-curl-args elfeed-curl-extra-arguments)
-          (setq elfeed-curl-extra-arguments
-                `("-x" ,(format "http://%s:%s"
-                                (plist-get entropy/emacs-union-http-proxy-plist :host)
-                                (plist-get entropy/emacs-union-http-proxy-plist :port))))
-
           ;; must flag the running indicator first
           (setq entropy/emacs-rss--elfeed-update/fetching-running-p t)
           (entropy/emacs-unwind-protect-unless-success
               (elfeed-update)
-            (setq elfeed-curl-extra-arguments
-                  __elfeed-orig-curl-args
-                  entropy/emacs-rss--elfeed-update/fetching-running-p
+            (setq entropy/emacs-rss--elfeed-update/fetching-running-p
                   nil)))
         (unless (timerp entropy/emacs-rss--elfeed-update/fetch-proxy-feeds/guard-timer)
           (setq entropy/emacs-rss--elfeed-update/fetch-proxy-feeds/guard-timer
@@ -579,6 +567,20 @@ So we automatically help you to change to `curl' mode."))
             (if use-proxy "<use-proxy>" "<non-proxy>")
             (apply #'format fmt objects)))))))
   (advice-add 'elfeed-log :override #'__ya/elfeed-log)
+
+  (defun entropy/emacs-rss--elfeed-curl-args (ofunc &rest oargs)
+    (let ((use-proxy-p entropy/emacs-rss--elfeed-use-proxy-p))
+      (if (not use-proxy-p) (apply ofunc oargs)
+        (let ((elfeed-curl-extra-arguments
+               (append
+                `("-x" ,(format "http://%s:%s"
+                                (plist-get entropy/emacs-union-http-proxy-plist :host)
+                                (plist-get entropy/emacs-union-http-proxy-plist :port)))
+                elfeed-curl-extra-arguments)))
+          (message "Using curl proxy for %s ..." (car oargs))
+          (apply ofunc oargs)))))
+  (advice-add 'elfeed-curl--args
+              :around #'entropy/emacs-rss--elfeed-curl-args)
 
 ;; *** utilities
   (defun entropy/emacs-rss--elfeed-list-feeds ()
@@ -1160,6 +1162,20 @@ the entry contents since we should respect
             (elfeed-show-refresh))))))
   (advice-add 'elfeed-show-entry
               :override #'__ya/elfeed-show-entry)
+
+;; *** patch `elfeed-show-fetch-link'
+
+  (defun entropy/emacs-rss--elfeed-show-fetch-link (ofunc &rest oargs)
+    (let (use-proxy-p)
+      (when-let* ((entry elfeed-show-entry)
+                  (feed (elfeed-entry-feed entry))
+                  (feed-url (elfeed-feed-url feed))
+                  (pl (alist-get feed-url entropy/emacs-elfeed-feeds
+                                 nil nil 'string=)))
+        (setq use-proxy-p (plist-get pl :use-proxy)))
+      (let ((entropy/emacs-rss--elfeed-use-proxy-p use-proxy-p))
+        (apply ofunc oargs))))
+  (advice-add 'elfeed-show-fetch-link :around #'entropy/emacs-rss--elfeed-show-fetch-link)
 
 ;; *** patch `elfeed-curl--call-callback'
 
