@@ -3585,13 +3585,6 @@ Do you want to open it with messy?"
                   (bookmark-file .  ,(funcall gestffpth "bookmarks"))
                   (recentf-save-file . ,(funcall gestffpth "recentf"))
                   (tramp-persistency-file-name . ,(funcall gestffpth "tramp"))
-                  (auto-save-list-file-prefix
-                   .
-                   ,(cond ((eq system-type 'ms-dos)
-                           ;; MS-DOS cannot have initial dot, and allows only 8.3 names
-                           (funcall gestffpth "auto-save.list/_s"))
-                          (t
-                           (funcall gestffpth "auto-save-list/.saves-"))))
                   ;; savehist caches
                   (savehist-file . ,(funcall gestffpth "history"))
                   (save-place-file . ,(funcall gestffpth "places"))

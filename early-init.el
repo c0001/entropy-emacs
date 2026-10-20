@@ -62,6 +62,17 @@ emacs upstream")
 (defconst entropy/emacs-eln-cache-directory
   (expand-file-name "emacs/emacs-eln-cache" entropy/emacs-stuffs-topdir))
 
+;; `auto-save-list-file-prefix' must be set before load init.el as its
+;; commentary defined.
+(setq auto-save-list-file-prefix
+      (expand-file-name
+       (format "emacs/%s"
+               (cond ((eq system-type 'ms-dos)
+                      ;; MS-DOS cannot have initial dot, and allows only 8.3 names
+                      "auto-save.list/_s")
+                     (t "auto-save-list/.saves-")))
+       entropy/emacs-stuffs-topdir))
+
 (defun entropy/emacs-native-comp-eln-load-path-set (&optional reset)
   ;; redirect `native-comp-eln-load-path' to store elns to alternative path
   (when (boundp 'native-comp-eln-load-path)
