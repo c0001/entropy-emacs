@@ -199,7 +199,6 @@
        memory-usage
        minions
        moedict
-       multi-term
        multiple-cursors
        names
        neotree
