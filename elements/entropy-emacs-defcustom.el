@@ -3264,12 +3264,6 @@ thus."
           (throw :exit t)))
       nil)))
 
-(defconst entropy/emacs-unreadable-buffer-so-long-threshold 1000)
-(defvar entropy/emacs-unreadable-file-judge-function nil
-  "The eemacs file unreadable judger, usually it store a function
-but aslo can be nil, so used after using `functionp' to check
-as.")
-
 (defvar entropy/emacs-unreadable-file-unjuge-cases-predicates nil
   "A list of unjudge predicates for
 `entropy/emacs-unreadable-file-unjuge-cases' for filtered
@@ -3295,51 +3289,67 @@ list return t i.e. inidcate to unjudge for as.")
       ;; TODO add more unjudge predicates
       )))
 
-(setq entropy/emacs-unreadable-file-judge-function
-      (lambda (filename)
-        (let* ((inhibit-read-only t)
-               (f-readp (file-readable-p filename))
-               (f-existp (file-exists-p filename))
-               (fsize-max (entropy/emacs-large-file-warning-threshold-get))
-               (fsize (and
-                       f-readp f-existp
-                       (file-attribute-size (file-attributes filename)))))
-          (catch :exit
-            ;; firstly we should escape check when matching unjudge cases
-            (when (entropy/emacs-unreadable-file-unjuge-cases filename)
-              (throw :exit nil))
-            (cond (
-                   ;; Fistly we just determin the filesize limitation
-                   (and fsize (> fsize fsize-max))
-                   t)
-                  ;; and then we detect with `entropy/emacs-unreadable-buffer-judge-function'
-                  (t
-                   (with-temp-buffer
-                     (when
-                         ;; Just judge existed and readable file so we
-                         ;; ignore errors for the reading procedure.
-                         (ignore-errors (insert-file-contents filename))
-                       (when (functionp entropy/emacs-unreadable-buffer-judge-function)
-                         (funcall entropy/emacs-unreadable-buffer-judge-function
-                                  (current-buffer)))))))))))
-
-(defvar entropy/emacs-unreadable-buffer-judge-function nil
+(defcustom entropy/emacs-unreadable-buffer-judge-function
+  (lambda (buff)
+    (with-current-buffer buff
+      (or (> (buffer-size)
+             (entropy/emacs-large-file-warning-threshold-get))
+          (progn
+            (entropy/emacs-check-buffer-has-long-line-p
+             nil
+             entropy/emacs-unreadable-buffer-so-long-threshold
+             (when (version< emacs-version "28.0.91")
+               (save-excursion
+                 (goto-char (point-max))
+                 (line-number-at-pos))))))))
   "The eemacs buffer unreadable judger, usually it store a function
 but aslo can be nil, so used after using `functionp' to check
-as.")
-(setq entropy/emacs-unreadable-buffer-judge-function
-      (lambda (buff)
-        (with-current-buffer buff
-          (or (> (buffer-size)
-                 (entropy/emacs-large-file-warning-threshold-get))
-              (progn
-                (entropy/emacs-check-buffer-has-long-line-p
-                 nil
-                 entropy/emacs-unreadable-buffer-so-long-threshold
-                 (when (version< emacs-version "28.0.91")
-                   (save-excursion
-                     (goto-char (point-max))
-                     (line-number-at-pos)))))))))
+as."
+  :group 'entropy/emacs-customize-group-for-fundametal-configuration
+  :type 'sexp
+  :safe #'(lambda (x) (or (eq x nil) (functionp x))))
+
+(defconst entropy/emacs-unreadable-buffer-so-long-threshold 1000)
+(defcustom entropy/emacs-unreadable-file-judge-function
+  (lambda (filename)
+    (let* ((inhibit-read-only t)
+           (f-readp (file-readable-p filename))
+           (f-existp (file-exists-p filename))
+           (fsize-max (entropy/emacs-large-file-warning-threshold-get))
+           (fsize (and
+                   f-readp f-existp
+                   (file-attribute-size (file-attributes filename)))))
+      (catch :exit
+        ;; firstly we should escape check when matching unjudge cases
+        (when (entropy/emacs-unreadable-file-unjuge-cases filename)
+          (throw :exit nil))
+        (and fsize (> fsize fsize-max)))))
+  "The eemacs file unreadable judger, usually it store a function
+but aslo can be nil, so used after using `functionp' to check
+as."
+  :group 'entropy/emacs-customize-group-for-fundametal-configuration
+  :type 'sexp
+  :safe #'(lambda (x) (or (eq x nil) (functionp x))))
+(defun entropy/emacs-call--unreadable-file-judge-function (filename)
+  (let* ((fname (directory-file-name (file-truename filename)))
+         (defdir (file-name-directory fname))
+         (fvar 'entropy/emacs-unreadable-file-judge-function)
+         fvar-in-p fval
+         (bvar 'entropy/emacs-unreadable-buffer-judge-function)
+         bvar-in-p bval)
+    (with-temp-buffer
+      (setq default-directory defdir)
+      (hack-dir-local-variables-non-file-buffer)
+      (when (setq fvar-in-p (assoc fvar dir-local-variables-alist))
+        (setq fval (alist-get fvar dir-local-variables-alist)))
+      (when (setq bvar-in-p (assoc bvar dir-local-variables-alist))
+        (setq bval (alist-get bval dir-local-variables-alist)))
+      (let ((entropy/emacs-unreadable-buffer-judge-function
+             (if bvar-in-p bval entropy/emacs-unreadable-buffer-judge-function)))
+        (if fvar-in-p (and (functionp fval) (funcall fval filename))
+          (and (functionp entropy/emacs-unreadable-file-judge-function)
+               (funcall entropy/emacs-unreadable-file-judge-function
+                        filename)))))))
 
 ;; ** entropy-emacs initialize
 ;; *** basic setting
@@ -3415,105 +3425,26 @@ origin config file."
 ;; **** find file patch
 ;; ***** unreadable file detection
 
-(defun __ureadable-file-do-prompt-of-message (format &rest args)
-  (or (yes-or-no-p (apply #'entropy/emacs-safety-format format args))
-      (user-error "Abort!")))
-
-(defun entropy/emacs-unreadable-file-advice-for-finid-file
-    (orig-func &rest orig-args)
-  (if (and
-       ;; just used in startup done occasion
-       (bound-and-true-p entropy/emacs-startup-done)
-       (functionp entropy/emacs-unreadable-file-judge-function)
-       ;; ignore any existed buffer matched FILENAME
-       (not (find-buffer-visiting (car orig-args)))
-       ;; Not remote file
-       (not (file-remote-p (car orig-args)))
-       ;; Not judge for magic filename handler for
-       ;; `openwith-file-handler', since its open with external
-       ;; app.
-       (not (entropy/emacs-find-file-judge-filename-need-open-with-external-app-p
-             (car orig-args)))
-       ;; the file must not be a emacs internally specialed handled type
-       (not (entropy/emacs-find-file-judge-filename-is-emacs-intspecially-p
-             (car orig-args))))
-      (let* ((error-fmtstr
-              "File '%s' is not readable e.g. its may freeze emacs, Abort!")
-             (filename (car orig-args))
-             (wildcards (cadr orig-args))
-             (unreadable (if wildcards 'multifiles
-                           (funcall entropy/emacs-unreadable-file-judge-function
-                            filename))))
-        (cond ((null unreadable)
-               (apply orig-func orig-args))
-              ((eq unreadable 'multifiles)
-               (let ((files (condition-case nil
-                                (file-expand-wildcards filename t)
-                              (error (list filename))))
-                     (counts 0))
-                 (dolist (file files)
-                   (when (funcall entropy/emacs-unreadable-file-judge-function file)
-                     (cl-incf counts)
-                     (warn
-                      (format "[%s] %s"
-                              counts
-                              (format error-fmtstr file)))))
-                 (when (> counts 0)
-                   (__ureadable-file-do-prompt-of-message
-                    (format "There's %s file are unreadable e.g. which may freeze emacs, \
-for guaranteeing the current emacs session workable, eemacs refuse this find-file action. \
-Do you want to open it with messy?"
-                            counts)))
-                 (let (
-                       ;; prevent internal `abort-if-file-too-large'
-                       ;; prompts since we've judged yet
-                       (large-file-warning-threshold most-positive-fixnum))
-                   (apply orig-func orig-args))))
-              (t
-               (__ureadable-file-do-prompt-of-message
-                (format "File '%s' is not readable e.g. its may freeze emacs, \
-Do you want to open it with messy?"
-                        filename))
-               (let ((large-file-warning-threshold most-positive-fixnum))
-                 (apply orig-func orig-args)))))
-    (apply orig-func orig-args)))
-
-(advice-add 'find-file
-            :around
-            #'entropy/emacs-unreadable-file-advice-for-finid-file)
-
 (defun entropy/emacs-abort-if-file-too-large (orig-func &rest orig-args)
   "Like `abort-if-file-too-large' but escape judge in some cases."
   (let ((filename (nth 2 orig-args)))
     (if (and
-         ;; just usage in init done occasion
+         ;; just used in startup done occasion
          (bound-and-true-p entropy/emacs-startup-done)
-         (or
-          ;; ignore any existed buffer matched FILENAME
-          (find-buffer-visiting filename)
-          ;; ingore external open needed FILENAME
-          (entropy/emacs-find-file-judge-filename-need-open-with-external-app-p
-           filename)
-
-          ;; Ignore file which is a emacs internally specialed handled type
-          ;;
-          ;; FIXME: shall we need to escape this? since a large
-          ;; internally handled type file may also freeze emacs, or we
-          ;; should use another tunny way?
-          ;;
-          ;; (entropy/emacs-find-file-judge-filename-is-emacs-intspecially-p
-          ;;  filename)
-
-          ;; prevent duplicated call, since the
-          ;; `entropy/emacs-unreadable-file-advice-for-finid-file'
-          ;; may did the same
-          (and
-           ;; must check `large-file-warning-threshold' whether null,
-           ;; since it can be nil in its API documentation description.
-           large-file-warning-threshold
-           (= large-file-warning-threshold most-positive-fixnum))
-          ;; matched unjudge cases
-          (entropy/emacs-unreadable-file-unjuge-cases filename)))
+         ;; ignore any existed buffer matched FILENAME
+         (not (find-buffer-visiting filename))
+         ;; Not remote file
+         (not (file-remote-p filename))
+         ;; Not judge for magic filename handler for
+         ;; `openwith-file-handler', since its open with external
+         ;; app.
+         (not (entropy/emacs-find-file-judge-filename-need-open-with-external-app-p
+               filename))
+         ;; the file must not be a emacs internally specialed handled type
+         (not (entropy/emacs-find-file-judge-filename-is-emacs-intspecially-p
+               filename))
+         ;; the main eemacs unreadable judge
+         (not (entropy/emacs-call--unreadable-file-judge-function filename)))
         (let ((large-file-warning-threshold most-positive-fixnum))
           (apply orig-func orig-args))
       (apply orig-func orig-args))))
