@@ -150,6 +150,13 @@ pages."
         (user-error "No defs for query: %s" query))
       (setq entropy/cndt--doc-buffer
             (get-buffer-create entropy/cndt-buffer-name t))
+      ;; ensure `default-directory' bind to old created doc buffer
+      ;; existence or error of setting default-directory will thrown
+      ;; out for new queries.
+      (unless (eq (current-buffer) entropy/cndt--doc-buffer)
+        (let ((defdir default-directory))
+          (with-current-buffer entropy/cndt--doc-buffer
+            (setq default-directory defdir))))
       (entropy/cndt--render-doc doc t)
       (display-buffer entropy/cndt--doc-buffer))))
 
