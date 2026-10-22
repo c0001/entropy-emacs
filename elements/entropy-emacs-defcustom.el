@@ -3289,6 +3289,12 @@ list return t i.e. inidcate to unjudge for as.")
       ;; TODO add more unjudge predicates
       )))
 
+(defcustom entropy/emacs-unreadable-buffer-so-long-threshold
+  10000
+  "As `so-long-threshold' but used in eemacs spec."
+  :group 'entropy/emacs-customize-group-for-fundametal-configuration
+  :type 'number
+  :safe 'natnump)
 (defcustom entropy/emacs-unreadable-buffer-judge-function
   (lambda (buff)
     (with-current-buffer buff
@@ -3309,7 +3315,6 @@ as."
   :type 'sexp
   :safe #'(lambda (x) (or (eq x nil) (functionp x))))
 
-(defconst entropy/emacs-unreadable-buffer-so-long-threshold 1000)
 (defcustom entropy/emacs-unreadable-file-judge-function
   (lambda (filename)
     (let* ((inhibit-read-only t)
