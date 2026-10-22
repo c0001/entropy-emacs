@@ -2966,6 +2966,13 @@ module."
             (executable-find "cmake"))
        t))
 
+(defun entropy/emacs-posframe-adapted-p (&optional frame)
+  "Judge whether posframe can be used in current emacs session."
+  (or
+   (> emacs-major-version 30)
+   (and (not (version< emacs-version "26.1"))
+        (display-graphic-p frame))))
+
 ;; *** `require' eemacs internal enhancement?
 
 (defun entropy/emacs-top-improvements-for-require (orig-func &rest orig-args)
